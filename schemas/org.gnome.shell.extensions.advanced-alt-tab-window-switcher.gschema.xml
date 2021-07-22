@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<schemalist>
+  <schema id='org.gnome.shell.extensions.power-alt-tab-window-switcher'>
+    <key name='win-switch-skip-minimized' type='b'>
+      <default>false</default>
+    </key>
+    <key name='win-switcher-popup-show-immediately' type='b'>
+      <default>false</default>
+    </key>
+    <key name='win-switcher-popup-start-search' type='b'>
+      <default>false</default>
+    </key>
+    <key name='win-switcher-popup-position' type='i'>
+      <default>2</default>
+    </key>
+    <key name='win-switcher-popup-pointer' type='b'>
+      <default>true</default>
+    </key>
+    <key name='win-switcher-popup-ws-indexes' type='b'>
+      <default>true</default>
+    </key>
+    <key name='win-switcher-popup-hot-keys' type='b'>
+      <default>true</default>
+    </key>
+    <key name='win-switcher-popup-win-order' type='i'>
+      <default>1</default>
+    </key>
+    <key name='win-switcher-popup-win-filter' type='i'>
+      <default>1</default>
+    </key>
+    <key name='win-switcher-popup-timeout' type='i'>
+      <default>100</default>
+    </key>
+    <key name='win-switcher-popup-pointer-timeout' type='i'>
+      <default>600</default>
+    </key>
+    <key name='win-switcher-popup-size' type='i'>
+      <default>128</default>
+    </key>
+    <key name='win-switcher-popup-icon-size' type='i'>
+      <default>48</default>
+    </key>
+    <key name='win-thumbnail-scale' type='i'>
+      <default>15</default>
+    </key>
+    <key name='ws-switch-ignore-last' type='b'>
+      <default>false</default>
+    </key>
+    <key name='ws-switch-wrap' type='b'>
+      <default>false</default>
+    </key>
+    <key name='ws-switch-indicator' type='b'>
+      <default>true</default>
+    </key>
+    <key name='ws-switch-indicator-mode' type='i'>
+      <default>4</default>
+    </key>
+  </schema>
+</schemalist>
