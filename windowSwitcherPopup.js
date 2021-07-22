@@ -460,7 +460,7 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
                 this._showSelectedWindow(this._selectedIndex);
         }
 
-        else if (keysym === Clutter.KEY_w || keysym === Clutter.KEY_W || (keysym ===Clutter.KEY_Delete && _shiftPressed()))
+        else if (keysym === Clutter.KEY_w || keysym === Clutter.KEY_W)
                 this._closeWindow(this._selectedIndex);
 
         // make thumbnail of selected window
