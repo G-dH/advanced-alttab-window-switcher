@@ -295,7 +295,7 @@ var Actions = class {
                         x: position.length ? position[0] : geometry.x,
                         y: position.length ? position[1] : geometry.y + (geometry.height / 2),
                         width: geometry.width,
-                        style_class: 'workspace-overlay',
+                        style_class: 'workspace-index-overlay',
                         reactive: true
             });
             Main.layoutManager.addChrome(this._wsOverlay);
