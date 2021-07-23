@@ -1,7 +1,7 @@
 # Advanced Alt+Tab Window Switcher
-Extension for Gnome Shell desktop environment, a replacement for default Window Switcher Popup
+Extension for Gnome Shell, replacement of default Window Switcher Popup
 
-Advanced Alt+Tab Window Switcher offers effective window navigation that includes switching workspaces, type to search and wide palette of window control hotkeys.
+*Advanced Alt+Tab Window Switcher* offers effective navigation between windows, including direct window activation, type to search mode, various filtering and sorting settings, workspace switching and hotkeys for window control.
 
 ## Features:
 
