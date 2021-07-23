@@ -269,11 +269,14 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
     _setSwitcherInfo() {
         this._switcherList._infoLabel.set_text(
 
-                    (this._searchEntry !== null ? _('Serach:') + ' ' + this._searchEntry : '') + '  '
+                    (this._searchEntry !== null ? _('Search:') + ' ' + this._searchEntry : '') + '  '
                     + _('Filter: ') + FilterModeLabels[this.WIN_FILTER_MODE] 
                     + (this._selectApp? '/' + _('APP') : '') + ',  '
                     + _('Order: ') + SortModeLabels[this.SORT_MODE]
-                                                );
+        );
+        if (this._searchEntry !== null) {
+            this._showWsIndex().set_text(this._searchEntry);
+        }
     }
 
     // just to move the indicator popup in order to not colide with the switcher
@@ -282,9 +285,14 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
             return;
         let monitorIndex = global.display.get_current_monitor();
         let geometry = global.display.get_monitor_geometry(monitorIndex);
-        let x = geometry.x;
-        let y = geometry.y + (this.POPUP_POSITION === Positions.CENTER ? geometry.height / 3 + this._switcherList.height : geometry.height / 2);
-        this._actions.showWorkspaceIndex([x,y], 60000);
+        //let y = geometry.y;// + (this.POPUP_POSITION === Positions.CENTER ? geometry.height / 3 + this._switcherList.height : geometry.height / 2);
+        let wsLabel = this._actions.showWorkspaceIndex([], 60000);
+        if (this.POPUP_POSITION === Positions.BOTTOM) {
+            wsLabel.y = Math.floor((geometry.height - this._switcherList.height - wsLabel.height));
+        } else {
+            wsLabel.y = Math.floor((geometry.height + this._switcherList.height) / 2);
+        }
+        return wsLabel;
     }
 
     _writeFlagsToIconLabels(items) {
@@ -383,18 +391,19 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
                 else this._select(index); //this._switcherList.highlight(index);
             }
         }
-        else if (this._searchEntry !== null && keysym === Clutter.KEY_BackSpace) {
-            this._searchEntry = this._searchEntry.slice(0, -1);
-            this.show();
-            return Clutter.EVENT_STOP;
+        else if (this._searchEntry !== null && !_shiftPressed()) {
+            if ( keysym === Clutter.KEY_BackSpace) {
+                this._searchEntry = this._searchEntry.slice(0, -1);
+                this.show();
+                return Clutter.EVENT_STOP;
+            }
+            else if (this._searchEntry !== null && ((keysymName.length === 1 && (/[a-zA-Z0-9]/).test(keysymName)) || keysym === Clutter.KEY_space)) {
+                if (keysymName === 'space') keysymName = ' ';
+                this._searchEntry += keysymName;
+                this.show();
+                return Clutter.EVENT_STOP;
+            }
         }
-        else if (this._searchEntry !== null && ((keysymName.length === 1 && (/[a-zA-Z0-9]/).test(keysymName)) || keysym === Clutter.KEY_space)) {
-            if (keysymName === 'space') keysymName = ' ';
-            this._searchEntry += keysymName;
-            this.show();
-            return Clutter.EVENT_STOP;
-        }
-
         if (action == Meta.KeyBindingAction.SWITCH_WINDOWS
                 || ((   keysym === Clutter[`KEY_${this._keyBind.toUpperCase()}`]
                      || keysym === Clutter[`KEY_${this._keyBind.toLowerCase()}`]
@@ -424,21 +433,21 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
                 this._select(this._previous());
 
         // implement VIM text navigation keys hjkl
-        else if (keysym == Clutter.KEY_Left  || keysym == Clutter.KEY_h         || keysym == Clutter.KEY_H) {
+        else if (keysym == Clutter.KEY_Left || keysym == Clutter.KEY_h || keysym == Clutter.KEY_H) {
                 this._select(this._previous());
                 //this._showSelectedWindow(this._selectedIndex);
             }
 
-        else if (keysym == Clutter.KEY_Right || keysym == Clutter.KEY_l         || keysym == Clutter.KEY_L) {
+        else if (keysym == Clutter.KEY_Right || keysym == Clutter.KEY_l || keysym == Clutter.KEY_L) {
                 this._select(this._next());
                 //this._showSelectedWindow(this._selectedIndex);
             }
 
-        else if (keysym == Clutter.KEY_Up    || keysym == Clutter.KEY_Page_Up   || keysym == Clutter.KEY_k || keysym == Clutter.KEY_K) {
+        else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || keysym == Clutter.KEY_k || keysym == Clutter.KEY_K) {
                 this._switchWorkspace(Clutter.ScrollDirection.UP);
         }
 
-        else if (keysym == Clutter.KEY_Down  || keysym == Clutter.KEY_Page_Down || keysym == Clutter.KEY_j || keysym == Clutter.KEY_J) {
+        else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || keysym == Clutter.KEY_j || keysym == Clutter.KEY_J) {
                 this._switchWorkspace(Clutter.ScrollDirection.DOWN);
         }
 
@@ -468,8 +477,22 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
                 this._actions.makeThumbnailWindow(this._items[this._selectedIndex].window);
 
         // move selected window to current workspace
-        else if (keysym === Clutter.KEY_m || keysym === Clutter.KEY_M || keysym === Clutter.KEY_x || keysym === Clutter.KEY_X) {
+        else if (keysym === Clutter.KEY_x || keysym === Clutter.KEY_X) {
             this._moveSelectedWindowToCurrentWs();
+        }
+
+        else if (keysym === Clutter.KEY_m || keysym === Clutter.KEY_M) {
+            if (this._selectedIndex < 0) return;
+            let win = this._items[this._selectedIndex].window;
+            let id = win.get_id();
+            let min = win.minimized;
+            if (min) {
+                win.unminimize();
+            } else {
+                win.minimize();
+            }
+            this.show();
+            this._select(this._getItemIndexByID(id));
         }
 
         else if (keysym === Clutter.KEY_plus || keysym === Clutter.KEY_1) {
@@ -547,13 +570,22 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
                 this.show();
                 this._select(this._getItemIndexByID(id));
         }
-        else if (keysym === Clutter.KEY_o || keysym === Clutter.KEY_O) {
+        else if (keysym === Clutter.KEY_g || keysym === Clutter.KEY_G) {
             let id = this._items[this._selectedIndex].window.get_id();
             if (this.SORT_MODE === SortModes.WORKSPACES)
                  this.SORT_MODE = this._defaultOrder;
             else this.SORT_MODE = SortModes.WORKSPACES;
             this.show();
             this._select(this._getItemIndexByID(id));
+        }
+        else if (keysym === Clutter.KEY_o || keysym === Clutter.KEY_O) {
+            this.fadeAndDestroy();
+            // Pressing the apps btn before overview activation avoids icons animation in GS 3.36/3.38
+            Main.overview.dash.showAppsButton.checked = true;
+            // in 3.36 pressing the button is usualy enough to activate overview, but not always
+            Main.overview.show();
+            // pressing apps btn before overview has no effect in GS 40, so once again
+            Main.overview.dash.showAppsButton.checked = true;
         }
         else if (keysym === Clutter.KEY_p || keysym === Clutter.KEY_P) {
             Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
@@ -898,7 +930,7 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
         let ws = global.workspace_manager.get_active_workspace();
         let win = windowIcon.window;
         win.change_workspace(ws);
-        let targetMonitorIndex  = global.display.get_current_monitor();
+        let targetMonitorIndex = global.display.get_current_monitor();
         let currentMonitorIndex = win.get_monitor();
         if ( currentMonitorIndex !== targetMonitorIndex) {
             // move window to target monitor
@@ -980,6 +1012,9 @@ class WindowIcon extends St.BoxLayout {
             base  = clone;
             front = icon;
         }
+
+        if (this.window.minimized)
+            front.opacity = 80;
 
         this._alignFront(front);
 
