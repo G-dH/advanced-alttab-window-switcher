@@ -29,8 +29,8 @@ var   GNOME40 = shellVersion.startsWith("40")?
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 var _ = Gettext.gettext;
 
-const _schema = 'org.gnome.shell.extensions.power-alt-tab-window-switcher';
-const _path = '/org/gnome/shell/extensions/power-alt-tab-window-switcher';  
+const _schema = 'org.gnome.shell.extensions.advanced-alt-tab-window-switcher';
+const _path = '/org/gnome/shell/extensions/advanced-alt-tab-window-switcher';  
 
 var MscOptions = class MscOptions {
     constructor() {
