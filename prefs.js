@@ -194,7 +194,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Bring window to the front immediately when selected'),
+                _('Show window immediately when selected'),
                 _("Switch to window's workspace and bring the window to the front immediately after it's selected in the switcher."),
                 _newGtkSwitch(),
                 'winSwitcherPopupShowImmediately'
