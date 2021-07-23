@@ -1,4 +1,4 @@
-# Advanced AltTab Window Switcher
+# Advanced Alt+Tab Window Switcher
 Extension for Gnome Shell desktop environment, a replacement for default Window Switcher Popup
 
 Advanced Alt+Tab Window Switcher offers effective window navigation that includes switching workspaces, type to search and wide palette of window control hotkeys.
@@ -8,16 +8,17 @@ Advanced Alt+Tab Window Switcher offers effective window navigation that include
 - Optional default filter settings : *All windows / Current workspace / Current monitor*, plus *Skip minimized* option.
 - Optional default order settings: *Deafault Most Recently Used / Current workspace first / Group applications / Workspaces*.
 - All filter and most of order modes can be switched on the fly by hotkeys while switcher popup is up.
-- Switching workspaces using a keyboard or a mouse scroll wheel outside the switcher popup.
-- Type to Search - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode, so you can type immediately as the popup shows up.
-- Walk through the window list by applications.
+- Switch workspaces using a keyboard or a mouse scroll wheel outside the switcher popup.
+- Type to Search mode - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode, so you can type immediately as the popup shows up.
+- Sort and iterate through window list by applications instead of windows by hotkey
 - Customizable window preview and app icon sizes. The larger one is used as the base and the smaller as the front icon.
-- Front element at TOP position instead of default BOTTOM indicates whether the window is set as `Always on Top`. Of course you can control this window state right from the switcher.
-- Pin icon indicates whether the window is set as `Always on Visible Workspace` and you can control it.
+- `Always on Top` property of selected window can be controled from the switcher and is indicated by the TOP position of the icon (or the preview if smaller) instead of default BOTTOM.
+- Pin icon indicates whether the window is set as `Always on Visible Workspace` and you can control it from the switcher.
 - Optional workspace index on each window item.
 - Direct window activation via `Fn` keys with optional `Fn` key indicator on each window in the list.
 - Optionaly windows can be brought to the front immediatey as they are selected, otherwise you can press dedicated hotkey to do it.
 - Make live window previews as a thumbnails that you can place anywhere on the screen and is always on top. This thumbnail can be controlled and can control the source window as described below.
+
 
 ### Hotkeys
 
@@ -35,7 +36,7 @@ Advanced Alt+Tab Window Switcher offers effective window navigation that include
     C                       - close all windows from window list that belongs to the same application as selected window
     A                       - toggle window Always on Top. Also switch to window workspace and rise the window. Indicated by front icon on top instead of bottom.
     S                       - toggle window Always on Visible Workspace, indicated by pin icon
-    X                       - move selected window to the current workspace and to the monitor with mouse pointer
+    X/click outside switcher- move selected window to the current workspace and to the monitor with mouse pointer
     N                       - create New Window of selected application, if the app soupports it
     V                       - Move window to selected workspace and maximize it
     F                       - Move window to empty workspace next to its current workspace and switch it to fullscreen mode. Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
