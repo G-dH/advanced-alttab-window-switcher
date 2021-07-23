@@ -65,7 +65,8 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
     _init(constructProperties = {   hscrollbar_policy: Gtk.PolicyType.NEVER,
                                     vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
-                                    vexpand : true
+                                    vexpand : true,
+                                    hexpand : true
                                 }) {
         super._init(constructProperties);
 
