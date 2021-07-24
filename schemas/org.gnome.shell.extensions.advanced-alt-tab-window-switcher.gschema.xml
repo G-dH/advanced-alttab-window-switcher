@@ -47,6 +47,9 @@
     <key name='ws-switch-ignore-last' type='b'>
       <default>false</default>
     </key>
+     <key name='win-switcher-popup-search-all' type='b'>
+      <default>false</default>
+    </key>
     <key name='ws-switch-wrap' type='b'>
       <default>false</default>
     </key>

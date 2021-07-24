@@ -18,46 +18,39 @@ const {Gtk, Gdk, GLib, GObject} = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
-let   notebook;
 let   mscOptions;
 
 
 // gettext
 const _  = Settings._;
 
-let GNOME40;
-let WAYLAND;
-
 function init() {
     //log(`initializing ${Me.metadata.name} Preferences`);
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    GNOME40 = Settings.GNOME40;
-//    WAYLAND = GLib.getenv('XDG_SESSION_TYPE') === 'wayland';
     mscOptions = new Settings.MscOptions();
 }
 
 function buildPrefsWidget() {
-    const prefsWidget = new Gtk.Grid();
-    notebook = new Gtk.Notebook({
-        tab_pos: Gtk.PositionType.LEFT
+    let notebook = new Gtk.Notebook({
+        tab_pos: Gtk.PositionType.LEFT,
+        visible: true
     });
     
-    prefsWidget.attach(notebook, 0, 0, 1, 1);
-
     const optionsPage = new WsOptionsPage();
-    notebook.append_page(optionsPage , new Gtk.Label({ label: _('Options'), halign: Gtk.Align.START}));
+    optionsPage.buildPage();
+    notebook.append_page(optionsPage , new Gtk.Label({ label: _('Options'),
+                                                       halign: Gtk.Align.START,
+                                                       visible: true
+                                                    })
+    );
 
-
-    notebook.get_nth_page(0).buildPage();
-    notebook.set_current_page(0);
-    notebook.connect('switch-page', (notebook, page, index) => {
+    //notebook.get_nth_page(0).buildPage();
+    //notebook.set_current_page(0);
+    /*notebook.connect('switch-page', (notebook, page, index) => {
             page.buildPage();
-    });
-    if (!GNOME40) {
-        //prefsWidget.connect('destroy', Gtk.main_quit);
-        prefsWidget.show_all();
-    }
-    return prefsWidget;
+    });*/
+
+    return notebook;
 }
 
 const WsOptionsPage = GObject.registerClass(
@@ -74,14 +67,15 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
     }
 
     buildPage() {
-        if (this._alreadyBuilt) return false;
+        //if (this._alreadyBuilt) return false;
         const mainBox = new Gtk.Box({     orientation: Gtk.Orientation.VERTICAL,
                                     spacing:       10,
                                     homogeneous:   false,
                                     margin_start:  12,
                                     margin_end:    20,
                                     margin_top:    12,
-                                    margin_bottom: 12    })
+                                    margin_bottom: 12,
+                                    visible:       true    })
 
         let optionsList = [];
         // options item format:
@@ -210,6 +204,15 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
             )
         );
 
+        optionsList.push(
+            _optionsItem(
+                _('Search all'),
+                _('Switch filter mode (if possible) when no search results in selected filter mode'),
+                _newGtkSwitch(),
+                'winSwitcherPopupSearchAll'
+            )
+        );
+
         let popupTimeoutAdjustment = new Gtk.Adjustment({
                 upper:            400,
                 lower:             10,
@@ -264,8 +267,8 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _makeTitle(_('DND Windows Thumbnails:')),
-                _('Window thumbnails are overlay clones of windows, can be draged by mouse anywhere on the screen.') + '\n'
+                _makeTitle(_('DND Window Thumbnails:')),
+                _('Window thumbnails are overlay clones of windows, can be dragged and dropped by mouse anywhere on the screen.') + '\n'
                 + _('Thumbnail control:') + '\n    '
                 + _('Double click:    \t\tactivate source window') +  '\n    '
                 + _('Primary click:   \t\ttoggle scroll wheel function (resize / source)') + '\n    '
@@ -334,16 +337,18 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
         let frameBox;
         for (let item of optionsList) {
             if (!item[0][1]) {
-                let lbl = new Gtk.Label();
+                let lbl = new Gtk.Label({visible: true});
                     lbl.set_markup(item[0][0]);
                     if (item[1])
                         lbl.set_tooltip_text(item[1]);
                 frame = new Gtk.Frame({
-                    label_widget: lbl
+                    label_widget: lbl,
+                    visible: true
                 });
                 frameBox = new Gtk.ListBox({
                     selection_mode: null,
                     can_focus: false,
+                    visible: true
                 });
                 mainBox[mainBox.add?'add':'append'](frame);
                 frame[frame.add?'add':'set_child'](frameBox);
@@ -358,6 +363,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
                 margin_bottom:4,
                 hexpand: true,
                 spacing: 20,
+                visible: true
             });
             for (let i of item[0]) {
                 box[box.add?'add':'append'](i);
@@ -387,9 +393,10 @@ function _newGtkSwitch() {
 
 function _newSpinButton(adjustment) {
     let spinButton = new Gtk.SpinButton({
-            halign: Gtk.Align.END,
+            halign:  Gtk.Align.END,
             hexpand: true,
-            xalign: 0.5
+            xalign:  0.5,
+            visible: true
     });
     spinButton.set_adjustment(adjustment);
     spinButton.is_spinbutton = true;
@@ -418,7 +425,8 @@ function _optionsItem(text, tooltip, widget, variable, options=[]) {
     let label;
     if (widget) {
         label = new Gtk.Label({
-                    halign: Gtk.Align.START
+                    halign: Gtk.Align.START,
+                    visible: true
         });
         label.set_markup(text);
     } else label = text;

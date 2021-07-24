@@ -164,6 +164,12 @@ var MscOptions = class MscOptions {
     set wsSwitchIndicatorMode(mode) {
         this._gsettings.set_int('ws-switch-indicator-mode', mode);
     }
+    get winSwitcherPopupSearchAll() {
+        return this._gsettings.get_boolean('win-switcher-popup-search-all');
+    }
+    set winSwitcherPopupSearchAll(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-search-all', bool_val);
+    }
 /*    getKeyBind(key) {
         return this._gsettingsKB.get_strv(key);
     }
