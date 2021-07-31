@@ -25,7 +25,6 @@ let   mscOptions;
 const _  = Settings._;
 
 function init() {
-    //log(`initializing ${Me.metadata.name} Preferences`);
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
     mscOptions = new Settings.MscOptions();
 }
@@ -91,7 +90,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Show workspace index for each window'),
+                _('Show workspace index of each window'),
                 null,
                 _newGtkSwitch(),
                 'winSwitcherPopupWsIndexes'
@@ -100,8 +99,8 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Show F keys for direct window activation'),
-                null,
+                _('Show hotkeys F1-F12 for direct window activation'),
+                _('The hotkeys will work independently on this option.'),
                 _newGtkSwitch(),
                 'winSwitcherPopupHotKeys'
             )
@@ -122,21 +121,34 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Default Window Order'),
+                _('Deafault Sorting'),
                 null,
                 _newComboBox(),
-                'winSwitcherPopupWinOrder',
-                [   [_('Default MRU'),           1],
-                    [_('Current monitor first'), 2],
-                    [_('Group applications'),    3],
-                    [_('By workspaces'),         4]
+                'winSwitcherPopupWinSorting',
+                [   [_('Most Recently Used'),     1],
+                    [_('Stable Sequence'),        2],
+                    [_('Stable - Current First'), 3]
                 ]
             )
         );
 
         optionsList.push(
             _optionsItem(
-                _('Default Window Filter mode'),
+                _('Default Grouping'),
+                null,
+                _newComboBox(),
+                'winSwitcherPopupWinOrder',
+                [   [_('None'),                  1],
+                    [_('Current Monitor First'), 2],
+                    [_('Applications'),          3],
+                    [_('Workspaces'),            4],
+                ]
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Deafault Filter'),
                 null,
                 _newComboBox(),
                 'winSwitcherPopupWinFilter',
@@ -188,8 +200,8 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Show window immediately when selected'),
-                _("Switch to window's workspace and bring the window to the front immediately after it's selected in the switcher."),
+                _('Show selected window immediately'),
+                _("Switch to window workspace and bring the window to the front immediately after it's selected. This action doesn't activate the window."),
                 _newGtkSwitch(),
                 'winSwitcherPopupShowImmediately'
             )
@@ -198,7 +210,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
         optionsList.push(
             _optionsItem(
                 _('Start in Search mode'),
-                _('Type to search immediately after switcher shows up'),
+                _('Type to search immediately after the switcher popup shows up. Hotkeys can be used while holding down the Shift key.'),
                 _newGtkSwitch(),
                 'winSwitcherPopupStartSearch'
             )
@@ -207,7 +219,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
         optionsList.push(
             _optionsItem(
                 _('Search all'),
-                _('Switch filter mode (if possible) when no search results in selected filter mode'),
+                _('Automaticaly switch filter mode (if possible) when no search results for currently selected filter mode.'),
                 _newGtkSwitch(),
                 'winSwitcherPopupSearchAll'
             )
@@ -309,7 +321,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Switcher at mouse pointer position when triggered by mouse'),
+                _('Pop-up at mouse pointer position when triggered by mouse'),
                 _('This option is for external trigger that can set internal variable KEYBOARD_TRIGGERED to false -> Custom Hot Corners - Extended'),
                 _newGtkSwitch(),
                 'winSwitcherPopupPointer'

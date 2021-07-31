@@ -26,6 +26,9 @@
     <key name='win-switcher-popup-win-order' type='i'>
       <default>1</default>
     </key>
+    <key name='win-switcher-popup-win-sorting' type='i'>
+      <default>1</default>
+    </key>
     <key name='win-switcher-popup-win-filter' type='i'>
       <default>1</default>
     </key>

@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 'use strict';
+
 const {GLib, Gio} = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -22,9 +23,6 @@ const Me = ExtensionUtils.getCurrentExtension();
 
 const Config = imports.misc.config;
 var   shellVersion = Config.PACKAGE_VERSION;
-var   GNOME40 = shellVersion.startsWith("40")?
-                    GNOME40 = true:
-                    GNOME40 = false;
 
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 var _ = Gettext.gettext;
@@ -49,8 +47,6 @@ var MscOptions = class MscOptions {
     }
 
     _loadSettings(schm) {
-        //const schema = `${_schema}.${schm}`;
-        //const path = `${_path}/${schm}/`;
         const schema = `${_schema}`;
         const path = `${_path}/`;
         return getSettings(schema, path);
@@ -127,6 +123,12 @@ var MscOptions = class MscOptions {
     }
     set winSwitcherPopupWinOrder(orderMode) {
         this._gsettings.set_int('win-switcher-popup-win-order', orderMode);
+    }
+    get winSwitcherPopupWinSorting() {
+        return this._gsettings.get_int('win-switcher-popup-win-sorting');
+    }
+    set winSwitcherPopupWinSorting(sorting_mode) {
+        this._gsettings.set_int('win-switcher-popup-win-sorting', sorting_mode);
     }
     get winSwitcherPopupSize() {
         return this._gsettings.get_int('win-switcher-popup-size');
