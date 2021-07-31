@@ -16,13 +16,14 @@
 'use strict';
 
 const Main                   = imports.ui.main;
+const AltTab                 = imports.ui.altTab;
+
 const ExtensionUtils         = imports.misc.extensionUtils;
 const Me                     = ExtensionUtils.getCurrentExtension();
-const WindowSwitcherPopup    = Me.imports.windowSwitcherPopup;
 const Settings               = Me.imports.settings;
-const AltTab                 = imports.ui.altTab;
-let enabled                  = false;
+const WindowSwitcherPopup    = Me.imports.windowSwitcherPopup;
 
+let enabled                  = false;
 let _origAltTabWSP;
 
 function init() {
@@ -30,28 +31,28 @@ function init() {
 }
 
 function enable() {
-    let fullDisable = _extensionEnabled();
-    if (enabled) {
+    if (enabled)
         _resumeThumbnailsIfExist();
-    } else {
 
-    }
     _origAltTabWSP = AltTab.WindowSwitcherPopup;
     AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
     enabled = true;
 }
 
 function disable() {
-    if (_extensionEnabled()) {
+    if (_extensionEnabled())
         _removeThumbnails(false);
-    } else {
+
+    else {
         _removeThumbnails();
-        AltTab.WindowSwitcherPopup = _origAltTabWSP;
-        _origAltTabWSP = null;
-        if (global.stage.windowThumbnails)
-            global.stage.windowThumbnails = undefined;
         enabled = false;
     }
+
+    AltTab.WindowSwitcherPopup = _origAltTabWSP;
+    _origAltTabWSP = null;
+
+    if (global.stage.windowThumbnails)
+        global.stage.windowThumbnails = undefined;
 }
 
 function _resumeThumbnailsIfExist() {
