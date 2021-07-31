@@ -20,9 +20,8 @@ const Clutter        = imports.gi.Clutter;
 const St             = imports.gi.St;
 const Meta           = imports.gi.Meta;
 const Main           = imports.ui.main;
-const Util           = imports.misc.util;
+
 const ExtensionUtils = imports.misc.extensionUtils;
-const SystemActions  = imports.misc.systemActions;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
 const WinTmb         = Me.imports.winTmb;
@@ -279,6 +278,7 @@ var Actions = class {
 
         let wsIndex = global.workspace_manager.get_active_workspace().index();
         let text = names[wsIndex];
+
         if (!text) text = `${wsIndex + 1}`;
 
         if (!this._wsOverlay) {
@@ -297,8 +297,11 @@ var Actions = class {
                         style_class: 'workspace-index-overlay',
                         reactive: true
             });
+
             Main.layoutManager.addChrome(this._wsOverlay);
+
         } else if (this._wsOverlay) {
+
             this._wsOverlay.set_text(text);
             if (this._wsOverlay._timeoutId) {
                 GLib.source_remove(this._wsOverlay._timeoutId);
@@ -312,11 +315,13 @@ var Actions = class {
                 GLib.PRIORITY_DEFAULT,
                 timeout,
                 () => {
+
                     if (this._wsOverlay !== null) {
                         Main.layoutManager.removeChrome(this._wsOverlay);
                         this._wsOverlay.destroy();
                         this._wsOverlay = null;
                     }
+
                     return GLib.SOURCE_REMOVE;
             });
         }

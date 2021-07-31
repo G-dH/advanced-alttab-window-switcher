@@ -195,7 +195,9 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
             this._tempFilterMode = null;
 
         let windows = this._getWindowList();
-        let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '') || (this._searchCanSwitchFilter && this._searchEntry !== null && this._searchEntry !== '');
+        let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '')
+                               || (this._searchCanSwitchFilter && this._searchEntry !== null && this._searchEntry !== '');
+
         if (windows.length === 0 && filterSwitchAllowed) {
             for (let mod = this.WIN_FILTER_MODE; mod > 0; mod--) {
                 this._tempFilterMode = mod;
@@ -208,6 +210,7 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
             }
             if (windows.length === 0 && this._tempFilterMode && this._searchEntry !== '' && this._searchEntry !== null) {
                 this._searchEntry = this._searchEntry.slice(0, -1);
+                this._tempFilterMode = null;
                 windows = this._getWindowList();
             }
         }
@@ -414,7 +417,8 @@ class WindowSwitcherPopup extends AltTab.WindowSwitcherPopup {
                 else this._select(index); //this._switcherList.highlight(index);
             }
         }
-        else if (this._searchEntry !== null && !_shiftPressed()) {
+        else if (this._searchEntry !== null && (!_shiftPressed() || keysymName.replace('KP_', '').match(/[0-9]/))) {
+            keysymName = keysymName.replace('KP_', '');
             if ( keysym === Clutter.KEY_BackSpace) {
                 this._searchEntry = this._searchEntry.slice(0, -1);
                 this.show();
