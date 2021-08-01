@@ -3,6 +3,8 @@ Extension for Gnome Shell, a replacement of default Window Switcher Popup
 
 *Advanced Alt+Tab Window Switcher* offers effective navigation between windows, including direct window activation, type to search mode, various filtering and sorting settings, workspace switching and hotkeys for window control.
 
+[<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
+
 ## Features:
 
 - **Type to Search mode** - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode, so you can type immediately as the popup shows up and window list is filtered accordingly.
@@ -19,12 +21,6 @@ Extension for Gnome Shell, a replacement of default Window Switcher Popup
 - Direct window activation via `F` keys with optional `F` key indicator on each window in the list.
 - Optionaly windows can be brought to the front immediatey as they are selected, otherwise you can press dedicated hotkey to do it.
 - Make live window previews as thumbnails that you can place anywhere on the screen and are always on top. This thumbnails can be controlled and can control the source window as described below.
-
-## Installation:
-
-Click on following badge to get it on extensions.gnome.org:
-
-[<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
 
 ### Hotkeys
 
