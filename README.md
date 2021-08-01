@@ -16,10 +16,15 @@ Extension for Gnome Shell, a replacement of default Window Switcher Popup
 - `Always on Top` property of selected window can be controled from the switcher and is indicated by the TOP position of the icon (or the preview if smaller) instead of default BOTTOM.
 - The `view-pin` icon indicates whether the window is set as `Always on Visible Workspace` and you can control it from the switcher.
 - Optional workspace index on each window item.
-- Direct window activation via `Fn` keys with optional `Fn` key indicator on each window in the list.
+- Direct window activation via `F` keys with optional `F` key indicator on each window in the list.
 - Optionaly windows can be brought to the front immediatey as they are selected, otherwise you can press dedicated hotkey to do it.
 - Make live window previews as thumbnails that you can place anywhere on the screen and are always on top. This thumbnails can be controlled and can control the source window as described below.
 
+## Installation:
+
+    Click on following badge to get it on extensions.gnome.org:
+
+    [<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
 
 ### Hotkeys
 
@@ -43,16 +48,16 @@ Extension for Gnome Shell, a replacement of default Window Switcher Popup
     V                       - Move window to selected workspace and maximize it.
     F                       - Move window to empty workspace next to its current workspace and switch it to fullscreen mode.
                                Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
-    O                       - Show application grid, if you need to lunch new application.
+    O                       - Show application grid, if you need to launch new application.
     T                       - Creates an thumbnail preview of selected window and place it to the bottom right of the current monitor.
                                You can move the thumbnail anywhere on the screen and you can make as many thumbnails you want
     P                       - Open preferences window for this extension
 
 ### Type to Search
 
-When the `Search mode` is activated (by `E` or `Insert` keys or as default mode in preferences window), the keyboard keys `A-Z` and `0-9` can be used to type a pattern which will be searched for in the window title and application name, window list will be filtered accordingly. Characters with diacritics in the title and app name will be converted to the basic form and case doesn't matter. You can type in two patterns in arbitrary order separated by a space, so if you enter 'fox ext' window with 'Extensions - Firefox' in the title will be found too. If you type in a character that would filter out all windows, this character will be removed and the selection will stay unchanged waiting for another key.
+When the `Search mode` is activated (by `E` or `Insert` keys or as default mode in preferences window), the keyboard keys `A-Z` and `0-9` can be used to type a pattern which will be searched for in the window title and application name, window list will be filtered accordingly. Characters with diacritics in the title and app name will be converted to the basic form and case doesn't matter. You can type in more patterns in arbitrary order separated by a space, so if you enter 'fox ext' window with 'Extensions - Firefox' in the title will be found too. If you type in a character that would filter out all windows, this character will be removed and the selection will stay unchanged waiting for another character.
 
-**Even in the search mode you can still use all hotkeys if you press and hold the Shift key**.
+**Even in the search mode you can use all hotkeys if you press and hold the Shift key**.
 
 ### DND Window Thumbnails
 
