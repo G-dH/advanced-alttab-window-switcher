@@ -22,9 +22,9 @@ Extension for Gnome Shell, a replacement of default Window Switcher Popup
 
 ## Installation:
 
-    Click on following badge to get it on extensions.gnome.org:
+Click on following badge to get it on extensions.gnome.org:
 
-    [<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
+[<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
 
 ### Hotkeys
 
