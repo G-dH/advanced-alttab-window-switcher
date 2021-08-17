@@ -16,17 +16,15 @@
 
 const GObject        = imports.gi.GObject;
 const GLib           = imports.gi.GLib;
-const Clutter        = imports.gi.Clutter;
 const St             = imports.gi.St;
 const Meta           = imports.gi.Meta;
+const Shell          = imports.gi.Shell;
 const Main           = imports.ui.main;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
 const WinTmb         = Me.imports.winTmb;
-
-let GNOME40;
 
 const ws_indicator_mode = { 'DISABLE':       0,
                             'DEFAULT':       1,
@@ -41,9 +39,6 @@ var get_current_monitor_geometry = function () {
 var Actions = class {
     constructor() {
         this._mscOptions = new Settings.MscOptions();
-        this._signalsCollector      = [];
-
-        this._minimizedWindows      = [];
 
         this.WS_IGNORE_LAST         = this._mscOptions.wsSwitchIgnoreLast;
         this.WS_WRAPAROUND          = this._mscOptions.wsSwitchWrap;
@@ -51,30 +46,18 @@ var Actions = class {
 
         this.WIN_SKIP_MINIMIZED     = this._mscOptions.winSkipMinimized;
 
-        //this.windowThumbnails       = [];
-        //this.tmbConnected           = false;
-
-        GNOME40 = Settings.GNOME40;
-
     }
 
     clean(full = true) {
         // don't reset effects and destroy thumbnails if extension is enabled (GS calls ext. disable() before locking the screen f.e.)
         if (full) {
             this._resetSettings();
-            for (let sig of this._signalsCollector) {
-                sig[0].disconnect(sig[1]);
-            }
         }
-        //global.workspace_manager.disconnect(this._signalsCollector.pop());
         this._removeThumbnails(full);
     }
 
     resume() {
         this._resumeThumbnailsIfExist();
-    }
-
-    _resetSettings() {
     }
 
     extensionEnabled() {
@@ -94,35 +77,6 @@ var Actions = class {
         return this._shellSettings;
     }
 
-    _getFocusedWindow(sameWorkspace = false) {
-        let win = global.display.get_focus_window();
-        if (    !win ||
-                (sameWorkspace && (global.workspace_manager.get_active_workspace() !== win.get_workspace()) )
-            ) {
-            return null;
-        }
-        return win;
-        /*let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
-        for (let win of windows) {
-            if (win.has_focus()) {
-                return win;
-            }
-        }
-        log (`[${Me.metadata.name}] Warning: no focused window found`);
-        return null;*/
-    }
-
-    _getFocusedActor() {
-        let actor = null;
-        for (let act of global.get_window_actors()) {
-            let meta_window = act.get_meta_window();
-            if(meta_window.has_focus())
-                actor = act;
-        }
-        if (!actor) log (`[${Me.metadata.name}] Warning: no focused window found`);
-        return actor;
-    }
-
     _getActorByMetaWin(metaWindow) {
         for (let act of global.get_window_actors()) {
             if (act.get_meta_window() === metaWindow)
@@ -131,42 +85,83 @@ var Actions = class {
         return null;
     }
 
+    _getWindowApp(metaWindow) {
+        let tracker = Shell.WindowTracker.get_default();
+        return tracker.get_window_app(metaWindow);
+    }
+
+    _getMonitorByIndex(monitorIndex) {
+        let monitors = Main.layoutManager.monitors;
+        for (let monitor of monitors) {
+            if (monitor.index === monitorIndex)
+                return monitor;
+        }
+        return -1;
+    }
+
     /////////////////////////////////////////////////////////////////////////////
 
-    moveToWorkspace(index) {
-        if (index < 0)  return;
-        let maxIndex = global.workspaceManager.n_workspaces - 1;
-        if (maxIndex < index) {
-            index = maxIndex;
+    moveWindowToCurrentWs(metaWindow) {
+        let ws = global.workspace_manager.get_active_workspace();
+        let win = metaWindow;
+        win.change_workspace(ws);
+        let targetMonitorIndex = global.display.get_current_monitor();
+        let currentMonitorIndex = win.get_monitor();
+        if ( currentMonitorIndex !== targetMonitorIndex) {
+            // move window to target monitor
+            let actor = this._getActorByMetaWin(win);
+            let currentMonitor = this._getMonitorByIndex(currentMonitorIndex);
+            let targetMonitor  = this._getMonitorByIndex(targetMonitorIndex);
+           
+            let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
+            let y = targetMonitor.y + Math.max(Math.floor(targetMonitor.height - actor.height) / 2, 0);
+            win.move_frame(true, x, y);
         }
-        let ws = global.workspaceManager.get_workspace_by_index(index);
-        Main.wm.actionMoveWorkspace(ws);
-        // another option
-        //ws.activate(global.get_current_time());
     }
-    closeWindow() {
-        let win = this._getFocusedWindow(true);
+
+    closeWindow(metaWindow) {
+        let win = metaWindow;
         if (!win) return;
         win.delete(global.get_current_time());
     }
-    killApplication() {
-        let win = this._getFocusedWindow(true);
+
+    closeWinsOfSameApp(metaWindow, windowList) {
+        let app = this._getWindowApp(metaWindow).get_id();
+        let time = global.get_current_time();
+        for (let item of windowList) {
+            if (this._getWindowApp(item.window).get_id() === app)
+                item.window.delete(time++);
+        }
+    }
+
+    quitApplication(metaWindow) {
+        let win = metaWindow;
+        if (!win) return;
+        let app = this._getWindowApp(metaWindow);
+        app.request_quit();
+    }
+
+    killApplication(metaWindow) {
+        let win = metaWindow;
         if (!win) return;
         win.kill();
     }
-    toggleMaximizeWindow() {
-        let win = this._getFocusedWindow(true);
+
+    toggleMaximizeWindow(metaWindow) {
+        let win = metaWindow;
         if (!win) return;
         if (win.maximized_horizontally && win.maximized_vertically)
             win.unmaximize(Meta.MaximizeFlags.BOTH);
         else win.maximize(Meta.MaximizeFlags.BOTH);
     }
-    minimizeWindow() {
-        let win = this._getFocusedWindow(true);
+
+    minimizeWindow(metaWindow) {
+        let win = metaWindow;
         if (!win) return;
         win.minimize();
         //global.display.get_tab_list(0, null)[0].minimize();
     }
+
     unminimizeAll(workspace=true) {
         let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         let activeWorkspace = global.workspaceManager.get_active_workspace();
@@ -177,12 +172,14 @@ var Actions = class {
             win.unminimize();
         }
     }
-    toggleFullscreenWindow() {
-        let win = this._getFocusedWindow(true);
+
+    toggleFullscreenWindow(metaWindow) {
+        let win = metaWindow;
         if (!win) return;
         if (win.fullscreen) win.unmake_fullscreen();
         else win.make_fullscreen();
     }
+
     fullscreenWinOnEmptyWs(metaWindow = null, nextWs = false) {
         let win;
         if (!metaWindow)
@@ -212,8 +209,9 @@ var Actions = class {
             win.activate(global.get_current_time());
         }
     }
+
     toggleAboveWindow(metaWindow) {
-        let win = metaWindow || this._getFocusedWindow(true);
+        let win = metaWindow;
         if (!win) return;
         if (win.is_above()) {
             win.unmake_above();
@@ -222,8 +220,9 @@ var Actions = class {
             win.make_above();
         }
     }
+
     toggleStickWindow(metaWindow) {
-        let win = metaWindow || this._getFocusedWindow(true);
+        let win = metaWindow;
         if (!win) return;
         if (win.is_on_all_workspaces()){
             win.unstick();
@@ -232,6 +231,7 @@ var Actions = class {
             win.stick();
         }
     }
+
     switchWorkspace(direction, noIndicator = false) {
             let n_workspaces = global.workspaceManager.n_workspaces;
             let lastWsIndex =  n_workspaces - (this.WS_IGNORE_LAST ? 2 : 1);
@@ -274,6 +274,7 @@ var Actions = class {
             if (this.WS_INDICATOR_MODE === ws_indicator_mode.INDEX && showIndicator)
                 this.showWorkspaceIndex();
     }
+
     showWorkspaceIndex(position = [], timeout = 600, names = {}) {
 
         let wsIndex = global.workspace_manager.get_active_workspace().index();
@@ -329,7 +330,7 @@ var Actions = class {
         return this._wsOverlay;
     }
 
-    makeThumbnailWindow(metaWindow = null) {
+    makeThumbnailWindow(metaWindow) {
         if (!global.stage.windowThumbnails) global.stage.windowThumbnails = [];
         let metaWin;
         if (metaWindow) {
