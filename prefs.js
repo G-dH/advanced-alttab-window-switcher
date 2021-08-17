@@ -121,7 +121,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Deafault Sorting'),
+                _('Default Sorting'),
                 null,
                 _newComboBox(),
                 'winSwitcherPopupWinSorting',
@@ -148,7 +148,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Deafault Filter'),
+                _('Default Filter'),
                 null,
                 _newComboBox(),
                 'winSwitcherPopupWinFilter',
