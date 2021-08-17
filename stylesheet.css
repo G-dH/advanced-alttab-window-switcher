@@ -1,7 +1,6 @@
 .workspace-index, .workspace-index-highlight, .hot-key-number{
   text-align: center;
   font-weight: bold;
-  margin: 3px;
   padding: 1px;
   border: 1px;
   border-radius: 0.2em;
@@ -12,10 +11,7 @@
 }
 
 .workspace-index-highlight {
-  /*background-color: rgba(160, 60, 20, 0.7);*/
   border-color: grey;
-  /*color: #ff7733;*/
-  /*color: #e91;*/
 }
 .workspace-index-overlay {
   text-align: center;
@@ -27,9 +23,7 @@
 }
 
 .hot-key-number {
-  /*text-shadow: -1px -1px rgba(255,255,255,0.5);*/
   font-size: 1em;
-  /*background-color: orange;*/
   background-color: rgba(46, 52, 53, .7);
 }
 
