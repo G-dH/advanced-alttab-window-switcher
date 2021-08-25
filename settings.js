@@ -142,6 +142,12 @@ var MscOptions = class MscOptions {
     set winSwitcherPopupIconSize(size) {
         this._gsettings.set_int('win-switcher-popup-icon-size', size);
     }
+    get winSwitcherPopupWrap() {
+        return this._gsettings.get_boolean('win-switcher-popup-wrap');
+    }
+    set winSwitcherPopupWrap(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-wrap', bool_val);
+    }
     get wsSwitchIgnoreLast() {
         return this._gsettings.get_boolean('ws-switch-ignore-last');
     }
@@ -171,6 +177,18 @@ var MscOptions = class MscOptions {
     }
     set winSwitcherPopupSearchAll(bool_val) {
         this._gsettings.set_boolean('win-switcher-popup-search-all', bool_val);
+    }
+    get winSwitcherPopupSearchApps() {
+        return this._gsettings.get_boolean('win-switcher-popup-search-apps');
+    }
+    set winSwitcherPopupSearchApps(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-search-apps', bool_val);
+    }
+    get winSwitcherPopupShiftHotkeys() {
+        return this._gsettings.get_boolean('win-switcher-popup-shift-hotkeys');
+    }
+    set winSwitcherPopupShiftHotkeys(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-shift-hotkeys', bool_val);
     }
 /*    getKeyBind(key) {
         return this._gsettingsKB.get_strv(key);

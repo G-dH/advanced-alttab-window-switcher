@@ -44,6 +44,12 @@
     <key name='win-switcher-popup-icon-size' type='i'>
       <default>48</default>
     </key>
+    <key name='win-switcher-popup-shift-hotkeys' type='b'>
+      <default>false</default>
+    </key>
+    <key name='win-switcher-popup-wrap' type='b'>
+      <default>true</default>
+    </key>
     <key name='win-thumbnail-scale' type='i'>
       <default>15</default>
     </key>
@@ -52,6 +58,9 @@
     </key>
      <key name='win-switcher-popup-search-all' type='b'>
       <default>false</default>
+    </key>
+    <key name='win-switcher-popup-search-apps' type='b'>
+      <default>true</default>
     </key>
     <key name='ws-switch-wrap' type='b'>
       <default>false</default>
