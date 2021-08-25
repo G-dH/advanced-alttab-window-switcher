@@ -200,6 +200,15 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
+                _('Wraparound'),
+                _('Whether the selection should continue from the last item to the first and vice versa.'),
+                _newGtkSwitch(),
+                'winSwitcherPopupWrap'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
                 _('Show selected window immediately'),
                 _("Switch to window workspace and bring the window to the front immediately after it's selected. This action doesn't activate the window."),
                 _newGtkSwitch(),
@@ -218,10 +227,28 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Search all'),
+                _('Search All'),
                 _('Automaticaly switch filter mode (if possible) when no search results for currently selected filter mode.'),
                 _newGtkSwitch(),
                 'winSwitcherPopupSearchAll'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Search Applications'),
+                _('Search installed applications to launch new when no window match the searched pattern.'),
+                _newGtkSwitch(),
+                'winSwitcherPopupSearchApps'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Action hotkeys require Shift'),
+                _("A-Z hotkeys, excuding those for navigation and filter switching, will require Shift key pressed to work. Very useful when you start to type without switching to Type to Search mode."),
+                _newGtkSwitch(),
+                'winSwitcherPopupShiftHotkeys'
             )
         );
 
@@ -252,7 +279,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
         optionsList.push(
             _optionsItem(
                 _('Wraparound'),
-                null,
+                _('Whether the switcher should continue from the last workspace to the first and vice versa.'),
                 _newGtkSwitch(),
                 'wsSwitchWrap'
             )
@@ -305,7 +332,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
         optionsList.push(
             _optionsItem(
                 _('Thumbnail height scale (%)'),
-                _('Height of the thumbnail relative to screen height'),
+                _('Height of the thumbnail relative to the screen height'),
                 _newSpinButton(tmbScaleAdjustment),
                 'winThumbnailScale'
             )
