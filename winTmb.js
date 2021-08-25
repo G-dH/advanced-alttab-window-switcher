@@ -19,8 +19,18 @@ const GLib                   = imports.gi.GLib;
 const St                     = imports.gi.St;
 const Clutter                = imports.gi.Clutter;
 const Meta                   = imports.gi.Meta;
+const Shell                  = imports.gi.Shell;
+
 const Main                   = imports.ui.main;
 const DND                    = imports.ui.dnd;
+
+function _ctrlPressed(state) {
+    return (state & Clutter.ModifierType.CONTROL_MASK) != 0;
+}
+
+function _shiftPressed(state) {
+    return (state & Clutter.ModifierType.SHIFT_MASK) != 0;
+}
 
 var   WindowThumbnail = GObject.registerClass(
 class WindowThumbnail extends St.Bin {
@@ -69,6 +79,7 @@ class WindowThumbnail extends St.Bin {
         });
         this.conS = Main.overview.connect('showing', () => { this.hide() });
         this.conH = Main.overview.connect('hiding',  () => { this.show() });
+        this._setIcon();
     }
 
     _getInitialPosition() {
@@ -99,7 +110,7 @@ class WindowThumbnail extends St.Bin {
     _onMouseMove(actor, event) {
         let [pos_x,pos_y] = event.get_coords();
         let state = event.get_state();
-        if (this._ctrlPressed(state)) {
+        if (_ctrlPressed(state)) {
         }
     }
 
@@ -112,19 +123,21 @@ class WindowThumbnail extends St.Bin {
         let button = event.get_button();
         switch (button) {
             case Clutter.BUTTON_PRIMARY:
-                //if (this._ctrlPressed(state))
-                this._reverseTmbWheelFunc = !this._reverseTmbWheelFunc;
-                    return;
+                if (_ctrlPressed(event.get_state())) {
+                    this._switchView();
+                } else
+                    this._reverseTmbWheelFunc = !this._reverseTmbWheelFunc;
+                return Clutter.EVENT_STOP;
                 break;
             case Clutter.BUTTON_SECONDARY:
-                //if (this._ctrlPressed(state))
+                //if (_ctrlPressed(state))
                 this._remove();
-                    return;
+                return Clutter.EVENT_STOP;
                 break;
             case Clutter.BUTTON_MIDDLE:
-                //if (this._ctrlPressed(state))
+                //if (_ctrlPressed(state))
                 this.w.delete(global.get_current_time());
-                    return;
+                return Clutter.EVENT_STOP;
                 break;
             default:
                 return Clutter.EVENT_PROPAGATE;
@@ -138,22 +151,24 @@ class WindowThumbnail extends St.Bin {
         let state = event.get_state();
         switch (direction) {
             case Clutter.ScrollDirection.UP:
-                if (this._shiftPressed(state))
+                if (_shiftPressed(state))
                     this.opacity = Math.min(255, this.opacity + 24);
-                else if (this._reverseTmbWheelFunc !== this._ctrlPressed(state)){
+                else if (this._reverseTmbWheelFunc !== _ctrlPressed(state)) {
                     this._switchSourceWin(-1);
                 }
-                else if (this._reverseTmbWheelFunc === this._ctrlPressed(state))
-                    this.scale = Math.max(0.1, this.scale - 0.025);
+                else if (this._reverseTmbWheelFunc === _ctrlPressed(state)) {
+                    this.scale = Math.max(0.05, this.scale - 0.025);
+                }
                 break;
             case Clutter.ScrollDirection.DOWN:
-                if (this._shiftPressed(state))
+                if (_shiftPressed(state))
                     this.opacity = Math.max(48, this.opacity - 24);
-                else if (this._reverseTmbWheelFunc !== this._ctrlPressed(state)){
+                else if (this._reverseTmbWheelFunc !== _ctrlPressed(state)) {
                     this._switchSourceWin(+1);
                 }
-                else if (this._reverseTmbWheelFunc === this._ctrlPressed(state))
+                else if (this._reverseTmbWheelFunc === _ctrlPressed(state)) {
                     this.scale = Math.min(1, this.scale + 0.025);
+                }
                 break;
             default:
                 return Clutter.EVENT_PROPAGATE;
@@ -182,15 +197,9 @@ class WindowThumbnail extends St.Bin {
         });
     }
 
-    _ctrlPressed(state) {
-        return (state & Clutter.ModifierType.CONTROL_MASK) != 0;
-    }
-
-    _shiftPressed(state) {
-        return (state & Clutter.ModifierType.SHIFT_MASK) != 0;
-    }
-
     _switchSourceWin(direction) {
+        this._switchView(this.clone);
+
         let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
             windows = windows.filter( w => !(w.skip_taskbar || w.minimized));
         let idx = -1;
@@ -216,6 +225,8 @@ class WindowThumbnail extends St.Bin {
         });
         this.w = w;
         let scale = this._setSize();
+
+        this._setIcon();
     }
 
     _actionTimeoutActive() {
@@ -236,6 +247,28 @@ class WindowThumbnail extends St.Bin {
         }
         this._actionTimeoutId = null;
         return false;
-}
+    }
+
+    _setIcon() {
+        let tracker = Shell.WindowTracker.get_default();
+        let app = tracker.get_window_app(this.w);
+        let icon = app ?
+            app.create_icon_texture(this.height)
+            : new St.Icon({ icon_name: 'icon-missing', icon_size: this.height });
+        icon.x_expand = icon.y_expand = false;
+        if (this.icon)
+            this.icon.destroy();
+        this.icon = icon;
+    }
+
+    _switchView(clone = false) {
+        if (clone)
+            this.set_child(this.clone);
+        else
+            this.set_child(this.get_child() === this.clone ?
+                            this.icon :
+                            this.clone
+            );
+    }
 
 });
