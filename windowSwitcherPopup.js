@@ -1215,9 +1215,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     // search in window title and app name
                     const appInfo = Shell.WindowTracker.get_default().get_window_app(w).appInfo;
                     let appInfoText = appInfo ?
-                                          appInfo.get_name()         ? appInfo.get_name()         : ''
-                                        + appInfo.get_generic_name() ? appInfo.get_generic_name() : ''
-                                        + appInfo.get_executable()   ? appInfo.get_executable()   : ''
+                                          (appInfo.get_name()         ? appInfo.get_name()         : '')
+                                        + (appInfo.get_generic_name() ? appInfo.get_generic_name() : '')
+                                        + (appInfo.get_executable()   ? appInfo.get_executable()   : '')
                                     : '';
                     return this._match(
                         w.title
@@ -1248,9 +1248,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
 
             return appInfo.should_show() && this._match(
-                                          appInfo.get_name()         ? appInfo.get_name()         : ''
-                                        + appInfo.get_generic_name() ? appInfo.get_generic_name() : ''
-                                        + appInfo.get_executable()   ? appInfo.get_executable()   : '',
+                                          (appInfo.get_name()         ? appInfo.get_name()         : '')
+                                        + (appInfo.get_generic_name() ? appInfo.get_generic_name() : '')
+                                        + (appInfo.get_executable()   ? appInfo.get_executable()   : ''),
                                         pattern);
         });
 
