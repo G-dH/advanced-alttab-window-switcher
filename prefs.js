@@ -82,27 +82,9 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
     
         optionsList.push(
             _optionsItem(
-                _makeTitle(_('Window Switcher pop-up:')),
+                _makeTitle(_('Common Options:')),
                 null,
                 null
-            )
-        );
-
-        optionsList.push(
-            _optionsItem(
-                _('Show workspace index of each window'),
-                null,
-                _newGtkSwitch(),
-                'winSwitcherPopupWsIndexes'
-            )
-        );
-
-        optionsList.push(
-            _optionsItem(
-                _('Show hotkeys F1-F12 for direct window activation'),
-                _('The hotkeys will work independently on this option.'),
-                _newGtkSwitch(),
-                'winSwitcherPopupHotKeys'
             )
         );
 
@@ -115,6 +97,126 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
                 [   [_('Top'),    1],
                     [_('Center'), 2],
                     [_('Bottom'), 3]
+                ]
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Show hotkeys F1-F12 for direct activation'),
+                _('The hotkeys will work independently on this option.'),
+                _newGtkSwitch(),
+                'winSwitcherPopupHotKeys'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Show selected window/app immediately'),
+                _("Bring the window/app to the front (and switch a workspace if needed) immediately after it's selected."),
+                _newGtkSwitch(),
+                'winSwitcherPopupShowImmediately'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Search mode as default'),
+                _('Type to search immediately after the switcher popup shows up. Hotkeys can be used while holding down the Shift key.'),
+                _newGtkSwitch(),
+                'winSwitcherPopupStartSearch'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Action hotkeys require Shift'),
+                _("A-Z hotkeys, excuding those for navigation and filter switching, will require Shift key pressed to work. Very useful when you start to type without switching to Type to Search mode."),
+                _newGtkSwitch(),
+                'winSwitcherPopupShiftHotkeys'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Show info label'),
+                _('Whether the label indicating filter, grouping and sorting settings should be displayed.'),
+                _newGtkSwitch(),
+                'winSwitcherPopupInfo'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Wraparound selector'),
+                _('Whether the selection should continue from the last item to the first and vice versa.'),
+                _newGtkSwitch(),
+                'winSwitcherPopupWrap'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Scroll outside switcher'),
+                null,
+                _newComboBox(),
+                'switcherPopupScrollOut',
+                [   [_('Hide Switcher'),    0],
+                    [_('Switch workspace'), 1],
+                    [_('Do nothing'),       2]
+                ]
+            )
+        );
+
+
+        let singlePrevSizeAdjustment = new Gtk.Adjustment({
+                upper:            512,
+                lower:             16,
+                step_increment:     8,
+                page_increment:    32 });
+
+        optionsList.push(
+            _optionsItem(
+                _('Single app preview size (px)'),
+                null,
+                _newSpinButton(singlePrevSizeAdjustment),
+                'singleAppPreviewSize'
+            )
+        );
+
+        let popupTimeoutAdjustment = new Gtk.Adjustment({
+                upper:            400,
+                lower:             10,
+                step_increment:    10,
+                page_increment:   100 });
+
+        optionsList.push(
+            _optionsItem(
+                _('Show up timeout (ms)'),
+                _("Delay showing the popup so that fast Alt+Tab users aren't disturbed by the popup briefly flashing."),
+                _newSpinButton(popupTimeoutAdjustment),
+                'winSwitcherPopupTimeout'
+            )
+        );
+
+//////////////////////////////////////////////////
+        optionsList.push(
+            _optionsItem(
+                _makeTitle(_('Window Switcher:')),
+                null,
+                null
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Default Filter'),
+                null,
+                _newComboBox(),
+                'winSwitcherPopupWinFilter',
+                [   [_('All Windows'),       1],
+                    [_('Current Workspace'), 2],
+                    [_('Current Monitor'),   3]
                 ]
             )
         );
@@ -148,14 +250,10 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Default Filter'),
+                _('Show workspace index of each window'),
                 null,
-                _newComboBox(),
-                'winSwitcherPopupWinFilter',
-                [   [_('All Windows'),       1],
-                    [_('Current Workspace'), 2],
-                    [_('Current Monitor'),   3]
-                ]
+                _newGtkSwitch(),
+                'winSwitcherPopupWsIndexes'
             )
         );
 
@@ -176,7 +274,7 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Pop-up window preview size (px)'),
+                _('Window preview size (px)'),
                 null,
                 _newSpinButton(popupSizeAdjustment),
                 'winSwitcherPopupSize'
@@ -191,37 +289,10 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
 
         optionsList.push(
             _optionsItem(
-                _('Pop-up window icon size (px)'),
+                _('Window icon size (px)'),
                 null,
                 _newSpinButton(popupIconSizeAdjustment),
                 'winSwitcherPopupIconSize'
-            )
-        );
-
-        optionsList.push(
-            _optionsItem(
-                _('Wraparound'),
-                _('Whether the selection should continue from the last item to the first and vice versa.'),
-                _newGtkSwitch(),
-                'winSwitcherPopupWrap'
-            )
-        );
-
-        optionsList.push(
-            _optionsItem(
-                _('Show selected window immediately'),
-                _("Switch to window workspace and bring the window to the front immediately after it's selected. This action doesn't activate the window."),
-                _newGtkSwitch(),
-                'winSwitcherPopupShowImmediately'
-            )
-        );
-
-        optionsList.push(
-            _optionsItem(
-                _('Start in Search mode'),
-                _('Type to search immediately after the switcher popup shows up. Hotkeys can be used while holding down the Shift key.'),
-                _newGtkSwitch(),
-                'winSwitcherPopupStartSearch'
             )
         );
 
@@ -242,31 +313,68 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
                 'winSwitcherPopupSearchApps'
             )
         );
+////////////////////////////////////////////////////////////////////////
+        optionsList.push(
+            _optionsItem(
+                _makeTitle(_('App Switcher:')),
+                null,
+                null
+            )
+        );
 
         optionsList.push(
             _optionsItem(
-                _('Action hotkeys require Shift'),
-                _("A-Z hotkeys, excuding those for navigation and filter switching, will require Shift key pressed to work. Very useful when you start to type without switching to Type to Search mode."),
+                _('Default Filter'),
+                null,
+                _newComboBox(),
+                'winSwitcherPopupAppFilter',
+                [   [_('All Windows'),       1],
+                    [_('Current Workspace'), 2],
+                    [_('Current Monitor'),   3]
+                ]
+            )
+        );
+        /*optionsList.push(
+            _optionsItem(
+                _('App mode as default'),
+                _('The switcher shows favorite apps instead of windows.'),
                 _newGtkSwitch(),
-                'winSwitcherPopupShiftHotkeys'
+                'winSwitcherPopupStartApps'
             )
-        );
-
-        let popupTimeoutAdjustment = new Gtk.Adjustment({
-                upper:            400,
-                lower:             10,
-                step_increment:    10,
-                page_increment:   100 });
+        );*/
 
         optionsList.push(
             _optionsItem(
-                _('Show up timeout (ms)'),
-                _("Delay showing the popup so that fast Alt+Tab users aren't disturbed by the popup briefly flashing."),
-                _newSpinButton(popupTimeoutAdjustment),
-                'winSwitcherPopupTimeout'
+                _('Include Favorite apps'),
+                _('List Dash favorite apps even when not runnig.'),
+                _newGtkSwitch(),
+                'winSwitcherPopupFavoriteApps'
             )
         );
 
+        optionsList.push(
+            _optionsItem(
+                _('Sort Favorites by MRU'),
+                _('Sort Favorite apps in App mode by most recently used'),
+                _newGtkSwitch(),
+                'winSwitcherPopupFavMru'
+            )
+        );
+
+        let popupAppIconSizeAdjustment = new Gtk.Adjustment({
+                upper:            512,
+                lower:             16,
+                step_increment:     8,
+                page_increment:    32 });
+
+        optionsList.push(
+            _optionsItem(
+                _('App icon size (px)'),
+                null,
+                _newSpinButton(popupAppIconSizeAdjustment),
+                'winSwitcherPopupAppIconSize'
+            )
+        );
 
         optionsList.push(
             _optionsItem(
@@ -368,6 +476,15 @@ class WsOptionsPage extends Gtk.ScrolledWindow {
                 _('When the switcher is activated by a mouse, close the popup after this time of inactivity when mouse pointer is outside the popup.'),
                 _newSpinButton(popupPointerTimeoutAdjustment),
                 'winSwitcherPopupPointerTimeout'
+            )
+        );
+
+        optionsList.push(
+            _optionsItem(
+                _('Activate selected item on hide'),
+                _('When you move mouse pointer outside the switcher popup and "Pointer out timeout" expires, selected item will be activated before popup hides.'),
+                _newGtkSwitch(),
+                'switcherPopupActivateOnHide'
             )
         );
 

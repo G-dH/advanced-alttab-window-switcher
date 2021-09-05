@@ -11,6 +11,9 @@
     <key name='win-switcher-popup-start-search' type='b'>
       <default>false</default>
     </key>
+    <key name='win-switcher-popup-start-apps' type='b'>
+      <default>false</default>
+    </key>
     <key name='win-switcher-popup-position' type='i'>
       <default>2</default>
     </key>
@@ -23,6 +26,12 @@
     <key name='win-switcher-popup-hot-keys' type='b'>
       <default>true</default>
     </key>
+    <key name='win-switcher-popup-info' type='b'>
+      <default>true</default>
+    </key>
+    <key name='switcher-popup-scroll-out' type='i'>
+      <default>1</default>
+    </key>
     <key name='win-switcher-popup-win-order' type='i'>
       <default>1</default>
     </key>
@@ -32,17 +41,29 @@
     <key name='win-switcher-popup-win-filter' type='i'>
       <default>1</default>
     </key>
+    <key name='win-switcher-popup-app-filter' type='i'>
+      <default>1</default>
+    </key>
     <key name='win-switcher-popup-timeout' type='i'>
       <default>100</default>
     </key>
     <key name='win-switcher-popup-pointer-timeout' type='i'>
       <default>600</default>
     </key>
+    <key name='switcher-popup-activate-on-hide' type='b'>
+      <default>false</default>
+    </key>
     <key name='win-switcher-popup-size' type='i'>
       <default>128</default>
     </key>
     <key name='win-switcher-popup-icon-size' type='i'>
       <default>48</default>
+    </key>
+    <key name='win-switcher-popup-app-icon-size' type='i'>
+      <default>96</default>
+    </key>
+    <key name='win-switcher-single-prev-size' type='i'>
+      <default>192</default>
     </key>
     <key name='win-switcher-popup-shift-hotkeys' type='b'>
       <default>false</default>
@@ -60,6 +81,12 @@
       <default>false</default>
     </key>
     <key name='win-switcher-popup-search-apps' type='b'>
+      <default>true</default>
+    </key>
+    <key name='win-switcher-popup-fav-apps' type='b'>
+      <default>true</default>
+    </key>
+    <key name='win-switcher-popup-fav-mru' type='b'>
       <default>true</default>
     </key>
     <key name='ws-switch-wrap' type='b'>

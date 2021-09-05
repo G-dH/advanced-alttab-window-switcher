@@ -88,6 +88,12 @@ var MscOptions = class MscOptions {
     set winSwitcherPopupStartSearch(bool_val) {
         this._gsettings.set_boolean('win-switcher-popup-start-search', bool_val);
     }
+    get winSwitcherPopupStartApps() {
+        return this._gsettings.get_boolean('win-switcher-popup-start-apps');
+    }
+    set winSwitcherPopupStartApps(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-start-apps', bool_val);
+    }
     get winSwitcherPopupPosition() {
         return this._gsettings.get_int('win-switcher-popup-position');
     }
@@ -112,11 +118,29 @@ var MscOptions = class MscOptions {
     set winSwitcherPopupHotKeys(bool_val) {
         this._gsettings.set_boolean('win-switcher-popup-hot-keys', bool_val);
     }
+    get winSwitcherPopupInfo() {
+        return this._gsettings.get_boolean('win-switcher-popup-info');
+    }
+    set winSwitcherPopupInfo(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-info', bool_val);
+    }
+    get switcherPopupScrollOut() {
+        return this._gsettings.get_int('switcher-popup-scroll-out');
+    }
+    set switcherPopupScrollOut(fnc) {
+        this._gsettings.set_int('switcher-popup-scroll-out', fnc);
+    }
     get winSwitcherPopupWinFilter() {
         return this._gsettings.get_int('win-switcher-popup-win-filter');
     }
     set winSwitcherPopupWinFilter(filterMode) {
         this._gsettings.set_int('win-switcher-popup-win-filter', filterMode);
+    }
+    get winSwitcherPopupAppFilter() {
+        return this._gsettings.get_int('win-switcher-popup-app-filter');
+    }
+    set winSwitcherPopupAppFilter(filterMode) {
+        this._gsettings.set_int('win-switcher-popup-app-filter', filterMode);
     }
     get winSwitcherPopupWinOrder() {
         return this._gsettings.get_int('win-switcher-popup-win-order');
@@ -142,11 +166,35 @@ var MscOptions = class MscOptions {
     set winSwitcherPopupIconSize(size) {
         this._gsettings.set_int('win-switcher-popup-icon-size', size);
     }
+    get winSwitcherPopupAppIconSize() {
+        return this._gsettings.get_int('win-switcher-popup-app-icon-size');
+    }
+    set winSwitcherPopupAppIconSize(size) {
+        this._gsettings.set_int('win-switcher-popup-app-icon-size', size);
+    }
+    get singleAppPreviewSize() {
+        return this._gsettings.get_int('win-switcher-single-prev-size');
+    }
+    set singleAppPreviewSize(size) {
+        this._gsettings.set_int('win-switcher-single-prev-size', size);
+    }
     get winSwitcherPopupWrap() {
         return this._gsettings.get_boolean('win-switcher-popup-wrap');
     }
     set winSwitcherPopupWrap(bool_val) {
         this._gsettings.set_boolean('win-switcher-popup-wrap', bool_val);
+    }
+    get winSwitcherPopupFavMru() {
+        return this._gsettings.get_boolean('win-switcher-popup-fav-mru');
+    }
+    set winSwitcherPopupFavMru(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-fav-mru', bool_val);
+    }
+    get winSwitcherPopupFavoriteApps() {
+        return this._gsettings.get_boolean('win-switcher-popup-fav-apps');
+    }
+    set winSwitcherPopupFavoriteApps(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-fav-apps', bool_val);
     }
     get wsSwitchIgnoreLast() {
         return this._gsettings.get_boolean('ws-switch-ignore-last');
@@ -189,6 +237,12 @@ var MscOptions = class MscOptions {
     }
     set winSwitcherPopupShiftHotkeys(bool_val) {
         this._gsettings.set_boolean('win-switcher-popup-shift-hotkeys', bool_val);
+    }
+    get switcherPopupActivateOnHide() {
+        return this._gsettings.get_boolean('switcher-popup-activate-on-hide');
+    }
+    set switcherPopupActivateOnHide(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-activate-on-hide', bool_val);
     }
 /*    getKeyBind(key) {
         return this._gsettingsKB.get_strv(key);

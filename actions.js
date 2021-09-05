@@ -101,11 +101,11 @@ var Actions = class {
 
     /////////////////////////////////////////////////////////////////////////////
 
-    moveWindowToCurrentWs(metaWindow) {
+    moveWindowToCurrentWs(metaWindow, monitor = -1) {
         let ws = global.workspace_manager.get_active_workspace();
         let win = metaWindow;
         win.change_workspace(ws);
-        let targetMonitorIndex = global.display.get_current_monitor();
+        let targetMonitorIndex = monitor > -1 ? monitor : global.display.get_current_monitor();
         let currentMonitorIndex = win.get_monitor();
         if ( currentMonitorIndex !== targetMonitorIndex) {
             // move window to target monitor
@@ -275,20 +275,19 @@ var Actions = class {
                 this.showWorkspaceIndex();
     }
 
-    showWorkspaceIndex(position = [], timeout = 600, names = {}) {
+    showWorkspaceIndex(position = [], timeout = 600, monitorIndex = global.display.get_current_monitor(), names = {}) {
 
         let wsIndex = global.workspace_manager.get_active_workspace().index();
         let text = names[wsIndex];
 
         if (!text) text = `${wsIndex + 1}`;
 
+        /*if (this._wsOverlay)
+            destroyWsOverlay();*/
+        //let monitorIndex = global.display.get_current_monitor();
+        //let geometry = global.display.get_monitor_geometry(monitorIndex);
         if (!this._wsOverlay) {
-
-            //let monitorIndex = global.display.get_current_monitor();
-            //let geometry = global.display.get_monitor_geometry(monitorIndex);
-            let geometry = get_current_monitor_geometry();
-
-
+            let geometry = global.display.get_monitor_geometry(monitorIndex);
             this._wsOverlay = new St.Label ({
                         name: 'ws-index',
                         text: text,
@@ -298,16 +297,15 @@ var Actions = class {
                         style_class: 'workspace-index-overlay',
                         reactive: true
             });
-
+    
             Main.layoutManager.addChrome(this._wsOverlay);
+        }
 
-        } else if (this._wsOverlay) {
+        this._wsOverlay.set_text(text);
 
-            this._wsOverlay.set_text(text);
-            if (this._wsOverlay._timeoutId) {
-                GLib.source_remove(this._wsOverlay._timeoutId);
+        if (this._wsOverlay._timeoutId) {
+            GLib.source_remove(this._wsOverlay._timeoutId);
                 this._wsOverlay._timeoutId = 0;
-            }
         }
 
         if (timeout) {
@@ -317,10 +315,8 @@ var Actions = class {
                 timeout,
                 () => {
 
-                    if (this._wsOverlay !== null) {
-                        Main.layoutManager.removeChrome(this._wsOverlay);
-                        this._wsOverlay.destroy();
-                        this._wsOverlay = null;
+                    if (this._wsOverlay) {
+                        destroyWsOverlay();
                     }
 
                     return GLib.SOURCE_REMOVE;
@@ -328,6 +324,14 @@ var Actions = class {
         }
 
         return this._wsOverlay;
+    }
+
+    destroyWsOverlay () {
+        if (!this._wsOverlay) return;
+
+        Main.layoutManager.removeChrome(this._wsOverlay);
+        this._wsOverlay.destroy();
+        this._wsOverlay = null;
     }
 
     makeThumbnailWindow(metaWindow) {

@@ -25,6 +25,7 @@ const WindowSwitcherPopup    = Me.imports.windowSwitcherPopup;
 
 let enabled                  = false;
 let _origAltTabWSP;
+let _origAltTabASP;
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
@@ -35,7 +36,9 @@ function enable() {
         _resumeThumbnailsIfExist();
 
     _origAltTabWSP = AltTab.WindowSwitcherPopup;
+    _origAltTabASP = AltTab.AppSwitcherPopup;
     AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
+    AltTab.AppSwitcherPopup    = WindowSwitcherPopup.AppSwitcherPopup;
     enabled = true;
 }
 
@@ -49,7 +52,9 @@ function disable() {
     }
 
     AltTab.WindowSwitcherPopup = _origAltTabWSP;
+    AltTab.AppSwitcherPopup    = _origAltTabASP;
     _origAltTabWSP = null;
+    _origAltTabASP = null;
 
     if (global.stage.windowThumbnails)
         global.stage.windowThumbnails = undefined;
