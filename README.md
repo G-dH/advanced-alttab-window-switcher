@@ -70,7 +70,8 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 `F`                       - Move window to empty workspace next to its current workspace and switch it to the fullscreen mode.
                            Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
-`O, Ctrl+;/~`             - Switch to Applications mode (and show Favorites if set in preferences). When an application has windows opened, window count is displayed over the icon.
+
+`O, Ctrl+;/~`             - Toggle between Windows and Applications modes.
 
 `T`                       - Creates an thumbnail preview of selected window and place it to the bottom right of the current monitor.
                            You can move the thumbnail anywhere on the screen and you can make as many thumbnails as you want
