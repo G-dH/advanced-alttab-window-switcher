@@ -359,6 +359,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._switcherList) this._switcherList.destroy();
             this._switcherList = new WindowSwitcher(windows);
             this._items = this._switcherList.icons;
+            this._connectIcons();
 
             this.showOrig(backward, binding, mask);
 
@@ -452,6 +453,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return true;
     }
 
+    _connectIcons() {
+        this._switcherList.icons.forEach((icon) => icon.connect('scroll-event', this._onScrollEvent.bind(this)));
+    }
+
+    _onScrollEvent() {
+        //this._toggleSingleAppMode();
+    }
+
     _updateSwitcher(winToApp = false) {
         let id;
         if (winToApp)
@@ -510,6 +519,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         super._finish();
     }
 
+    _activateWinSwitchedApp(win) {
+        if (this._getSelected().idx) {
+            // scroll switched the app window, it needs to be activated now
+            let app = this._getSelected();
+            Main.activateWindow(app.cachedWindows[app.idx]);
+        }
+    }
+
     _setSwitcherInfo() {
         this._switcherList._infoLabel.set_text(
                     (this._searchEntry !== null ? _('Search:') + ' ' + this._searchEntry : '') + '  '
@@ -518,7 +535,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     + _('Group: ') + GroupModeLabels[this.GROUP_MODE]+ ', '
                     + _('Sort: ') + SortingModesLabels[this.SORTING_MODE]
         );
-        if (!(this._searchEntry == null || this._searchEntry == '')) {
+        if (this._searchEntry != null) { //|| this._searchEntry == '')) {
             this._showWsIndex(true).set_text(this._searchEntry);
         }
     }
@@ -566,12 +583,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     } else {
                             if (this.ACTIVATE_ON_HIDE)
                                 this._finish();
-                            else
+                            else {
                                 this.fadeAndDestroy();
+                            }
                     }
 
                     this._noModsTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
+
                 } else {
                     this._noModsTimeoutId = 0;
                     this._resetNoModsTimeout();
@@ -945,7 +964,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             this.show();
             this._select(this._getItemIndexByID(id));
-        
+
         } else /*if (this._switcherMode === SwitcherModes.WINDOWS)*/ {
             this._switcherMode = SwitcherModes.APPS;
             this.SHOW_APPS = true;
@@ -997,7 +1016,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     toIndex = maxIndex;
                 else if (toIndex > maxIndex)
                     toIndex = 0;
-    
+
                 let element = favorites[fromIndex];
                 favorites.splice(fromIndex, 1);
                 favorites.splice(toIndex, 0, element);
@@ -1118,7 +1137,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 else {
                     if (_shiftPressed())
                         this._select(this._previous());
-                
+
                     else
                         this._select(this._next());
                 }
@@ -1657,7 +1676,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 let app = _convertAppInfoToShellApp(appInfoList[i]);
                 appList.push(app);
             }
-        
+
             const usage = Shell.AppUsage.get_default();
             // exclude running apps from the search result
             //appList = appList.filter(a => running.indexOf(a.get_id()) === -1);
@@ -1776,16 +1795,16 @@ class WindowIcon extends St.BoxLayout {
 
         let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         let winCount = app.cachedWindows.length;
-    
-        /*if (winCount > 0) {
-    
+
+        if (winCount > 0) {
+
             let mutterWindow = app.get_windows()[0].get_compositor_private();
             let cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * WINDOW_PREVIEW_SIZE / 3);
             let clone = AltTab._createWindowClone(mutterWindow, cloneSize * scaleFactor);
             this._icon.add_actor(clone);
             this._alignFront(clone, false);
-        }*/
-        
+        }
+
         winCount > 0 && this._icon.add_actor(this._createRunningIndicator(winCount));
 
 
@@ -1870,6 +1889,7 @@ class AppIcon extends Dash.DashIcon {
         const c = app.cachedWindows.length;
         if (c)
             this._iconContainer.add_child(this._createRunningIndicator(c));
+
     }
 
     _createIcon(iconSize) {
@@ -1891,6 +1911,80 @@ class AppIcon extends Dash.DashIcon {
         box.add(label);
 
         return icon;
+    }
+
+    vfunc_button_press_event(buttonEvent) {
+        super.vfunc_button_press_event(buttonEvent);
+        if (buttonEvent.button == 1) {
+            this._setPopupTimeout();
+        } else if (buttonEvent.button == 3) {
+            this.popupMenu();
+            return Clutter.EVENT_STOP;
+        }
+        return Clutter.EVENT_PROPAGATE;
+
+    }
+
+    vfunc_scroll_event(scrollEvent) {
+        let direction = scrollEvent.get_scroll_direction();
+
+        return this._switchWindow(direction);
+    }
+
+    _switchWindow(direction) {
+        if (direction == Clutter.ScrollDirection.SMOOTH) return;
+
+        let maxIndex = this.app.cachedWindows.length - 1;
+        let step;
+        direction == Clutter.ScrollDirection.UP ?
+            step = - 1 :
+            step =   1 ;
+        if (this.app.state != Shell.AppState.RUNNING || this.app.cachedWindows.length == 0)
+            return Clutter.EVENT_PROPAGATE;
+
+        let wins = [...this.app.cachedWindows];
+
+        let focusedWin = global.display.get_tab_list(Meta.TabList.NORMAL, null)[0];
+        let lastUsedAppWin = this.app.cachedWindows[0];
+        let focused = lastUsedAppWin == focusedWin;
+
+        let idx;
+        if (this.idx)
+            idx = this.idx;
+        else {
+            idx = wins.indexOf(lastUsedAppWin);
+        }
+
+        wins.sort((a, b) => a.get_stable_sequence() > b.get_stable_sequence());
+        if (!focused) {
+            //this._showWindow(lastUsedAppWin);
+            Main.activateWindow(lastUsedAppWin);
+            this.idx = idx;
+
+            return Clutter.EVENT_STOP;
+
+        } else {
+            // store index for the switcher
+            idx += step;
+            if (idx < 0) idx = maxIndex;
+            else if (idx > maxIndex) idx = 0;
+            this.idx = idx;
+            let win = wins[idx];
+
+            // don't activate the window, only show it, to kepp the original sequence
+            // window will be activated on popup hide
+            //this._showWindow(win);
+            Main.activateWindow(wins[idx]);
+
+            return Clutter.EVENT_STOP;
+        }
+    }
+
+    _showWindow(win) {
+        let a = win.above;
+        win.make_above();
+        a ? win.make_above() : win.unmake_above();
+        Main.wm.actionMoveWorkspace(win.get_workspace());
     }
 
 });
