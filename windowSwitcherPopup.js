@@ -223,6 +223,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _onDestroyThis() {
+        print('_onDestroyThis');
         // _initialDelayTimeoutId was already removed in super class
         if (this._actions) {
             if (this._actions._wsOverlay) {
@@ -291,6 +292,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     show(backward, binding, mask) {
+        print('show');
         if (!Main.pushModal(this)) {
             if (!Main.pushModal(this, { options: Meta.ModalOptions.POINTER_ALREADY_GRABBED }))
                 return false;
@@ -319,7 +321,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             windows = this._getAppList(this._searchEntry);
             if (windows.length > 0) this._showingApps = true;
         } else
-            windows = this._getWindowList();
+            windows = this._getCustomWindowList();
 
         let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '')
                                || (this._searchCanSwitchFilter && this._searchEntry !== null && this._searchEntry !== '');
@@ -327,7 +329,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (windows.length === 0 && filterSwitchAllowed) {
             for (let mod = this.WIN_FILTER_MODE; mod > 0; mod--) {
                 this._tempFilterMode = mod;
-                windows = this._getWindowList();
+                windows = this._getCustomWindowList();
                 if (windows.length > 0 && (this._searchEntry === null || this._searchEntry === '')) {
                     this._initialSelectionMode = SelectionModes.NONE;
                     this._selectedIndex = -1;
@@ -337,7 +339,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (windows.length === 0 && this._tempFilterMode && this._searchEntry !== null && this._searchEntry !== '' && this.SEARCH_APPS === false) {
                 this._searchEntry = this._searchEntry.slice(0, -1);
                 this._tempFilterMode = null;
-                windows = this._getWindowList();
+                windows = this._getCustomWindowList();
             }
         }
         if (windows.length === 0 && this.SEARCH_APPS === true && this._searchEntry !== null && this._searchEntry !== '') {
@@ -350,7 +352,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._searchEntry = this._searchEntry.slice(0, -1);
                 this._tempFilterMode = null;
 
-                windows = this._getWindowList();
+                windows = this._getCustomWindowList();
             }
 
         }
@@ -369,6 +371,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     showOrig(backward, binding, mask) {
+        print('showOrig');
         if (this._items.length == 0) {
             return false;
         }
@@ -395,10 +398,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._modifierMask) {
             let mods = global.get_pointer()[2];
             if (!(mods & this._modifierMask)) {
+                print ('racing-binding: ', binding);
                 if (this._doNotFinishBeforeUpdate) {
+                    print ('racing: _finishNow');
                     this._finishNow = true;
                 }
                 else if (!this._firstRun){
+                    print ('racing: _finish');
                     this._finish(global.get_current_time());
                     return true;
                 }
@@ -408,6 +414,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (this._switchGroupInit) {
+            print('_select: _switchGroupInit');
         // user is switching windows of focused app
             this._switchGroupInit = false;
             this._selectedIndex = 0;
@@ -418,6 +425,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._select(1);
             this._doNotFinishBeforeUpdate = false;
             if (this._finishNow) {
+                print('_select: _finishNow');
                 this._finishNow = false;
                 this._finish();
             }
@@ -429,6 +437,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // We delay showing the popup so that fast Alt+Tab users aren't
         // disturbed by the popup briefly flashing.
         // but not when we're just overriding already shown content
+        print('firstRun: ', this._firstRun);
+        print('_delayGroupSwitcher: ', this._delayGroupSwitcher);
         if (this._firstRun || this._delayGroupSwitcher) {
             if (this._delayGroupSwitcher)
                 this._delayGroupSwitcher = false;
@@ -436,6 +446,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 GLib.PRIORITY_DEFAULT,
                 this.KEYBOARD_TRIGGERED? this._initialDelayTimeout : 0,
                 () => {
+                    print ('_show: _showImmediately');
                     if (!this._doNotShowImmediately)
                         this._showImmediately();
                     this._initialDelayTimeoutId = 0;
@@ -443,6 +454,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 });
             GLib.Source.set_name_by_id(this._initialDelayTimeoutId, '[gnome-shell] Main.osdWindow.cancel');
         } else {
+            print('setting opacity to 255');
             this.opacity = 255;
         }
         this._firstRun = false;
@@ -462,6 +474,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateSwitcher(winToApp = false) {
+        print('_updateSwitcher');
         let id;
         if (winToApp)
             id = _getWindowApp(this._items[0].window).get_id();
@@ -472,6 +485,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     fadeAndDestroy() {
+        print('fadeAndDestroy');
         this._doNotShowImmediately = true;
         this._popModal();
         if (this.opacity > 0) {
@@ -488,10 +502,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _finish() {
         if (this._doNotFinishBeforeUpdate) {
+            print('_finish: _doNotFinishBeforeUpdate');
             this._finishNow = true;
             return;
         }
         if (this._showWinImmediatelyTimeoutId) {
+            print('_finish: _showWinImmediatelyTimeoutId');
             GLib.source_remove(this._showWinImmediatelyTimeoutId);
             this._showWinImmediatelyTimeoutId = 0;
         }
@@ -502,20 +518,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._getSelected().open_new_window(global.get_current_time());
             else {
                 if (this._getSelected().cachedWindows[0]) {
+                    print('_finish: activateWindow');
                     Main.activateWindow(this._getSelected().cachedWindows[0]);
                 }
                 else {
                     if (this._getSelected().get_n_windows() === 0) {
+                        print('_finish: activate App');
                         this._getSelected().activate();
                     }
                     else {
+                        print('_finish: activate App Window');
                         this._getSelected().open_new_window(global.get_current_time());
                     }
                 }
             }
         } else {
+            print('_finish: activateWindow');
             Main.activateWindow(this._getSelected());
         }
+        print('_finish: super._finish');
         super._finish();
     }
 
@@ -536,6 +557,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     + _('Sort: ') + SortingModesLabels[this.SORTING_MODE]
         );
         if (this._searchEntry != null) { //|| this._searchEntry == '')) {
+            print ('$$$$$$$$$$$$ setting wsLabel to pattern');
             this._showWsIndex(true).set_text(this._searchEntry);
         }
     }
@@ -556,6 +578,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else {
             wsLabel.y = Math.floor((geometry.height + this._switcherList.height) / 2);
         }
+        print ('wsIndex position: ', wsLabel.x, wsLabel.y);
         return wsLabel;
     }
 
@@ -566,6 +589,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             GLib.PRIORITY_DEFAULT,
             this.NO_MODS_TIMEOUT,
             () => {
+                print('_cancelTimeout: ', _cancelTimeout)
                 if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !_cancelTimeout) {
                     if (this._showWinImmediately) {
                         if (this._lastShowed)
@@ -579,8 +603,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             this._finish();
 
                     } else if (this._doNotFinishBeforeUpdate) {
+                            print('_resetNoModsTimeout: _doNotFinishBeforeUpdate');
                             this._finishNow = true;
                     } else {
+                            print('_resetNoModsTimeout: fadeAndDestroy');
                             if (this.ACTIVATE_ON_HIDE)
                                 this._finish();
                             else {
@@ -614,6 +640,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             id = _getWindowApp(metaWin).get_id();
             pt = 'app';
         }
+        print('id id id id:', id);
         for (let i = 0; i < this._items.length; i++) {
             if (this._items[i][pt].get_id() === id)
                 return i;
@@ -1079,6 +1106,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _keyPressHandler(keysym, action) {
         let keysymName = Gdk.keyval_name(keysym);
+        //print (keysymName);
 
         if (keysymName.match(/F[1-9][0-2]?/) || (keysymName.match(/KP_[1-9]/) && this._searchEntry === null)) {
 
@@ -1518,7 +1546,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     }
 
-    _getWindowList(allWindows = false) {
+    _getCustomWindowList(allWindows = false) {
         let filterMode;
         if (this._tempFilterMode)
             filterMode = this._tempFilterMode;
@@ -2035,6 +2063,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
     }
 
     _onDestroy() {
+        print('_onDestroy');
         this.icons.forEach(icon => {
             if (icon.window)
                 icon.window.disconnect(icon._unmanagedSignalId);

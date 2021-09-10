@@ -15,6 +15,8 @@
  */
 'use strict';
 
+const GLib                   = imports.gi.GLib;
+
 const Main                   = imports.ui.main;
 const AltTab                 = imports.ui.altTab;
 
@@ -32,14 +34,20 @@ function init() {
 }
 
 function enable() {
-    if (enabled)
-        _resumeThumbnailsIfExist();
-
-    _origAltTabWSP = AltTab.WindowSwitcherPopup;
-    _origAltTabASP = AltTab.AppSwitcherPopup;
-    AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
-    AltTab.AppSwitcherPopup    = WindowSwitcherPopup.AppSwitcherPopup;
-    enabled = true;
+    GLib.timeout_add(
+        GLib.PRIORITY_DEFAULT,
+        500,
+        () => {
+            if (enabled)
+                _resumeThumbnailsIfExist();
+        
+            _origAltTabWSP = AltTab.WindowSwitcherPopup;
+            _origAltTabASP = AltTab.AppSwitcherPopup;
+            AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
+            AltTab.AppSwitcherPopup    = WindowSwitcherPopup.AppSwitcherPopup;
+            enabled = true;
+        }
+    );
 }
 
 function disable() {
