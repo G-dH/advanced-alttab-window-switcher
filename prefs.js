@@ -922,6 +922,104 @@ class HelpPageAATWS extends Gtk.ScrolledWindow {
             visible: true,
         });
         this[this.add ? 'add' : 'set_child'](mainBox);
+        const flbl = new Gtk.Label({
+            visible: true,
+        });
+        flbl.set_markup(_makeTitle(_('Hotkeys:')));
+        const hotkeysFrame = new Gtk.Frame({
+            label_widget: flbl,
+            visible: true,
+        });
+        const helpLabel = new Gtk.Label({
+            wrap: true,
+            wrap_mode: 0,
+            margin_start: 4,
+            margin_end: 4,
+            margin_top: 4,
+            margin_bottom: 4,
+        });
+        hotkeysFrame[hotkeysFrame.add ? 'add' : 'append'](helpLabel);
+        mainBox[mainBox.add ? 'add' : 'append'](hotkeysFrame);
+        const helpText = `
+<b>H/L, Left/Right</b>
+window selection
+
+<b>J/K, Up/Down, PgUp/Down</b>
+Workspace selection
+
+<b>Shift + arrow keys</b>
+Move the window switcher to the adjacent monitor in particular direction
+
+<b>Ctrl+Tab</b>
+Nove the window switcher to next monitor, order is given by the Shell, Shift key changes direction
+
+<b>Space, KP_0/KP_Ins</b>
+Show selected window - switch to window workspace and bring it to the front
+
+<b>Q</b>
+Switch window filter mode - ALL / WS / MONITOR
+
+<b>;/~</b>   (the key above Tab)
+In Window mode - Sort windows by applications, each subsequent key press jumps to the first window of the next app
+In App mode - Iterate over windows of selected application
+
+<b>G</b>
+Toggle sort by workspaces, when base filter is set to ALL
+
+<b>1/+/!</b>
+Filter out all windows that don't belong to the application of selected window
+
+<b>E/Insert</b>
+Activate the Search mode, the Insert key can turn it off.
+
+<b>W</b>
+Close selected window (or app when in app mode)
+
+<b>D</b>
+Close application of selected window (or app when in app mode)
+
+<b>Shift+Del</b>
+Force close - kill -9 to application of selected window/app
+
+<b>C</b>
+Close all windows from the window list that belong to the same application as selected window
+
+<b>A</b>
+Toggle window 'Always on Top'. Also switch to window workspace and rise the window.
+Indicated by the front icon on top instead of bottom.
+When you press the 'A' key twice, it's actually equivalent to one press of hotkey for 'Show selected window'
+
+<b>S</b>
+Toggle window 'Always on Visible Workspace', indicated by the 'pin' icon
+
+<b>X</b>
+Move selected window to the current workspace and to the monitor with mouse pointer
+
+<b>N, Ctrl+Enter</b>
+Create New Window of selected application, if the app soupports it.
+
+<b>V</b>
+Move window to selected workspace and maximize it.
+
+<b>F</b>
+Move window to empty workspace next to its current workspace and switch it to the fullscreen mode.
+Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
+
+<b>O, Ctrl+;/~</b>
+Toggle between Windows and Applications modes.
+
+<b>T</b>
+Creates an thumbnail preview of selected window and place it to the bottom right of the current monitor.
+You can move the thumbnail anywhere on the screen and you can make as many thumbnails as you want
+
+<b>P</b>
+Open preferences window of this extension
+
+<b>Ctrl+Shift+Left/Right</b>
+In Applications mode with Favorites change the position of the selected favorite application
+`
+        //textBuffer.set_text(helpText, -1);
+        helpLabel.set_markup(helpText);
         this.show_all && this.show_all();
         this._alreadyBuilt = true;
     }
