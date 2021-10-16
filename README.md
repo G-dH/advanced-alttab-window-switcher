@@ -8,11 +8,11 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 ## Features:
 
-- **Type to Search mode** - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode, so you can type immediately as the popup shows up and window list will be filtered accordingly.
+- **Type to Search** mode - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode so you can type immediately as the popup shows up and window/app list will be filtered accordingly.
 - Optional default filter settings : *All windows / Current workspace / Current monitor*, plus *Skip minimized* option.
 - Optional default sorting settings: *Most Recently Used* (MRU) */ Stable sequence / Stable sequence - current window first*.
 - Optional default grouping settings: *None / Current workspace first / Applications / Workspaces*.
-- **Filter, sort and group modes can be switched on the fly** by hotkeys when needed.
+- **Filter, sort and group modes can be switched on the fly** using hotkeys when needed.
 - Sort and iterate over window list by applications instead of windows using a hotkey
 - The switcher can work also as an **aplication launcher with Favorite applications**, and search all installed applications (all with properly installed `.desktop` files).
 - **Workspace switcher** controlled using hotkeys or a mouse scroll wheel outside the switcher popup.
@@ -40,7 +40,7 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 `Q`                       - Switch window filter mode - ALL / WS / MONITOR
 
 `;/~` (the key above Tab) - in Window mode - Sort windows by applications, each subsequent key press jumps to the first window of the next app
-                        - in App mode - Iterate over windows if selected application
+                          - in App mode - Iterate over windows of selected application
 
 `G`                       - Toggle sort by workspaces, when base filter is set to ALL
 
