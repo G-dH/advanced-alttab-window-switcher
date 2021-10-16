@@ -1,5 +1,5 @@
 /* Copyright 2021 GdH <https://github.com/G-dH>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -40,7 +40,7 @@ function enable() {
         () => {
             if (enabled)
                 _resumeThumbnailsIfExist();
-        
+
             _origAltTabWSP = AltTab.WindowSwitcherPopup;
             _origAltTabASP = AltTab.AppSwitcherPopup;
             AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
@@ -51,10 +51,9 @@ function enable() {
 }
 
 function disable() {
-    if (_extensionEnabled())
+    if (_extensionEnabled()) {
         _removeThumbnails(false);
-
-    else {
+    } else {
         _removeThumbnails();
         enabled = false;
     }
@@ -69,40 +68,49 @@ function disable() {
 }
 
 function _resumeThumbnailsIfExist() {
-    if (global.stage.windowThumbnails)
+    if (global.stage.windowThumbnails) {
         global.stage.windowThumbnails.forEach(
-            (t) => { if (t) t.show(); }
+            t => {
+                if (t)
+                    t.show();
+            }
         );
+    }
 }
 
 function _removeThumbnails(full = true) {
     if (full) {
         if (global.stage.windowThumbnails) {
             global.stage.windowThumbnails.forEach(
-                (t) => { if (t) t.destroy(); }
+                t => {
+                    if (t)
+                        t.destroy();
+                }
             );
             global.stage.windowThumbnails = undefined;
         }
-    } else {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
-                    (t) => { if (t) t.hide(); }
-                );
-        }
+    } else if (global.stage.windowThumbnails) {
+        global.stage.windowThumbnails.forEach(
+            t => {
+                if (t)
+                    t.hide();
+            }
+        );
     }
 }
 
 function _extensionEnabled() {
-        const shellSettings = Settings.getSettings(
-                            'org.gnome.shell',
-                            '/org/gnome/shell/');
-        let enabled = shellSettings.get_strv('enabled-extensions');
-        enabled = enabled.indexOf(Me.metadata.uuid) > -1;
-        let disabled = shellSettings.get_strv('disabled-extensions');
-        disabled = disabled.indexOf(Me.metadata.uuid) > -1;
-        let disableUser = shellSettings.get_boolean('disable-user-extensions');
+    const shellSettings = Settings.getSettings(
+        'org.gnome.shell',
+        '/org/gnome/shell/');
+    let enabled = shellSettings.get_strv('enabled-extensions');
+    enabled = enabled.indexOf(Me.metadata.uuid) > -1;
+    let disabled = shellSettings.get_strv('disabled-extensions');
+    disabled = disabled.indexOf(Me.metadata.uuid) > -1;
+    let disableUser = shellSettings.get_boolean('disable-user-extensions');
 
-        if(enabled && !disabled && !disableUser)
-            return true;
-        return false;
-    }
+    if (enabled && !disabled && !disableUser)
+        return true;
+    return false;
+}
+
