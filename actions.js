@@ -26,15 +26,15 @@ const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
 const WinTmb         = Me.imports.winTmb;
 
-const ws_indicator_mode = { 'DISABLE':       0,
-                            'DEFAULT':       1,
-                            'INDEX':         2
-                        }
+const ws_indicator_mode = {
+    'DISABLE': 0,
+    'DEFAULT': 1,
+    'INDEX': 2,
+};
 
 var get_current_monitor_geometry = function () {
     return global.display.get_monitor_geometry(global.display.get_current_monitor());
-}
-
+};
 
 var Actions = class {
     constructor() {
@@ -45,14 +45,14 @@ var Actions = class {
         this.WS_INDICATOR_MODE      = this._mscOptions.wsSwitchIndicatorMode;
 
         this.WIN_SKIP_MINIMIZED     = this._mscOptions.winSkipMinimized;
-
     }
 
     clean(full = true) {
         // don't reset effects and destroy thumbnails if extension is enabled (GS calls ext. disable() before locking the screen f.e.)
-        if (full) {
+        if (full)
             this._resetSettings();
-        }
+        if (this._wsOverlay)
+            this.destroyWsOverlay();
         this._removeThumbnails(full);
     }
 
@@ -71,8 +71,8 @@ var Actions = class {
     _getShellSettings() {
         if (!this._shellSettings) {
             this._shellSettings = Settings.getSettings(
-                            'org.gnome.shell',
-                            '/org/gnome/shell/');
+                'org.gnome.shell',
+                '/org/gnome/shell/');
         }
         return this._shellSettings;
     }
@@ -99,7 +99,7 @@ var Actions = class {
         return -1;
     }
 
-    /////////////////////////////////////////////////////////////////////////////
+    // ///////////////////////////////////////////////////////////////////////////
 
     moveWindowToCurrentWs(metaWindow, monitor = -1) {
         let ws = global.workspace_manager.get_active_workspace();
@@ -107,12 +107,12 @@ var Actions = class {
         win.change_workspace(ws);
         let targetMonitorIndex = monitor > -1 ? monitor : global.display.get_current_monitor();
         let currentMonitorIndex = win.get_monitor();
-        if ( currentMonitorIndex !== targetMonitorIndex) {
+        if (currentMonitorIndex !== targetMonitorIndex) {
             // move window to target monitor
             let actor = this._getActorByMetaWin(win);
             let currentMonitor = this._getMonitorByIndex(currentMonitorIndex);
             let targetMonitor  = this._getMonitorByIndex(targetMonitorIndex);
-           
+
             let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
             let y = targetMonitor.y + Math.max(Math.floor(targetMonitor.height - actor.height) / 2, 0);
             win.move_frame(true, x, y);
@@ -121,7 +121,8 @@ var Actions = class {
 
     closeWindow(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
+        if (!win)
+            return;
         win.delete(global.get_current_time());
     }
 
@@ -136,48 +137,56 @@ var Actions = class {
 
     quitApplication(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
+        if (!win)
+            return;
         let app = this._getWindowApp(metaWindow);
         app.request_quit();
     }
 
     killApplication(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
+        if (!win)
+            return;
         win.kill();
     }
 
     toggleMaximizeWindow(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
+        if (!win)
+            return;
         if (win.maximized_horizontally && win.maximized_vertically)
             win.unmaximize(Meta.MaximizeFlags.BOTH);
-        else win.maximize(Meta.MaximizeFlags.BOTH);
+        else
+            win.maximize(Meta.MaximizeFlags.BOTH);
     }
 
     minimizeWindow(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
+        if (!win)
+            return;
         win.minimize();
-        //global.display.get_tab_list(0, null)[0].minimize();
+        // global.display.get_tab_list(0, null)[0].minimize();
     }
 
-    unminimizeAll(workspace=true) {
+    unminimizeAll(workspace = true) {
         let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         let activeWorkspace = global.workspaceManager.get_active_workspace();
         for (let win of windows) {
-            if (workspace && (activeWorkspace !== win.get_workspace()) ) {
+            if (workspace && (activeWorkspace !== win.get_workspace()))
                 continue;
-            }
+
             win.unminimize();
         }
     }
 
     toggleFullscreenWindow(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
-        if (win.fullscreen) win.unmake_fullscreen();
-        else win.make_fullscreen();
+        if (!win)
+            return;
+        if (win.fullscreen)
+            win.unmake_fullscreen();
+        else
+            win.make_fullscreen();
     }
 
     fullscreenWinOnEmptyWs(metaWindow = null, nextWs = false) {
@@ -187,7 +196,8 @@ var Actions = class {
         else
             win = metaWindow;
 
-        if (!win) return;
+        if (!win)
+            return;
         if (win.fullscreen) {
             win.unmake_fullscreen();
             if (win._originalWS) {
@@ -200,11 +210,11 @@ var Actions = class {
             win.make_fullscreen();
             if (ws.n_windows > 1) {
                 win._originalWS = ws;
-                let lastWs = global.workspaceManager.n_workspaces-1;
+                let lastWs = global.workspaceManager.n_workspaces - 1;
                 lastWs = global.workspaceManager.get_workspace_by_index(lastWs);
-                //Main.wm.actionMoveWorkspace(lastWs);
+                // Main.wm.actionMoveWorkspace(lastWs);
                 win.change_workspace(lastWs);
-                global.workspace_manager.reorder_workspace(lastWs, ws.index()+1);
+                global.workspace_manager.reorder_workspace(lastWs, ws.index() + 1);
             }
             win.activate(global.get_current_time());
         }
@@ -212,145 +222,81 @@ var Actions = class {
 
     toggleAboveWindow(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
-        if (win.is_above()) {
+        if (!win)
+            return;
+        if (win.is_above())
             win.unmake_above();
-        }
-        else {
+
+        else
             win.make_above();
-        }
     }
 
     toggleStickWindow(metaWindow) {
         let win = metaWindow;
-        if (!win) return;
-        if (win.is_on_all_workspaces()){
+        if (!win)
+            return;
+        if (win.is_on_all_workspaces())
             win.unstick();
-        }
-        else{
+        else
             win.stick();
-        }
     }
 
     switchWorkspace(direction, noIndicator = false) {
-            let n_workspaces = global.workspaceManager.n_workspaces;
-            let lastWsIndex =  n_workspaces - (this.WS_IGNORE_LAST ? 2 : 1);
-            let motion;
-    
-            let activeWs  = global.workspaceManager.get_active_workspace();
-            let activeIdx = activeWs.index();
-            let targetIdx = this.WS_WRAPAROUND ? 
-                            (activeIdx + (direction ? 1 : lastWsIndex )) % (lastWsIndex + 1) :
-                            activeIdx + (direction ? 1 : -1);
-            if (targetIdx < 0 || targetIdx > lastWsIndex) {
-                targetIdx = activeIdx;
-            }
-            let ws = global.workspaceManager.get_workspace_by_index(targetIdx);
+        let n_workspaces = global.workspaceManager.n_workspaces;
+        let lastWsIndex =  n_workspaces - (this.WS_IGNORE_LAST ? 2 : 1);
+        let motion;
 
-            const showIndicator = !noIndicator && this.WS_INDICATOR_MODE > 0;
+        let activeWs  = global.workspaceManager.get_active_workspace();
+        let activeIdx = activeWs.index();
+        let targetIdx = this.WS_WRAPAROUND
+            ? (activeIdx + (direction ? 1 : lastWsIndex)) % (lastWsIndex + 1)
+            : activeIdx + (direction ? 1 : -1);
+        if (targetIdx < 0 || targetIdx > lastWsIndex)
+            targetIdx = activeIdx;
 
-            // show default workspace indicator popup
-            if (showIndicator && this.WS_INDICATOR_MODE === ws_indicator_mode.DEFAULT) {
-                const vertical = global.workspaceManager.layout_rows === -1;
-                if (Main.wm._workspaceSwitcherPopup == null) {
-                    Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-                    Main.wm._workspaceSwitcherPopup.reactive = false;
-                    Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
-                        Main.wm._workspaceSwitcherPopup = null;
-                    });
-                }
+        let ws = global.workspaceManager.get_workspace_by_index(targetIdx);
 
-                // Do not show wokspaceSwithcer in overview
-                if (!Main.overview.visible) {
-                    let motion = direction ? (vertical? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT)
-                                           : (vertical? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT);
-                    Main.wm._workspaceSwitcherPopup.display(motion, ws.index());
-                }
+        const showIndicator = !noIndicator && this.WS_INDICATOR_MODE > 0;
+
+        // show default workspace indicator popup
+        if (showIndicator && this.WS_INDICATOR_MODE === ws_indicator_mode.DEFAULT) {
+            const vertical = global.workspaceManager.layout_rows === -1;
+            if (Main.wm._workspaceSwitcherPopup == null) {
+                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+                Main.wm._workspaceSwitcherPopup.reactive = false;
+                Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
+                    Main.wm._workspaceSwitcherPopup = null;
+                });
             }
 
-            Main.wm.actionMoveWorkspace(ws);
-
-            // show workspace index overlay if wanted
-            if (this.WS_INDICATOR_MODE === ws_indicator_mode.INDEX && showIndicator)
-                this.showWorkspaceIndex();
-    }
-
-    showWorkspaceIndex(position = [], timeout = 600, monitorIndex = global.display.get_current_monitor(), names = {}) {
-
-        let wsIndex = global.workspace_manager.get_active_workspace().index();
-        let text = names[wsIndex];
-
-        if (!text) text = `${wsIndex + 1}`;
-
-        /*if (this._wsOverlay)
-            destroyWsOverlay();*/
-        //let monitorIndex = global.display.get_current_monitor();
-        //let geometry = global.display.get_monitor_geometry(monitorIndex);
-        if (!this._wsOverlay) {
-            let geometry = global.display.get_monitor_geometry(monitorIndex);
-            this._wsOverlay = new St.Label ({
-                        name: 'ws-index',
-                        text: text,
-                        x: position.length ? position[0] : geometry.x,
-                        y: position.length ? position[1] : geometry.y + (geometry.height / 2),
-                        width: geometry.width,
-                        style_class: 'workspace-index-overlay',
-                        reactive: true
-            });
-    
-            Main.layoutManager.addChrome(this._wsOverlay);
+            // Do not show wokspaceSwithcer in overview
+            if (!Main.overview.visible) {
+                let motion = direction ? vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT
+                    : vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT;
+                Main.wm._workspaceSwitcherPopup.display(motion, ws.index());
+            }
         }
 
-        this._wsOverlay.set_text(text);
-
-        if (this._wsOverlay._timeoutId) {
-            GLib.source_remove(this._wsOverlay._timeoutId);
-                this._wsOverlay._timeoutId = 0;
-        }
-
-        if (timeout) {
-
-            this._wsOverlay._timeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                timeout,
-                () => {
-
-                    if (this._wsOverlay) {
-                        destroyWsOverlay();
-                    }
-
-                    return GLib.SOURCE_REMOVE;
-            });
-        }
-
-        return this._wsOverlay;
-    }
-
-    destroyWsOverlay () {
-        if (!this._wsOverlay) return;
-
-        Main.layoutManager.removeChrome(this._wsOverlay);
-        this._wsOverlay.destroy();
-        this._wsOverlay = null;
+        Main.wm.actionMoveWorkspace(ws);
     }
 
     makeThumbnailWindow(metaWindow) {
-        if (!global.stage.windowThumbnails) global.stage.windowThumbnails = [];
+        if (!global.stage.windowThumbnails)
+            global.stage.windowThumbnails = [];
         let metaWin;
-        if (metaWindow) {
+        if (metaWindow)
             metaWin = metaWindow;
-        }
-        if (!metaWin) return;
+
+        if (!metaWin)
+            return;
 
         let monitorHeight = get_current_monitor_geometry().height;
         let scale = this._mscOptions.winThumbnailScale;
-        global.stage.windowThumbnails.push( new WinTmb.WindowThumbnail(metaWin, this, {  'actionTimeout': this._mscOptions.actionEventDelay,
-                                                                                'height' : Math.floor(scale / 100 * monitorHeight),
-                                                                                'thumbnailsOnScreen' : global.stage.windowThumbnails.length
-                                                                             }
-                                                                        )
-        );
+        global.stage.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this, {
+            'actionTimeout': this._mscOptions.actionEventDelay,
+            'height': Math.floor(scale / 100 * monitorHeight),
+            'thumbnailsOnScreen': global.stage.windowThumbnails.length,
+        }));
     }
-
 };
 
