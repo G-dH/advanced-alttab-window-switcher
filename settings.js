@@ -1,6 +1,4 @@
-/* This is a part of Custom Hot Corners - Extended, the Gnome Shell extension*
- * Copyright 2020 Jan Runge <janrunx@gmail.com>
- * Copyright 2021 GdH <https://github.com/G-dH>
+/* Copyright 2021 GdH <https://github.com/G-dH>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,7 +26,28 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 var _ = Gettext.gettext;
 
 const _schema = 'org.gnome.shell.extensions.advanced-alt-tab-window-switcher';
-const _path = '/org/gnome/shell/extensions/advanced-alt-tab-window-switcher';  
+const _path = '/org/gnome/shell/extensions/advanced-alt-tab-window-switcher';
+
+var Actions = {
+    NOTHING:           0,
+    SELECT_ITEM:       1,
+    ACTIVATE:          2,
+    SINGLE_APP:        3,
+    SWITCH_FILTER:     4,
+    SWITCHER_MODE:     5,
+    SWITCH_WS:         6,
+    GROUP_APP:         7,
+    CURRENT_MON_FIRST: 8,
+    MENU:              9,
+    SHOW:             10,
+    MOVE_TO_WS:       11,
+    THUMBNAIL:        12,
+    HIDE:             13,
+    CLOSE_QUIT:       14,
+    KILL:             15,
+    NEW_WINDOW:       16,
+    PREFS:            99,
+};
 
 var MscOptions = class MscOptions {
     constructor() {
@@ -52,205 +71,410 @@ var MscOptions = class MscOptions {
         return getSettings(schema, path);
     }
 
-    get winSkipMinimized() {
-        return this._gsettings.get_boolean('win-switch-skip-minimized');
+    // common options
+    get switcherPopupPosition() {
+        return this._gsettings.get_int('switcher-popup-position');
     }
-    set winSkipMinimized(bool_val) {
-        this._gsettings.set_boolean('win-switch-skip-minimized', bool_val);
+
+    set switcherPopupPosition(int_val) {
+        this._gsettings.set_int('switcher-popup-position', int_val);
     }
-    get winThumbnailScale() {
-        return this._gsettings.get_int('win-thumbnail-scale');
+
+    get switcherPopupShiftHotkeys() {
+        return this._gsettings.get_boolean('switcher-popup-shift-hotkeys');
     }
-    set winThumbnailScale(scale) {
-        this._gsettings.set_int('win-thumbnail-scale', scale);
+
+    set switcherPopupShiftHotkeys(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-shift-hotkeys', bool_val);
     }
-    get winSwitcherPopupTimeout() {
-        return this._gsettings.get_int('win-switcher-popup-timeout');
+
+    get switcherPopupTimeout() {
+        return this._gsettings.get_int('switcher-popup-timeout');
     }
-    set winSwitcherPopupTimeout(timeout) {
-        this._gsettings.set_int('win-switcher-popup-timeout', timeout);
+
+    set switcherPopupTimeout(int_val) {
+        this._gsettings.set_int('switcher-popup-timeout', int_val);
     }
-    get winSwitcherPopupPointerTimeout() {
-        return this._gsettings.get_int('win-switcher-popup-pointer-timeout');
+
+    get switcherPopupShowImmediately() {
+        return this._gsettings.get_boolean('switcher-popup-show-immediately');
     }
-    set winSwitcherPopupPointerTimeout(timeout) {
-        this._gsettings.set_int('win-switcher-popup-pointer-timeout', timeout);
+
+    set switcherPopupShowImmediately(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-show-immediately', bool_val);
     }
-    get winSwitcherPopupShowImmediately() {
-        return this._gsettings.get_boolean('win-switcher-popup-show-immediately');
+
+    get switcherPopupStartSearch() {
+        return this._gsettings.get_boolean('switcher-popup-start-search');
     }
-    set winSwitcherPopupShowImmediately(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-show-immediately', bool_val);
+
+    set switcherPopupStartSearch(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-start-search', bool_val);
     }
-    get winSwitcherPopupStartSearch() {
-        return this._gsettings.get_boolean('win-switcher-popup-start-search');
+
+    get switcherPopupWrap() {
+        return this._gsettings.get_boolean('switcher-popup-wrap');
     }
-    set winSwitcherPopupStartSearch(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-start-search', bool_val);
+
+    set switcherPopupWrap(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-wrap', bool_val);
     }
-    get winSwitcherPopupStartApps() {
-        return this._gsettings.get_boolean('win-switcher-popup-start-apps');
+
+    get switcherPopupHotKeys() {
+        return this._gsettings.get_boolean('switcher-popup-hot-keys');
     }
-    set winSwitcherPopupStartApps(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-start-apps', bool_val);
+
+    set switcherPopupHotKeys(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-hot-keys', bool_val);
     }
-    get winSwitcherPopupPosition() {
-        return this._gsettings.get_int('win-switcher-popup-position');
-    }
-    set winSwitcherPopupPosition(position) {
-        this._gsettings.set_int('win-switcher-popup-position', position);
-    }
-    get winSwitcherPopupPointer() {
-        return this._gsettings.get_boolean('win-switcher-popup-pointer');
-    }
-    set winSwitcherPopupPointer(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-pointer', bool_val);
-    }
-    get winSwitcherPopupWsIndexes() {
-        return this._gsettings.get_boolean('win-switcher-popup-ws-indexes');
-    }
-    set winSwitcherPopupWsIndexes(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-ws-indexes', bool_val);
-    }
-    get winSwitcherPopupHotKeys() {
-        return this._gsettings.get_boolean('win-switcher-popup-hot-keys');
-    }
-    set winSwitcherPopupHotKeys(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-hot-keys', bool_val);
-    }
-    get winSwitcherPopupInfo() {
-        return this._gsettings.get_boolean('win-switcher-popup-info');
-    }
-    set winSwitcherPopupInfo(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-info', bool_val);
-    }
+
     get switcherPopupScrollOut() {
         return this._gsettings.get_int('switcher-popup-scroll-out');
     }
-    set switcherPopupScrollOut(fnc) {
-        this._gsettings.set_int('switcher-popup-scroll-out', fnc);
+
+    set switcherPopupScrollOut(int_val) {
+        this._gsettings.set_int('switcher-popup-scroll-out', int_val);
     }
-    get winSwitcherPopupWinFilter() {
-        return this._gsettings.get_int('win-switcher-popup-win-filter');
+
+    get switcherPopupScrollIn() {
+        return this._gsettings.get_int('switcher-popup-scroll-in');
     }
-    set winSwitcherPopupWinFilter(filterMode) {
-        this._gsettings.set_int('win-switcher-popup-win-filter', filterMode);
+
+    set switcherPopupScrollIn(int_val) {
+        this._gsettings.set_int('switcher-popup-scroll-in', int_val);
     }
-    get winSwitcherPopupAppFilter() {
-        return this._gsettings.get_int('win-switcher-popup-app-filter');
+
+    get switcherPopupOverlayTitle() {
+        return this._gsettings.get_boolean('switcher-popup-overlay-title');
     }
-    set winSwitcherPopupAppFilter(filterMode) {
-        this._gsettings.set_int('win-switcher-popup-app-filter', filterMode);
+
+    set switcherPopupOverlayTitle(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-overlay-title', bool_val);
     }
-    get winSwitcherPopupWinOrder() {
-        return this._gsettings.get_int('win-switcher-popup-win-order');
+
+
+    get switcherPopupPrimClickIn() {
+        return this._gsettings.get_int('switcher-popup-prim-click-in');
     }
-    set winSwitcherPopupWinOrder(orderMode) {
-        this._gsettings.set_int('win-switcher-popup-win-order', orderMode);
+
+    set switcherPopupPrimClickIn(int_val) {
+        this._gsettings.set_int('switcher-popup-prim-click-in', int_val);
     }
-    get winSwitcherPopupWinSorting() {
-        return this._gsettings.get_int('win-switcher-popup-win-sorting');
+
+    get switcherPopupSecClickIn() {
+        return this._gsettings.get_int('switcher-popup-sec-click-in');
     }
-    set winSwitcherPopupWinSorting(sorting_mode) {
-        this._gsettings.set_int('win-switcher-popup-win-sorting', sorting_mode);
+
+    set switcherPopupSecClickIn(int_val) {
+        this._gsettings.set_int('switcher-popup-sec-click-in', int_val);
     }
-    get winSwitcherPopupSize() {
-        return this._gsettings.get_int('win-switcher-popup-size');
+
+    get switcherPopupMidClickIn() {
+        return this._gsettings.get_int('switcher-popup-mid-click-in');
     }
-    set winSwitcherPopupSize(size) {
-        this._gsettings.set_int('win-switcher-popup-size', size);
+
+    set switcherPopupMidClickIn(int_val) {
+        this._gsettings.set_int('switcher-popup-mid-click-in', int_val);
     }
-    get winSwitcherPopupIconSize() {
-        return this._gsettings.get_int('win-switcher-popup-icon-size');
+
+
+    get switcherPopupPrimClickOut() {
+        return this._gsettings.get_int('switcher-popup-prim-click-out');
     }
-    set winSwitcherPopupIconSize(size) {
-        this._gsettings.set_int('win-switcher-popup-icon-size', size);
+
+    set switcherPopupPrimClickOut(int_val) {
+        this._gsettings.set_int('switcher-popup-prim-click-out', int_val);
     }
-    get winSwitcherPopupAppIconSize() {
-        return this._gsettings.get_int('win-switcher-popup-app-icon-size');
+
+    get switcherPopupSecClickOut() {
+        return this._gsettings.get_int('switcher-popup-sec-click-out');
     }
-    set winSwitcherPopupAppIconSize(size) {
-        this._gsettings.set_int('win-switcher-popup-app-icon-size', size);
+
+    set switcherPopupSecClickOut(int_val) {
+        this._gsettings.set_int('switcher-popup-sec-click-out', int_val);
     }
+
+    get switcherPopupMidClickOut() {
+        return this._gsettings.get_int('switcher-popup-mid-click-out');
+    }
+
+    set switcherPopupMidClickOut(int_val) {
+        this._gsettings.set_int('switcher-popup-mid-click-out', int_val);
+    }
+
+
+
+    get switcherPopupInfo() {
+        return this._gsettings.get_boolean('switcher-popup-info');
+    }
+
+    set switcherPopupInfo(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-info', bool_val);
+    }
+
     get singleAppPreviewSize() {
         return this._gsettings.get_int('win-switcher-single-prev-size');
     }
-    set singleAppPreviewSize(size) {
-        this._gsettings.set_int('win-switcher-single-prev-size', size);
+
+    set singleAppPreviewSize(int_val) {
+        this._gsettings.set_int('win-switcher-single-prev-size', int_val);
     }
-    get winSwitcherPopupWrap() {
-        return this._gsettings.get_boolean('win-switcher-popup-wrap');
+
+
+    // window switcher options
+    get winSwitcherPopupFilter() {
+        return this._gsettings.get_int('win-switcher-popup-filter');
     }
-    set winSwitcherPopupWrap(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-wrap', bool_val);
+
+    set winSwitcherPopupFilter(int_val) {
+        this._gsettings.set_int('win-switcher-popup-filter', int_val);
     }
-    get winSwitcherPopupFavMru() {
-        return this._gsettings.get_boolean('win-switcher-popup-fav-mru');
+
+    get winSwitcherPopupSorting() {
+        return this._gsettings.get_int('win-switcher-popup-sorting');
     }
-    set winSwitcherPopupFavMru(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-fav-mru', bool_val);
+
+    set winSwitcherPopupSorting(int_val) {
+        this._gsettings.set_int('win-switcher-popup-sorting', int_val);
     }
-    get winSwitcherPopupFavoriteApps() {
-        return this._gsettings.get_boolean('win-switcher-popup-fav-apps');
+
+    get winSwitcherPopupOrder() {
+        return this._gsettings.get_int('win-switcher-popup-order');
     }
-    set winSwitcherPopupFavoriteApps(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-fav-apps', bool_val);
+
+    set winSwitcherPopupOrder(int_val) {
+        this._gsettings.set_int('win-switcher-popup-order', int_val);
     }
+
+
+    get winSwitcherPopupScrollItem() {
+        return this._gsettings.get_int('win-switcher-popup-scroll-item');
+    }
+
+    set winSwitcherPopupScrollItem(int_val) {
+        this._gsettings.set_int('win-switcher-popup-scroll-item', int_val);
+    }
+
+    get winSwitcherPopupPrimClickItem() {
+        return this._gsettings.get_int('win-switcher-popup-prim-click-item');
+    }
+
+    set winSwitcherPopupPrimClickItem(int_val) {
+        this._gsettings.set_int('win-switcher-popup-prim-click-item', int_val);
+    }
+
+    get winSwitcherPopupSecClickItem() {
+        return this._gsettings.get_int('win-switcher-popup-sec-click-item');
+    }
+
+    set winSwitcherPopupSecClickItem(int_val) {
+        this._gsettings.set_int('win-switcher-popup-sec-click-item', int_val);
+    }
+
+    get winSwitcherPopupMidClickItem() {
+        return this._gsettings.get_int('win-switcher-popup-mid-click-item');
+    }
+
+    set winSwitcherPopupMidClickItem(int_val) {
+        this._gsettings.set_int('win-switcher-popup-mid-click-item', int_val);
+    }
+
+
+    get winSkipMinimized() {
+        return this._gsettings.get_boolean('win-switch-skip-minimized');
+    }
+
+    set winSkipMinimized(bool_val) {
+        this._gsettings.set_boolean('win-switch-skip-minimized', bool_val);
+    }
+
+    get winSwitcherPopupWsIndexes() {
+        return this._gsettings.get_boolean('win-switcher-popup-ws-indexes');
+    }
+
+    set winSwitcherPopupWsIndexes(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-ws-indexes', bool_val);
+    }
+
+    get winSwitcherPopupSearchApps() {
+        return this._gsettings.get_boolean('win-switcher-popup-search-apps');
+    }
+
+    set winSwitcherPopupSearchApps(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-search-apps', bool_val);
+    }
+
+    get winSwitcherPopupSearchAll() {
+        return this._gsettings.get_boolean('win-switcher-popup-search-all');
+    }
+
+    set winSwitcherPopupSearchAll(bool_val) {
+        this._gsettings.set_boolean('win-switcher-popup-search-all', bool_val);
+    }
+
+    get winSwitcherPopupPreviewSize() {
+        return this._gsettings.get_int('win-switcher-popup-preview-size');
+    }
+
+    set winSwitcherPopupPreviewSize(int_val) {
+        this._gsettings.set_int('win-switcher-popup-preview-size', int_val);
+    }
+
+    get winSwitcherPopupIconSize() {
+        return this._gsettings.get_int('win-switcher-popup-icon-size');
+    }
+
+    set winSwitcherPopupIconSize(int_val) {
+        this._gsettings.set_int('win-switcher-popup-icon-size', int_val);
+    }
+
+    // app switcher options
+    get appSwitcherPopupFilter() {
+        return this._gsettings.get_int('app-switcher-popup-filter');
+    }
+
+    set appSwitcherPopupFilter(int_val) {
+        this._gsettings.set_int('app-switcher-popup-filter', int_val);
+    }
+
+    get appSwitcherPopupSorting() {
+        return this._gsettings.get_int('app-switcher-popup-sorting');
+    }
+
+    set appSwitcherPopupSorting(int_val) {
+        this._gsettings.set_int('app-switcher-popup-sorting', int_val);
+    }
+
+    get appSwitcherPopupIconSize() {
+        return this._gsettings.get_int('app-switcher-popup-icon-size');
+    }
+
+    set appSwitcherPopupIconSize(int_val) {
+        this._gsettings.set_int('app-switcher-popup-icon-size', int_val);
+    }
+
+    get appSwitcherPopupFavMru() {
+        return this._gsettings.get_boolean('app-switcher-popup-fav-mru');
+    }
+
+    set appSwitcherPopupFavMru(bool_val) {
+        this._gsettings.set_boolean('app-switcher-popup-fav-mru', bool_val);
+    }
+
+    get appSwitcherPopupFavoriteApps() {
+        return this._gsettings.get_boolean('app-switcher-popup-fav-apps');
+    }
+
+    set appSwitcherPopupFavoriteApps(bool_val) {
+        this._gsettings.set_boolean('app-switcher-popup-fav-apps', bool_val);
+    }
+
+    get appSwitcherPopupScrollItem() {
+        return this._gsettings.get_int('app-switcher-popup-scroll-item');
+    }
+
+    set appSwitcherPopupScrollItem(int_val) {
+        this._gsettings.set_int('app-switcher-popup-scroll-item', int_val);
+    }
+
+    get appSwitcherPopupPrimClickItem() {
+        return this._gsettings.get_int('app-switcher-popup-prim-click-item');
+    }
+
+    set appSwitcherPopupPrimClickItem(int_val) {
+        this._gsettings.set_int('app-switcher-popup-prim-click-item', int_val);
+    }
+
+    get appSwitcherPopupSecClickItem() {
+        return this._gsettings.get_int('app-switcher-popup-sec-click-item');
+    }
+
+    set appSwitcherPopupSecClickItem(int_val) {
+        this._gsettings.set_int('app-switcher-popup-sec-click-item', int_val);
+    }
+
+    get appSwitcherPopupMidClickItem() {
+        return this._gsettings.get_int('app-switcher-popup-mid-click-item');
+    }
+
+    set appSwitcherPopupMidClickItem(int_val) {
+        this._gsettings.set_int('app-switcher-popup-mid-click-item', int_val);
+    }
+
+
+    // workspace switcher options
     get wsSwitchIgnoreLast() {
         return this._gsettings.get_boolean('ws-switch-ignore-last');
     }
+
     set wsSwitchIgnoreLast(bool_val) {
         this._gsettings.set_boolean('ws-switch-ignore-last', bool_val);
     }
+
     get wsSwitchWrap() {
         return this._gsettings.get_boolean('ws-switch-wrap');
     }
+
     set wsSwitchWrap(bool_val) {
         this._gsettings.set_boolean('ws-switch-wrap', bool_val);
     }
+
     get wsSwitchIndicator() {
         return this._gsettings.get_boolean('ws-switch-indicator');
     }
+
     set wsSwitchIndicator(bool_val) {
         this._gsettings.set_boolean('ws-switch-indicator', bool_val);
     }
-    get wsSwitchIndicatorMode() {
+
+    /*    get wsSwitchIndicatorMode() {
         return this._gsettings.get_int('ws-switch-indicator-mode');
     }
     set wsSwitchIndicatorMode(mode) {
         this._gsettings.set_int('ws-switch-indicator-mode', mode);
     }
-    get winSwitcherPopupSearchAll() {
-        return this._gsettings.get_boolean('win-switcher-popup-search-all');
+*/
+    // options for external trigger
+    get switcherPopupPointer() {
+        return this._gsettings.get_boolean('switcher-popup-pointer');
     }
-    set winSwitcherPopupSearchAll(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-search-all', bool_val);
+
+    set switcherPopupPointer(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-pointer', bool_val);
     }
-    get winSwitcherPopupSearchApps() {
-        return this._gsettings.get_boolean('win-switcher-popup-search-apps');
+
+    get switcherPopupPointerTimeout() {
+        return this._gsettings.get_int('switcher-popup-pointer-timeout');
     }
-    set winSwitcherPopupSearchApps(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-search-apps', bool_val);
+
+    set switcherPopupPointerTimeout(int_val) {
+        this._gsettings.set_int('switcher-popup-pointer-timeout', int_val);
     }
-    get winSwitcherPopupShiftHotkeys() {
-        return this._gsettings.get_boolean('win-switcher-popup-shift-hotkeys');
-    }
-    set winSwitcherPopupShiftHotkeys(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-shift-hotkeys', bool_val);
-    }
+
     get switcherPopupActivateOnHide() {
         return this._gsettings.get_boolean('switcher-popup-activate-on-hide');
     }
+
     set switcherPopupActivateOnHide(bool_val) {
         this._gsettings.set_boolean('switcher-popup-activate-on-hide', bool_val);
     }
+
+    // thumbnails options
+    get winThumbnailScale() {
+        return this._gsettings.get_int('win-thumbnail-scale');
+    }
+
+    set winThumbnailScale(int_val) {
+        this._gsettings.set_int('win-thumbnail-scale', int_val);
+    }
+
 /*    getKeyBind(key) {
         return this._gsettingsKB.get_strv(key);
     }
     setKeyBind(key, value) {
         this._gsettingsKB.set_strv(key, value);
     }*/
-}
+};
 
 /**
  * Copied from Gnome Shells extensionUtils.js and adapted to allow
@@ -272,15 +496,15 @@ function getSettings(schema, path) {
     const schemaObj = schemaSource.lookup(schema, true);
     if (!schemaObj) {
         throw new Error(
-            'Schema' + schema + ' could not be found for extension ' +
-            Me.metadata.uuid + '. Please check your installation.'
+            `Schema${schema} could not be found for extension ${
+                Me.metadata.uuid}. Please check your installation.`
         );
     }
 
-    const args = { settings_schema: schemaObj };
-    if (path) {
+    const args = {settings_schema: schemaObj};
+    if (path)
         args.path = path;
-    }
+
 
     return new Gio.Settings(args);
 }

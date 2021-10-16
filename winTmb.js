@@ -47,7 +47,7 @@ class WindowThumbnail extends St.Bin {
         this.connect('button-release-event', this._onBtnReleased.bind(this));
         this.connect('button-press-event', this._onBtnPressed.bind(this));
         this.connect('scroll-event', this._onScrollEvent.bind(this));
-        //this.connect('motion-event', this._onMouseMove.bind(this)); // may be useful in the future..
+        // this.connect('motion-event', this._onMouseMove.bind(this)); // may be useful in the future..
 
         this._delegate = this;
         this._draggable = DND.makeDraggable(this, {dragActorOpacity: 200});
@@ -73,108 +73,114 @@ class WindowThumbnail extends St.Bin {
 
         // remove thumbnail content and hide thumbnail if its window is destroyed
         this.windowConnect = this.window.connect('destroy', () => {
-            if (this) {
+            if (this)
                 this._remove();
-            }
         });
-        this.conS = Main.overview.connect('showing', () => { this.hide() });
-        this.conH = Main.overview.connect('hiding',  () => { this.show() });
+        this.conS = Main.overview.connect('showing', () => {
+            this.hide();
+        });
+        this.conH = Main.overview.connect('hiding',  () => {
+            this.show();
+        });
         this._setIcon();
     }
 
     _getInitialPosition() {
-        //let pointer = {};
-        //[pointer.x, pointer.y,] = global.get_pointer();
+        // let pointer = {};
+        // [pointer.x, pointer.y,] = global.get_pointer();
         const offset = 20;
         let monitor = Main.layoutManager.monitors[global.display.get_current_monitor()];
         let x = Math.min(monitor.x + monitor.width  - (this.window.width  * this.scale) - offset);
         let y = Math.min(monitor.y + monitor.height - (this.window.height * this.scale) - offset - ((this._positionOffset * this._initTmbHeight) % (monitor.height - this._initTmbHeight)));
-        return [x,y];
+        return [x, y];
     }
 
     _setSize(resetScale = false) {
         if (resetScale)
-            //this.scale = Math.min(1.0, this.max_width / this.window.width, this.max_height / this.window.height);
-            this.scale = Math.min(1.0, this._initTmbHeight / this.window.height );
+            // this.scale = Math.min(1.0, this.max_width / this.window.width, this.max_height / this.window.height);
+            this.scale = Math.min(1.0, this._initTmbHeight / this.window.height);
         // when this.clone source window resize, this.clone and this. actor resize accordingly
         this.scale_x = this.scale;
         this.scale_y = this.scale;
         // when scale of this. actor change, this.clone resize accordingly,
         // but the reactive area of the actor doesn't change until the actor is redrawn
         // don't know how to do it better..
-        this.set_position(this.x,this.y + (this.tmbRedrawDirection? 1 : -1));
+        this.set_position(this.x, this.y + (this.tmbRedrawDirection ? 1 : -1));
         // switch direction of the move for each resize
         this.tmbRedrawDirection = !this.tmbRedrawDirection;
     }
 
-    _onMouseMove(actor, event) {
-        let [pos_x,pos_y] = event.get_coords();
+    /* _onMouseMove(actor, event) {
+        let [pos_x, pos_y] = event.get_coords();
         let state = event.get_state();
         if (_ctrlPressed(state)) {
         }
-    }
+    } */
 
     _onBtnPressed(actor, event) {
         let doubleclick = event.get_click_count() === 2;
-        if (doubleclick) this.w.activate(global.get_current_time());
+        if (doubleclick)
+            this.w.activate(global.get_current_time());
     }
 
     _onBtnReleased(actor, event) {
         let button = event.get_button();
         switch (button) {
-            case Clutter.BUTTON_PRIMARY:
-                if (_ctrlPressed(event.get_state())) {
-                    this._switchView();
-                } else
-                    this._reverseTmbWheelFunc = !this._reverseTmbWheelFunc;
-                return Clutter.EVENT_STOP;
-                break;
-            case Clutter.BUTTON_SECONDARY:
-                //if (_ctrlPressed(state))
-                this._remove();
-                return Clutter.EVENT_STOP;
-                break;
-            case Clutter.BUTTON_MIDDLE:
-                //if (_ctrlPressed(state))
-                this.w.delete(global.get_current_time());
-                return Clutter.EVENT_STOP;
-                break;
-            default:
-                return Clutter.EVENT_PROPAGATE;
+        case Clutter.BUTTON_PRIMARY:
+            if (_ctrlPressed(event.get_state()))
+                this._switchView();
+            else
+                this._reverseTmbWheelFunc = !this._reverseTmbWheelFunc;
+            return Clutter.EVENT_STOP;
+            break;
+        case Clutter.BUTTON_SECONDARY:
+            // if (_ctrlPressed(state))
+            this._remove();
+            return Clutter.EVENT_STOP;
+            break;
+        case Clutter.BUTTON_MIDDLE:
+            // if (_ctrlPressed(state))
+            this.w.delete(global.get_current_time());
+            return Clutter.EVENT_STOP;
+            break;
+        default:
+            return Clutter.EVENT_PROPAGATE;
         }
     }
 
     _onScrollEvent(actor, event) {
         let direction = event.get_scroll_direction();
-        if (direction === 4) return;
-        if (this._actionTimeoutActive()) return;
+        if (direction === 4)
+            return;
+        if (this._actionTimeoutActive())
+            return;
         let state = event.get_state();
         switch (direction) {
-            case Clutter.ScrollDirection.UP:
-                if (_shiftPressed(state))
-                    this.opacity = Math.min(255, this.opacity + 24);
-                else if (this._reverseTmbWheelFunc !== _ctrlPressed(state)) {
-                    this._switchSourceWin(-1);
-                }
-                else if (this._reverseTmbWheelFunc === _ctrlPressed(state)) {
-                    this.scale = Math.max(0.05, this.scale - 0.025);
-                }
-                break;
-            case Clutter.ScrollDirection.DOWN:
-                if (_shiftPressed(state))
-                    this.opacity = Math.max(48, this.opacity - 24);
-                else if (this._reverseTmbWheelFunc !== _ctrlPressed(state)) {
-                    this._switchSourceWin(+1);
-                }
-                else if (this._reverseTmbWheelFunc === _ctrlPressed(state)) {
-                    this.scale = Math.min(1, this.scale + 0.025);
-                }
-                break;
-            default:
-                return Clutter.EVENT_PROPAGATE;
+        case Clutter.ScrollDirection.UP:
+            if (_shiftPressed(state))
+                this.opacity = Math.min(255, this.opacity + 24);
+            else if (this._reverseTmbWheelFunc !== _ctrlPressed(state))
+                this._switchSourceWin(-1);
+
+            else if (this._reverseTmbWheelFunc === _ctrlPressed(state))
+                this.scale = Math.max(0.05, this.scale - 0.025);
+
+            break;
+        case Clutter.ScrollDirection.DOWN:
+            if (_shiftPressed(state))
+                this.opacity = Math.max(48, this.opacity - 24);
+            else if (this._reverseTmbWheelFunc !== _ctrlPressed(state))
+                this._switchSourceWin(+1);
+
+            else if (this._reverseTmbWheelFunc === _ctrlPressed(state))
+                this.scale = Math.min(1, this.scale + 0.025);
+
+            break;
+        default:
+            return Clutter.EVENT_PROPAGATE;
         }
         this._setSize();
-        //this.scale = Math.min(1.0, this.max_width / this.width, this.max_height / this.height);
+        // this.scale = Math.min(1.0, this.max_width / this.width, this.max_height / this.height);
         return Clutter.EVENT_STOP;
     }
 
@@ -201,9 +207,9 @@ class WindowThumbnail extends St.Bin {
         this._switchView(this.clone);
 
         let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
-            windows = windows.filter( w => !(w.skip_taskbar || w.minimized));
+        windows = windows.filter(w => !(w.skip_taskbar || w.minimized));
         let idx = -1;
-        for (let i = 0; i < windows.length; i++){
+        for (let i = 0; i < windows.length; i++) {
             if (windows[i] === this.w) {
                 idx = i + direction;
                 break;
@@ -219,9 +225,8 @@ class WindowThumbnail extends St.Bin {
         this.scale = (this.scale * this.window.height) / win.height;
         this.window = win;
         this.windowConnect = this.window.connect('destroy', () => {
-            if (this) {
+            if (this)
                 this._remove();
-            }
         });
         this.w = w;
         let scale = this._setSize();
@@ -233,18 +238,18 @@ class WindowThumbnail extends St.Bin {
         if (this._actionTimeoutId)
             return true;
         this._actionTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                // timeout for resizing should be shorter than for window switching
-                this._reverseTmbWheelFunc ? this._scrollTimeout : this._scrollTimeout / 2,
-                this._removeActionTimeout.bind(this)
-            );
+            GLib.PRIORITY_DEFAULT,
+            // timeout for resizing should be shorter than for window switching
+            this._reverseTmbWheelFunc ? this._scrollTimeout : this._scrollTimeout / 2,
+            this._removeActionTimeout.bind(this)
+        );
         return false;
     }
 
     _removeActionTimeout() {
-        if (this._actionTimeoutId) {
+        if (this._actionTimeoutId)
             GLib.Source.remove(this._actionTimeoutId);
-        }
+
         this._actionTimeoutId = null;
         return false;
     }
@@ -252,9 +257,9 @@ class WindowThumbnail extends St.Bin {
     _setIcon() {
         let tracker = Shell.WindowTracker.get_default();
         let app = tracker.get_window_app(this.w);
-        let icon = app ?
-            app.create_icon_texture(this.height)
-            : new St.Icon({ icon_name: 'icon-missing', icon_size: this.height });
+        let icon = app
+            ? app.create_icon_texture(this.height)
+            : new St.Icon({icon_name: 'icon-missing', icon_size: this.height});
         icon.x_expand = icon.y_expand = false;
         if (this.icon)
             this.icon.destroy();
@@ -262,13 +267,13 @@ class WindowThumbnail extends St.Bin {
     }
 
     _switchView(clone = false) {
-        if (clone)
+        if (clone) {
             this.set_child(this.clone);
-        else
-            this.set_child(this.get_child() === this.clone ?
-                            this.icon :
-                            this.clone
+        } else {
+            this.set_child(this.get_child() === this.clone
+                ? this.icon
+                : this.clone
             );
+        }
     }
-
 });
