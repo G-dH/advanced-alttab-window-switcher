@@ -1,14 +1,15 @@
 {
-  "description": "An advanced replacement of Window/Application popup switchers that offers more effective navigation between windows including type to search mode, various filter and sort settings, application launcher, workspace switcher and hotkeys to control windows. You can also adjust sizes of the window previews and app icons.",
-  "gettext-domain": "advanced-alt-tab-window-switcher",
-  "name": "Advanced Alt+Tab Window Switcher",
+  "description": "A highly customizable replacement of Alt+Tab window/app switcher that offers type to search mode, various filtering and sorting settings, workspace navigation and window control.",
+  "gettext-domain": "aatws-window-switcher",
+  "name": "AATWS - Alt-Tab Window Switcher",
   "settings-schema": "org.gnome.shell.extensions.advanced-alt-tab-window-switcher",
   "shell-version": [
     "3.36",
     "3.38",
-    "40"
+    "40",
+	"41"
   ],
   "url": "https://github.com/G-dH/advanced-alttab-window-switcher",
   "uuid": "advanced-alt-tab@G-dH.github.com",
-  "version": 4.5 
+  "version": 4.6
 }
