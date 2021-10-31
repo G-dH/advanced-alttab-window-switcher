@@ -23,11 +23,11 @@
 }
 
 .title-label, .search-text {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(255, 255, 255);
   font-weight: normal;
   text-align: center;
   font-size: 1.5em;
-  text-shadow: -1px -1px rgba(0, 0, 0, 0.7);
+  /*text-shadow: -1px -1px rgba(0, 0, 0, 0.7);*/
   background-color: rgba(29, 32, 33, 0.9);
   padding-left: 0.3em;
   padding-right: 0.3em;
@@ -36,7 +36,7 @@
   border-radius: 0.2em;
   border-color: darkgrey;
   border-width: 1px;
-  border-color: rgb(46, 52, 53);
+  border-color: rgb(66, 64, 64);
 }
 
 .search-text {
@@ -50,7 +50,7 @@
   background-color: rgba(46, 52, 53, 0.7);
 }
 
-.info-label {
+.status-label {
   color: #888;
   font-size: 0.8em;
 }
