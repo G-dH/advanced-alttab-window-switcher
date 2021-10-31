@@ -12,7 +12,7 @@
       <default>false</default>
     </key>
     <key name='switcher-popup-position' type='i'>
-      <default>2</default>
+      <default>3</default>
     </key>
     <key name='switcher-popup-pointer' type='b'>
       <default>true</default>
@@ -21,9 +21,9 @@
       <default>true</default>
     </key>
     <key name='switcher-popup-hot-keys' type='b'>
-      <default>true</default>
+      <default>false</default>
     </key>
-    <key name='switcher-popup-info' type='b'>
+    <key name='switcher-popup-status' type='b'>
       <default>true</default>
     </key>
     <key name='switcher-popup-overlay-title' type='b'>

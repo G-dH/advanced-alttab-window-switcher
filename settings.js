@@ -29,7 +29,7 @@ const _schema = 'org.gnome.shell.extensions.advanced-alt-tab-window-switcher';
 const _path = '/org/gnome/shell/extensions/advanced-alt-tab-window-switcher';
 
 var Actions = {
-    NOTHING:           0,
+    NONE:              0,
     SELECT_ITEM:       1,
     ACTIVATE:          2,
     SINGLE_APP:        3,
@@ -44,8 +44,14 @@ var Actions = {
     THUMBNAIL:        12,
     HIDE:             13,
     CLOSE_QUIT:       14,
-    KILL:             15,
-    NEW_WINDOW:       16,
+    CLOSE_ALL_APP:    15, // close all windows of selected application
+    KILL:             16,
+    NEW_WINDOW:       17,
+    ALLWAYS_ON_TOP:   18,
+    STICKY:           19, // always on visible ws
+    MOVE_MAX:         20, // move window to the current ws and maximize it
+    FS_ON_EMPTY:      21, // fullscreen window on new ws next to the current one
+
     PREFS:            99,
 };
 
@@ -204,12 +210,12 @@ var MscOptions = class MscOptions {
 
 
 
-    get switcherPopupInfo() {
-        return this._gsettings.get_boolean('switcher-popup-info');
+    get switcherPopupStatus() {
+        return this._gsettings.get_boolean('switcher-popup-status');
     }
 
-    set switcherPopupInfo(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-info', bool_val);
+    set switcherPopupStatus(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-status', bool_val);
     }
 
     get singleAppPreviewSize() {

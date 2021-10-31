@@ -29,7 +29,7 @@ const _  = Settings._;
 const Actions = Settings.Actions;
 
 const actionList = [
-    [_('Do Nothing'),                  Actions.NOTHING],
+    [_('Do Nothing'),                  Actions.NONE],
     [_('Select Next Item'),            Actions.SELECT_ITEM],
     [_('Activate Selected'),           Actions.ACTIVATE],
     [_('Show Selected'),               Actions.SHOW],
@@ -359,7 +359,7 @@ function _getCommonOptionsList() {
             _('Show status'),
             _('Whether the label indicating filter, grouping and sorting modes should be displayed at the bottom left of the popup.'),
             _newGtkSwitch(),
-            'switcherPopupInfo'
+            'switcherPopupStatus'
         )
     );
 
@@ -938,9 +938,11 @@ class HelpPageAATWS extends Gtk.ScrolledWindow {
             margin_top: 4,
             margin_bottom: 4,
         });
-        hotkeysFrame[hotkeysFrame.add ? 'add' : 'append'](helpLabel);
+        hotkeysFrame[hotkeysFrame.add ? 'add' : 'set_child'](helpLabel);
         mainBox[mainBox.add ? 'add' : 'append'](hotkeysFrame);
         const helpText = `
+All hotkeys work directly, or with Shift key pressed, if it is set in Preferences, or if the switcher is in the Search mode.
+
 <b>H/L, Left/Right</b>
 window selection
 
@@ -951,17 +953,17 @@ Workspace selection
 Move the window switcher to the adjacent monitor in particular direction
 
 <b>Ctrl+Tab</b>
-Nove the window switcher to next monitor, order is given by the Shell, Shift key changes direction
+Move the switcher popup to the next monitor, order is given by the Shell, Shift key changes the direction
 
 <b>Space, KP_0/KP_Ins</b>
-Show selected window - switch to window workspace and bring it to the front
+Show selected window - switch to window workspace and bring the window to the front
 
 <b>Q</b>
 Switch window filter mode - ALL / WS / MONITOR
 
 <b>;/~</b>   (the key above Tab)
-In Window mode - Sort windows by applications, each subsequent key press jumps to the first window of the next app
-In App mode - Iterate over windows of selected application
+In the Window mode - Sort windows by applications, each subsequent key press jumps to the first window of the next app
+In the App mode - Iterate over windows of selected application
 
 <b>G</b>
 Toggle sort by workspaces, when base filter is set to ALL
@@ -979,7 +981,7 @@ Close selected window (or app when in app mode)
 Close application of selected window (or app when in app mode)
 
 <b>Shift+Del</b>
-Force close - kill -9 to application of selected window/app
+Force close - send <i>kill -9</i> signal to application of selected window/app
 
 <b>C</b>
 Close all windows from the window list that belong to the same application as selected window
