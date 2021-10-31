@@ -107,7 +107,7 @@ let APP_ICON_SIZE           = 64;
 let WINDOW_PREVIEW_SIZE     = 128;
 let APP_MODE_ICON_SIZE      = 96;
 let SINGLE_APP_PREVIEW_SIZE = 0;
-let INFO = true;
+let STATUS = true;
 
 let _cancelTimeout = false;
 
@@ -166,7 +166,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.ACTIVATE_ON_HIDE      = options.switcherPopupActivateOnHide;
         HOT_KEYS                   = options.switcherPopupHotKeys;
         SHIFT_AZ_HOTKEYS           = options.switcherPopupShiftHotkeys;
-        INFO                       = options.switcherPopupInfo;
+        STATUS                     = options.switcherPopupStatus;
         this.SHOW_WIN_IMEDIATELY   = options.switcherPopupShowImmediately;
         this.SHOW_WS_INDEX         = options.wsSwitchIndicator;
         this.SEARCH_ALL            = options.winSwitcherPopupSearchAll;
@@ -225,10 +225,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 () => {
                     this._newWindowConnectorTimeoutId = 0;
                     this._updateSwitcher();
-                    if (this._showingApps && this._selectedIndex > -1)
-                        this._select(this._getItemIndexByID(_getWindowApp(win).get_id()));
-                    else if (this._selectedIndex > -1)
+                    if (this._showingApps && this._selectedIndex > -1) {
+                        let selectedApp = this._getItemIndexByID(_getWindowApp(win));
+                        if (selectedApp)
+                            this._select(selectedApp.get_id());
+                    } else if (this._selectedIndex > -1) {
                         this._select(this._getItemIndexByID(win.get_id()));
+                    }
 
                     return GLib.SOURCE_REMOVE;
             });
@@ -329,8 +332,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._removeOverlays();
 
         if (!Main.pushModal(this)) {
-            if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED}))
+            if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
+                let focusApp = global.display.get_focus_window().get_wm_class();
+                log(`[${Me.metadata.uuid}] ${focusApp} probably grabbed the modal, exitting...`);
                 return false;
+            }
         }
 
         if (binding == 'switch-group') {
@@ -418,9 +424,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switcherList.destroy();
             this._switcherList = new WindowSwitcher(switcherItems);
             this._switcherList._parent = this;
-            // if (this.OVERLAY_TITLE) {
-            //     this._switcherList._label.hide();
-            // }
+
+            if (this.OVERLAY_TITLE)
+                this._switcherList._label.hide();
+
             this._items = this._switcherList.icons;
             this._connectIcons();
 
@@ -448,6 +455,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.visible = true;
         this.opacity = 0;
         this.get_allocation_box();
+
+        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS
+        let padding = this._switcherList.get_theme_node().get_padding(St.Side.BOTTOM) / 2;
+        if (!this._firstRun && !STATUS && !(this._showingApps && (this._searchEntry !== null && this._searchEntry !== ''))) {
+            let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
+            fm = this._tempFilterMode ? this._tempFilterMode : fm;
+            if (fm === FilterModes.MONITOR) {
+                // top and bottom border colors cover all sides
+                this._switcherList.set_style(`border-top-color: rgb(96, 48, 48); border-bottom-color: rgb(96, 48, 48); padding-bottom: ${padding}px`);
+            } else if (fm === FilterModes.WORKSPACE) {
+                this._switcherList.set_style(`border-top-color: rgb(96, 80, 48); border-bottom-color: rgb(96, 80, 48); padding-bottom: ${padding}px`);
+            } else if (fm === FilterModes.ALL) {
+                this._switcherList.set_style(`border-top-color: rgb(53, 80, 48); border-bottom-color: rgb(53, 80, 48); padding-bottom: ${padding}px`);
+            }
+        } else  {
+            this._switcherList.set_style(`padding-bottom: ${padding}px`);
+        }
+
         this._initialSelection(backward, binding);
 
         // There's a race condition; if the user released Alt before
@@ -519,89 +544,37 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._searchEntry === '' && !this.SEARCH_DEFAULT)
             this._showOverlaySearchLabel('Type to search...');
 
-        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS
-        if (!this._firstRun && !(this._showingApps && (this._searchEntry !== null && this._searchEntry !== ''))) {
-            let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
-            fm = this._tempFilterMode ? this._tempFilterMode : fm;
-            if (fm === FilterModes.MONITOR) {
-                // top and bottom border colors cover all sides
-                this._switcherList.set_style('border-top-color: rgb(96, 48, 48); border-bottom-color: rgb(96, 48, 48);');
-            } else if (fm === FilterModes.WORKSPACE) {
-                this._switcherList.set_style('border-top-color: rgb(96, 80, 48); border-bottom-color: rgb(96, 80, 48);');
-            } else if (fm === FilterModes.ALL) {
-                this._switcherList.set_style('border-top-color: rgb(53, 96, 48); border-bottom-color: rgb(53, 96, 48);');
-            }
-        }
-
         this._firstRun = false;
         return true;
     }
 
     _shadeIn() {
         let height = this._switcherList.height;
-        this._switcherList.height = 0;
         this.opacity = 255;
+        if (this._overlayTitle)
+            this._overlayTitle.opacity = 0;
+
+        this._switcherList.height = 0;
         this._switcherList.ease({
             height,
-            duration: 100,
+            duration: 50,
             mode: Clutter.AnimationMode.LINEAR,
+            onComplete: () => {
+                if (this._overlayTitle)
+                    this._overlayTitle.opacity = 255
+            },
         });
-
-        if (this._overlayTitle) {
-            let ty;
-            let geometry = global.display.get_monitor_geometry(this._monitorIndex);
-            switch (this.POPUP_POSITION) {
-            case Positions.TOP:
-                ty = 0;
-                break;
-            case Positions.CENTER:
-                ty = geometry.height / 2;
-                break;
-            case Positions.BOTTOM:
-                ty = geometry.height;
-                break;
-            }
-
-            let y = this._overlayTitle.y;
-            this._overlayTitle.opacity = 255;
-            this._overlayTitle.y = ty;
-            this._overlayTitle.ease({
-                y,
-                duration: 100,
-                mode: Clutter.AnimationMode.LINEAR,
-            });
-        }
     }
 
     _shadeOut() {
+        if (this._overlayTitle)
+            this._overlayTitle.opacity = 0;
         this._switcherList.ease({
             height: 0,
-            duration: 100,
+            duration: 50,
             mode: Clutter.AnimationMode.LINEAR,
             onComplete: () => this.destroy(),
         });
-
-        if (this._overlayTitle) {
-            let geometry = global.display.get_monitor_geometry(this._monitorIndex);
-            let y;
-            switch (this.POPUP_POSITION) {
-            case Positions.TOP:
-                y = 0;
-                break;
-            case Positions.CENTER:
-                y = geometry.height / 2;
-                break;
-            case Positions.BOTTOM:
-                y = geometry.height;
-                break;
-            }
-
-            this._overlayTitle.ease({
-                y,
-                duration: 100,
-                mode: Clutter.AnimationMode.LINEAR,
-            });
-        }
     }
 
     fadeAndDestroy() {
@@ -748,8 +721,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         case Actions.MOVE_TO_WS:
             obj = this._getSelected();
             if (obj) {
-                win = obj.cachedWindows ? obj.cachedWindows[0] : obj;
-                this._actions.moveWindowToCurrentWs(win, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
+                obj = obj.cachedWindows ? obj.cachedWindows[0] : obj;
+                this._actions.moveWindowToCurrentWs(obj, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
                 this._showWindow(this._selectedIndex);
                 this._updateSwitcher();
             }
@@ -787,7 +760,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         case Actions.NEW_WINDOW:
             this._openNewWindow();
             break;
-        case Actions.NOTHING:
+        case Actions.NONE:
             break;
         default:
             return Clutter.EVENT_PROPAGATE;
@@ -829,11 +802,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _setSwitcherStatus() {
         this._switcherList._statusLabel.set_text(
-            `${_('Search: ')} ${this._searchEntry === null ? 'Off' : 'On'}, ${
-                _('Filter: ')}${FilterModeLabels[this._tempFilterMode === null ? this.WIN_FILTER_MODE : this._tempFilterMode]
+            `${_('Filter: ')}${FilterModeLabels[this._tempFilterMode === null ? this.WIN_FILTER_MODE : this._tempFilterMode]
             }${this._singleApp ? `/${_('APP')}` : ''},  ${
                 _('Group: ')}${GroupModeLabels[this.GROUP_MODE]}, ${
-                _('Sort: ')}${this._showingApps ? SortingModesLabels[this.APP_SORTING_MODE] : SortingModesLabels[this.WIN_SORTING_MODE]}`
+                _('Sort: ')}${this._showingApps ? SortingModesLabels[this.APP_SORTING_MODE] : SortingModesLabels[this.WIN_SORTING_MODE]}, ${
+                _('Search: ')} ${this._searchEntry === null ? 'Off' : 'On'}`
         );
         if (this._searchEntry !== null && this._searchEntry !== '') {
             this._showOverlaySearchLabel(this._searchEntry);
@@ -855,7 +828,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.destroyOverlayLabel(this._wsOverlay);
         }
 
-        //let wsLabel = this._actions.showWorkspaceIndex([], 1000, this._monitorIndex);
         this._wsOverlay = this._customOverlayLabel('ws-overlay', 'workspace-index-overlay');
         this._wsOverlay.text = (global.workspace_manager.get_active_workspace().index() + 1).toString();
         Main.layoutManager.addChrome(this._wsOverlay);
@@ -889,6 +861,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _showOverlaySearchLabel(text) {
+        let margin = 10;
         if (this._overlaySearchLabel) {
             this.destroyOverlayLabel(this._overlaySearchLabel);
         }
@@ -902,12 +875,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._overlaySearchLabel.add_actor(this._overlaySearchLabel._label);
         Main.layoutManager.addChrome(this._overlaySearchLabel);
         const offset = this._overlayTitle
-            ? this._overlayTitle.height + 10
-            : 10;
-        this._setOverlayLabelPosition(this._overlaySearchLabel, offset);
+            ? this._overlayTitle.height + margin
+            : margin;
+
+        this._setOverlayLabelPosition(this._overlaySearchLabel, offset, this._switcherList);
     }
     
-    _showOverlayTitle(index) {
+    _showOverlayTitle() {
         let selected = this._items[this._selectedIndex];
         let title = '';
         title = selected.is_window
@@ -917,29 +891,64 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.destroyOverlayLabel(this._overlayTitle);
         }
 
-        this._searchBox = new St.BoxLayout();
-
         this._overlayTitle = this._customOverlayLabel('item-title', 'title-label');
         this._overlayTitle.text = title;
         Main.layoutManager.addChrome(this._overlayTitle);
-        this._setOverlayLabelPosition(this._overlayTitle);
+
+        this._setOverlayLabelPosition(this._overlayTitle, 0, this._switcherList);
     }
 
-    _setOverlayLabelPosition(overlayLabel, offset = 0) {
+    _setOverlayLabelPosition(overlayLabel, yOffset = 0, parent = null) {
         let geometry = global.display.get_monitor_geometry(this._monitorIndex);
+        let margin = 10;
         overlayLabel.width = Math.min(overlayLabel.width, geometry.width);
-        overlayLabel.x = geometry.x + Math.floor(geometry.width / 2) - Math.floor(overlayLabel.width / 2);
-        switch (this.POPUP_POSITION) {
-        case Positions.TOP:
-            overlayLabel.y = Math.floor(this._switcherList.height + 10 + offset);
-            break;
-        case Positions.CENTER:
-            overlayLabel.y = Math.floor((geometry.height - this._switcherList.height) / 2 - overlayLabel.height - 10) - offset;
-            break;
-        case Positions.BOTTOM:
-            overlayLabel.y = Math.floor(geometry.height - this._switcherList.height - overlayLabel.height - 10) - offset;
-            break;
-        }
+        // win/app titles should be always placed centered to the switcher popup
+        if (parent) {
+            let overlayCenter = parent.x + (parent.width / 2);
+            let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
+            let y = parent.y - overlayLabel.height - yOffset - margin;
+            if (y < geometry.y) {
+                y = parent.y + parent.height + yOffset + margin;
+            }
+
+            // workaround for slow systems to avoid position calculation from unpositioned switcher popup
+            if (parent.x + parent.y === 0) {
+                overlayLabel.opacity = 0;
+                this._overlayDelayId = GLib.timeout_add(
+                    GLib.PRIORITY_DEFAULT,
+                    15,
+                    () => {
+                        this._overlayDelayId = 0;
+                        let overlayCenter = parent.x + (parent.width / 2);
+                        let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
+                        let y = parent.y - overlayLabel.height - yOffset - margin;
+                        if (y < geometry.y) {
+                            y = parent.y + parent.height + yOffset + margin;
+                        }
+                        overlayLabel.x = x;
+                        overlayLabel.y = y;
+                        overlayLabel.opacity = 255;
+                        return GLib.SOURCE_REMOVE;
+                    }
+                );
+            } else {
+                overlayLabel.x = x;
+                overlayLabel.y = y;
+            }
+        } /*else {
+            overlayLabel.x = geometry.x + Math.floor(geometry.width / 2) - Math.floor(overlayLabel.width / 2);
+            switch (this.POPUP_POSITION) {
+            case Positions.TOP:
+                overlayLabel.y = Math.floor(this._switcherList.height + margin + yOffset);
+                break;
+            case Positions.CENTER:
+                overlayLabel.y = Math.floor((geometry.height - this._switcherList.height) / 2 - overlayLabel.height - margin) - yOffset;
+                break;
+            case Positions.BOTTOM:
+                overlayLabel.y = Math.floor(geometry.height - this._switcherList.height - overlayLabel.height - margin) - yOffset;
+                break;
+            }
+        }*/
     }
 
     _customOverlayLabel(name, style_class) {
@@ -954,6 +963,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     destroyOverlayLabel(overlayLabel) {
         Main.layoutManager.removeChrome(overlayLabel);
         overlayLabel.destroy();
+        if (this._overlayDelayId)
+            GLib.source_remove(this._overlayDelayId);
     }
 
     _resetNoModsTimeout() {
@@ -1035,7 +1046,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._selectedIndex = index;
             this._switcherList.highlight(index);
             if (this.OVERLAY_TITLE)
-                this._showOverlayTitle(index);
+                this._showOverlayTitle();
         }
 
         if (this.SHOW_WIN_IMEDIATELY) {
@@ -2361,7 +2372,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
             style_class: 'status-label',
         });
         this._statusLabel.set_text('Filter: Order:'); // this text will be replaced immediately
-        if (INFO)
+        if (STATUS)
             this.add_actor(this._statusLabel);
         this._label = new St.Label({
             x_align: Clutter.ActorAlign.CENTER,
@@ -2413,7 +2424,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         let [labelMin, labelNat] = this._label.get_preferred_height(-1);
 
         let multiplier = 0;
-        multiplier += INFO ? 1 : 0;
+        multiplier += STATUS ? 1 : 0;
         multiplier += this._parent.OVERLAY_TITLE ? 0 : 1;
         minHeight += multiplier * labelMin + spacing;
         natHeight += multiplier * labelNat + spacing;
@@ -2424,11 +2435,11 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
     vfunc_allocate(box, flags) {
         let themeNode = this.get_theme_node();
         let contentBox = themeNode.get_content_box(box);
-        let labelHeight = this._parent.OVERLAY_TITLE ? 0 : this._label.height;
-        // labelHeight = this._label.height;
-        const labelHeightF = INFO ? this._statusLabel.height : 0;
+        const spacing = themeNode.get_padding(St.Side.BOTTOM);
+        const labelHeight = this._parent.OVERLAY_TITLE ? 0 : this._label.height;
+        const labelHeightF = STATUS ? this._statusLabel.height : 0;
         const totalLabelHeight =
-            labelHeightF + labelHeight + themeNode.get_padding(St.Side.BOTTOM);
+            labelHeightF + labelHeight + spacing;
 
         box.y2 -= totalLabelHeight;
         GNOME40 ? super.vfunc_allocate(box)
@@ -2444,7 +2455,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         const childBox = new Clutter.ActorBox();
         childBox.x1 = contentBox.x1;
         childBox.x2 = contentBox.x2;
-        childBox.y2 = contentBox.y2 - labelHeightF;
+        childBox.y2 = contentBox.y2 - labelHeightF + spacing;
         childBox.y1 = childBox.y2 - labelHeight - labelHeightF;
         if (!this.OVERLAY_TITLE) {
             GNOME40 ? this._label.allocate(childBox)
@@ -2455,7 +2466,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         childBoxF.x2 = contentBox.x2;
         childBoxF.y2 = contentBox.y2;
         childBoxF.y1 = childBoxF.y2 - labelHeightF;
-        if (INFO) {
+        if (STATUS) {
             GNOME40 ? this._statusLabel.allocate(childBoxF)
                 : this._statusLabel.allocate(childBoxF, flags);
         }
