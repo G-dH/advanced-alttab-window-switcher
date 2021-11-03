@@ -29,24 +29,25 @@ const _  = Settings._;
 const Actions = Settings.Actions;
 
 const actionList = [
-    [_('Do Nothing'),                  Actions.NONE],
-    [_('Select Next Item'),            Actions.SELECT_ITEM],
-    [_('Activate Selected'),           Actions.ACTIVATE],
-    [_('Show Selected'),               Actions.SHOW],
-    [_('Open New Window'),             Actions.NEW_WINDOW],
-    [_('Open Context Menu'),           Actions.MENU],
-    [_('Close/Quit Selected'),         Actions.CLOSE_QUIT],
-    [_('Force Quit Selected App'),     Actions.KILL],
-    [_('Move Selected to Current WS'), Actions.MOVE_TO_WS],
-    [_('Switch Filter Mode'),          Actions.SWITCH_FILTER],
-    [_('Toggle Single App Mode'),      Actions.SINGLE_APP],
-    [_('Switch Workspace'),            Actions.SWITCH_WS],
-    [_('Toggle Switcher Mode'),        Actions.SWITCHER_MODE],
-    [_('Group by Applications'),       Actions.GROUP_APP],
-    [_('Current Monitor First'),       Actions.CURRENT_MON_FIRST],
-    [_('Create Window Thumbnail'),     Actions.THUMBNAIL],
-    [_('Hide Switcher Popup'),         Actions.HIDE],
-    [_('Open Preferences'),            Actions.PREFS],
+    [_('Do Nothing'),                      Actions.NONE],
+    [_('Select Next Item'),                Actions.SELECT_ITEM],
+    [_('Activate Selected'),               Actions.ACTIVATE],
+    [_('Show Selected'),                   Actions.SHOW],
+    [_('Open New Window'),                 Actions.NEW_WINDOW],
+    [_('Open Context Menu'),               Actions.MENU],
+    [_('Close/Quit Selected'),             Actions.CLOSE_QUIT],
+    [_('Force Quit Selected App'),         Actions.KILL],
+    [_('Move Selected to Current WS'),     Actions.MOVE_TO_WS],
+    [_('Fullscreen Selected on Empty WS'), Actions.FS_ON_NEW_WS],
+    [_('Switch Filter Mode'),              Actions.SWITCH_FILTER],
+    [_('Toggle Single App Mode'),          Actions.SINGLE_APP],
+    [_('Switch Workspace'),                Actions.SWITCH_WS],
+    [_('Toggle Switcher Mode'),            Actions.SWITCHER_MODE],
+    [_('Group by Applications'),           Actions.GROUP_APP],
+    [_('Current Monitor First'),           Actions.CURRENT_MON_FIRST],
+    [_('Create Window Thumbnail'),         Actions.THUMBNAIL],
+    [_('Hide Switcher Popup'),             Actions.HIDE],
+    [_('Open Preferences'),                Actions.PREFS],
 ];
 
 function init() {
@@ -940,7 +941,7 @@ class HelpPageAATWS extends Gtk.ScrolledWindow {
         });
         hotkeysFrame[hotkeysFrame.add ? 'add' : 'set_child'](helpLabel);
         mainBox[mainBox.add ? 'add' : 'append'](hotkeysFrame);
-        const helpText = `
+        const helpText = _(`
 All hotkeys work directly, or with Shift key pressed, if it is set in Preferences, or if the switcher is in the Search mode.
 
 <b>H/L, Left/Right</b>
@@ -959,32 +960,35 @@ Move the switcher popup to the next monitor, order is given by the Shell, Shift 
 Show selected window - switch to window workspace and bring the window to the front
 
 <b>Q</b>
-Switch window filter mode - ALL / WS / MONITOR
+Switch window filter mode - ALL / WS / MONITOR (the last mode is skipped when single monitor is used)
 
 <b>;/~</b>   (the key above Tab)
 In the Window mode - Sort windows by applications, each subsequent key press jumps to the first window of the next app
 In the App mode - Iterate over windows of selected application
 
 <b>G</b>
-Toggle sort by workspaces, when base filter is set to ALL
+Toggle sort by workspaces, when Filter Mode is set to ALL
 
 <b>1/+/!</b>
-Filter out all windows that don't belong to the application of selected window
+Toggle Single App Mode window list, filter out all windows that don't belong to the application of selected window, or list windows of select application
 
 <b>E/Insert</b>
-Activate the Search mode, the Insert key can turn it off.
+Activate the Type to Search Mode
 
 <b>W</b>
-Close selected window (or app when in app mode)
+Close selected window/application
 
-<b>D</b>
-Close application of selected window (or app when in app mode)
+<b>N, Ctrl+Enter</b>
+Create New Window of selected application, if the app soupports it.
 
-<b>Shift+Del</b>
-Force close - send <i>kill -9</i> signal to application of selected window/app
+<b>Ctrl+W</b>
+Close application of selected window
 
 <b>C</b>
 Close all windows from the window list that belong to the same application as selected window
+
+<b>Shift+Del</b>
+Force close - send <i>kill -9</i> signal to the application of selected window/application
 
 <b>A</b>
 Toggle window 'Always on Top'. Also switch to window workspace and rise the window.
@@ -995,19 +999,16 @@ When you press the 'A' key twice, it's actually equivalent to one press of hotke
 Toggle window 'Always on Visible Workspace', indicated by the 'pin' icon
 
 <b>X</b>
-Move selected window to the current workspace and to the monitor with mouse pointer
+Move selected window to the current workspace and monitor (the monitor with mouse pointer)
 
-<b>N, Ctrl+Enter</b>
-Create New Window of selected application, if the app soupports it.
-
-<b>V</b>
-Move window to selected workspace and maximize it.
+<b>M</b>
+Maximize window on current workspace and mmonitor (the monitor with mouse pointer)
 
 <b>F</b>
 Move window to empty workspace next to its current workspace and switch it to the fullscreen mode.
 Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
 
-<b>O, Ctrl+;/~</b>
+<b>Z/Y, Ctrl+;/~</b>
 Toggle between Windows and Applications modes.
 
 <b>T</b>
@@ -1019,7 +1020,7 @@ Open preferences window of this extension
 
 <b>Ctrl+Shift+Left/Right</b>
 In Applications mode with Favorites change the position of the selected favorite application
-`
+`)
         //textBuffer.set_text(helpText, -1);
         helpLabel.set_markup(helpText);
         this.show_all && this.show_all();
