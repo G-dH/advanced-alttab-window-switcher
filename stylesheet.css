@@ -23,7 +23,7 @@
 }
 
 .title-label, .search-text {
-  color: rgb(255, 255, 255);
+  color: rgb(200, 200, 200);
   font-weight: normal;
   text-align: center;
   font-size: 1.5em;
@@ -40,7 +40,7 @@
 }
 
 .search-text {
-  font-size: 3em;
+  font-size: 2.5em;
   font-weight: bold;
   /*background-color: rgba(20, 20, 20, 0.9);*/
 }
