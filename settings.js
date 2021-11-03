@@ -50,7 +50,7 @@ var Actions = {
     ALLWAYS_ON_TOP:   18,
     STICKY:           19, // always on visible ws
     MOVE_MAX:         20, // move window to the current ws and maximize it
-    FS_ON_EMPTY:      21, // fullscreen window on new ws next to the current one
+    FS_ON_NEW_WS:     21, // fullscreen window on new ws next to the current one
 
     PREFS:            99,
 };
