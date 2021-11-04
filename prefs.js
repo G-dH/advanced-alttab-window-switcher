@@ -942,84 +942,97 @@ class HelpPageAATWS extends Gtk.ScrolledWindow {
         hotkeysFrame[hotkeysFrame.add ? 'add' : 'set_child'](helpLabel);
         mainBox[mainBox.add ? 'add' : 'append'](hotkeysFrame);
         const helpText = _(`
-All hotkeys work directly, or with Shift key pressed, if it is set in Preferences, or if the switcher is in the Search mode.
+All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is on.
 
 <b>H/L, Left/Right</b>
-window selection
+Window selection.
 
 <b>J/K, Up/Down, PgUp/Down</b>
-Workspace selection
+Workspace selection.
 
 <b>Shift + arrow keys</b>
-Move the window switcher to the adjacent monitor in particular direction
+Move the window switcher to the adjacent monitor in corresponding direction.
 
 <b>Ctrl+Tab</b>
-Move the switcher popup to the next monitor, order is given by the Shell, Shift key changes the direction
+Move the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.
 
 <b>Space, KP_0/KP_Ins</b>
-Show selected window - switch to window workspace and bring the window to the front
+Show selected window - switches to the window workspace and brings the window to the foreground.
+The Space key works without having to press the Shift key even in Search mode if no search pattern entered.
 
 <b>Q</b>
-Switch window filter mode - ALL / WS / MONITOR (the last mode is skipped when single monitor is used)
+Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).
 
 <b>;/~</b>   (the key above Tab)
-In the Window mode - Sort windows by applications, each subsequent key press jumps to the first window of the next app
-In the App mode - Iterate over windows of selected application
+In the Window switcher mode - sorts windows by application, each subsequent key press jumps to the first window of the next app.
+In the App switcher mode - iterates over windows of the selected application, Tab switches back to apps.
 
 <b>G</b>
-Toggle sort by workspaces, when Filter Mode is set to ALL
+Toggles sorting by workspace, when Filter Mode is set to ALL.
 
 <b>1/+/!</b>
-Toggle Single App Mode window list, filter out all windows that don't belong to the application of selected window, or list windows of select application
+Toggles Single App mode - shows only the windows of the selected application.
 
 <b>E/Insert</b>
-Activate the Type to Search Mode
+Toggles the Type to Search mode.
+You can enter multiple patterns separated by a space and in arbitrary order to search windows/apps by titles, app names, app generic names and app executables. Generic names usually contain a basic app description so you can find most of editor apps by typing an 'edit', image viewers by typing 'image' and so on.
 
 <b>W</b>
-Close selected window/application
-
-<b>N, Ctrl+Enter</b>
-Create New Window of selected application, if the app soupports it.
+Closes the selected window or application.
 
 <b>Ctrl+W</b>
-Close application of selected window
+Closes the application of the selected window.
+
+<b>N, Ctrl+Enter</b>
+Opens a new window of the selected application if the apllication supports it.
 
 <b>C</b>
-Close all windows from the window list that belong to the same application as selected window
+Closes all windows in the list that belong to the same application as the selected window.
 
 <b>Shift+Del</b>
-Force close - send <i>kill -9</i> signal to the application of selected window/application
+Force close - sends a <i>kill -9</i> signal to the application of selected window or to the selected application.
 
 <b>A</b>
-Toggle window 'Always on Top'. Also switch to window workspace and rise the window.
-Indicated by the front icon on top instead of bottom.
-When you press the 'A' key twice, it's actually equivalent to one press of hotkey for 'Show selected window'
+Toggles window 'Always on Top'. Also switches to the window workspace and rise the window.
+This state is indicated by the front icon on top instead of the bottom.
+When you press the 'A' key twice, it's actually equivalent to the one press of hotkey for 'Show selected window'
 
 <b>S</b>
-Toggle window 'Always on Visible Workspace', indicated by the 'pin' icon
+Toggles window 'Always on Visible Workspace', indicated by the 'pin' icon.
 
 <b>X</b>
-Move selected window to the current workspace and monitor (the monitor with mouse pointer)
+Moves the selected window to the current workspace and monitor.
+The current monitor is that where the switcher popup is placed or where the mouse pointer is currently placed, if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.
 
 <b>M</b>
-Maximize window on current workspace and mmonitor (the monitor with mouse pointer)
+Maximizes the selected window on the current workspace and monitor
+The current monitor is defined as described above.
 
 <b>F</b>
-Move window to empty workspace next to its current workspace and switch it to the fullscreen mode.
+Moves the selected window to the empty workspace next to its current workspace and switches the window to the fullscreen mode.
 Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
 
 <b>Z/Y, Ctrl+;/~</b>
-Toggle between Windows and Applications modes.
+Toggles between Windows and Applications modes.
 
 <b>T</b>
-Creates an thumbnail preview of selected window and place it to the bottom right of the current monitor.
-You can move the thumbnail anywhere on the screen and you can make as many thumbnails as you want
+Creates a thumbnail preview of the selected window and place it to the bottom right of the current monitor.
+You can move the thumbnail anywhere on the screen and you can make as many thumbnails as you want.
+Thumbnail controls:
+    Double click:    \t\tactivates the source window
+    Primary click:   \t\ttoggles scroll wheel function (resize / source)
+    Secondary click: \t\tremoves the thumbnail
+    Middle click:    \t\tcloses the source window
+    Scroll wheel:    \t\tresizes or changes the source window
+    Ctrl + Scroll wheel: \tchange source window or resize
+    Shift + Scroll wheel: \tadjust opacity
+    Ctrl + Primary click: \tToggles display the app icon instead of the window preview
 
 <b>P</b>
-Open preferences window of this extension
+Opens preferences window of this extension
 
 <b>Ctrl+Shift+Left/Right</b>
-In Applications mode with Favorites change the position of the selected favorite application
+In Applications mode with Favorite applications enabled, changes the position of the selected favorite application
 `)
         //textBuffer.set_text(helpText, -1);
         helpLabel.set_markup(helpText);
