@@ -713,7 +713,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return this._actions;
     }
 
-    _moveWindowToCurrentWS() {
+    _moveToCurrentWS() {
         let obj = this._getSelected();
         if (obj) {
             let winList = obj.cachedWindows ? obj.cachedWindows : [obj];
@@ -721,6 +721,27 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._getActions().moveWindowToCurrentWs(win, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
             });
             this._showWindow(this._selectedIndex);
+            this._updateSwitcher();
+            this._showWsIndex();
+        }
+    }
+
+    _toggleMaximizeOnCurrentMonitor() {
+        let win = this._getSelected();
+        if (win && !win.cachedWindows) {
+            if (win.get_workspace().index() === global.workspace_manager.get_active_workspace().index()
+                && this._monitorIndex === win.get_monitor()) {
+                if (win.get_maximized() === Meta.MaximizeFlags.BOTH)
+                    win.unmaximize(Meta.MaximizeFlags.BOTH);
+                else
+                    win.maximize(Meta.MaximizeFlags.BOTH);
+            } else {
+                // the already maximized window have to be unmaximized first, otherwise it then unminimize on the original monitor instead the current one
+                win.unmaximize(Meta.MaximizeFlags.BOTH);
+                this._getActions().moveWindowToCurrentWs(win, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
+                win.maximize(Meta.MaximizeFlags.BOTH);
+            }
+            this._showWindow();
             this._updateSwitcher();
         }
     }
@@ -833,7 +854,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._createWinThumbnail();
             break;
         case Action.MOVE_TO_WS:
-            this._moveWindowToCurrentWS();
+            this._moveToCurrentWS();
             break;
         case Action.FS_ON_NEW_WS:
             this._toggleFullscreenOnNewWS();
@@ -1819,7 +1840,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // move selected window to the current workspace
         else if ((keysym === Clutter.KEY_x || keysym === Clutter.KEY_X) &&
                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
-            this._moveWindowToCurrentWS();
+            this._moveToCurrentWS();
         }
 
         // maximize (and move if needed) selected window on the current workspace and monitor
@@ -1828,13 +1849,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._showingApps || this._selectedIndex < 0)
                 return;
 
-            if (this._getSelected()) {
-                let win = this._getSelected();
-                this._getActions().moveWindowToCurrentWs(win);
-                win.maximize(Meta.MaximizeFlags.BOTH);
-                this._showWindow();
-                this._updateSwitcher();
-            }
+            this._toggleMaximizeOnCurrentMonitor();
         }
 
         else if ((keysym === Clutter.KEY_f || keysym === Clutter.KEY_F) &&
