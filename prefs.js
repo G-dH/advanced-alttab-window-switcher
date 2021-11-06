@@ -1,18 +1,3 @@
-/* Copyright 2021 GdH <https://github.com/G-dH>
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 'use strict';
 
 const {Gtk, GLib, GObject} = imports.gi;
@@ -121,6 +106,7 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
     }) {
         super._init(constructProperties);
 
+        this.optionList = optionList;
         this._alreadyBuilt = false;
         this.buildPage();
     }
@@ -142,7 +128,7 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
 
         let frame;
         let frameBox;
-        for (let item of optionsList) {
+        for (let item of this.optionList) {
             if (!item[0][1]) {
                 let lbl = new Gtk.Label({visible: true});
                 lbl.set_markup(item[0][0]);
@@ -300,31 +286,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Switcher:')),
-            '',
-            null,
-            null
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
-            _('Switcher position'),
-            null,
-            _newComboBox(),
-            'switcherPopupPosition',
-            [[_('Top'),    1],
-                [_('Center'), 2],
-                [_('Bottom'), 3]]
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
-            _('Show hotkeys F1-F12 for direct activation'),
-            _('The hotkeys will work independently on this option.'),
-            _newGtkSwitch(),
-            'switcherPopupHotKeys'
+            _makeTitle(_('Behavior:')),
         )
     );
 
@@ -357,6 +319,42 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
+            _('Wraparound selector'),
+            _('Whether the selection should continue from the last item to the first one and vice versa.'),
+            _newGtkSwitch(),
+            'switcherPopupWrap'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Appearance:')),
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Switcher position'),
+            null,
+            _newComboBox(),
+            'switcherPopupPosition',
+            [[_('Top'),    1],
+                [_('Center'), 2],
+                [_('Bottom'), 3]]
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Show hotkeys F1-F12 for direct activation'),
+            _('The hotkeys will work independently on this option.'),
+            _newGtkSwitch(),
+            'switcherPopupHotKeys'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
             _('Show status'),
             _('Whether the label indicating filter, grouping and sorting modes should be displayed at the bottom left of the popup.'),
             _newGtkSwitch(),
@@ -367,23 +365,52 @@ function _getCommonOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Overlay Title'),
-            _('Whether the label with item title shoud be displayed with bigger font in the overlay label above (or below if needed) the switcher popup or keep the standard label at the bottom of the popup.'),
+            _('Whether the item title label shoud be displayed with bigger font in the overlay label above (or below if needed) the switcher popup or keep the standard label at the bottom of the popup.'),
             _newGtkSwitch(),
             'switcherPopupOverlayTitle'
         )
     );
 
+    /*actionList.splice(6,1);
+    actionList.splice(1,1);*/
+
+    let singlePrevSizeAdjustment = new Gtk.Adjustment({
+        upper: 512,
+        lower: 16,
+        step_increment: 8,
+        page_increment: 32,
+    });
+
     optionsList.push(
         _optionsItem(
-            _('Wraparound selector'),
-            _('Whether the selection should continue from the last item to the first one and vice versa.'),
-            _newGtkSwitch(),
-            'switcherPopupWrap'
+            _('Single app preview size (px)'),
+            null,
+            _newSpinButton(singlePrevSizeAdjustment),
+            'singleAppPreviewSize'
         )
     );
 
-    /*actionList.splice(6,1);
-    actionList.splice(1,1);*/
+    let popupTimeoutAdjustment = new Gtk.Adjustment({
+        upper: 400,
+        lower: 10,
+        step_increment: 10,
+        page_increment: 100,
+    });
+
+    optionsList.push(
+        _optionsItem(
+            _('Delay showing switcher (ms)'),
+            _("Delay showing the popup so that fast Alt+Tab users aren't disturbed by the popup briefly flashing."),
+            _newSpinButton(popupTimeoutAdjustment),
+            'switcherPopupTimeout'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Mouse control:')),
+        )
+    );
 
     optionsList.push(
         _optionsItem(
@@ -465,43 +492,9 @@ function _getCommonOptionsList() {
         )
     );
 
-    let singlePrevSizeAdjustment = new Gtk.Adjustment({
-        upper: 512,
-        lower: 16,
-        step_increment: 8,
-        page_increment: 32,
-    });
-
-    optionsList.push(
-        _optionsItem(
-            _('Single app preview size (px)'),
-            null,
-            _newSpinButton(singlePrevSizeAdjustment),
-            'singleAppPreviewSize'
-        )
-    );
-
-    let popupTimeoutAdjustment = new Gtk.Adjustment({
-        upper: 400,
-        lower: 10,
-        step_increment: 10,
-        page_increment: 100,
-    });
-
-    optionsList.push(
-        _optionsItem(
-            _('Show up timeout (ms)'),
-            _("Delay showing the popup so that fast Alt+Tab users aren't disturbed by the popup briefly flashing."),
-            _newSpinButton(popupTimeoutAdjustment),
-            'switcherPopupTimeout'
-        )
-    );
-
     optionsList.push(
         _optionsItem(
             _makeTitle(_('Workspace switcher:')),
-            null,
-            null
         )
     );
 
@@ -570,15 +563,13 @@ function _getCommonOptionsList() {
     optionsList.push(
         _optionsItem(
             _makeTitle(_('Options for external trigger:')),
-            null,
-            null
         )
     );
 
     optionsList.push(
         _optionsItem(
-            _('Pop-up at mouse pointer position when triggered by mouse'),
-            _('This option is for external trigger that can set internal variable KEYBOARD_TRIGGERED to false -> Custom Hot Corners - Extended'),
+            _('Pop-up at mouse pointer position if triggered by mouse'),
+            _('If variable KEYBOARD_TRIGGERED is set false, then this option is reflected.'),
             _newGtkSwitch(),
             'switcherPopupPointer'
         )
@@ -595,7 +586,7 @@ function _getCommonOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Pointer out timeout (ms)'),
-            _('When the switcher is activated by a mouse, close the popup after this time of inactivity when mouse pointer is outside the popup.'),
+            _('If the switcher is activated by the mouse, the popup closes after this period of inactivity if the mouse pointer is outside the popup.'),
             _newSpinButton(popupPointerTimeoutAdjustment),
             'switcherPopupPointerTimeout'
         )
@@ -621,10 +612,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            //_makeTitle(_('Window Switcher:')),
-            '',
-            null,
-            null
+            _makeTitle(_('Behavior:')),
         )
     );
 
@@ -671,6 +659,86 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
+            _('Skip minimized windows'),
+            null,
+            _newGtkSwitch(),
+            'winSkipMinimized'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Search all windows'),
+            _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
+            _newGtkSwitch(),
+            'winSwitcherPopupSearchAll'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Search Applications'),
+            _('Search installed applications to launch new when no window matches the searched pattern.'),
+            _newGtkSwitch(),
+            'winSwitcherPopupSearchApps'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Appearance:')),
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Show workspace index of each window'),
+            null,
+            _newGtkSwitch(),
+            'winSwitcherPopupWsIndexes'
+        )
+    );
+
+    let popupSizeAdjustment = new Gtk.Adjustment({
+        upper: 512,
+        lower: 16,
+        step_increment: 8,
+        page_increment: 32,
+    });
+
+    optionsList.push(
+        _optionsItem(
+            _('Window preview size (px)'),
+            null,
+            _newSpinButton(popupSizeAdjustment),
+            'winSwitcherPopupPreviewSize'
+        )
+    );
+
+    let popupIconSizeAdjustment = new Gtk.Adjustment({
+        upper: 512,
+        lower: 16,
+        step_increment: 8,
+        page_increment: 32,
+    });
+
+    optionsList.push(
+        _optionsItem(
+            _('Window icon size (px)'),
+            null,
+            _newSpinButton(popupIconSizeAdjustment),
+            'winSwitcherPopupIconSize'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Mouse control:')),
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
             _('Scroll over Item'),
             _('Action to be triggered by scrolling over any switcher item (window icon)'),
             _newComboBox(),
@@ -712,74 +780,6 @@ function _getWindowOptionsList() {
         )
     );
 
-    optionsList.push(
-        _optionsItem(
-            _('Show workspace index of each window'),
-            null,
-            _newGtkSwitch(),
-            'winSwitcherPopupWsIndexes'
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
-            _('Skip minimized windows'),
-            null,
-            _newGtkSwitch(),
-            'winSkipMinimized'
-        )
-    );
-
-    let popupSizeAdjustment = new Gtk.Adjustment({
-        upper: 512,
-        lower: 16,
-        step_increment: 8,
-        page_increment: 32,
-    });
-
-    optionsList.push(
-        _optionsItem(
-            _('Window preview size (px)'),
-            null,
-            _newSpinButton(popupSizeAdjustment),
-            'winSwitcherPopupPreviewSize'
-        )
-    );
-
-    let popupIconSizeAdjustment = new Gtk.Adjustment({
-        upper: 512,
-        lower: 16,
-        step_increment: 8,
-        page_increment: 32,
-    });
-
-    optionsList.push(
-        _optionsItem(
-            _('Window icon size (px)'),
-            null,
-            _newSpinButton(popupIconSizeAdjustment),
-            'winSwitcherPopupIconSize'
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
-            _('Search all windows'),
-            _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
-            _newGtkSwitch(),
-            'winSwitcherPopupSearchAll'
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
-            _('Search Applications'),
-            _('Search installed applications to launch new when no window matches the searched pattern.'),
-            _newGtkSwitch(),
-            'winSwitcherPopupSearchApps'
-        )
-    );
-
     return optionsList;
 }
 // //////////////////////////////////////////////////////////////////////
@@ -791,10 +791,7 @@ function _getAppOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            //_makeTitle(_('App Switcher:')),
-            '',
-            null,
-            null
+            _makeTitle(_('Behavior:')),
         )
     );
 
@@ -834,7 +831,35 @@ function _getAppOptionsList() {
         )
     );
 
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Appearance:')),
+        )
+    );
+
     let appActionList = [...actionList];
+
+    let popupAppIconSizeAdjustment = new Gtk.Adjustment({
+        upper: 512,
+        lower: 16,
+        step_increment: 8,
+        page_increment: 32,
+    });
+
+    optionsList.push(
+        _optionsItem(
+            _('App icon size (px)'),
+            null,
+            _newSpinButton(popupAppIconSizeAdjustment),
+            'appSwitcherPopupIconSize'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Mouse control:')),
+        )
+    );
 
     optionsList.push(
         _optionsItem(
@@ -875,22 +900,6 @@ function _getAppOptionsList() {
             _newComboBox(),
             'appSwitcherPopupMidClickItem',
             appActionList
-        )
-    );
-
-    let popupAppIconSizeAdjustment = new Gtk.Adjustment({
-        upper: 512,
-        lower: 16,
-        step_increment: 8,
-        page_increment: 32,
-    });
-
-    optionsList.push(
-        _optionsItem(
-            _('App icon size (px)'),
-            null,
-            _newSpinButton(popupAppIconSizeAdjustment),
-            'appSwitcherPopupIconSize'
         )
     );
 
@@ -1002,7 +1011,7 @@ Toggles window 'Always on Visible Workspace', indicated by the 'pin' icon.
 
 <b>X</b>
 Moves the selected window to the current workspace and monitor.
-The current monitor is that where the switcher popup is placed or where the mouse pointer is currently placed, if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.
+The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.
 
 <b>M</b>
 Maximizes the selected window on the current workspace and monitor
