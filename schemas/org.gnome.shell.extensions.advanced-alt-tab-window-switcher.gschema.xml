@@ -126,7 +126,7 @@
       <default>false</default>
     </key>
      <key name='win-switcher-popup-search-all' type='b'>
-      <default>false</default>
+      <default>true</default>
     </key>
     <key name='win-switcher-popup-search-apps' type='b'>
       <default>true</default>
