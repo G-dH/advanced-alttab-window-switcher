@@ -62,9 +62,6 @@ function disable() {
     AltTab.AppSwitcherPopup    = _origAltTabASP;
     _origAltTabWSP = null;
     _origAltTabASP = null;
-
-    if (global.stage.windowThumbnails)
-        global.stage.windowThumbnails = undefined;
 }
 
 function _resumeThumbnailsIfExist() {
@@ -113,4 +110,3 @@ function _extensionEnabled() {
         return true;
     return false;
 }
-
