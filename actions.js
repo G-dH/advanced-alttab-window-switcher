@@ -1,17 +1,3 @@
-/* Copyright 2021 GdH <https://github.com/G-dH>
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 'use strict';
 
 const GObject        = imports.gi.GObject;
@@ -165,7 +151,6 @@ var Actions = class {
         if (!win)
             return;
         win.minimize();
-        // global.display.get_tab_list(0, null)[0].minimize();
     }
 
     unminimizeAll(workspace = true) {
@@ -269,7 +254,7 @@ var Actions = class {
                 });
             }
 
-            // Do not show wokspaceSwithcer in overview
+            // Do not show wokspaceSwitcher in overview
             if (!Main.overview.visible) {
                 let motion = direction ? vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT
                     : vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT;
@@ -299,4 +284,3 @@ var Actions = class {
         }));
     }
 };
-
