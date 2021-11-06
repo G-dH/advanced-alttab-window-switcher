@@ -1,18 +1,3 @@
-/* Copyright 2021 GdH <https://github.com/G-dH>
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 'use strict';
 
 const {GObject, GLib, St, Shell, Gdk} = imports.gi;
@@ -65,11 +50,6 @@ const SortingMode = {
     STABLE_SEQUENCE:      2,
     STABLE_CURRENT_FIRST: 3,
 };
-
-/*const AppSortingMode = {
-    MRU:    1,
-    STABLE: 2,
-};*/
 
 const SortingModeLabel = ['',
     _('MRU'),
@@ -134,8 +114,8 @@ function _getWindowApp(metaWindow) {
 function _getRunningAppsIds() {
     let running = [];
     // Shell.AppSystem.get_default().get_running().forEach(a => running.push(a.get_id()));
-
     let winList = AltTab.getWindows(null);
+    // We need to get stable order, the functions above return MRU order
     winList.sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());
     winList.forEach(w => {
         let app = _getWindowApp(w);
@@ -190,7 +170,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // Window switcher
         this.WIN_FILTER_MODE       = options.winSwitcherPopupFilter;
-        if ((Main.layoutManager.monitors.length < 2) && this.WIN_FILTER_MODE === FilterMode.MONITOR)
+        if (Main.layoutManager.monitors.length < 2 && this.WIN_FILTER_MODE === FilterMode.MONITOR)
             this.WIN_FILTER_MODE   = FilterMode.WORKSPACE;
         this.GROUP_MODE            = options.winSwitcherPopupOrder;
         this._defaultGrouping      = this.GROUP_MODE; // remember default sorting
@@ -365,6 +345,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._tempFilterMode = null;
 
         let switcherList = this._getSwitcherList();
+        if (switcherList.length === 0) {
+            // no results -> back to the last successful pattern
+            this._searchEntry = this._searchEntry.slice(0, -1);
+            this._tempFilterMode = null;
+            switcherList = this._getSwitcherList();
+        }
 
         if (switcherList.length > 0) {
             if (this._switcherList)
@@ -412,7 +398,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                                     (this.SEARCH_ALL && this._searchEntry !== null && this._searchEntry !== '');
 
         // if no window matches the searched pattern, try to switch to a less restricted filter if possible and allowed
-        // even if the switcher is in app mode, try to search windows, if no app matches the search pattern
+        // even if the switcher is in app mode, try to search windows if no app matches the search pattern
         let mode = this._switcherMode === SwitcherMode.APPS ? this.WIN_FILTER_MODE : this.WIN_FILTER_MODE - 1;
         if (switcherList.length === 0 &&
             (this.WIN_FILTER_MODE !== FilterMode.ALL || this._switcherMode === SwitcherMode.APPS) &&
@@ -430,39 +416,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     break;
                 }
             }
-
-            // if still no results and serching apps is disabled, remove the last character from the searched pattern and use the last successful one
-            if (switcherList.length === 0 && this._tempFilterMode && this._searchEntry !== null && this._searchEntry !== '' && !this.SEARCH_APPS) {
-                this._searchEntry = this._searchEntry.slice(0, -1);
-                this._tempFilterMode = null;
-                switcherList = this._getCustomWindowList();
-            }
         }
 
         // if no windows/apps match the searched pattern and the searching apps is allowed, try to find some apps instead
         if (switcherList.length === 0 && this.SEARCH_APPS === true && this._searchEntry !== null && this._searchEntry !== '') {
             switcherList = this._getAppList(this._searchEntry);
-
             this._initialSelectionMode = SelectionMode.FIRST;
-
-            // if any app found try to get back to the last successful search
-            if (switcherList.length === 0) {
-                // no results -> back to the last successful pattern
-                this._searchEntry = this._searchEntry.slice(0, -1);
-                
-                    this._tempFilterMode = null;
-
-                if (this._showingApps) { // then it seems like last successfull search was in apps
-                    switcherList = this._getAppList(this._searchEntry);
-                }
-                else {
-                    switcherList = this._getCustomWindowList();
-                    // if app search for window switcher is enabled, we are not sure which list was the last successful?
-                    if (!switcherList.length) {
-                        switcherList = this._getAppList(this._searchEntry);
-                    }
-                }
-            }
         }
         return switcherList;
     }
@@ -1025,6 +984,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         this._overlayDelayId = 0;
                         let overlayCenter = parent.x + (parent.width / 2);
                         let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
+                        if (x < geometry.x)
+                            x = geometry.x;
                         let y = parent.y - overlayLabel.height - yOffset - margin;
                         if (y < geometry.y) {
                             y = parent.y + parent.height + yOffset + margin;
@@ -1039,20 +1000,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 overlayLabel.x = x;
                 overlayLabel.y = y;
             }
-        } /*else {
-            overlayLabel.x = geometry.x + Math.floor(geometry.width / 2) - Math.floor(overlayLabel.width / 2);
-            switch (this.POPUP_POSITION) {
-            case Position.TOP:
-                overlayLabel.y = Math.floor(this._switcherList.height + margin + yOffset);
-                break;
-            case Position.CENTER:
-                overlayLabel.y = Math.floor((geometry.height - this._switcherList.height) / 2 - overlayLabel.height - margin) - yOffset;
-                break;
-            case Position.BOTTOM:
-                overlayLabel.y = Math.floor(geometry.height - this._switcherList.height - overlayLabel.height - margin) - yOffset;
-                break;
-            }
-        }*/
+        }
     }
 
     _customOverlayLabel(name, style_class) {
@@ -1259,6 +1207,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _switchFilterMode() {
+        // duplicated because of external trigger which can override the filter original value
+        // if just one monitor is connected, then filter MONITOR is redundant to WORKSPACE
+        if (Main.layoutManager.monitors.length < 2) {
+            if (this.WIN_FILTER_MODE === FilterMode.MONITOR)
+                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+            if (this.APP_FILTER_MODE === FilterMode.MONITOR)
+                this.APP_FILTER_MODE = FilterMode.WORKSPACE;
+        }
         let filterMode = this._showingApps
             ? this.APP_FILTER_MODE
             : this.WIN_FILTER_MODE;
@@ -1506,13 +1462,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._updateSwitcher();
         this._showWsIndex();
     }
-
-    /* _showApps() {
-        this._switcherMode = SwitcherMode.APPS;
-        this.SHOW_APPS = !this.SHOW_APPS;
-        this._initialSelectionMode = SelectionMode.FIRST;
-        this.show();
-    }*/
 
     _moveFavotites(direction) {
         if (!this._showingApps && this.INCLUDE_FAVORITES)
@@ -1793,15 +1742,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 return;
             if (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)
                 this._closeWinQuitApp();
-
-            /*if (this._showingApps && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
-                this._getSelected().request_quit();
-                this._delayedUpdate(200);
-            } else if (_ctrlPressed()) {
-                _getWindowApp(this._getSelected()).request_quit();
-            } else if (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true) {
-                this._getActions().closeWindow(this._getSelected());
-            }*/
         }
 
         // close all windows of the same class displayed in selector
