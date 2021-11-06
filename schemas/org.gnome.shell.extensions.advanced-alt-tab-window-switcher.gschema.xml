@@ -30,16 +30,16 @@
       <default>true</default>
     </key>
     <key name='switcher-popup-scroll-out' type='i'>
-      <default>6</default>
+      <default>13</default>
     </key>
     <key name='switcher-popup-scroll-in' type='i'>
-      <default>1</default>
+      <default>6</default>
     </key>
     <key name='switcher-popup-prim-click-in' type='i'>
-      <default>2</default>
+      <default>4</default>
     </key>
     <key name='switcher-popup-sec-click-in' type='i'>
-      <default>4</default>
+      <default>17</default>
     </key>
     <key name='switcher-popup-mid-click-in' type='i'>
       <default>99</default>
