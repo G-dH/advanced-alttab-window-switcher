@@ -2041,7 +2041,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return false;
                 }
 
-                return appInfo.should_show() && this._match(
+                return /*appInfo.should_show() && */this._match(
                     (appInfo.get_name()         ? appInfo.get_name()         : '') +
                     (appInfo.get_generic_name() ? appInfo.get_generic_name() : '') +
                     (appInfo.get_executable()   ? appInfo.get_executable()   : ''),
