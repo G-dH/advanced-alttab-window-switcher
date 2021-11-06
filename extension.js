@@ -15,17 +15,18 @@
  */
 'use strict';
 
-const GLib                   = imports.gi.GLib;
+const GLib                 = imports.gi.GLib;
 
-const Main                   = imports.ui.main;
-const AltTab                 = imports.ui.altTab;
+const Main                 = imports.ui.main;
+const AltTab               = imports.ui.altTab;
 
-const ExtensionUtils         = imports.misc.extensionUtils;
-const Me                     = ExtensionUtils.getCurrentExtension();
-const Settings               = Me.imports.settings;
-const WindowSwitcherPopup    = Me.imports.windowSwitcherPopup;
+const ExtensionUtils       = imports.misc.extensionUtils;
+const Me                   = ExtensionUtils.getCurrentExtension();
+const Settings             = Me.imports.settings;
+const WindowSwitcherPopup  = Me.imports.windowSwitcherPopup;
 
-let enabled                  = false;
+let _delayId;
+let enabled = false;
 let _origAltTabWSP;
 let _origAltTabASP;
 
@@ -34,23 +35,28 @@ function init() {
 }
 
 function enable() {
-    GLib.timeout_add(
+    _delayId = GLib.timeout_add(
         GLib.PRIORITY_DEFAULT,
-        500,
+        300,
         () => {
+            _delayId = 0;
             if (enabled)
                 _resumeThumbnailsIfExist();
 
             _origAltTabWSP = AltTab.WindowSwitcherPopup;
             _origAltTabASP = AltTab.AppSwitcherPopup;
             AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
-            AltTab.AppSwitcherPopup    = WindowSwitcherPopup.AppSwitcherPopup;
+            AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
             enabled = true;
+            return GLib.SOURCE_REMOVE;
         }
     );
 }
 
 function disable() {
+    if (_delayId)
+        GLib.source_remove(_delayId);
+
     if (_extensionEnabled()) {
         _removeThumbnails(false);
     } else {
@@ -58,8 +64,10 @@ function disable() {
         enabled = false;
     }
 
-    AltTab.WindowSwitcherPopup = _origAltTabWSP;
-    AltTab.AppSwitcherPopup    = _origAltTabASP;
+    if (_origAltTabWSP)
+        AltTab.WindowSwitcherPopup = _origAltTabWSP;
+    if (_origAltTabASP)
+        AltTab.AppSwitcherPopup = _origAltTabASP;
     _origAltTabWSP = null;
     _origAltTabASP = null;
 }
