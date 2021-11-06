@@ -103,7 +103,7 @@ Window thumbnails are scaled-down window clones that can be used to monitor wind
  
 ## Contribution
 
-I would really appreciate language corrections because my english is terrible.
+Contributions are welcome and I will try my best to answer quickly to all suggestions. Especially language corrections would be really helpful because my English is terrible.
 
 
 ![Window Switcher Popup](screenshot.png)
