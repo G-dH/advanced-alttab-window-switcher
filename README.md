@@ -49,7 +49,7 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 `1/+/!`                   - Filter out all windows that don't belong to the application of selected window
 
-`E/Insert`                - Activate the Search mode, the `Insert` key can turn it off.
+`E/Insert`                - Toggles Search mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the Enter key, or you can close the popup using the Esc.
 
 `W`                       - Close selected window (or app when in app mode)
 
