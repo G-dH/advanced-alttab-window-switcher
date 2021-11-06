@@ -9,7 +9,7 @@
       <default>false</default>
     </key>
     <key name='switcher-popup-start-search' type='b'>
-      <default>false</default>
+      <default>true</default>
     </key>
     <key name='switcher-popup-position' type='i'>
       <default>3</default>
@@ -21,7 +21,7 @@
       <default>true</default>
     </key>
     <key name='switcher-popup-hot-keys' type='b'>
-      <default>false</default>
+      <default>true</default>
     </key>
     <key name='switcher-popup-status' type='b'>
       <default>true</default>
