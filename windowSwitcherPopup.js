@@ -375,15 +375,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _getSwitcherList() {
         let switcherList;
 
-
-        if (!AltTab.getWindows(null).length) {
-            this._switcherMode = SwitcherMode.APPS;
-            this.INCLUDE_FAVORITES = true;
-            this.SHOW_APPS = true;
-            this._initialSelectionMode = SelectionMode.FIRST;
-            return this._getAppList();
-        }
-
         if (this.SHOW_APPS) {
             switcherList = this._getAppList(this._searchEntry);
             if (!switcherList.length && this.APP_FILTER_MODE > 1) {
@@ -423,6 +414,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             switcherList = this._getAppList(this._searchEntry);
             this._initialSelectionMode = SelectionMode.FIRST;
         }
+
+        if (!switcherList.length && !AltTab.getWindows(null).length) {
+            this._switcherMode = SwitcherMode.APPS;
+            this.INCLUDE_FAVORITES = true;
+            this.SHOW_APPS = true;
+            this._initialSelectionMode = SelectionMode.FIRST;
+            return this._getAppList();
+        }
+
         return switcherList;
     }
 
@@ -2046,7 +2046,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 let exec = appInfo.get_executable() || '';
                 // show only launchers that should be visible in this DE and invisible launchers of Gnome Settings items
                 return (appInfo.should_show() || (exec.includes('gnome-control-center', 0))) && this._match(
-                    name + gname + exec,
+                    `${name} ${gname} ${exec}`,
                     pattern);
             });
 
