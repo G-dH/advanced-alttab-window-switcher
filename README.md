@@ -1,5 +1,5 @@
 # Advanced Alt+Tab Window Switcher
-Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switche windows*, *Switch applications* and *Switch windows of an application*
+Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch windows*, *Switch applications* and *Switch windows of an application*
 
 *Advanced Alt+Tab Window Switcher* offers effective navigation between windows, including type to search mode, various filtering and sorting settings, workspace switching and hotkeys for window control. With Custom Hot Corners - Extended extension this switcher can be also triggered and controlled using a mouse. 
 
