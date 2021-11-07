@@ -2041,10 +2041,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return false;
                 }
 
-                return /*appInfo.should_show() && */this._match(
-                    (appInfo.get_name()         ? appInfo.get_name()         : '') +
-                    (appInfo.get_generic_name() ? appInfo.get_generic_name() : '') +
-                    (appInfo.get_executable()   ? appInfo.get_executable()   : ''),
+                let name = appInfo.get_name() || '';
+                let gname = appInfo.get_generic_name() || '';
+                let exec = appInfo.get_executable() || '';
+                // show only launchers that should be visible in this DE and invisible launchers of Gnome Settings items
+                return (appInfo.should_show() || (exec.includes('gnome-control-center', 0))) && this._match(
+                    name + gname + exec,
                     pattern);
             });
 
