@@ -49,7 +49,7 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 `1/+/!`                   - Filter out all windows that don't belong to the application of selected window
 
-`E/Insert`                - Toggles Search mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the Enter key, or you can close the popup using the Esc.
+`E/Insert`                - Toggles Search mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
 
 `W`                       - Close selected window (or app when in app mode)
 
@@ -108,4 +108,6 @@ Contributions are welcome and I will try my best to answer quickly to all sugges
 
 ![Window Switcher Popup](screenshot.png)
 ![Extension configuration window](screenshot1.png)
+![Extension configuration window](screenshot1-1.png)
+![Extension configuration window](screenshot1-2.png)
  
