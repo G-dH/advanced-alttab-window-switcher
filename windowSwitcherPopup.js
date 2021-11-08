@@ -208,7 +208,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 GLib.PRIORITY_DEFAULT,
                 200,
                 () => {
-                    this._newWindowConnectorTimeoutId = 0;
                     this._updateSwitcher();
 
                     if (this._showingApps && this._selectedIndex > -1)
@@ -216,6 +215,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     else if (this._selectedIndex > -1)
                         this._select(this._getItemIndexByID(win.get_id()));
 
+                    this._newWindowConnectorTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
             });
         });
@@ -224,12 +224,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _onDestroyThis() {
-        // _initialDelayTimeoutId was already removed in super class
-
-        if (this._showWinImmediatelyTimeoutId)
-            GLib.source_remove(this._showWinImmediatelyTimeoutId);
-        if (this._newWindowConnectorTimeoutId)
-            GLib.source_remove(this._newWindowConnectorTimeoutId);
+        // this._initialDelayTimeoutId and this._noModsTimeoutId were already removed in super class
+        let timeouts = [
+            this._showWinImmediatelyTimeoutId,
+            this._overlayDelayId,
+            this._recentSwitchTimeoutId,
+            this._newWindowConnectorTimeoutId
+        ];
+        timeouts.forEach(t => {
+            if (t)
+                GLib.source_remove(t);
+        });
 
         global.display.disconnect(this._newWindowConnector);
         this._actions = null;
@@ -500,10 +505,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             // for quick switch to recent window when triggered using mouse and top/bottom popup position
             this._recentSwitchTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                500,
+                300,
                 () => {
                     this._recentSwitchTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE
+                    return GLib.SOURCE_REMOVE;
                 }
             );
 
@@ -515,10 +520,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         if (this.KEYBOARD_TRIGGERED) {
                             if (this._overlayTitle)
                                 this._overlayTitle.opacity = 255;
-                            this._showImmediately();
+                            this.opacity = 255;
                         } else {
                             this._shadeIn();
                         }
+                        Main.osdWindowManager.hideAll();
                     }
                     this._initialDelayTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
@@ -746,12 +752,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _closeWinQuitApp() {
         if (this._showingApps) {
             this._getSelected().request_quit();
-            this._delayedUpdate(200);
         } else if (_ctrlPressed()) {
             _getWindowApp(this._getSelected()).request_quit();
         } else {
             this._getActions().closeWindow(this._getSelected());
         }
+        if (this._items.length > 1)
+            this._delayedUpdate(200);
     }
 
     _killApp() {
@@ -856,6 +863,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         id = id ? id.get_id() : null;
         this.show();
         this._select(this._getItemIndexByID(id));
+    }
+
+    _delayedUpdate(delay) {
+        this._updateTimeoutId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            delay,
+            () => {
+                this._updateSwitcher();
+                this._updateTimeoutId = 0;
+                return GLib.SOURCE_REMOVE;
+            }
+        );
     }
 
     _setSwitcherStatus() {
@@ -990,9 +1009,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     GLib.PRIORITY_DEFAULT,
                     15,
                     () => {
-                        this._overlayDelayId = 0;
                         [overlayLabel.x, overlayLabel.y] = calculatePosition();
                         overlayLabel.opacity = 255;
+                        this._overlayDelayId = 0;
                         return GLib.SOURCE_REMOVE;
                     }
                 );
@@ -1036,17 +1055,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         } else {
                             this._finish();
                         }
-
                     } else if (this.ACTIVATE_ON_HIDE) {
                         this._finish();
                     } else {
                         this.fadeAndDestroy();
                     }
-
                     this._noModsTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
                 } else {
-                    this._noModsTimeoutId = 0;
                     this._resetNoModsTimeout();
                 }
             }
@@ -1113,9 +1129,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             this._showWindow(this._selectedIndex);
                             this._lastShowed = this._selectedIndex;
                         }
-
                         this._showWinImmediatelyTimeoutId = 0;
-
                         return GLib.SOURCE_REMOVE;
                     }
                 );
@@ -1238,9 +1252,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let obj = null;
         if (this._selectedIndex > -1) {
             let it = this._items[this._selectedIndex];
-            if (it.is_window)
+            if (it && it.is_window)
                 obj = this._items[this._selectedIndex].window;
-            else
+            else if (it)
                 obj = this._items[this._selectedIndex].app;
         }
         return obj;
@@ -1277,16 +1291,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 return monitor;
         }
         return -1;
-    }
-
-    _delayedUpdate(delay) {
-        GLib.timeout_add(
-            GLib.PRIORITY_DEFAULT,
-            delay,
-            () => {
-                this._updateSwitcher();
-            }
-        );
     }
 
     _match(string, pattern) {
