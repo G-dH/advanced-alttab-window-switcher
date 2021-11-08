@@ -170,8 +170,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // Window switcher
         this.WIN_FILTER_MODE       = options.winSwitcherPopupFilter;
-        if (Main.layoutManager.monitors.length < 2 && this.WIN_FILTER_MODE === FilterMode.MONITOR)
-            this.WIN_FILTER_MODE   = FilterMode.WORKSPACE;
         this.GROUP_MODE            = options.winSwitcherPopupOrder;
         this._defaultGrouping      = this.GROUP_MODE; // remember default sorting
         this.WIN_SORTING_MODE      = options.winSwitcherPopupSorting;
@@ -185,8 +183,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // App switcher
         this.APP_FILTER_MODE       = options.appSwitcherPopupFilter;
-        if ((Main.layoutManager.monitors.length < 2) && this.APP_FILTER_MODE === FilterMode.MONITOR)
-            this.APP_FILTER_MODE   = FilterMode.WORKSPACE;
         this.APP_SORTING_MODE      = options.appSwitcherPopupSorting;
         this.SORT_FAVORITES_BY_MRU = options.appSwitcherPopupFavMru;
         this.INCLUDE_FAVORITES     = options.appSwitcherPopupFavoriteApps;
@@ -312,6 +308,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     show(backward, binding, mask) {
         // remove overlay labels if exist
         this._removeOverlays();
+
+        // if just one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
+        if (Main.layoutManager.monitors.length < 2) {
+            if (this.WIN_FILTER_MODE === FilterMode.MONITOR)
+                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+            if (this.APP_FILTER_MODE === FilterMode.MONITOR)
+                this.APP_FILTER_MODE = FilterMode.WORKSPACE;
+        }
 
         if (!Main.pushModal(this)) {
             if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
@@ -854,14 +858,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._select(this._getItemIndexByID(id));
     }
 
-    /*_activateWinSwitchedApp(win) {
-        if (this._getSelected().idx) {
-            // scroll switched the app window, it needs to be activated now
-            let app = this._getSelected();
-            Main.activateWindow(app.cachedWindows[app.idx]);
-        }
-    }*/
-
     _setSwitcherStatus() {
         this._switcherList._statusLabel.set_text(
             `${_('Filter: ')}${FilterModeLabel[this._tempFilterMode === null ? this.WIN_FILTER_MODE : this._tempFilterMode]
@@ -941,7 +937,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             ? this._overlayTitle.height + margin
             : margin;
 
-        this._setOverlayLabelPosition(this._overlaySearchLabel, offset, this._switcherList);
+        this._setOverlayLabelPosition(this._overlaySearchLabel, [0, offset], this._switcherList);
     }
     
     _showOverlayTitle() {
@@ -958,47 +954,48 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._overlayTitle.text = title;
         Main.layoutManager.addChrome(this._overlayTitle);
 
-        this._setOverlayLabelPosition(this._overlayTitle, 0, this._switcherList);
+        let index = this._selectedIndex;
+        // get item possition on the screen and calculate offset
+        let [xOffset] = this._items[index].get_transformed_position();
+        xOffset = Math.floor(xOffset + this._items[index].width / 2 - this._switcherList.allocation.x1 - this._switcherList.width / 2);
+        this._setOverlayLabelPosition(this._overlayTitle, [xOffset, 0], this._switcherList);
     }
 
-    _setOverlayLabelPosition(overlayLabel, yOffset = 0, parent = null) {
+    _setOverlayLabelPosition(overlayLabel, offset = [0, 0], parent = null) {
+        let xOffset = offset[0];
+        let yOffset = offset[1];
         let geometry = global.display.get_monitor_geometry(this._monitorIndex);
         let margin = 5;
         overlayLabel.width = Math.min(overlayLabel.width, geometry.width);
         // win/app titles should be always placed centered to the switcher popup
         if (parent) {
-            let overlayCenter = parent.x + (parent.width / 2);
-            let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
-            let y = parent.y - overlayLabel.height - yOffset - margin;
-            if (y < geometry.y) {
-                y = parent.y + parent.height + yOffset + margin;
+            let calculatePosition = function() {
+                let overlayCenter = parent.x + parent.width / 2 + xOffset;
+                let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
+                if (x < geometry.x)
+                    x = geometry.x;
+                let y = parent.allocation.y1 - overlayLabel.height - yOffset - margin;
+                if (y < geometry.y)
+                    y = parent.allocation.y1 + parent.height + yOffset + margin;
+                return [x, y];
             }
 
+            if (parent.allocation.x1 + parent.allocation.y1 !== 0) {
+                [overlayLabel.x, overlayLabel.y] = calculatePosition();
+
             // workaround for slow systems to avoid position calculation from unpositioned switcher popup
-            if (parent.x + parent.y === 0) {
+            } else {
                 overlayLabel.opacity = 0;
                 this._overlayDelayId = GLib.timeout_add(
                     GLib.PRIORITY_DEFAULT,
                     15,
                     () => {
                         this._overlayDelayId = 0;
-                        let overlayCenter = parent.x + (parent.width / 2);
-                        let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
-                        if (x < geometry.x)
-                            x = geometry.x;
-                        let y = parent.y - overlayLabel.height - yOffset - margin;
-                        if (y < geometry.y) {
-                            y = parent.y + parent.height + yOffset + margin;
-                        }
-                        overlayLabel.x = x;
-                        overlayLabel.y = y;
+                        [overlayLabel.x, overlayLabel.y] = calculatePosition();
                         overlayLabel.opacity = 255;
                         return GLib.SOURCE_REMOVE;
                     }
                 );
-            } else {
-                overlayLabel.x = x;
-                overlayLabel.y = y;
             }
         }
     }
@@ -1207,14 +1204,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _switchFilterMode() {
-        // duplicated because of external trigger which can override the filter original value
-        // if just one monitor is connected, then filter MONITOR is redundant to WORKSPACE
-        if (Main.layoutManager.monitors.length < 2) {
-            if (this.WIN_FILTER_MODE === FilterMode.MONITOR)
-                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
-            if (this.APP_FILTER_MODE === FilterMode.MONITOR)
-                this.APP_FILTER_MODE = FilterMode.WORKSPACE;
-        }
         let filterMode = this._showingApps
             ? this.APP_FILTER_MODE
             : this.WIN_FILTER_MODE;
