@@ -577,6 +577,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     fadeAndDestroy() {
         this._doNotShowImmediately = true;
         this._popModal();
+        if (this._overlayTitle)
+            this._removeOverlays();
         if (this.opacity > 0) {
             if (this.KEYBOARD_TRIGGERED) {
                 this._switcherList.ease({
@@ -719,7 +721,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let obj = this._getSelected();
         if (obj && !obj.cachedWindows) {
             this._getActions().fullscreenWinOnEmptyWs(obj);
-            this._updateSwitcher();
+            this._delayedUpdate(200);
         }
     }
 
@@ -956,7 +958,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             ? this._overlayTitle.height + margin
             : margin;
 
-        this._setOverlayLabelPosition(this._overlaySearchLabel, [0, offset], this._switcherList);
+        this._setOverlayLabelPosition(this._overlaySearchLabel, 0, offset, this._switcherList);
     }
     
     _showOverlayTitle() {
@@ -974,49 +976,26 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         Main.layoutManager.addChrome(this._overlayTitle);
 
         let index = this._selectedIndex;
-        // get item possition on the screen and calculate offset
-        let [xOffset] = this._items[index].get_transformed_position();
-        xOffset = Math.floor(xOffset + this._items[index].width / 2 - this._switcherList.allocation.x1 - this._switcherList.width / 2);
-        this._setOverlayLabelPosition(this._overlayTitle, [xOffset, 0], this._switcherList);
+        // get item possition on the screen and calculate center position of the label
+        let [xPos] = this._items[index].get_transformed_position();
+        xPos = Math.floor(xPos + this._items[index].width / 2);
+        this._setOverlayLabelPosition(this._overlayTitle, xPos, 0, this._switcherList);
     }
 
-    _setOverlayLabelPosition(overlayLabel, offset = [0, 0], parent = null) {
-        let xOffset = offset[0];
-        let yOffset = offset[1];
+    _setOverlayLabelPosition(overlayLabel, xPos = 0, yOffset = 0, parent = null) {
         let geometry = global.display.get_monitor_geometry(this._monitorIndex);
         let margin = 5;
         overlayLabel.width = Math.min(overlayLabel.width, geometry.width);
         // win/app titles should be always placed centered to the switcher popup
-        if (parent) {
-            let calculatePosition = function() {
-                let overlayCenter = parent.x + parent.width / 2 + xOffset;
-                let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
-                if (x < geometry.x)
-                    x = geometry.x;
-                let y = parent.allocation.y1 - overlayLabel.height - yOffset - margin;
-                if (y < geometry.y)
-                    y = parent.allocation.y1 + parent.height + yOffset + margin;
-                return [x, y];
-            }
+        let overlayCenter = xPos ? xPos : parent.allocation.x1 + parent.width / 2;
+        let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
+        if (x < geometry.x)
+            x = geometry.x;
+        let y = parent.allocation.y1 - overlayLabel.height - yOffset - margin;
+        if (y < geometry.y)
+            y = parent.allocation.y1 + parent.height + yOffset + margin;
 
-            if (parent.allocation.x1 + parent.allocation.y1 !== 0) {
-                [overlayLabel.x, overlayLabel.y] = calculatePosition();
-
-            // workaround for slow systems to avoid position calculation from unpositioned switcher popup
-            } else {
-                overlayLabel.opacity = 0;
-                this._overlayDelayId = GLib.timeout_add(
-                    GLib.PRIORITY_DEFAULT,
-                    15,
-                    () => {
-                        [overlayLabel.x, overlayLabel.y] = calculatePosition();
-                        overlayLabel.opacity = 255;
-                        this._overlayDelayId = 0;
-                        return GLib.SOURCE_REMOVE;
-                    }
-                );
-            }
-        }
+        [overlayLabel.x, overlayLabel.y] = [x, y];
     }
 
     _customOverlayLabel(name, style_class) {
@@ -2263,12 +2242,12 @@ class AppIcon extends Dash.DashIcon {
             this._iconContainer.add_child(_createHotKeyNumIcon(iconIndex));
     }
 
-    _createIcon(iconSize) {
+    // this is override of original function to adjust icon size
+    _createIcon() {
         return this.app.create_icon_texture(APP_MODE_ICON_SIZE);
     }
 
     _createRunningIndicator(num) {
-        let currentWS = global.workspace_manager.get_active_workspace().index();
         let icon = new St.Widget({
             x_expand: true,
             y_expand: true,
@@ -2281,7 +2260,6 @@ class AppIcon extends Dash.DashIcon {
             style_class: 'workspace-index',
         });
         icon.add_actor(label);
-        //box.add(label);
 
         return icon;
     }
@@ -2300,7 +2278,7 @@ class AppIcon extends Dash.DashIcon {
 
 var WindowSwitcher = GObject.registerClass(
 class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
-    _init(windows) {
+    _init(items) {
         super._init(true);
         this._statusLabel = new St.Label({
             x_align: Clutter.ActorAlign.START,
@@ -2316,16 +2294,18 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         });
         this.add_actor(this._label);
 
-        this.windows = windows;
+        // this line belongs to the original code but this.windows was unused...
+        //this.windows = items;
+
         this.icons = [];
 
-        for (let i = 0; i < windows.length; i++) {
-            let win = windows[i];
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
             let icon;
-            if (win.get_title) {
-                icon = new WindowIcon(win, i);
+            if (item.get_title) {
+                icon = new WindowIcon(item, i);
             } else {
-                icon = new AppIcon(win, i);
+                icon = new AppIcon(item, i);
                 icon.connect('menu-state-changed',
                     (o, opened) => {
                         _cancelTimeout = opened;
