@@ -267,12 +267,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let [, childNaturalHeight] = this._switcherList.get_preferred_height(monitor.width);
         let [, childNaturalWidth] = this._switcherList.get_preferred_width(childNaturalHeight);
         if (this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
-            childBox.x1 = Math.min(this._pointer.x, monitor.x + monitor.width - childNaturalWidth);
+            let x;
+            if (this._switcherAppPos) {
+                x = Math.max(this._switcherAppPos - childNaturalWidth / 2, monitor.x);
+            } else {
+                x = Math.min(this._pointer.x, monitor.x + monitor.width - childNaturalWidth);
+            }
+            childBox.x1 = x;
             if (childBox.x1 < monitor.x)
                 childBox.x1 = monitor.x;
             childBox.y1 = Math.min(this._pointer.y, monitor.height - childNaturalHeight);
         } else {
-            childBox.x1 = Math.max(monitor.x, monitor.x + Math.floor((monitor.width - childNaturalWidth) / 2));
+            // if single app view was triggered from the app switcher align the window switcher to selected app
+            let x;
+            if (this._switcherAppPos) {
+                x = Math.max(this._switcherAppPos - childNaturalWidth / 2, monitor.x);
+            } else {
+                x = Math.max(monitor.x, monitor.x + Math.floor((monitor.width - childNaturalWidth) / 2));
+            }
+            childBox.x1 = x;
             let offset = Math.floor((monitor.height - childNaturalHeight) / 2);
             if (this.POPUP_POSITION === Position.TOP)
                 offset = 0;
@@ -1013,7 +1026,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         Main.layoutManager.addChrome(this._overlayTitle);
 
         let index = this._selectedIndex;
-        // get item possition on the screen and calculate center position of the label
+        // get item position on the screen and calculate center position of the label
         let [xPos] = this._items[index].get_transformed_position();
         xPos = Math.floor(xPos + this._items[index].width / 2);
         this._setOverlayLabelPosition(this._overlayTitle, xPos, 0, this._switcherList);
@@ -1353,29 +1366,34 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleSingleAppMode(switchOn = false) {
-        if (this._selectedIndex < 0)
+        let selected = this._getSelected();
+        let winToApp = false;
+        if (!selected)
             return;
 
         if (!this._singleApp || switchOn) {
             if (this._showingApps) {
-                if (!this._getSelected().cachedWindows.length)
+                if (!selected.cachedWindows.length)
                     return;
-                this._singleApp = this._getSelected().get_id();
+                this._singleApp = selected.get_id();
                 this.SHOW_APPS = false;
                 // this._showingApps = false;
             } else {
-                this._singleApp = _getWindowApp(this._getSelected()).get_id();
+                this._singleApp = _getWindowApp(selected).get_id();
             }
         } else {
             this._singleApp = null;
+            this._switcherAppPos = null;
             if (this._switcherMode === SwitcherMode.APPS) {
                 this.SHOW_APPS = true;
-                this._updateSwitcher(true);
-                return;
+                winToApp = true;
             }
         }
-
-        this._updateSwitcher();
+        if (this._singleApp) {
+            let item = this._items[this._selectedIndex];
+            this._switcherAppPos = Math.floor(item.get_transformed_position()[0]) + item.width / 2;
+        }
+        this._updateSwitcher(winToApp);
     }
 
     _toggleSearchMode() {
