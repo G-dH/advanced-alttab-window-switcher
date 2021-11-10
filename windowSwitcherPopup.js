@@ -746,9 +746,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _openAppIconMenu() {
+        let nWindows = this._getSelected().cachedWindows.length;
+        let popupItems = [
+            [_('Quit'), this._closeWinQuitApp],
+            [_('Force Quit'), this._killApp],
+            [_(`Close ${nWindows} Window(s)`), this._closeAppWindows],
+            [_(`Move ${nWindows} Window(s) to the current WS/Monitor`), this._moveToCurrentWS],
+        ];
         let appIcon = this._items[this._selectedIndex];
-        if (appIcon)
+        if (appIcon) {
             appIcon.popupMenu();
+            //const PopupMenu = imports.ui.popupMenu;
+            //appIcon._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(_('Actions')));
+            if (nWindows) {
+                popupItems.forEach(i => {
+                    let item = appIcon._menu._appendMenuItem(i[0]);
+                    item.connect('activate', i[1].bind(this));
+                });
+            }
+        }
     }
 
     _closeWinQuitApp() {
@@ -761,6 +777,27 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
         if (this._items.length > 1)
             this._delayedUpdate(200);
+    }
+
+    _closeAppWindows() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        let winList;
+        if (selected.cachedWindows) {
+            winList = selected.cachedWindows;
+        } else {
+            let app = this._getWindowApp(selected.window).get_id();
+            this._items.forEach(i => {
+                if (this._getWindowApp(i.window).get_id() === app)
+                    winList.push(i.window);
+            });
+        }
+        let time = global.get_current_time();
+        for (let win of winList) {
+                win.delete(time++);
+        }
+        this._delayedUpdate(200);
     }
 
     _killApp() {
@@ -1718,11 +1755,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // close all windows of the same class displayed in selector
         else if ((keysym === Clutter.KEY_c || keysym === Clutter.KEY_C) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
-            if (this._showingApps)
-                return;
             if (this._selectedIndex < 0)
                 return;
-            this._getActions().closeWinsOfSameApp(this._getSelected(), this._items);
+            this._closeAppWindows();
         }
 
         // make selected window Always on Top
@@ -2086,8 +2121,6 @@ class WindowIcon extends St.BoxLayout {
 
         if (item.get_title)
             this._createWindowIcon(item, iconIndex);
-        else
-            this._createAppLauncherIcon(item, iconIndex);
 
         if (showHotKeys && HOT_KEYS && iconIndex < 12)
             this._icon.add_actor(_createHotKeyNumIcon(iconIndex));
@@ -2149,28 +2182,6 @@ class WindowIcon extends St.BoxLayout {
             this._icon.add_actor(this._createStickyIcon());
 
         this._icon.set_size(size * scaleFactor, size * scaleFactor);
-    }
-
-    _createAppLauncherIcon(app, iconIndex) {
-        this.is_window = false;
-        this.app = app;
-        this.ilabel = new St.Label({text: this.app.get_name()});
-
-        let icon = app.create_icon_texture(APP_MODE_ICON_SIZE);
-        this._icon.add_actor(icon);
-
-        let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        let winCount = app.cachedWindows.length;
-
-        if (winCount > 0) {
-            let mutterWindow = app.get_windows()[0].get_compositor_private();
-            let cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * WINDOW_PREVIEW_SIZE / 3);
-            let clone = AltTab._createWindowClone(mutterWindow, cloneSize * scaleFactor);
-            this._icon.add_actor(clone);
-            this._alignFront(clone, false);
-        }
-
-        winCount > 0 && this._icon.add_actor(this._createRunningIndicator(winCount));
     }
 
     _alignFront(icon, isWindow = true) {
@@ -2268,12 +2279,12 @@ class AppIcon extends Dash.DashIcon {
         return Clutter.EVENT_PROPAGATE;
     }
 
-    _showWindow(win) {
+    /*_showWindow(win) {
         let a = win.above;
         win.make_above();
         a ? win.make_above() : win.unmake_above();
         Main.wm.actionMoveWorkspace(win.get_workspace());
-    }
+    }*/
 });
 
 var WindowSwitcher = GObject.registerClass(
