@@ -111,18 +111,21 @@ function _getWindowApp(metaWindow) {
     return tracker.get_window_app(metaWindow);
 }
 
-function _getRunningAppsIds() {
+function _getRunningAppsIds(stableSequence = false) {
     let running = [];
-    // Shell.AppSystem.get_default().get_running().forEach(a => running.push(a.get_id()));
-    let winList = AltTab.getWindows(null);
-    // We need to get stable order, the functions above return MRU order
-    winList.sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());
-    winList.forEach(w => {
-        let app = _getWindowApp(w);
-        let id = app.get_id();
-        if (running.indexOf(id) < 0)
-            running.push(id);
-    });
+    if (stableSequence) {
+        let winList = AltTab.getWindows(null);
+        // We need to get stable order, the functions above return MRU order
+        winList.sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());
+        winList.forEach(w => {
+            let app = _getWindowApp(w);
+            let id = app.get_id();
+            if (running.indexOf(id) < 0)
+                running.push(id);
+        });
+    } else {
+        Shell.AppSystem.get_default().get_running().forEach(a => running.push(a.get_id()));
+    }
     return running;
 }
 
@@ -1225,7 +1228,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _getNextApp(list) {
         // let apps = _getAppList(list);
-        let apps = _getRunningAppsIds();
+        let stableSequence = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE;
+        let apps = _getRunningAppsIds(stableSequence);
         if (apps.length === 0)
             return;
         let currentIndex = apps.indexOf(this._singleApp);
@@ -1936,12 +1940,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE || this.WIN_SORTING_MODE === SortingMode.STABLE_CURRENT_FIRST) {
             winList.sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());
-        }
-        else if (this.WIN_SORTING_MODE === SortingMode.STABLE_CURRENT_FIRST) {
-            const currentSq = currentWin.get_stable_sequence();
-            winList.sort((a, b, cs = currentSq) => (b.get_stable_sequence() > cs) && (a.get_stable_sequence() <= cs)
-                ? 0 : 1
-            );
+            if (this.WIN_SORTING_MODE === SortingMode.STABLE_CURRENT_FIRST) {
+                const currentSq = currentWin.get_stable_sequence();
+                winList.sort((a, b, cs = currentSq) => (b.get_stable_sequence() > cs) && (a.get_stable_sequence() <= cs)
+                    ? 0 : 1
+                );
+            }
         }
 
         if (this.GROUP_MODE === GroupMode.WORKSPACES && filterMode === FilterMode.ALL) {
@@ -2015,7 +2019,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let appList = [];
 
         const running = Shell.AppSystem.get_default().get_running(); // AppSystem returns list in MRU order
-        const runningIds = _getRunningAppsIds();
+        const runningIds = _getRunningAppsIds(true); // true for stable sequence order
 
         let favorites = [];
         let favoritesFull = [];
