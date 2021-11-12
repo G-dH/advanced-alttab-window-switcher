@@ -272,7 +272,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
             let x;
             if (this._switcherAppPos) {
-                x = Math.max(this._switcherAppPos - childNaturalWidth / 2, monitor.x);
+                x = Math.min(Math.max(this._switcherAppPos - childNaturalWidth / 2, monitor.x), monitor.x + monitor.width - childNaturalWidth);
             } else {
                 x = Math.min(this._pointer.x, monitor.x + monitor.width - childNaturalWidth);
             }
