@@ -284,7 +284,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             // if single app view was triggered from the app switcher align the window switcher to selected app
             let x;
             if (this._switcherAppPos) {
-                x = Math.max(this._switcherAppPos - childNaturalWidth / 2, monitor.x);
+                x = Math.min(Math.max(this._switcherAppPos - childNaturalWidth / 2, monitor.x), monitor.x + monitor.width - childNaturalWidth);
             } else {
                 x = Math.max(monitor.x, monitor.x + Math.floor((monitor.width - childNaturalWidth) / 2));
             }
@@ -1740,9 +1740,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
                     if (this._singleApp) {
                         // when app filter is active, jump selection at the beginning of the next app group
-                        this._switchNextApp = true;
+                        /*this._switchNextApp = true;
                         this._initialSelectionMode = SelectionMode.FIRST;
-                        this.show();
+                        this.show();*/
+                        if (_shiftPressed())
+                            this._select(this._previous());
+                        else
+                            this._select(this._next());
                     } else if (this.GROUP_MODE !== GroupMode.APPS) {
                         this.GROUP_MODE = GroupMode.APPS;
                         this.show();
