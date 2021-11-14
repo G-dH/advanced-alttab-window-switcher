@@ -8,7 +8,8 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 ## Features:
 
-- replacement for both the window switcher and the application switcher. Both modes can be also switched on the fly.
+- Suppurts GNOME Shell 3.36 - 41.
+- Replacement for both the window switcher and the application switcher. Both modes can be also switched on the fly.
 - **Type to Search** mode - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode so you can type immediately as the popup shows up.
 - Optional default filter settings : *All windows / Current workspace / Current monitor*, plus *Skip minimized* option.
 - Optional default sorting settings: *Most Recently Used* (MRU) */ Stable sequence / Stable sequence - current window first*.
@@ -30,57 +31,59 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 ### Hotkeys
 
-`H/L, Left/Right`         - window selection
+`H/L, Left/Right`         - Window selection
 
-`J/K, Up/Down, PgUp/Down` - workspace selection
+`J/K, Up/Down, PgUp/Down` - Workspace selection
 
-`Shift + arrow keys`      - move the window switcher to the adjacent monitor in particular direction
+`Shift + arrow keys`      - Moves the switcher popup to the adjacent monitor in corresponding direction.
 
-`Ctrl+Tab`                - move the window switcher to next monitor, order is given by the Shell, Shift key changes direction
+`Ctrl+Tab`                - Moves the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.
 
-`Space, KP_0/KP_Ins`      - Show selected window - switch to window workspace and bring it to the front
+`Space, KP_0/KP_Ins`      - Shows selected window - switches to the window workspace and brings the window to the foreground.
 
-`Q`                       - Switch window filter mode - ALL / WS / MONITOR
+`Q`                       - Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).
 
-`;/~` (the key above Tab) - in Window mode - Sort windows by applications, each subsequent key press jumps to the first window of the next app
-                          - in App mode - Iterate over windows of selected application
+`;/~` (the key above Tab) - In the Window mode - sorts windows by application, each subsequent key press jumps to the first window of the next app.
+                          - In the App mode - iterates over windows of the selected application, Tab switches back to apps.
 
-`G`                       - Toggle sort by workspaces, when base filter is set to ALL
+`G`                       - Toggles sorting by workspace, when Filter Mode is set to ALL.
 
-`1/+/!`                   - Filter out all windows that don't belong to the application of selected window
+`1/+/!`                   - Toggles Single App mode - shows only the windows of the selected application.
 
-`E/Insert`                - Toggles Search mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
+`E/Insert`                - Toggles the `Type to Search` mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
 
-`W`                       - Close selected window (or app when in app mode)
+`W`                       - Closes the selected window or application.
+
+`Ctrl+W`                  - Closes the application of the selected window.
 
 `D`                       - Close application of selected window (or app when in app mode)
 
-`Shift+Del`               - Force close - kill -9 to application of selected window/app
+`Shift+Del`               - Force close - sends a `kill -9` signal to the application of selected window or to the selected application.
 
-`C`                       - Close all windows from the window list that belong to the same application as selected window
+`C`                       - Closes all windows in the list that belong to the same application as the selected window.
 
-`A`                       - Toggle window 'Always on Top'. Also switch to window workspace and rise the window.
-                           Indicated by the front icon on top instead of bottom.
-                           When you press the 'A' key twice, it's actually equivalent to one press of hotkey for 'Show selected window'
+`A`                       - Toggles window 'Always on Top'. Also switches to window workspace and rise the window.
+                            This state is indicated by the front icon on top instead of the bottom.
+                            If you press the 'A' key twice, it's actually equivalent to the one press of hotkey for 'Show selected window'
 
-`S`                       - Toggle window 'Always on Visible Workspace', indicated by the 'pin' icon
+`S`                       - Toggles selected window 'Always on Visible Workspace', indicated by the 'pin' icon.
 
-`X`                       - Move selected window to the current workspace and monitor
+`X`                       - Moves selected window to the current workspace and monitor
                             The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.
 
-`M`                       - Move selected window to the current workspace and monitor. The current monitor is the one as described above.
+`M`                       - Toggles full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.
 
-`N, Ctrl+Enter`           - Create a new window of selected application, if the app soupports it.
+`N, Ctrl+Enter`           - Create a new window of selected application, if the application soupports it.
 
-`F`                       - Move window to a new empty workspace next to its current workspace and switch the window to the fullscreen mode.
-                           Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
+`F`                       - Moves the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.
+                            Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.
 
-`Z/Y, Ctrl+;/~`           - Toggle Windows and Applications modes.
+`Z/Y, Ctrl+;/~`           - Toggles between Windows and Applications modes.
 
-`T`                       - Creates a thumbnail preview of selected window and place it to the bottom right of the current monitor. You can move the thumbnail anywhere on the screen and you can make as many thumbnails as you want
-`P`                       - Open this extension preferences window.
+`T`                       - Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. You can move the thumbnail anywhere on the screen using a mouse and you can make as many thumbnails as you want
+`P`                       - Opens preferences window of this extension.
 
-`Ctrl+Shift+Left/Right`   - In Applications mode with Favorites, change the position of the selected favorite application
+`Ctrl+Shift+Left/Right`   - In Applications mode with Favorites, changes the position of the selected favorite application
 
 ### Type to Search
 
