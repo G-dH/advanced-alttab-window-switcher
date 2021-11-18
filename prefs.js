@@ -959,22 +959,25 @@ Window selection.
 <b>J/K, Up/Down, PgUp/Down</b>
 Workspace selection.
 
+<b>Ctrl+[J/K, Up/Down, PgUp/Down]</b>
+Reorders the current workspace - changes the workspace index by -1/+1
+
 <b>Shift + arrow keys</b>
-Move the window switcher to the adjacent monitor in corresponding direction.
+Moves the switcher popup to the adjacent monitor in corresponding direction.
 
 <b>Ctrl+Tab</b>
-Move the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.
+Moves the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.
 
 <b>Space, KP_0/KP_Ins</b>
-Show selected window - switches to the window workspace and brings the window to the foreground.
+Shows selected window - switches to the window workspace and brings the window to the foreground.
 The Space key works without having to press the Shift key even in Search mode if no search pattern entered.
 
 <b>Q</b>
 Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).
 
 <b>;/~</b>   (the key above Tab)
-In the Window switcher mode - sorts windows by application, each subsequent key press jumps to the first window of the next app.
-In the App switcher mode - iterates over windows of the selected application, Tab switches back to apps.
+In the Window mode - sorts windows by application, each subsequent key press jumps to the first window of the next app.
+In the App mode - iterates over windows of the selected application, Tab switches back to apps.
 
 <b>G</b>
 Toggles sorting by workspace, when Filter Mode is set to ALL.
@@ -1004,29 +1007,29 @@ Force close - sends a <i>kill -9</i> signal to the application of selected windo
 <b>A</b>
 Toggles window 'Always on Top'. Also switches to the window workspace and rise the window.
 This state is indicated by the front icon on top instead of the bottom.
-When you press the 'A' key twice, it's actually equivalent to the one press of hotkey for 'Show selected window'
+If you press the 'A' key twice, it's actually equivalent to the one press of hotkey for 'Show selected window'
 
 <b>S</b>
-Toggles window 'Always on Visible Workspace', indicated by the 'pin' icon.
+Toggles selected window 'Always on Visible Workspace', indicated by the 'pin' icon.
 
 <b>X</b>
 Moves the selected window to the current workspace and monitor.
 The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.
 
 <b>M</b>
-Maximizes the selected window on the current workspace and monitor
+Toggles full maximization of the selected window on the current workspace and monitor.
 The current monitor is defined as described above.
 
 <b>F</b>
-Moves the selected window to the empty workspace next to its current workspace and switches the window to the fullscreen mode.
-Next use of this action on the same window moves the window back to its original workspace and turn off the fullscreen mode.
+Moves the selected window to the new empty workspace next to its current workspace and switches the window to the fullscreen mode.
+Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.
 
 <b>Z/Y, Ctrl+;/~</b>
 Toggles between Windows and Applications modes.
 
 <b>T</b>
-Creates a thumbnail preview of the selected window and place it to the bottom right of the current monitor.
-You can move the thumbnail anywhere on the screen and you can make as many thumbnails as you want.
+Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor.
+You can move the thumbnail anywhere on the screen using a mouse and you can make as many thumbnails as you want.
 Thumbnail controls:
     Double click:    \t\tactivates the source window
     Primary click:   \t\ttoggles scroll wheel function (resize / source)
