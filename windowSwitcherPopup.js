@@ -648,283 +648,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList.icons.forEach(icon => this._iconsConnections.push(icon.connect('scroll-event', this._onItemScrollEvent.bind(this))));
     }
 
-    _onItemBtnPressEvent(actor, event) {
-        const btn = event.get_button();
-        let action;
-
-        switch (btn) {
-        case Clutter.BUTTON_PRIMARY:
-            action = this._showingApps
-            ? options.appSwitcherPopupPrimClickItem
-            : options.winSwitcherPopupPrimClickItem;
-            break;
-        case Clutter.BUTTON_SECONDARY:
-            action = this._showingApps
-            ? options.appSwitcherPopupSecClickItem
-            : options.winSwitcherPopupSecClickItem;
-            break;
-        case Clutter.BUTTON_MIDDLE:
-            action = this._showingApps
-            ? options.appSwitcherPopupMidClickItem
-            : options.winSwitcherPopupMidClickItem;
-            break;
-        default:
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        this._triggerAction(action);
-        return Clutter.EVENT_STOP;
-    }
-
-    _onItemScrollEvent(actor, event) {
-        let direction = event.get_scroll_direction();
-        if (direction === Clutter.ScrollDirection.SMOOTH)
-            return;
-        if (this._showingApps) {
-            this._triggerAction(options.appSwitcherPopupScrollItem, direction);
-
-        } else { // if (this._switcherMode === SwitcherMode.WINDOWS) {
-            this._triggerAction(options.winSwitcherPopupScrollItem, direction);
-        }
-        return Clutter.EVENT_STOP;
-    }
-
-    // Actions
-    //////////////////////////////////////////
-    _getActions() {
-        if (!this._actions)
-            this._actions = new ActionLib.Actions();
-        return this._actions;
-    }
-
-    _moveToCurrentWS() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        let winList = selected.cachedWindows ? selected.cachedWindows : [selected];
-        winList.forEach(win => {
-            this._getActions().moveWindowToCurrentWs(win, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
-        });
-        this._showWindow(this._selectedIndex);
-        this._updateSwitcher();
-        this._showWsIndex();
-    }
-
-    _reorderWorkspace(direction = 0) {
-        this._getActions().reorderWorkspace(direction);
-        this._showWsIndex();
-    }
-
-    _toggleMaximizeOnCurrentMonitor() {
-        let selected = this._getSelected();
-        if (selected && !selected.cachedWindows) {
-            this._getActions().toggleMaximizeOnCurrentMonitor(
-                selected, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
-            this._showWindow();
-            this._updateSwitcher();
-        }
-    }
-
-    _toggleFullscreenOnNewWS() {
-        let selected = this._getSelected();
-        if (selected && !selected.cachedWindows) {
-            this._getActions().fullscreenWinOnEmptyWs(selected);
-            this._delayedUpdate(200);
-        }
-    }
-
-    _groupWindowsByApp() {
-        if (this.GROUP_MODE !== GroupMode.APPS) {
-            this.GROUP_MODE = GroupMode.APPS;
-            this.show();
-        }
-    }
-
-    _groupCurrentMonFirst() {
-        if (this.GROUP_MODE !== GroupMode.CURRENT_MON_FIRST) {
-            this.GROUP_MODE = GroupMode.CURRENT_MON_FIRST;
-            this.show();
-        }
-    }
-
-    _createWinThumbnail() {
-        let selected = this._getSelected();
-        if (selected && !selected.get_windows)
-            this._getActions().makeThumbnailWindow(selected);
-    }
-
-    _openAppIconMenu() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        let nWindows = selected.cachedWindows.length;
-        let popupItems = [
-            [_('Quit'), this._closeWinQuitApp],
-            [_('Force Quit'), this._killApp],
-            [_(`Close ${nWindows} Window(s)`), this._closeAppWindows],
-            [_(`Move ${nWindows} Window(s) to the current WS/Monitor`), this._moveToCurrentWS],
-        ];
-        let appIcon = this._items[this._selectedIndex];
-        if (appIcon) {
-            appIcon.popupMenu();
-            //const PopupMenu = imports.ui.popupMenu;
-            //appIcon._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(_('Actions')));
-            if (nWindows) {
-                popupItems.forEach(i => {
-                    let item = appIcon._menu._appendMenuItem(i[0]);
-                    item.connect('activate', i[1].bind(this));
-                });
-            }
-        }
-    }
-
-    _closeWinQuitApp() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        if (this._showingApps) {
-            selected.request_quit();
-        } else if (_ctrlPressed()) {
-            _getWindowApp(selected).request_quit();
-        } else {
-            selected.delete(global.get_current_time());
-        }
-        // if any window remains, update the switcher content
-        if (this._items.length > 1)
-            this._delayedUpdate(200);
-    }
-
-    _closeAppWindows() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        this._getActions().closeAppWindows(selected, this._items);
-        this._delayedUpdate(200);
-    }
-
-    _killApp() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        if (this._showingApps) {
-            if (selected.cachedWindows.length > 0)
-                selected.cachedWindows[0].kill();
-            this._delayedUpdate(200);
-        } else {
-            selected.kill();
-        }
-    }
-
-    _openNewWindow() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        if (this._showingApps) {
-            selected.open_new_window(global.get_current_time());
-        } else {
-            selected = Shell.WindowTracker.get_default().get_window_app(selected);
-            selected.open_new_window(global.get_current_time());
-        }
-    }
-
-    _switchToFirstWS() {
-        Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(0));
-        this.show();
-        this._showWsIndex();
-    }
-
-    _switchToLastWS() {
-        Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(global.workspace_manager.n_workspaces - 1));
-        this.show();
-        this._showWsIndex();
-    }
-
-    _toggleWinAbove() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        this._getActions().toggleAboveWindow(selected);
-        Main.wm.actionMoveWorkspace(selected.get_workspace());
-        this._updateSwitcher();
-    }
-
-    _toggleWinSticky() {
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-        this._getActions().toggleStickyWindow(selected);
-        this._updateSwitcher();
-    }
-
-    _openPrefsWindow() {
-        Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
-    }
-
-    ////////////////////////////////////////////////////////////////////////
-
-    _triggerAction(action, direction = 0) {
-        switch (action) {
-        case Action.SELECT_ITEM:
-            this._disableHover();
-            this._scrollHandler(direction);
-            break;
-        case Action.SWITCH_FILTER:
-            this._switchFilterMode();
-            break;
-        case Action.SWITCH_WS:
-            this._switchWorkspace(direction);
-            break;
-        case Action.SHOW:
-            this._showWindow(this._selectedIndex);
-            break;
-        case Action.GROUP_APP:
-            this._groupWindowsByApp();
-            break;
-        case Action.CURRENT_MON_FIRST:
-            this._groupCurrentMonFirst();
-            break;
-        case Action.SINGLE_APP:
-            this._toggleSingleAppMode();
-            break;
-        case Action.SWITCHER_MODE:
-            this._toggleSwitcherMode();
-            break;
-        case Action.ACTIVATE:
-            this._finish();
-            break;
-        case Action.THUMBNAIL:
-            this._createWinThumbnail();
-            break;
-        case Action.MOVE_TO_WS:
-            this._moveToCurrentWS();
-            break;
-        case Action.FS_ON_NEW_WS:
-            this._toggleFullscreenOnNewWS();
-        case Action.HIDE:
-            this.fadeAndDestroy();
-            break;
-        case Action.MENU:
-            this._openAppIconMenu();
-            break;
-        case Action.CLOSE_QUIT:
-            this._closeWinQuitApp();
-            break;
-        case Action.KILL:
-            this._killApp();
-            break;
-        case Action.PREFS:
-            this._openPrefsWindow();
-            break;
-        case Action.NEW_WINDOW:
-            this._openNewWindow();
-            break;
-        case Action.NONE:
-            break;
-        default:
-            return Clutter.EVENT_PROPAGATE;
-        }
-    }
-
     _updateSwitcher(winToApp = false) {
         let id;
         if (winToApp) {
@@ -963,125 +686,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.destroyOverlayLabel(this._overlaySearchLabel);
             this._overlaySearchLabel = null;
         }
-    }
-
-    // place the indicator overlay outside the switcher
-    _showWsIndex(text = null, size = 0) {
-        if (!this.SHOW_WS_INDEX && !text)
-            return;
-
-        const offset = (this._overlayTitle ? this._overlayTitle.height : 0)
-                     + (this._overlaySearchLabel ? this._overlaySearchLabel.height : 0);
-
-        if (this._wsOverlay) {
-            this.destroyOverlayLabel(this._wsOverlay);
-        }
-
-        this._wsOverlay = this._customOverlayLabel('ws-overlay', 'workspace-index-overlay');
-        this._wsOverlay.text = (global.workspace_manager.get_active_workspace().index() + 1).toString();
-        Main.layoutManager.addChrome(this._wsOverlay);
-
-        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
-        const labelOffset = 10;
-        let l1 = this._overlayTitle ? (this._overlayTitle.height + labelOffset) : 0;
-        let l2 = this._overlaySearchLabel ? (this._overlaySearchLabel.height + labelOffset) : 0;
-        switch (this.POPUP_POSITION) {
-        case Position.TOP:
-            this._wsOverlay.y = Math.max(
-                geometry.height / 2,
-                Math.min(geometry.height - this._wsOverlay.height - this._switcherList.height - l1 - l2, geometry.height)
-            );
-            break;
-        case Position.CENTER:
-            this._wsOverlay.y = Math.min(
-                geometry.height / 2 + (this._switcherList.height / 2),
-                Math.max(geometry.height / 2 + this._wsOverlay.height / 2, geometry.height)
-            );
-            break;
-        case Position.BOTTOM :
-            this._wsOverlay.y = Math.min(
-                geometry.height / 2,
-                Math.max(geometry.height - this._wsOverlay.height - this._switcherList.height - l1 - l2, 0)
-            );
-            break;
-        }
-        this._wsOverlay.x = geometry.x;
-        this._wsOverlay.width = geometry.width;
-        //return wsLabel;
-    }
-
-    _showOverlaySearchLabel(text) {
-        let margin = 10;
-        if (this._overlaySearchLabel) {
-            this.destroyOverlayLabel(this._overlaySearchLabel);
-        }
-        this._overlaySearchLabel = new St.BoxLayout({style_class: 'search-text'});
-
-        let icon = new St.Icon({icon_name: 'edit-find-symbolic'});
-        this._overlaySearchLabel.add_actor(icon);
-        this._overlaySearchLabel._label = this._customOverlayLabel('search-text', '');
-        this._overlaySearchLabel._label.text = ` ${text}`;
-
-        this._overlaySearchLabel.add_actor(this._overlaySearchLabel._label);
-        Main.layoutManager.addChrome(this._overlaySearchLabel);
-        const offset = this._overlayTitle
-            ? this._overlayTitle.height + margin
-            : margin;
-
-        this._setOverlayLabelPosition(this._overlaySearchLabel, 0, offset, this._switcherList);
-    }
-    
-    _showOverlayTitle() {
-        let selected = this._items[this._selectedIndex];
-        let title = '';
-        title = selected.is_window
-            ? selected.window.get_title()
-            : selected.ilabel.text;
-        if (this._overlayTitle) {
-            this.destroyOverlayLabel(this._overlayTitle);
-        }
-
-        this._overlayTitle = this._customOverlayLabel('item-title', 'title-label');
-        this._overlayTitle.text = title;
-        Main.layoutManager.addChrome(this._overlayTitle);
-
-        let index = this._selectedIndex;
-        // get item position on the screen and calculate center position of the label
-        let [xPos] = this._items[index].get_transformed_position();
-        xPos = Math.floor(xPos + this._items[index].width / 2);
-        this._setOverlayLabelPosition(this._overlayTitle, xPos, 0, this._switcherList);
-    }
-
-    _setOverlayLabelPosition(overlayLabel, xPos = 0, yOffset = 0, parent = null) {
-        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
-        let margin = 5;
-        overlayLabel.width = Math.min(overlayLabel.width, geometry.width);
-        // win/app titles should be always placed centered to the switcher popup
-        let overlayCenter = xPos ? xPos : parent.allocation.x1 + parent.width / 2;
-        let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
-        if (x < geometry.x)
-            x = geometry.x;
-        let y = parent.allocation.y1 - overlayLabel.height - yOffset - margin;
-        if (y < geometry.y)
-            y = parent.allocation.y1 + parent.height + yOffset + margin;
-
-        [overlayLabel.x, overlayLabel.y] = [x, y];
-    }
-
-    _customOverlayLabel(name, style_class) {
-        let label = new St.Label({
-            name: name,
-            style_class: style_class,
-            reactive: false,
-        });
-        return label;
-    }
-
-    destroyOverlayLabel(overlayLabel) {
-        Main.layoutManager.removeChrome(overlayLabel);
-        overlayLabel.destroy();
-        if (this._overlayDelayId)
-            GLib.source_remove(this._overlayDelayId);
     }
 
     _resetNoModsTimeout() {
@@ -1243,8 +847,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
-    _getNextApp(list) {
-        // let apps = _getAppList(list);
+    _getNextApp() {
         let stableSequence = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE;
         let apps = _getRunningAppsIds(stableSequence);
         if (apps.length === 0)
@@ -1265,22 +868,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         return apps[targetIndex];
-    }
-
-    _switchFilterMode() {
-        let filterMode = this._showingApps
-            ? this.APP_FILTER_MODE
-            : this.WIN_FILTER_MODE;
-        // if active ws has all windows on one monitor, ignore the monitor filter mode to avoid 'nothing happen' when switching between modes
-        let m = (Main.layoutManager.monitors.length > 1) && !this._allWSWindowsSameMonitor() ? 3 : 2;
-        filterMode -= 1;
-        if (filterMode < FilterMode.ALL)
-            filterMode = m;
-
-        this.APP_FILTER_MODE = filterMode;
-        this.WIN_FILTER_MODE = filterMode;
-
-        this.show();
     }
 
     _allWSWindowsSameMonitor() {
@@ -1341,207 +928,45 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return -1;
     }
 
-    _match(string, pattern) {
-        // remove diacritics and accents from letters
-        let s = string.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        let p = pattern.toLowerCase();
-        let ps = p.split(/ +/);
+    _onItemBtnPressEvent(actor, event) {
+        const btn = event.get_button();
+        let action;
 
-        // allows to use multiple exact paterns separated by space in arbitrary order
-        for (let w of ps) {
-            if (!s.match(w))
-                return false;
+        switch (btn) {
+        case Clutter.BUTTON_PRIMARY:
+            action = this._showingApps
+            ? options.appSwitcherPopupPrimClickItem
+            : options.winSwitcherPopupPrimClickItem;
+            break;
+        case Clutter.BUTTON_SECONDARY:
+            action = this._showingApps
+            ? options.appSwitcherPopupSecClickItem
+            : options.winSwitcherPopupSecClickItem;
+            break;
+        case Clutter.BUTTON_MIDDLE:
+            action = this._showingApps
+            ? options.appSwitcherPopupMidClickItem
+            : options.winSwitcherPopupMidClickItem;
+            break;
+        default:
+            return Clutter.EVENT_PROPAGATE;
         }
 
-        return true;
+        this._triggerAction(action);
+        return Clutter.EVENT_STOP;
     }
 
-    _switchWorkspace(direction) {
-        let id = this._getSelectedID();
-        this._getActions().switchWorkspace(direction, true);
-        this.show();
-
-        if (this._selectedIndex > -1) {
-            this._doNotShowWin = true;
-            this._select(this._getItemIndexByID(id));
-            this._doNotShowWin = false;
-        }
-
-        this._showWsIndex();
-    }
-
-    _switchMonitor(direction) {
-        let display = global.display;
-        let nMonitors = display.get_n_monitors();
-
-        if (nMonitors > 1 && this._monitorIndex >= 0) {
-            let monIdx = display.get_monitor_neighbor_index(this._monitorIndex, direction);
-
-            if (monIdx > -1) {
-                this._monitorIndex = monIdx;
-                this._updateSwitcher();
-            }
-        }
-    }
-
-    _toggleSingleAppMode(switchOn = false) {
-        let selected = this._getSelected();
-        if (!selected)
+    _onItemScrollEvent(actor, event) {
+        let direction = event.get_scroll_direction();
+        if (direction === Clutter.ScrollDirection.SMOOTH)
             return;
+        if (this._showingApps) {
+            this._triggerAction(options.appSwitcherPopupScrollItem, direction);
 
-            let winToApp = false;
-        if (!this._singleApp || switchOn) {
-            if (this._showingApps) {
-                if (!selected.cachedWindows.length)
-                    return;
-                this._singleApp = selected.get_id();
-                this.SHOW_APPS = false;
-                // this._showingApps = false;
-            } else {
-                this._singleApp = _getWindowApp(selected).get_id();
-            }
-        } else {
-            this._singleApp = null;
-            this._switcherAppPos = null;
-            if (this._switcherMode === SwitcherMode.APPS) {
-                this.SHOW_APPS = true;
-                winToApp = true;
-            }
+        } else { // if (this._switcherMode === SwitcherMode.WINDOWS) {
+            this._triggerAction(options.winSwitcherPopupScrollItem, direction);
         }
-        if (this._singleApp) {
-            let item = this._items[this._selectedIndex];
-            this._switcherAppPos = Math.floor(item.get_transformed_position()[0]) + item.width / 2;
-        }
-        this._updateSwitcher(winToApp);
-    }
-
-    _toggleSearchMode() {
-        if (this._searchEntry !== null) {
-            this._searchEntry = null;
-            _cancelTimeout = false;
-        } else {
-            this._searchEntry = '';
-            this._modifierMask = 0;
-            _cancelTimeout = true;
-            this.SEARCH_DEFAULT = false;
-        }
-
-        this.show();
-    }
-
-    _showWindow() {
-        if (this._doNotShowWin)
-            return;
-        let selected = this._getSelected();
-        if (!selected)
-            return;
-
-        let appId = 0;
-
-        if (selected.get_windows) {
-            if (!selected.cachedWindows.length)
-                return;
-            appId = selected.get_id();
-            selected = selected.cachedWindows[0];
-        }
-
-        let id = selected.get_id();
-        if (appId)
-            id = appId;
-
-        if (selected.minimized)
-            selected.unminimize();
-        let a = selected.above;
-        selected.make_above();
-        a ? selected.make_above() : selected.unmake_above();
-        Main.wm.actionMoveWorkspace(selected.get_workspace());
-        this._showWsIndex();
-
-        // avoid colision of creating new switcher while destroying popup during the initial show delay, when immediate show win is enabled
-        if (!this._initialDelayTimeoutId)
-            this.show();
-
-        this._doNotShowWin = true;
-        this._select(this._getItemIndexByID(id));
-        this._doNotShowWin = false;
-    }
-
-    _toggleSwitcherMode() {
-        if (this._switcherMode === SwitcherMode.APPS) {
-            this._switcherMode = SwitcherMode.WINDOWS;
-            this.SHOW_APPS = false;
-            this._singleApp = null;
-
-            let id = 0;
-            if (this._showingApps) {
-                if (this._getSelected().cachedWindows.length)
-                    id = this._getSelected().cachedWindows[0].get_id();
-            } else {
-                id = _getWindowApp(this._items[0].window).get_id();
-            }
-
-            this.show();
-            this._select(this._getItemIndexByID(id));
-        } else /* if (this._switcherMode === SwitcherMode.WINDOWS)*/ {
-            this._switcherMode = SwitcherMode.APPS;
-            this.SHOW_APPS = true;
-            this._singleApp = null;
-            /* if (_searchEntry != null)
-                this._searchEntry = '';*/
-
-            let id;
-            if (this._showingApps) {
-                if (this._selectedIndex > -1 && this._getSelected().cachedWindows.length)
-                    id = this._getSelected().cachedWindows[0].get_id();
-            } else {
-                if (this._selectedIndex > -1)
-                    id = _getWindowApp(this._items[this._selectedIndex].window).get_id();
-            }
-            this._initialSelectionMode = SelectionMode.FIRST;
-            this.show();
-            if (id !== undefined)
-                this._select(this._getItemIndexByID(id));
-        }
-    }
-
-    _toggleWsOrder() {
-        if (this.GROUP_MODE === GroupMode.WORKSPACES)
-            this.GROUP_MODE = this._defaultGrouping;
-        else
-            this.GROUP_MODE = GroupMode.WORKSPACES;
-        this._updateSwitcher();
-        this._showWsIndex();
-    }
-
-    _moveFavotites(direction) {
-        if (!this._showingApps && this.INCLUDE_FAVORITES)
-            return;
-
-        let app = this._getSelected().get_id();
-        let favorites = global.settings.get_strv('favorite-apps');
-        let fromIndex = favorites.indexOf(app);
-        let maxIndex = favorites.length - 1;
-
-        if (fromIndex == -1) {} else {
-            // disable MRU sorting of favorites to see the result of the icon movement
-            if (this._favoritesMRU) {
-                this._favoritesMRU = false;
-                this._updateSwitcher();
-            } else {
-                let toIndex = fromIndex + direction;
-                if (toIndex < 0)
-                    toIndex = maxIndex;
-                else if (toIndex > maxIndex)
-                    toIndex = 0;
-
-                let element = favorites[fromIndex];
-                favorites.splice(fromIndex, 1);
-                favorites.splice(toIndex, 0, element);
-
-                global.settings.set_strv('favorite-apps', favorites);
-                this._updateSwitcher();
-            }
-        }
+        return Clutter.EVENT_STOP;
     }
 
     vfunc_key_press_event(keyEvent) {
@@ -1902,6 +1327,567 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return Clutter.EVENT_STOP;
     }
 
+    _moveFavotites(direction) {
+        if (!this._showingApps && this.INCLUDE_FAVORITES)
+            return;
+
+        let app = this._getSelected().get_id();
+        let favorites = global.settings.get_strv('favorite-apps');
+        let fromIndex = favorites.indexOf(app);
+        let maxIndex = favorites.length - 1;
+
+        if (fromIndex == -1) {} else {
+            // disable MRU sorting of favorites to see the result of the icon movement
+            if (this._favoritesMRU) {
+                this._favoritesMRU = false;
+                this._updateSwitcher();
+            } else {
+                let toIndex = fromIndex + direction;
+                if (toIndex < 0)
+                    toIndex = maxIndex;
+                else if (toIndex > maxIndex)
+                    toIndex = 0;
+
+                let element = favorites[fromIndex];
+                favorites.splice(fromIndex, 1);
+                favorites.splice(toIndex, 0, element);
+
+                global.settings.set_strv('favorite-apps', favorites);
+                this._updateSwitcher();
+            }
+        }
+    }
+
+    _showWindow() {
+        if (this._doNotShowWin)
+            return;
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+
+        let appId = 0;
+
+        if (selected.get_windows) {
+            if (!selected.cachedWindows.length)
+                return;
+            appId = selected.get_id();
+            selected = selected.cachedWindows[0];
+        }
+
+        let id = selected.get_id();
+        if (appId)
+            id = appId;
+
+        if (selected.minimized)
+            selected.unminimize();
+        let a = selected.above;
+        selected.make_above();
+        a ? selected.make_above() : selected.unmake_above();
+        Main.wm.actionMoveWorkspace(selected.get_workspace());
+        this._showWsIndex();
+
+        // avoid colision of creating new switcher while destroying popup during the initial show delay, when immediate show win is enabled
+        if (!this._initialDelayTimeoutId)
+            this.show();
+
+        this._doNotShowWin = true;
+        this._select(this._getItemIndexByID(id));
+        this._doNotShowWin = false;
+    }
+
+    _toggleSingleAppMode(switchOn = false) {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+
+            let winToApp = false;
+        if (!this._singleApp || switchOn) {
+            if (this._showingApps) {
+                if (!selected.cachedWindows.length)
+                    return;
+                this._singleApp = selected.get_id();
+                this.SHOW_APPS = false;
+                // this._showingApps = false;
+            } else {
+                this._singleApp = _getWindowApp(selected).get_id();
+            }
+        } else {
+            this._singleApp = null;
+            this._switcherAppPos = null;
+            if (this._switcherMode === SwitcherMode.APPS) {
+                this.SHOW_APPS = true;
+                winToApp = true;
+            }
+        }
+        if (this._singleApp) {
+            let item = this._items[this._selectedIndex];
+            this._switcherAppPos = Math.floor(item.get_transformed_position()[0]) + item.width / 2;
+        }
+        this._updateSwitcher(winToApp);
+    }
+    
+    _toggleSearchMode() {
+        if (this._searchEntry !== null) {
+            this._searchEntry = null;
+            _cancelTimeout = false;
+        } else {
+            this._searchEntry = '';
+            this._modifierMask = 0;
+            _cancelTimeout = true;
+            this.SEARCH_DEFAULT = false;
+        }
+
+        this.show();
+    }
+
+    _toggleSwitcherMode() {
+        if (this._switcherMode === SwitcherMode.APPS) {
+            this._switcherMode = SwitcherMode.WINDOWS;
+            this.SHOW_APPS = false;
+            this._singleApp = null;
+
+            let id = 0;
+            if (this._showingApps) {
+                if (this._getSelected().cachedWindows.length)
+                    id = this._getSelected().cachedWindows[0].get_id();
+            } else {
+                id = _getWindowApp(this._items[0].window).get_id();
+            }
+
+            this.show();
+            this._select(this._getItemIndexByID(id));
+        } else /* if (this._switcherMode === SwitcherMode.WINDOWS)*/ {
+            this._switcherMode = SwitcherMode.APPS;
+            this.SHOW_APPS = true;
+            this._singleApp = null;
+            /* if (_searchEntry != null)
+                this._searchEntry = '';*/
+
+            let id;
+            if (this._showingApps) {
+                if (this._selectedIndex > -1 && this._getSelected().cachedWindows.length)
+                    id = this._getSelected().cachedWindows[0].get_id();
+            } else {
+                if (this._selectedIndex > -1)
+                    id = _getWindowApp(this._items[this._selectedIndex].window).get_id();
+            }
+            this._initialSelectionMode = SelectionMode.FIRST;
+            this.show();
+            if (id !== undefined)
+                this._select(this._getItemIndexByID(id));
+        }
+    }
+
+    _switchFilterMode() {
+        let filterMode = this._showingApps
+            ? this.APP_FILTER_MODE
+            : this.WIN_FILTER_MODE;
+        // if active ws has all windows on one monitor, ignore the monitor filter mode to avoid 'nothing happen' when switching between modes
+        let m = (Main.layoutManager.monitors.length > 1) && !this._allWSWindowsSameMonitor() ? 3 : 2;
+        filterMode -= 1;
+        if (filterMode < FilterMode.ALL)
+            filterMode = m;
+
+        this.APP_FILTER_MODE = filterMode;
+        this.WIN_FILTER_MODE = filterMode;
+
+        this.show();
+    }
+
+    _toggleWsOrder() {
+        if (this.GROUP_MODE === GroupMode.WORKSPACES)
+            this.GROUP_MODE = this._defaultGrouping;
+        else
+            this.GROUP_MODE = GroupMode.WORKSPACES;
+        this._updateSwitcher();
+        this._showWsIndex();
+    }
+
+    // place the indicator overlay outside the switcher
+    _showWsIndex(text = null) {
+        if (!this.SHOW_WS_INDEX && !text)
+            return;
+
+        const offset = (this._overlayTitle ? this._overlayTitle.height : 0)
+                     + (this._overlaySearchLabel ? this._overlaySearchLabel.height : 0);
+
+        if (this._wsOverlay) {
+            this.destroyOverlayLabel(this._wsOverlay);
+        }
+
+        this._wsOverlay = this._customOverlayLabel('ws-overlay', 'workspace-index-overlay');
+        this._wsOverlay.text = (global.workspace_manager.get_active_workspace().index() + 1).toString();
+        Main.layoutManager.addChrome(this._wsOverlay);
+
+        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
+        const labelOffset = 10;
+        let l1 = this._overlayTitle ? (this._overlayTitle.height + labelOffset) : 0;
+        let l2 = this._overlaySearchLabel ? (this._overlaySearchLabel.height + labelOffset) : 0;
+        switch (this.POPUP_POSITION) {
+        case Position.TOP:
+            this._wsOverlay.y = Math.max(
+                geometry.height / 2,
+                Math.min(geometry.height - this._wsOverlay.height - this._switcherList.height - l1 - l2, geometry.height)
+            );
+            break;
+        case Position.CENTER:
+            this._wsOverlay.y = Math.min(
+                geometry.height / 2 + (this._switcherList.height / 2),
+                Math.max(geometry.height / 2 + this._wsOverlay.height / 2, geometry.height)
+            );
+            break;
+        case Position.BOTTOM :
+            this._wsOverlay.y = Math.min(
+                geometry.height / 2,
+                Math.max(geometry.height - this._wsOverlay.height - this._switcherList.height - l1 - l2, 0)
+            );
+            break;
+        }
+        this._wsOverlay.x = geometry.x;
+        this._wsOverlay.width = geometry.width;
+        //return wsLabel;
+    }
+
+    _showOverlaySearchLabel(text) {
+        let margin = 10;
+        if (this._overlaySearchLabel) {
+            this.destroyOverlayLabel(this._overlaySearchLabel);
+        }
+        this._overlaySearchLabel = new St.BoxLayout({style_class: 'search-text'});
+
+        let icon = new St.Icon({icon_name: 'edit-find-symbolic'});
+        this._overlaySearchLabel.add_actor(icon);
+        this._overlaySearchLabel._label = this._customOverlayLabel('search-text', '');
+        this._overlaySearchLabel._label.text = ` ${text}`;
+
+        this._overlaySearchLabel.add_actor(this._overlaySearchLabel._label);
+        Main.layoutManager.addChrome(this._overlaySearchLabel);
+        const offset = this._overlayTitle
+            ? this._overlayTitle.height + margin
+            : margin;
+
+        this._setOverlayLabelPosition(this._overlaySearchLabel, 0, offset, this._switcherList);
+    }
+    
+    _showOverlayTitle() {
+        let selected = this._items[this._selectedIndex];
+        let title = '';
+        title = selected.is_window
+            ? selected.window.get_title()
+            : selected.ilabel.text;
+        if (this._overlayTitle) {
+            this.destroyOverlayLabel(this._overlayTitle);
+        }
+
+        this._overlayTitle = this._customOverlayLabel('item-title', 'title-label');
+        this._overlayTitle.text = title;
+        Main.layoutManager.addChrome(this._overlayTitle);
+
+        let index = this._selectedIndex;
+        // get item position on the screen and calculate center position of the label
+        let [xPos] = this._items[index].get_transformed_position();
+        xPos = Math.floor(xPos + this._items[index].width / 2);
+        this._setOverlayLabelPosition(this._overlayTitle, xPos, 0, this._switcherList);
+    }
+
+    _setOverlayLabelPosition(overlayLabel, xPos = 0, yOffset = 0, parent = null) {
+        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
+        let margin = 5;
+        overlayLabel.width = Math.min(overlayLabel.width, geometry.width);
+        // win/app titles should be always placed centered to the switcher popup
+        let overlayCenter = xPos ? xPos : parent.allocation.x1 + parent.width / 2;
+        let x = Math.floor(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width));
+        if (x < geometry.x)
+            x = geometry.x;
+        let y = parent.allocation.y1 - overlayLabel.height - yOffset - margin;
+        if (y < geometry.y)
+            y = parent.allocation.y1 + parent.height + yOffset + margin;
+
+        [overlayLabel.x, overlayLabel.y] = [x, y];
+    }
+
+    _customOverlayLabel(name, style_class) {
+        let label = new St.Label({
+            name: name,
+            style_class: style_class,
+            reactive: false,
+        });
+        return label;
+    }
+
+    destroyOverlayLabel(overlayLabel) {
+        Main.layoutManager.removeChrome(overlayLabel);
+        overlayLabel.destroy();
+        if (this._overlayDelayId)
+            GLib.source_remove(this._overlayDelayId);
+    }
+
+    // Actions
+    //////////////////////////////////////////
+    _getActions() {
+        if (!this._actions)
+            this._actions = new ActionLib.Actions();
+        return this._actions;
+    }
+
+    _switchWorkspace(direction) {
+        let id = this._getSelectedID();
+        this._getActions().switchWorkspace(direction, true);
+        this.show();
+
+        if (this._selectedIndex > -1) {
+            this._doNotShowWin = true;
+            this._select(this._getItemIndexByID(id));
+            this._doNotShowWin = false;
+        }
+
+        this._showWsIndex();
+    }
+
+    _switchMonitor(direction) {
+        let display = global.display;
+        let nMonitors = display.get_n_monitors();
+
+        if (nMonitors > 1 && this._monitorIndex >= 0) {
+            let monIdx = display.get_monitor_neighbor_index(this._monitorIndex, direction);
+
+            if (monIdx > -1) {
+                this._monitorIndex = monIdx;
+                this._updateSwitcher();
+            }
+        }
+    }
+
+    _moveToCurrentWS() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        let winList = selected.cachedWindows ? selected.cachedWindows : [selected];
+        winList.forEach(win => {
+            this._getActions().moveWindowToCurrentWs(win, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
+        });
+        this._showWindow(this._selectedIndex);
+        this._updateSwitcher();
+        this._showWsIndex();
+    }
+
+    _reorderWorkspace(direction = 0) {
+        this._getActions().reorderWorkspace(direction);
+        this._showWsIndex();
+    }
+
+    _toggleMaximizeOnCurrentMonitor() {
+        let selected = this._getSelected();
+        if (selected && !selected.cachedWindows) {
+            this._getActions().toggleMaximizeOnCurrentMonitor(
+                selected, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
+            this._showWindow();
+            this._updateSwitcher();
+        }
+    }
+
+    _toggleFullscreenOnNewWS() {
+        let selected = this._getSelected();
+        if (selected && !selected.cachedWindows) {
+            this._getActions().fullscreenWinOnEmptyWs(selected);
+            this._delayedUpdate(200);
+        }
+    }
+
+    _groupWindowsByApp() {
+        if (this.GROUP_MODE !== GroupMode.APPS) {
+            this.GROUP_MODE = GroupMode.APPS;
+            this.show();
+        }
+    }
+
+    _groupCurrentMonFirst() {
+        if (this.GROUP_MODE !== GroupMode.CURRENT_MON_FIRST) {
+            this.GROUP_MODE = GroupMode.CURRENT_MON_FIRST;
+            this.show();
+        }
+    }
+
+    _createWinThumbnail() {
+        let selected = this._getSelected();
+        if (selected && !selected.get_windows)
+            this._getActions().makeThumbnailWindow(selected);
+    }
+
+    _openAppIconMenu() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        let nWindows = selected.cachedWindows.length;
+        let popupItems = [
+            [_('Quit'), this._closeWinQuitApp],
+            [_('Force Quit'), this._killApp],
+            [_(`Close ${nWindows} Window(s)`), this._closeAppWindows],
+            [_(`Move ${nWindows} Window(s) to the current WS/Monitor`), this._moveToCurrentWS],
+        ];
+        let appIcon = this._items[this._selectedIndex];
+        if (appIcon) {
+            appIcon.popupMenu();
+            //const PopupMenu = imports.ui.popupMenu;
+            //appIcon._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(_('Actions')));
+            if (nWindows) {
+                popupItems.forEach(i => {
+                    let item = appIcon._menu._appendMenuItem(i[0]);
+                    item.connect('activate', i[1].bind(this));
+                });
+            }
+        }
+    }
+
+    _closeWinQuitApp() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        if (this._showingApps) {
+            selected.request_quit();
+        } else if (_ctrlPressed()) {
+            _getWindowApp(selected).request_quit();
+        } else {
+            selected.delete(global.get_current_time());
+        }
+        // if any window remains, update the switcher content
+        if (this._items.length > 1)
+            this._delayedUpdate(200);
+    }
+
+    _closeAppWindows() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        this._getActions().closeAppWindows(selected, this._items);
+        this._delayedUpdate(200);
+    }
+
+    _killApp() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        if (this._showingApps) {
+            if (selected.cachedWindows.length > 0)
+                selected.cachedWindows[0].kill();
+            this._delayedUpdate(200);
+        } else {
+            selected.kill();
+        }
+    }
+
+    _openNewWindow() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        if (this._showingApps) {
+            selected.open_new_window(global.get_current_time());
+        } else {
+            selected = Shell.WindowTracker.get_default().get_window_app(selected);
+            selected.open_new_window(global.get_current_time());
+        }
+    }
+
+    _switchToFirstWS() {
+        Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(0));
+        this.show();
+        this._showWsIndex();
+    }
+
+    _switchToLastWS() {
+        Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(global.workspace_manager.n_workspaces - 1));
+        this.show();
+        this._showWsIndex();
+    }
+
+    _toggleWinAbove() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        this._getActions().toggleAboveWindow(selected);
+        Main.wm.actionMoveWorkspace(selected.get_workspace());
+        this._updateSwitcher();
+    }
+
+    _toggleWinSticky() {
+        let selected = this._getSelected();
+        if (!selected)
+            return;
+        this._getActions().toggleStickyWindow(selected);
+        this._updateSwitcher();
+    }
+
+    _openPrefsWindow() {
+        Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+
+    _triggerAction(action, direction = 0) {
+        switch (action) {
+        case Action.SELECT_ITEM:
+            this._disableHover();
+            this._scrollHandler(direction);
+            break;
+        case Action.SWITCH_FILTER:
+            this._switchFilterMode();
+            break;
+        case Action.SWITCH_WS:
+            this._switchWorkspace(direction);
+            break;
+        case Action.SHOW:
+            this._showWindow(this._selectedIndex);
+            break;
+        case Action.GROUP_APP:
+            this._groupWindowsByApp();
+            break;
+        case Action.CURRENT_MON_FIRST:
+            this._groupCurrentMonFirst();
+            break;
+        case Action.SINGLE_APP:
+            this._toggleSingleAppMode();
+            break;
+        case Action.SWITCHER_MODE:
+            this._toggleSwitcherMode();
+            break;
+        case Action.ACTIVATE:
+            this._finish();
+            break;
+        case Action.THUMBNAIL:
+            this._createWinThumbnail();
+            break;
+        case Action.MOVE_TO_WS:
+            this._moveToCurrentWS();
+            break;
+        case Action.FS_ON_NEW_WS:
+            this._toggleFullscreenOnNewWS();
+        case Action.HIDE:
+            this.fadeAndDestroy();
+            break;
+        case Action.MENU:
+            this._openAppIconMenu();
+            break;
+        case Action.CLOSE_QUIT:
+            this._closeWinQuitApp();
+            break;
+        case Action.KILL:
+            this._killApp();
+            break;
+        case Action.PREFS:
+            this._openPrefsWindow();
+            break;
+        case Action.NEW_WINDOW:
+            this._openNewWindow();
+            break;
+        case Action.NONE:
+            break;
+        default:
+            return Clutter.EVENT_PROPAGATE;
+        }
+    }
+
+    /////////////////////////////////////////////////////////
+
     _getCustomWindowList(allWindows = false) {
         let filterMode;
         if (this._tempFilterMode)
@@ -2115,6 +2101,21 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._showingApps = true;
 
         return appList;
+    }
+
+    _match(string, pattern) {
+        // remove diacritics and accents from letters
+        let s = string.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        let p = pattern.toLowerCase();
+        let ps = p.split(/ +/);
+
+        // allows to use multiple exact paterns separated by space in arbitrary order
+        for (let w of ps) {
+            if (!s.match(w))
+                return false;
+        }
+
+        return true;
     }
 });
 
