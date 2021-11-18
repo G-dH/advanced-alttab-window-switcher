@@ -22,36 +22,23 @@ var get_current_monitor_geometry = function () {
     return global.display.get_monitor_geometry(global.display.get_current_monitor());
 };
 
+function _getWindowApp(metaWindow) {
+    let tracker = Shell.WindowTracker.get_default();
+    return tracker.get_window_app(metaWindow);
+}
+
 var Actions = class {
     constructor() {
         this._mscOptions = new Settings.MscOptions();
-
         this.WS_IGNORE_LAST         = this._mscOptions.wsSwitchIgnoreLast;
         this.WS_WRAPAROUND          = this._mscOptions.wsSwitchWrap;
         this.WS_INDICATOR_MODE      = this._mscOptions.wsSwitchIndicatorMode;
-
         this.WIN_SKIP_MINIMIZED     = this._mscOptions.winSkipMinimized;
     }
 
-    clean(full = true) {
-        // don't reset effects and destroy thumbnails if extension is enabled (GS calls ext. disable() before locking the screen f.e.)
-        if (full)
-            this._resetSettings();
-        if (this._wsOverlay)
-            this.destroyWsOverlay();
-        this._removeThumbnails(full);
-    }
-
-    resume() {
-        this._resumeThumbnailsIfExist();
-    }
-
-    extensionEnabled() {
-        this._getShellSettings();
-        let enabled = this._shellSettings.get_strv('enabled-extensions');
-        if (enabled.indexOf(Me.metadata.uuid) > -1)
-            return true;
-        return false;
+    clean() {
+        this._mscOptions = null;
+        this._shellSettings = null;
     }
 
     _getShellSettings() {
@@ -64,16 +51,11 @@ var Actions = class {
     }
 
     _getActorByMetaWin(metaWindow) {
-        for (let act of global.get_window_actors()) {
-            if (act.get_meta_window() === metaWindow)
-                return act;
+        for (let actor of global.get_window_actors()) {
+            if (actor.get_meta_window() === metaWindow)
+                return actor;
         }
         return null;
-    }
-
-    _getWindowApp(metaWindow) {
-        let tracker = Shell.WindowTracker.get_default();
-        return tracker.get_window_app(metaWindow);
     }
 
     _getMonitorByIndex(monitorIndex) {
@@ -87,16 +69,33 @@ var Actions = class {
 
     // ///////////////////////////////////////////////////////////////////////////
 
-    moveWindowToCurrentWs(metaWindow, monitor = -1) {
+    closeAppWindows(selected, itemList) {
+        let winList = [];
+        if (selected.cachedWindows) {
+            winList = selected.cachedWindows;
+        } else {
+            let app = _getWindowApp(selected).get_id();
+            itemList.forEach(i => {
+                if (_getWindowApp(i.window).get_id() === app)
+                    winList.push(i.window);
+            });
+        }
+        let time = global.get_current_time();
+        for (let win of winList) {
+            // increase time by 1 ms for each window to avoid errors from GS
+            win.delete(time++);
+        }
+    }
+
+    moveWindowToCurrentWs(metaWindow, monitorIndex = -1) {
         let ws = global.workspace_manager.get_active_workspace();
         let win = metaWindow;
         win.change_workspace(ws);
-        let targetMonitorIndex = monitor > -1 ? monitor : global.display.get_current_monitor();
+        let targetMonitorIndex = monitorIndex > -1 ? monitorIndex : global.display.get_current_monitor();
         let currentMonitorIndex = win.get_monitor();
         if (currentMonitorIndex !== targetMonitorIndex) {
             // move window to target monitor
             let actor = this._getActorByMetaWin(win);
-            let currentMonitor = this._getMonitorByIndex(currentMonitorIndex);
             let targetMonitor  = this._getMonitorByIndex(targetMonitorIndex);
 
             let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
@@ -105,84 +104,13 @@ var Actions = class {
         }
     }
 
-    closeWindow(metaWindow) {
-        let win = metaWindow;
-        if (!win)
-            return;
-        win.delete(global.get_current_time());
-    }
-
-    closeWinsOfSameApp(metaWindow, windowList) {
-        let app = this._getWindowApp(metaWindow).get_id();
-        let time = global.get_current_time();
-        for (let item of windowList) {
-            if (this._getWindowApp(item.window).get_id() === app)
-                item.window.delete(time++);
-        }
-    }
-
-    quitApplication(metaWindow) {
-        let win = metaWindow;
-        if (!win)
-            return;
-        let app = this._getWindowApp(metaWindow);
-        app.request_quit();
-    }
-
-    killApplication(metaWindow) {
-        let win = metaWindow;
-        if (!win)
-            return;
-        win.kill();
-    }
-
-    toggleMaximizeWindow(metaWindow) {
-        let win = metaWindow;
-        if (!win)
-            return;
-        if (win.maximized_horizontally && win.maximized_vertically)
-            win.unmaximize(Meta.MaximizeFlags.BOTH);
-        else
-            win.maximize(Meta.MaximizeFlags.BOTH);
-    }
-
-    minimizeWindow(metaWindow) {
-        let win = metaWindow;
-        if (!win)
-            return;
-        win.minimize();
-    }
-
-    unminimizeAll(workspace = true) {
-        let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
-        let activeWorkspace = global.workspaceManager.get_active_workspace();
-        for (let win of windows) {
-            if (workspace && (activeWorkspace !== win.get_workspace()))
-                continue;
-
-            win.unminimize();
-        }
-    }
-
-    toggleFullscreenWindow(metaWindow) {
-        let win = metaWindow;
-        if (!win)
-            return;
-        if (win.fullscreen)
-            win.unmake_fullscreen();
-        else
-            win.make_fullscreen();
-    }
-
-    fullscreenWinOnEmptyWs(metaWindow = null, nextWs = false) {
+    fullscreenWinOnEmptyWs(metaWindow = null) {
         let win;
         if (!metaWindow)
-            win = this._getFocusedWindow(true);
+            return;
         else
             win = metaWindow;
-
-        if (!win)
-            return;
+        // if property fullscreen === true, win was already maximized on new ws
         if (win.fullscreen) {
             win.unmake_fullscreen();
             if (win._originalWS) {
@@ -205,6 +133,22 @@ var Actions = class {
         }
     }
 
+    toggleMaximizeOnCurrentMonitor(metaWindow, monitorIndex) {
+        let win = metaWindow;
+        if (win.get_workspace().index() === global.workspace_manager.get_active_workspace().index()
+            && monitorIndex === win.get_monitor()) {
+            if (win.get_maximized() === Meta.MaximizeFlags.BOTH)
+                win.unmaximize(Meta.MaximizeFlags.BOTH);
+            else
+                win.maximize(Meta.MaximizeFlags.BOTH);
+        } else {
+            // the already maximized window have to be unmaximized first, otherwise it then unminimize on the original monitor instead the current one
+            win.unmaximize(Meta.MaximizeFlags.BOTH);
+            this.moveWindowToCurrentWs(win, monitorIndex);
+            win.maximize(Meta.MaximizeFlags.BOTH);
+        }
+    }
+
     toggleAboveWindow(metaWindow) {
         let win = metaWindow;
         if (!win)
@@ -216,7 +160,7 @@ var Actions = class {
             win.make_above();
     }
 
-    toggleStickWindow(metaWindow) {
+    toggleStickyWindow(metaWindow) {
         let win = metaWindow;
         if (!win)
             return;
@@ -261,8 +205,17 @@ var Actions = class {
                 Main.wm._workspaceSwitcherPopup.display(motion, ws.index());
             }
         }
-
         Main.wm.actionMoveWorkspace(ws);
+    }
+
+    // directions -1/+1
+    reorderWorkspace(direction = 0) {
+        let activeWs = global.workspace_manager.get_active_workspace();
+        let activeWsIdx = activeWs.index();
+        let targetIdx = activeWsIdx + direction;
+        if (targetIdx > 0 || targetIdx < (global.workspace_manager.get_n_workspaces() - 1)) {
+            global.workspace_manager.reorder_workspace(activeWs, targetIdx);
+        }
     }
 
     makeThumbnailWindow(metaWindow) {
