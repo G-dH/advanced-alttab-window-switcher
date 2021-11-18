@@ -35,6 +35,8 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 `J/K, Up/Down, PgUp/Down` - Workspace selection
 
+`Ctrl+[J/K, Up/Down, PgUp/Down]`  - Reorders the current workspace - changes the workspace index -1/+1.
+
 `Shift + arrow keys`      - Moves the switcher popup to the adjacent monitor in corresponding direction.
 
 `Ctrl+Tab`                - Moves the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.
