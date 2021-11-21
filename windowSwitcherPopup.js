@@ -1125,7 +1125,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             else
                 this._switchMonitor(Meta.DisplayDirection.RIGHT);
         } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || keysym == Clutter.KEY_k || keysym == Clutter.KEY_K) {
-            if (_ctrlPressed()) {
+            if (_ctrlPressed() && keysym == Clutter.KEY_Page_Up) {
                 this._reorderWorkspace(-1);
             }
             else if (!_shiftPressed())
@@ -1133,7 +1133,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             else
                 this._switchMonitor(Meta.DisplayDirection.UP);
         } else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || keysym == Clutter.KEY_j || keysym == Clutter.KEY_J) {
-            if (_ctrlPressed()) {
+            if (_ctrlPressed() && keysym == Clutter.KEY_Page_Down) {
                 this._reorderWorkspace(+1);
             }
             else if (!_shiftPressed())
