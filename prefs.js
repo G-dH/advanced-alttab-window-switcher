@@ -959,7 +959,7 @@ Window selection.
 <b>J/K, Up/Down, PgUp/Down</b>
 Workspace selection.
 
-<b>Ctrl+[J/K, Up/Down, PgUp/Down]</b>
+<b>Ctrl+[PgUp/PgDown]</b>
 Reorders the current workspace - changes the workspace index by -1/+1
 
 <b>Shift + arrow keys</b>
