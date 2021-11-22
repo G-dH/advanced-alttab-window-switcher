@@ -29,6 +29,9 @@
     <key name='switcher-popup-overlay-title' type='b'>
       <default>true</default>
     </key>
+    <key name='switcher-popup-hover-select' type='b'>
+      <default>true</default>
+    </key>
     <key name='switcher-popup-scroll-out' type='i'>
       <default>13</default>
     </key>

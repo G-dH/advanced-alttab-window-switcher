@@ -328,6 +328,15 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
+            _('Mouse hover selects item'),
+            _('Whether hovering the mouse pointer over a switcher item selects the item. If the switcher is triggered by a mouse, the mouseover selection is always active.'),
+            _newGtkSwitch(),
+            'switcherPopupHoverSelect'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
             _makeTitle(_('Appearance:')),
         )
     );

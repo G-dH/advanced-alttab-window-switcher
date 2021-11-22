@@ -168,7 +168,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         else
             this._searchEntry = null;
         this._monitorIndex         = global.display.get_current_monitor();
-        this.SHOW_APPS    = false;
+        this.HOVER_SELECT          = options.switcherPopupHoverSelect;
+        this.SHOW_APPS             = false;
 
         // Window switcher
         this.WIN_FILTER_MODE       = options.winSwitcherPopupFilter;
@@ -379,6 +380,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switcherList.destroy();
             this._switcherList = new WindowSwitcher(switcherList);
             this._switcherList._parent = this;
+            if (!this.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
+                this._switcherList._itemEntered = function() {}
+            }
 
             if (this.OVERLAY_TITLE)
                 this._switcherList._label.hide();

@@ -120,6 +120,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('switcher-popup-hot-keys', bool_val);
     }
 
+    get switcherPopupHoverSelect() {
+        return this._gsettings.get_boolean('switcher-popup-hover-select');
+    }
+
+    set switcherPopupHoverSelect(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-hover-select', bool_val);
+    }
+
     get switcherPopupScrollOut() {
         return this._gsettings.get_int('switcher-popup-scroll-out');
     }
