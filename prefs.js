@@ -956,7 +956,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 <b>H/L, Left/Right</b>
 Window selection.
 
-<b>J/K, Up/Down, PgUp/Down</b>
+<b>J/K, Up/Down, PgUp/PgDown</b>
 Workspace selection.
 
 <b>Ctrl+[PgUp/PgDown]</b>
