@@ -41,7 +41,7 @@ Extension for Gnome Shell that replaces GNOME Shell's build-in functions *Switch
 
 `Ctrl+Tab`                - Moves the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.
 
-`Space, KP_0/KP_Ins`      - Shows selected window - switches to the window workspace and brings the window to the foreground.
+`Space, KP_0/KP_Ins`      - Shows selected window - switches to the window workspace and rises the window.
 
 `Q`                       - Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).
 
