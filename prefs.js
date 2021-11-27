@@ -292,6 +292,29 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
+            _('Switcher position'),
+            null,
+            _newComboBox(),
+            'switcherPopupPosition',
+               [[_('Top'),    1],
+                [_('Center'), 2],
+                [_('Bottom'), 3]]
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Default Monitor'),
+            null,
+            _newComboBox(),
+            'switcherPopupMonitor',
+               [[_('Current'), 1],
+                [_('Primary'), 2]]
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
             _('Show selected window/app immediately'),
             _("Bring the window/app to the front (and switch a workspace if needed) immediately after it's selected."),
             _newGtkSwitch(),
@@ -338,18 +361,6 @@ function _getCommonOptionsList() {
     optionsList.push(
         _optionsItem(
             _makeTitle(_('Appearance:')),
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
-            _('Switcher position'),
-            null,
-            _newComboBox(),
-            'switcherPopupPosition',
-            [[_('Top'),    1],
-                [_('Center'), 2],
-                [_('Bottom'), 3]]
         )
     );
 

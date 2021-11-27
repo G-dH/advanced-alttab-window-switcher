@@ -167,7 +167,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._searchEntry = '';
         else
             this._searchEntry = null;
-        this._monitorIndex         = global.display.get_current_monitor();
+        this._monitorIndex         = options.switcherPopupMonitor === 1 // 1: current, 2: primary
+                                        ? global.display.get_current_monitor()
+                                        : global.display.get_primary_monitor();
         this.HOVER_SELECT          = options.switcherPopupHoverSelect;
         this.SHOW_APPS             = false;
 
