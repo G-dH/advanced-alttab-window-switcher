@@ -211,7 +211,6 @@ var MscOptions = class MscOptions {
     }
 
 
-
     get switcherPopupStatus() {
         return this._gsettings.get_boolean('switcher-popup-status');
     }
@@ -476,6 +475,152 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('win-thumbnail-scale', int_val);
     }
 
+
+
+    // Hotkeys
+    get hotkeySwitchFilter() {
+        return this._gsettings.get_string('hotkey-switch-filter');
+    }
+
+    set hotkeySwitchFilter(string) {
+        this._gsettings.set_string('hotkey-switch-filter', string);
+    }
+
+    get hotkeyCloseQuit() {
+        return this._gsettings.get_string('hotkey-close-quit');
+    }
+
+    set hotkeyCloseQuit(string) {
+        this._gsettings.set_string('hotkey-close-quit', string);
+    }
+
+    get hotkeySearch() {
+        return this._gsettings.get_string('hotkey-search');
+    }
+
+    set hotkeySearch(string) {
+        this._gsettings.set_string('hotkey-search', string);
+    }
+
+    get hotkeyNewWin() {
+        return this._gsettings.get_string('hotkey-new-win');
+    }
+
+    set hotkeyNewWin(string) {
+        this._gsettings.set_string('hotkey-new-win', string);
+    }
+
+    get hotkeyMoveWinToMonitor() {
+        return this._gsettings.get_string('hotkey-move-win-to-monitor');
+    }
+
+    set hotkeyMoveWinToMonitor(string) {
+        this._gsettings.set_string('hotkey-move-win-to-monitor', string);
+    }
+
+    get hotkeyAbove() {
+        return this._gsettings.get_string('hotkey-above');
+    }
+
+    set hotkeyAbove(string) {
+        this._gsettings.set_string('hotkey-above', string);
+    }
+
+    get hotkeySticky() {
+        return this._gsettings.get_string('hotkey-sticky');
+    }
+
+    set hotkeySticky(string) {
+        this._gsettings.set_string('hotkey-sticky', string);
+    }
+
+    get hotkeyCloseAllApp() {
+        return this._gsettings.get_string('hotkey-close-all-app');
+    }
+
+    set hotkeyCloseAllApp(string) {
+        this._gsettings.set_string('hotkey-close-all-app', string);
+    }
+
+    get hotkeyFsOnNewWs() {
+        return this._gsettings.get_string('hotkey-fs-on-new-ws');
+    }
+
+    set hotkeyFsOnNewWs(string) {
+        this._gsettings.set_string('hotkey-fs-on-new-ws', string);
+    }
+
+    get hotkeyMaximize() {
+        return this._gsettings.get_string('hotkey-maximize');
+    }
+
+    set hotkeyMaximize(string) {
+        this._gsettings.set_string('hotkey-maximize', string);
+    }
+
+    get hotkeyGroupWs() {
+        return this._gsettings.get_string('hotkey-group-ws');
+    }
+
+    set hotkeyFsOnNewWs(string) {
+        this._gsettings.set_string('hotkey-group-ws', string);
+    }
+
+    get hotkeySwitcherMode() {
+        return this._gsettings.get_string('hotkey-switcher-mode');
+    }
+
+    set hotkeySwitcherMode(string) {
+        this._gsettings.set_string('hotkey-switcher-mode', string);
+    }
+
+    get hotkeyThumbnail() {
+        return this._gsettings.get_string('hotkey-thumbnail');
+    }
+
+    set hotkeyThumbnail(string) {
+        this._gsettings.set_string('hotkey-thumbnail', string);
+    }
+
+    get hotkeyPrefs() {
+        return this._gsettings.get_string('hotkey-prefs');
+    }
+
+    set hotkeyPrefs(string) {
+        this._gsettings.set_string('hotkey-prefs', string);
+    }
+
+    get hotkeyLeft() {
+        return this._gsettings.get_string('hotkey-left');
+    }
+
+    set hotkeyLeft(string) {
+        this._gsettings.set_string('hotkey-left', string);
+    }
+
+    get hotkeyDown() {
+        return this._gsettings.get_string('hotkey-down');
+    }
+
+    set hotkeyDown(string) {
+        this._gsettings.set_string('hotkey-down', string);
+    }
+
+    get hotkeyUp() {
+        return this._gsettings.get_string('hotkey-up');
+    }
+
+    set hotkeyUp(string) {
+        this._gsettings.set_string('hotkey-up', string);
+    }
+
+    get hotkeyRight() {
+        return this._gsettings.get_string('hotkey-right');
+    }
+
+    set hotkeyRight(string) {
+        this._gsettings.set_string('hotkey-right', string);
+    }
 /*    getKeyBind(key) {
         return this._gsettingsKB.get_strv(key);
     }

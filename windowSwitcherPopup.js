@@ -6,8 +6,6 @@ const Meta                   = imports.gi.Meta;
 const Main                   = imports.ui.main;
 const AltTab                 = imports.ui.altTab;
 const SwitcherPopup          = imports.ui.switcherPopup;
-
-const AppDisplay             = imports.ui.appDisplay;
 const Dash                   = imports.ui.dash;
 
 const ExtensionUtils         = imports.misc.extensionUtils;
@@ -1033,7 +1031,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _keyPressHandler(keysym, action) {
         let keysymName = Gdk.keyval_name(keysym);
-
+        let keyChar;
+        if (keysymName.match(/^[a-zA-Z]$/))
+            keyChar = keysymName.toUpperCase();
         if (keysymName.match(/F[1-9][0-2]?/) || (keysymName.match(/KP_[1-9]/) && this._searchEntry === null)) {
             let index;
             if (keysymName.startsWith('KP_'))
@@ -1101,7 +1101,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._monitorIndex = (this._monitorIndex + 1) % mod;
 
             this._updateSwitcher();
-        } else if (keysym == Clutter.KEY_e || keysym == Clutter.KEY_E || keysym == Clutter.KEY_Insert) {
+        } else if (keyChar == 'E' || keysym == Clutter.KEY_Insert) {
             this._toggleSearchMode();
         }
 
@@ -1115,22 +1115,21 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        // implement VIM text navigation keys hjkl
-        else if (keysym == Clutter.KEY_Left || keysym == Clutter.KEY_h || keysym == Clutter.KEY_H) {
+        else if (keysym == Clutter.KEY_Left || keyChar === options.hotkeyLeft) {
             if (_shiftPressed() && _ctrlPressed())
                 this._moveFavotites(-1);
             else if (!_shiftPressed())
                 this._select(this._previous());
             else
                 this._switchMonitor(Meta.DisplayDirection.LEFT);
-        } else if (keysym == Clutter.KEY_Right || keysym == Clutter.KEY_l || keysym == Clutter.KEY_L) {
+        } else if (keysym == Clutter.KEY_Right || keyChar === options.hotkeyRight) {
             if (_shiftPressed() && _ctrlPressed())
                 this._moveFavotites(+1);
             if (!_shiftPressed())
                 this._select(this._next());
             else
                 this._switchMonitor(Meta.DisplayDirection.RIGHT);
-        } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || keysym == Clutter.KEY_k || keysym == Clutter.KEY_K) {
+        } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || keyChar === options.hotkeyUp) {
             if (_ctrlPressed() && keysym == Clutter.KEY_Page_Up) {
                 this._reorderWorkspace(-1);
             }
@@ -1138,7 +1137,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switchWorkspace(Clutter.ScrollDirection.UP);
             else
                 this._switchMonitor(Meta.DisplayDirection.UP);
-        } else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || keysym == Clutter.KEY_j || keysym == Clutter.KEY_J) {
+        } else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || keyChar === options.hotkeyDown) {
             if (_ctrlPressed() && keysym == Clutter.KEY_Page_Down) {
                 this._reorderWorkspace(+1);
             }
@@ -1158,7 +1157,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             } else {
                 this._select(this._items.length - 1);
             }
-        } else if (keysym === Clutter.KEY_q || keysym === Clutter.KEY_Q) {
+        } else if (keyChar === options.hotkeySwitchFilter) {
             this._switchFilterMode();
         } else if (keysym === Clutter.KEY_plus || keysym === Clutter.KEY_1 || keysym === Clutter.KEY_exclam) {
             this._toggleSingleAppMode();
@@ -1201,7 +1200,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // toggle sort by workspaces
-        else if ((keysym === Clutter.KEY_g || keysym === Clutter.KEY_G) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((keyChar === options.hotkeyGroupWs) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWsOrder();
         }
@@ -1212,42 +1211,42 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // close window/app
-        else if (keysym === Clutter.KEY_w || keysym === Clutter.KEY_W) {
+        else if (keyChar === options.hotkeyCloseQuit) {
             if (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)
                 this._closeWinQuitApp();
         }
 
         // close all windows of the same class displayed in selector
-        else if ((keysym === Clutter.KEY_c || keysym === Clutter.KEY_C) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((keyChar === options.hotkeyCloseAllApp) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._closeAppWindows();
         }
 
         // make selected window Always on Top
-        else if ((keysym === Clutter.KEY_a || keysym === Clutter.KEY_A) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((keyChar === options.hotkeyAbove) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWinAbove();
         }
 
         // make selected window Allways on Visible Workspace
-        else if ((keysym === Clutter.KEY_s || keysym === Clutter.KEY_S) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((keyChar === options.hotkeySticky) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWinSticky();
         }
 
         // move selected window to the current workspace
-        else if ((keysym === Clutter.KEY_x || keysym === Clutter.KEY_X) &&
+        else if ((keyChar === options.hotkeyMoveWinToMonitor) &&
                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._moveToCurrentWS();
         }
 
         // maximize (and move if needed) selected window on the current workspace and monitor
-        else if ((keysym === Clutter.KEY_m || keysym === Clutter.KEY_M) &&
+        else if ((keyChar === options.hotkeyMoveWinToMonitor) &&
                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleMaximizeOnCurrentMonitor();
         }
 
-        else if ((keysym === Clutter.KEY_f || keysym === Clutter.KEY_F) &&
+        else if ((keyChar === options.hotkeyFsOnNewWs) &&
                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (this._showingApps || this._selectedIndex < 0)
                 return;
@@ -1255,25 +1254,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._toggleFullscreenOnNewWS();
         }
 
-        else if (((keysym === Clutter.KEY_n || keysym === Clutter.KEY_N) &&
+        else if (((keyChar === options.hotkeyNewWin) &&
                   (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) ||
                  (keysym === Clutter.KEY_Return && _ctrlPressed())) {
             this._openNewWindow();
         }
 
-        else if ((keysym === Clutter.KEY_y || keysym === Clutter.KEY_Y ||
-                    keysym === Clutter.KEY_z || keysym === Clutter.KEY_Z) &&
+        else if ((keyChar === options.hotkeySwitcherMode) &&
                      (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._toggleSwitcherMode();
         }
 
         // make thumbnail of selected window
-        else if ((keysym === Clutter.KEY_t || keysym === Clutter.KEY_T) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((keyChar === options.hotkeyThumbnail) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._createWinThumbnail();
         }
 
-        else if ((keysym === Clutter.KEY_p || keysym === Clutter.KEY_P) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((keyChar === options.hotkeyPrefs) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._openPrefsWindow();
         }
 
@@ -1393,12 +1391,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._showWsIndex();
 
         // avoid colision of creating new switcher while destroying popup during the initial show delay, when immediate show win is enabled
-        if (!this._initialDelayTimeoutId)
-            this.show();
+        /*if (!this._initialDelayTimeoutId) {
+            if (global.workspace_manager.get_active_workspace() !== selected.get_workspace())
+                this.show();
+        }
 
         this._doNotShowWin = true;
         this._select(this._getItemIndexByID(id));
-        this._doNotShowWin = false;
+        this._doNotShowWin = false;*/
     }
 
     _toggleSingleAppMode(switchOn = false) {

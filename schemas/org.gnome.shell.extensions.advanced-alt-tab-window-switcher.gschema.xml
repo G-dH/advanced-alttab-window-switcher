@@ -152,5 +152,61 @@
     <key name='ws-switch-indicator-mode' type='i'>
       <default>4</default>
     </key>
+
+    <key name='hotkey-switch-filter' type='s'>
+      <default>'Q'</default>
+    </key>
+    <key name='hotkey-close-quit' type='s'>
+      <default>'W'</default>
+    </key>
+    <key name='hotkey-search' type='s'>
+      <default>'E'</default>
+    </key>
+    <key name='hotkey-new-win' type='s'>
+      <default>'N'</default>
+    </key>
+    <key name='hotkey-move-win-to-monitor' type='s'>
+      <default>'X'</default>
+    </key>
+    <key name='hotkey-above' type='s'>
+      <default>'A'</default>
+    </key>
+    <key name='hotkey-sticky' type='s'>
+      <default>'S'</default>
+    </key>
+    <key name='hotkey-close-all-app' type='s'>
+      <default>'C'</default>
+    </key>
+    <key name='hotkey-fs-on-new-ws' type='s'>
+      <default>'F'</default>
+    </key>
+    <key name='hotkey-maximize' type='s'>
+      <default>'M'</default>
+    </key>
+    <key name='hotkey-group-ws' type='s'>
+      <default>'G'</default>
+    </key>
+    <key name='hotkey-switcher-mode' type='s'>
+      <default>'Z'</default>
+    </key>
+    <key name='hotkey-thumbnail' type='s'>
+      <default>'T'</default>
+    </key>
+    <key name='hotkey-prefs' type='s'>
+      <default>'P'</default>
+    </key>
+    <key name='hotkey-left' type='s'>
+      <default>'H'</default>
+    </key>
+    <key name='hotkey-down' type='s'>
+      <default>'J'</default>
+    </key>
+    <key name='hotkey-up' type='s'>
+      <default>'K'</default>
+    </key>
+    <key name='hotkey-right' type='s'>
+      <default>'L'</default>
+    </key>
+  
   </schema>
 </schemalist>

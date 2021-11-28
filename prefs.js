@@ -55,6 +55,7 @@ function buildPrefsWidget() {
     const commonOptionsPage   = new OptionsPageAATWS(_getCommonOptionsList());
     const windowOptionsPage   = new OptionsPageAATWS(_getWindowOptionsList());
     const appOptionsPage      = new OptionsPageAATWS(_getAppOptionsList());
+    const hotkeysOptionPage   = new OptionsPageAATWS(_getHotkeysOptionsList());
     const helpPage            = new HelpPageAATWS();
 
     notebook.append_page(optionsPage, new Gtk.Label({
@@ -92,6 +93,12 @@ function buildPrefsWidget() {
         halign: Gtk.Align.START,
         visible: true,
     }));
+
+    optionsPage.append_page(hotkeysOptionPage, new Gtk.Label({
+        label: _('Hotkeys'),
+        halign: Gtk.Align.START,
+        visible: true,
+    }))
 
     return notebook;
 }
@@ -210,6 +217,19 @@ function _newComboBox() {
     return comboBox;
 }
 
+function _newGtkEntry() {
+    const entry = new Gtk.Entry({
+        width_chars: 3,
+        halign: Gtk.Align.END,
+        valign: Gtk.Align.CENTER,
+        hexpand: true,
+        visible: true,
+        xalign: 0.5,
+    });
+    entry.is_entry = true;
+    return entry;
+}
+
 function _optionsItem(text, tooltip, widget, variable, options = []) {
     let item = [[]];
     let label;
@@ -259,13 +279,33 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
             if (value === mscOptions[variable])
                 widget.set_active_iter(iter);
         }
-        widget.connect('changed', item => {
+        widget.connect('changed', () => {
             const [success, iter] = widget.get_active_iter();
             if (!success)
                 return;
 
             mscOptions[variable] = model.get_value(iter, 1);
         });
+    } else if (widget && widget.is_entry) {
+        widget.connect('changed', (entry) => {
+            if (entry._doNotEdit)
+                return;
+            entry._doNotEdit = true;
+            let text = entry.get_text();
+            let txt = '';
+            for (let i=0; i < text.length; i++) {
+                if (/[a-zA-Z]/.test(text[i])) {
+                    let char = text[i].toUpperCase();
+                    if (!txt.match(char))
+                        txt += char;
+                }
+            }
+            txt = txt.slice(0, 1);
+            entry.set_text(txt);
+            entry._doNotEdit = false;
+            mscOptions[variable] = txt;
+        });
+        widget.set_text(mscOptions[variable]);
     }
 
     return item;
@@ -292,7 +332,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Switcher position'),
+            _('Position'),
             null,
             _newComboBox(),
             'switcherPopupPosition',
@@ -920,6 +960,182 @@ function _getAppOptionsList() {
             _newComboBox(),
             'appSwitcherPopupMidClickItem',
             appActionList
+        )
+    );
+
+    return optionsList;
+}
+
+function _getHotkeysOptionsList() {
+    let optionsList = [];
+    // options item format:
+    // [text, tooltip, widget, settings-variable, options for combo]
+
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Hotkeys configuration:')),
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Switch Filter'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeySwitchFilter'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Close Window / Quit Application'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyCloseQuit'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Toggle Search Mode'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeySearch'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Open New Window'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyNewWin'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Move Window to current monitor'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyMoveWinToMonitor'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Toggle "Always on Top"'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyAbove'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Toggle "Always on Visible Workspace"'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeySticky'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Close all Wins of Selected App'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyCloseAllApp'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Fullscreen on New Workspace'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyFsOnNewWs'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Toggle Maximize on Current Monitor'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyMaximize'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Group by Workspace'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyGroupWs'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Toggle Switcher Mode (Win/App)'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeySwitcherMode'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Create Window Thumbnail'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyThumbnail'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Open Preferences'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyPrefs'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Left'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyLeft'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Down'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyDown'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Up'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyUp'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Right'),
+            _(''),
+            _newGtkEntry(),
+            'hotkeyRight'
         )
     );
 
