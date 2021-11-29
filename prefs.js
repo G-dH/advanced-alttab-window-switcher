@@ -41,10 +41,10 @@ function init() {
 }
 
 function buildPrefsWidget() {
-    let notebook = new Gtk.Notebook({
+    /*let notebook = new Gtk.Notebook({
         tab_pos: Gtk.PositionType.LEFT,
         visible: true,
-    });
+    });*/
 
     const optionsPage = new Gtk.Notebook({
         tab_pos: Gtk.PositionType.TOP,
@@ -56,7 +56,7 @@ function buildPrefsWidget() {
     const windowOptionsPage   = new OptionsPageAATWS(_getWindowOptionsList());
     const appOptionsPage      = new OptionsPageAATWS(_getAppOptionsList());
     const hotkeysOptionPage   = new OptionsPageAATWS(_getHotkeysOptionsList());
-    const helpPage            = new HelpPageAATWS();
+    /*const helpPage            = new HelpPageAATWS();
 
     notebook.append_page(optionsPage, new Gtk.Label({
         label: _('Options'),
@@ -100,7 +100,8 @@ function buildPrefsWidget() {
         visible: true,
     }))
 
-    return notebook;
+    //return notebook;
+    return optionsPage;
 }
 
 const OptionsPageAATWS = GObject.registerClass(
@@ -143,6 +144,7 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
                     lbl.set_tooltip_text(item[1]);
                 frame = new Gtk.Frame({
                     label_widget: lbl,
+                    margin_start: 5,
                     visible: true,
                 });
                 frameBox = new Gtk.ListBox({
@@ -287,25 +289,31 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
             mscOptions[variable] = model.get_value(iter, 1);
         });
     } else if (widget && widget.is_entry) {
-        widget.connect('changed', (entry) => {
-            if (entry._doNotEdit)
-                return;
-            entry._doNotEdit = true;
-            let text = entry.get_text();
-            let txt = '';
-            for (let i=0; i < text.length; i++) {
-                if (/[a-zA-Z]/.test(text[i])) {
+        if (variable.startsWith('hotkey')) {
+            widget.connect('changed', (entry) => {
+                if (entry._doNotEdit)
+                    return;
+                entry._doNotEdit = true;
+                let text = entry.get_text();
+                let txt = '';
+                for (let i=0; i < text.length; i++) {
+                    //if (/[a-zA-Z0-9]|/.test(text[i])) {
                     let char = text[i].toUpperCase();
-                    if (!txt.match(char))
+                    if (!txt.includes(char))
                         txt += char;
+                    //}
                 }
-            }
-            txt = txt.slice(0, 1);
-            entry.set_text(txt);
-            entry._doNotEdit = false;
-            mscOptions[variable] = txt;
-        });
-        widget.set_text(mscOptions[variable]);
+                txt = txt.slice(0, 2);
+                entry.set_text(txt);
+                entry._doNotEdit = false;
+                mscOptions[variable] = txt;
+            });
+            widget.set_text(mscOptions[variable]);
+        } else {
+            widget.width_chars = 25;
+            widget.set_text(variable);
+            widget.editable = false;
+        }
     }
 
     return item;
@@ -974,13 +982,16 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _makeTitle(_('Hotkeys configuration:')),
+            "You can enter up to two hotkeys for each action, the second one is primarily dedicated to include non [a-zA-Z] keys with Shift pressed.\n\
+Delete hotkey to disable the action.\n\
+All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is turned on."
         )
     );
 
     optionsList.push(
         _optionsItem(
-            _('Switch Filter'),
-            _(''),
+            _('Switch Filtering Mode'),
+            _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
             _newGtkEntry(),
             'hotkeySwitchFilter'
         )
@@ -988,17 +999,8 @@ function _getHotkeysOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Close Window / Quit Application'),
-            _(''),
-            _newGtkEntry(),
-            'hotkeyCloseQuit'
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
-            _('Toggle Search Mode'),
-            _(''),
+            _('Toggle Search Mode On/Off'),
+            _("You can enter multiple patterns separated by a space and in arbitrary order to search windows/apps by titles, app names, app generic names and app executables. Generic names usually contain a basic app description so you can find most of editor apps by typing an 'edit', image viewers by typing 'image' and so on."),
             _newGtkEntry(),
             'hotkeySearch'
         )
@@ -1006,8 +1008,44 @@ function _getHotkeysOptionsList() {
 
     optionsList.push(
         _optionsItem(
+            _('Toggle Sort by Workspace'),
+            _('Toggles sorting by workspace, when Filter Mode is set to ALL.'),
+            _newGtkEntry(),
+            'hotkeyGroupWs'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Toggle Show only Windows of Selected App'),
+            _('Toggles Single App mode - list only the windows of the selected application.'),
+            _newGtkEntry(),
+            'hotkeySingleApp'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Close Window / Quit Application'),
+            _('Closes the selected window or quits application, depending on the current Switcher Mode.'),
+            _newGtkEntry(),
+            'hotkeyCloseQuit'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Close all Windows of Selected app'),
+            _('Closes all windows in the list that belong to the same application as the selected window/application.'),
+            _newGtkEntry(),
+            'hotkeyCloseAllApp'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
             _('Open New Window'),
-            _(''),
+            _('Opens a new window of the selected application if the apllication supports it. You can also use default shortcut Ctrl+Enter'),
             _newGtkEntry(),
             'hotkeyNewWin'
         )
@@ -1015,8 +1053,9 @@ function _getHotkeysOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Move Window to current monitor'),
-            _(''),
+            _('Move Window to current Workspace/Monitor'),
+            _('Moves the selected window or windows of selected application to the current workspace and monitor.\
+The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             _newGtkEntry(),
             'hotkeyMoveWinToMonitor'
         )
@@ -1025,7 +1064,9 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Toggle "Always on Top"'),
-            _(''),
+            _("Toggles window 'Always on Top'. Also switches to the window workspace and rise the window.\
+This state is indicated by the front icon on top instead of the bottom.\
+If you press the 'A' key twice, it's actually equivalent to the one press of hotkey for 'Show selected window'"),
             _newGtkEntry(),
             'hotkeyAbove'
         )
@@ -1042,17 +1083,9 @@ function _getHotkeysOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Close all Wins of Selected App'),
-            _(''),
-            _newGtkEntry(),
-            'hotkeyCloseAllApp'
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
             _('Fullscreen on New Workspace'),
-            _(''),
+            _('Moves the selected window to the new empty workspace next to its current workspace and switches the window to the fullscreen mode.\
+Next use of this hotkey on the same window moves the window back to its original workspace (if exists) and turns off the fullscreen mode.'),
             _newGtkEntry(),
             'hotkeyFsOnNewWs'
         )
@@ -1060,8 +1093,9 @@ function _getHotkeysOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Toggle Maximize on Current Monitor'),
-            _(''),
+            _('Toggle Maximize on Current Workspce/Monitor'),
+            _('Toggles full maximization of the selected window on the current workspace and monitor.\
+The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             _newGtkEntry(),
             'hotkeyMaximize'
         )
@@ -1069,17 +1103,8 @@ function _getHotkeysOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Group by Workspace'),
-            _(''),
-            _newGtkEntry(),
-            'hotkeyGroupWs'
-        )
-    );
-
-    optionsList.push(
-        _optionsItem(
             _('Toggle Switcher Mode (Win/App)'),
-            _(''),
+            _('Toggles between Windows and Applications modes'),
             _newGtkEntry(),
             'hotkeySwitcherMode'
         )
@@ -1088,7 +1113,17 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Create Window Thumbnail'),
-            _(''),
+            _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor.\n\
+You can move the thumbnail anywhere on the screen using a mouse and you can make as many thumbnails as you want.\n\
+Thumbnail controls:\n\
+    Double click:    \t\tactivates the source window\n\
+    Primary click:   \t\ttoggles scroll wheel function (resize / source)\n\
+    Secondary click: \t\tremoves the thumbnail\n\
+    Middle click:    \t\tcloses the source window\n\
+    Scroll wheel:    \t\tresizes or changes the source window\n\
+    Ctrl + Scroll wheel: \tchange source window or resize\n\
+    Shift + Scroll wheel: \tadjust opacity\n\
+    Ctrl + Primary click: \tToggles display the app icon instead of the window preview'),
             _newGtkEntry(),
             'hotkeyThumbnail'
         )
@@ -1097,7 +1132,7 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Open Preferences'),
-            _(''),
+            _('Opens AATWS preferences window.'),
             _newGtkEntry(),
             'hotkeyPrefs'
         )
@@ -1106,7 +1141,7 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Left'),
-            _(''),
+            _('Navigate Left. Adds option to default Arrow and Page navigation keys.'),
             _newGtkEntry(),
             'hotkeyLeft'
         )
@@ -1115,7 +1150,7 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Down'),
-            _(''),
+            _('Navigate Down. Adds option to default Arrow and Page navigation keys.'),
             _newGtkEntry(),
             'hotkeyDown'
         )
@@ -1124,7 +1159,7 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Up'),
-            _(''),
+            _('Navigate Up. Adds option to default Arrow and Page navigation keys.'),
             _newGtkEntry(),
             'hotkeyUp'
         )
@@ -1133,158 +1168,93 @@ function _getHotkeysOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Right'),
-            _(''),
+            _('Navigate Right. Adds option to default Arrow and Page navigation keys.'),
             _newGtkEntry(),
             'hotkeyRight'
         )
     );
 
+    // Fixed Hotkeys ///////////////////////////////////////////////
+    optionsList.push(
+        _optionsItem(
+            _makeTitle(_('Fixed Hotkeys')),
+            '',
+            null,
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Window Mode: Iterate over aplications'),
+            _('Switcher is in the Window mode: first press of the hotkey sorts windows by applications, each subsequent key press selects first window of the next app. Shift key changes direction.'),
+            _newGtkEntry(),
+            _(';/~ (the key above Tab)')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('App Mode: Switch to Single app switcher'),
+            _('Switcher is in the App mode: first press of the hotkey switches to Single App mode, each subsequent key press selects next window and Tab key switches back to the App view.'),
+            _newGtkEntry(),
+            _(';/~ the key above Tab')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Force Quit'),
+            _('Sends kill -9 signal to the selected aplication or application of selected window'),
+            _newGtkEntry(),
+            _('Ctrl + Del')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Show Selected Window'),
+            _('Rises selected window and switches to the window\'s workspace if needed.'),
+            _newGtkEntry(),
+            _('Space, NumKey 0')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Move Switcher to adjacent Monitor'),
+            '',
+            _newGtkEntry(),
+            _('Ctrl + Left/Right/Up/Down')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Move Switcher to next Monitor'),
+            _('Order is given by the Shell'),
+            _newGtkEntry(),
+            _('Ctrl + Tab')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Reorder current Workspace'),
+            _('Move the current workspace by one position left or right (up or down on GNOME < 40)'),
+            _newGtkEntry(),
+            _('Ctrl + PageUp/PageDown')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Reorder Favorite App'),
+            _('In App Mode with Favorites Apps enabled you can change the possition of selected Favorite app. This change is system-wide.\n\
+If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'),
+            _newGtkEntry(),
+            _('Ctrl+Shift + Left/Right')
+        )
+    );
+
     return optionsList;
 }
-
-const HelpPageAATWS = GObject.registerClass(
-class HelpPageAATWS extends Gtk.ScrolledWindow {
-    _init(optionList, constructProperties = {
-        hscrollbar_policy: Gtk.PolicyType.NEVER,
-        vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
-        vexpand: true,
-        hexpand: true,
-    }) {
-        super._init(constructProperties);
-
-        this._alreadyBuilt = false;
-        this.buildPage();
-    }
-
-    buildPage() {
-        const mainBox = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-            spacing: 10,
-            homogeneous: false,
-            margin_start: 12,
-            margin_end: 20,
-            margin_top: 12,
-            margin_bottom: 12,
-            visible: true,
-        });
-        this[this.add ? 'add' : 'set_child'](mainBox);
-        const flbl = new Gtk.Label({
-            visible: true,
-        });
-        flbl.set_markup(_makeTitle(_('Hotkeys:')));
-        const hotkeysFrame = new Gtk.Frame({
-            label_widget: flbl,
-            visible: true,
-        });
-        const helpLabel = new Gtk.Label({
-            wrap: true,
-            wrap_mode: 0,
-            margin_start: 4,
-            margin_end: 4,
-            margin_top: 4,
-            margin_bottom: 4,
-        });
-        hotkeysFrame[hotkeysFrame.add ? 'add' : 'set_child'](helpLabel);
-        mainBox[mainBox.add ? 'add' : 'append'](hotkeysFrame);
-        const helpText = _(`
-All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is on.
-
-<b>H/L, Left/Right</b>
-Window selection.
-
-<b>J/K, Up/Down, PgUp/PgDown</b>
-Workspace selection.
-
-<b>Ctrl+[PgUp/PgDown]</b>
-Reorders the current workspace - changes the workspace index by -1/+1
-
-<b>Shift + arrow keys</b>
-Moves the switcher popup to the adjacent monitor in corresponding direction.
-
-<b>Ctrl+Tab</b>
-Moves the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.
-
-<b>Space, KP_0/KP_Ins</b>
-Shows selected window - switches to the window workspace and brings the window to the foreground.
-The Space key works without having to press the Shift key even in Search mode if no search pattern entered.
-
-<b>Q</b>
-Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).
-
-<b>;/~</b>   (the key above Tab)
-In the Window mode - sorts windows by application, each subsequent key press jumps to the first window of the next app.
-In the App mode - iterates over windows of the selected application, Tab switches back to apps.
-
-<b>G</b>
-Toggles sorting by workspace, when Filter Mode is set to ALL.
-
-<b>1/+/!</b>
-Toggles Single App mode - shows only the windows of the selected application.
-
-<b>E/Insert</b>
-Toggles the Type to Search mode.
-You can enter multiple patterns separated by a space and in arbitrary order to search windows/apps by titles, app names, app generic names and app executables. Generic names usually contain a basic app description so you can find most of editor apps by typing an 'edit', image viewers by typing 'image' and so on.
-
-<b>W</b>
-Closes the selected window or application.
-
-<b>Ctrl+W</b>
-Closes the application of the selected window.
-
-<b>N, Ctrl+Enter</b>
-Opens a new window of the selected application if the apllication supports it.
-
-<b>C</b>
-Closes all windows in the list that belong to the same application as the selected window.
-
-<b>Shift+Del</b>
-Force close - sends a <i>kill -9</i> signal to the application of selected window or to the selected application.
-
-<b>A</b>
-Toggles window 'Always on Top'. Also switches to the window workspace and rise the window.
-This state is indicated by the front icon on top instead of the bottom.
-If you press the 'A' key twice, it's actually equivalent to the one press of hotkey for 'Show selected window'
-
-<b>S</b>
-Toggles selected window 'Always on Visible Workspace', indicated by the 'pin' icon.
-
-<b>X</b>
-Moves the selected window to the current workspace and monitor.
-The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.
-
-<b>M</b>
-Toggles full maximization of the selected window on the current workspace and monitor.
-The current monitor is defined as described above.
-
-<b>F</b>
-Moves the selected window to the new empty workspace next to its current workspace and switches the window to the fullscreen mode.
-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.
-
-<b>Z/Y, Ctrl+;/~</b>
-Toggles between Windows and Applications modes.
-
-<b>T</b>
-Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor.
-You can move the thumbnail anywhere on the screen using a mouse and you can make as many thumbnails as you want.
-Thumbnail controls:
-    Double click:    \t\tactivates the source window
-    Primary click:   \t\ttoggles scroll wheel function (resize / source)
-    Secondary click: \t\tremoves the thumbnail
-    Middle click:    \t\tcloses the source window
-    Scroll wheel:    \t\tresizes or changes the source window
-    Ctrl + Scroll wheel: \tchange source window or resize
-    Shift + Scroll wheel: \tadjust opacity
-    Ctrl + Primary click: \tToggles display the app icon instead of the window preview
-
-<b>P</b>
-Opens preferences window of this extension
-
-<b>Ctrl+Shift+Left/Right</b>
-In Applications mode with Favorite applications enabled, changes the position of the selected favorite application
-`)
-        //textBuffer.set_text(helpText, -1);
-        helpLabel.set_markup(helpText);
-        this.show_all && this.show_all();
-        this._alreadyBuilt = true;
-    }
-});

@@ -1031,9 +1031,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _keyPressHandler(keysym, action) {
         let keysymName = Gdk.keyval_name(keysym);
-        let keyChar;
-        if (keysymName.match(/^[a-zA-Z]$/))
-            keyChar = keysymName.toUpperCase();
+        let keyString;
+        let keyUtf = Gdk.keyval_to_unicode(keysym);
+        if (keyUtf === 0)
+            keyString = null;
+        else
+            keyString = String.fromCharCode(keyUtf).toUpperCase();
+        // direct item selection using F keys and numpad keys
+        // if Shift pressed only select item, not activate it
         if (keysymName.match(/F[1-9][0-2]?/) || (keysymName.match(/KP_[1-9]/) && this._searchEntry === null)) {
             let index;
             if (keysymName.startsWith('KP_'))
@@ -1047,22 +1052,26 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 else
                     this._select(index);
             }
+        // if Search Mode enabled and Shift not pressed, or number key was pressed (to allow enter numbers using Shift)
+        //  use the input to build searched pattern
         } else if (this._searchEntry !== null && (!_shiftPressed() || keysymName.replace('KP_', '').match(/[0-9]/))) {
             keysymName = keysymName.replace('KP_', '');
 
             // don't close the popup during typing, when not triggered by a keyboard
             _cancelTimeout = true;
 
+            // delete last string when Backspace was pressed
             if (keysym === Clutter.KEY_BackSpace) {
                 this._searchEntry = this._searchEntry.slice(0, -1);
                 this.show();
                 return Clutter.EVENT_STOP;
+            // add character to search pattern
             } else if (this._searchEntry !== null && !_ctrlPressed() &&
                         ((keysymName.length === 1 && (/[a-zA-Z0-9]/).test(keysymName)) || keysym === Clutter.KEY_space)
             ) {
                 if (keysymName === 'space')
                     keysymName = ' ';
-                if (!(keysymName === ' ' && this._searchEntry === '')) {
+                if (!(keysymName === ' ' && (this._searchEntry === '' || this._searchEntry[this._searchEntry.length-1] === ' '))) {
                     this._searchEntry += keysymName;
                     this.show();
                     return Clutter.EVENT_STOP;
@@ -1101,7 +1110,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._monitorIndex = (this._monitorIndex + 1) % mod;
 
             this._updateSwitcher();
-        } else if (keyChar == 'E' || keysym == Clutter.KEY_Insert) {
+        } else if (options.hotkeySearch.includes(keyString) || keysym == Clutter.KEY_Insert) {
             this._toggleSearchMode();
         }
 
@@ -1115,21 +1124,21 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        else if (keysym == Clutter.KEY_Left || keyChar === options.hotkeyLeft) {
+        else if (keysym == Clutter.KEY_Left || options.hotkeyLeft.includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed())
                 this._moveFavotites(-1);
             else if (!_shiftPressed())
                 this._select(this._previous());
             else
                 this._switchMonitor(Meta.DisplayDirection.LEFT);
-        } else if (keysym == Clutter.KEY_Right || keyChar === options.hotkeyRight) {
+        } else if (keysym == Clutter.KEY_Right || options.hotkeyRight.includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed())
                 this._moveFavotites(+1);
             if (!_shiftPressed())
                 this._select(this._next());
             else
                 this._switchMonitor(Meta.DisplayDirection.RIGHT);
-        } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || keyChar === options.hotkeyUp) {
+        } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || options.hotkeyUp.includes(keyString)) {
             if (_ctrlPressed() && keysym == Clutter.KEY_Page_Up) {
                 this._reorderWorkspace(-1);
             }
@@ -1137,7 +1146,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switchWorkspace(Clutter.ScrollDirection.UP);
             else
                 this._switchMonitor(Meta.DisplayDirection.UP);
-        } else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || keyChar === options.hotkeyDown) {
+        } else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || options.hotkeyDown.includes(keyString)) {
             if (_ctrlPressed() && keysym == Clutter.KEY_Page_Down) {
                 this._reorderWorkspace(+1);
             }
@@ -1157,9 +1166,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             } else {
                 this._select(this._items.length - 1);
             }
-        } else if (keyChar === options.hotkeySwitchFilter) {
+        } else if (options.hotkeySwitchFilter.includes(keyString)) {
             this._switchFilterMode();
-        } else if (keysym === Clutter.KEY_plus || keysym === Clutter.KEY_1 || keysym === Clutter.KEY_exclam) {
+        //} else if (keysym === Clutter.KEY_plus || keysym === Clutter.KEY_1 || keysym === Clutter.KEY_exclam) {
+        } else if (options.hotkeySingleApp.includes(keyString)) {
             this._toggleSingleAppMode();
         }
 
@@ -1200,7 +1210,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // toggle sort by workspaces
-        else if ((keyChar === options.hotkeyGroupWs) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyGroupWs.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWsOrder();
         }
@@ -1211,42 +1221,43 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // close window/app
-        else if (keyChar === options.hotkeyCloseQuit) {
+        else if (options.hotkeyCloseQuit.includes(keyString)) {
             if (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)
                 this._closeWinQuitApp();
         }
 
-        // close all windows of the same class displayed in selector
-        else if ((keyChar === options.hotkeyCloseAllApp) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        // close all listed windows that belongs to the selected app
+        else if ((options.hotkeyCloseAllApp.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._closeAppWindows();
         }
 
         // make selected window Always on Top
-        else if ((keyChar === options.hotkeyAbove) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyAbove.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWinAbove();
         }
 
         // make selected window Allways on Visible Workspace
-        else if ((keyChar === options.hotkeySticky) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeySticky.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWinSticky();
         }
 
         // move selected window to the current workspace
-        else if ((keyChar === options.hotkeyMoveWinToMonitor) &&
+        else if ((options.hotkeyMoveWinToMonitor.includes(keyString)) &&
                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._moveToCurrentWS();
         }
 
         // maximize (and move if needed) selected window on the current workspace and monitor
-        else if ((keyChar === options.hotkeyMoveWinToMonitor) &&
+        else if ((options.hotkeyMaximize.includes(keyString)) &&
                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleMaximizeOnCurrentMonitor();
         }
 
-        else if ((keyChar === options.hotkeyFsOnNewWs) &&
+        // toggle FS on new ws
+        else if ((options.hotkeyFsOnNewWs.includes(keyString)) &&
                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (this._showingApps || this._selectedIndex < 0)
                 return;
@@ -1254,24 +1265,26 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._toggleFullscreenOnNewWS();
         }
 
-        else if (((keyChar === options.hotkeyNewWin) &&
+        // open New Window
+        else if (((options.hotkeyNewWin.includes(keyString)) &&
                   (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) ||
                  (keysym === Clutter.KEY_Return && _ctrlPressed())) {
             this._openNewWindow();
         }
 
-        else if ((keyChar === options.hotkeySwitcherMode) &&
+        // toggle Switcher Mode
+        else if ((options.hotkeySwitcherMode.includes(keyString)) &&
                      (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._toggleSwitcherMode();
         }
 
         // make thumbnail of selected window
-        else if ((keyChar === options.hotkeyThumbnail) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyThumbnail.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._createWinThumbnail();
         }
 
-        else if ((keyChar === options.hotkeyPrefs) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyPrefs.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._openPrefsWindow();
         }
 

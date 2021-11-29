@@ -162,6 +162,9 @@
     <key name='hotkey-search' type='s'>
       <default>'E'</default>
     </key>
+    <key name='hotkey-single-app' type='s'>
+      <default>'1+'</default>
+    </key>
     <key name='hotkey-new-win' type='s'>
       <default>'N'</default>
     </key>
