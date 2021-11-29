@@ -486,6 +486,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_string('hotkey-switch-filter', string);
     }
 
+    get hotkeySingleApp() {
+        return this._gsettings.get_string('hotkey-single-app');
+    }
+
+    set hotkeySingleApp(string) {
+        this._gsettings.set_string('hotkey-single-app', string);
+    }
+
     get hotkeyCloseQuit() {
         return this._gsettings.get_string('hotkey-close-quit');
     }
@@ -562,7 +570,7 @@ var MscOptions = class MscOptions {
         return this._gsettings.get_string('hotkey-group-ws');
     }
 
-    set hotkeyFsOnNewWs(string) {
+    set hotkeyGroupWs(string) {
         this._gsettings.set_string('hotkey-group-ws', string);
     }
 
