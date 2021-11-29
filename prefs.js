@@ -149,7 +149,6 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
                 });
                 frameBox = new Gtk.ListBox({
                     selection_mode: null,
-                    can_focus: false,
                     visible: true,
                 });
                 mainBox[mainBox.add ? 'add' : 'append'](frame);
@@ -157,7 +156,6 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
                 continue;
             }
             let box = new Gtk.Box({
-                can_focus: false,
                 orientation: Gtk.Orientation.HORIZONTAL,
                 margin_start: 4,
                 margin_end: 4,
