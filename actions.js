@@ -1,10 +1,7 @@
 'use strict';
 
-const GObject        = imports.gi.GObject;
-const GLib           = imports.gi.GLib;
-const St             = imports.gi.St;
-const Meta           = imports.gi.Meta;
-const Shell          = imports.gi.Shell;
+const { GObject, St, Meta, Shell } = imports.gi;
+
 const Main           = imports.ui.main;
 
 const ExtensionUtils = imports.misc.extensionUtils;

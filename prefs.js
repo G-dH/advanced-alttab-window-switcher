@@ -1,10 +1,11 @@
 'use strict';
 
-const {Gtk, GLib, GObject} = imports.gi;
+const { Gtk, GLib, GObject } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
+
 let   mscOptions;
 let   optionsList;
 
@@ -144,7 +145,7 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
                     lbl.set_tooltip_text(item[1]);
                 frame = new Gtk.Frame({
                     label_widget: lbl,
-                    margin_start: 5,
+                    margin_start: 10,
                     visible: true,
                 });
                 frameBox = new Gtk.ListBox({
@@ -1195,7 +1196,7 @@ Thumbnail controls:\n\
             _('App Mode: Switch to Single app switcher'),
             _('Switcher is in the App mode: first press of the hotkey switches to Single App mode, each subsequent key press selects next window and Tab key switches back to the App view.'),
             _newGtkEntry(),
-            _(';/~ the key above Tab')
+            _(';/~ (the key above Tab)')
         )
     );
 
