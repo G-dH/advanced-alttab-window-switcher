@@ -1,25 +1,23 @@
 'use strict';
 
 const {GObject, GLib, St, Shell, Gdk} = imports.gi;
-const Clutter                = imports.gi.Clutter;
-const Meta                   = imports.gi.Meta;
-const Main                   = imports.ui.main;
-const AltTab                 = imports.ui.altTab;
-const SwitcherPopup          = imports.ui.switcherPopup;
-const Dash                   = imports.ui.dash;
+const Clutter         = imports.gi.Clutter;
+const Meta            = imports.gi.Meta;
+const Main            = imports.ui.main;
+const AltTab          = imports.ui.altTab;
+const SwitcherPopup   = imports.ui.switcherPopup;
+const Dash            = imports.ui.dash;
 
-const ExtensionUtils         = imports.misc.extensionUtils;
-const Me                     = ExtensionUtils.getCurrentExtension();
-const Settings               = Me.imports.settings;
-const ActionLib              = Me.imports.actions;
+const ExtensionUtils  = imports.misc.extensionUtils;
+const Me              = ExtensionUtils.getCurrentExtension();
+const Settings        = Me.imports.settings;
+const ActionLib       = Me.imports.actions;
 
-const Config                 = imports.misc.config;
-var   shellVersion           = Config.PACKAGE_VERSION;
-var   GNOME40 = shellVersion.startsWith('4')
-    ? GNOME40 = true
-    : GNOME40 = false;
+const shellVersion    = imports.misc.config.PACKAGE_VERSION;
+const GNOME40         = parseFloat(shellVersion) >= 40;
 
-const options = new Settings.MscOptions();
+// options inits in extension.enable()
+var options;
 
 const SwitcherMode = {
     WINDOWS: 0,
@@ -145,7 +143,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = '';
- 
+
         this.KEYBOARD_TRIGGERED    = true;  // whether was popup triggered by a keyboard. when true, POSITION_POINTER will be ignored
         this.POSITION_POINTER      = options.switcherPopupPointer; // place popup at pointer position
         this.POPUP_POSITION        = options.switcherPopupPosition;
@@ -203,30 +201,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._doNotReactOnScroll   = false;
         _cancelTimeout             = false;
 
-        this._newWindowConnector   = global.display.connect_after('window-created', (w, win) => {
-            if (this._doNotUpdateOnNewWindow)
-                return;
-            // there are situations when window list updates later than this callback is executed
-            this._newWindowConnectorTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                200,
-                () => {
-                    this._updateSwitcher();
-
-                    if (this._showingApps && this._selectedIndex > -1)
-                        this._select(this._getItemIndexByID(_getWindowApp(win).get_id()));
-                    else if (this._selectedIndex > -1)
-                        this._select(this._getItemIndexByID(win.get_id()));
-
-                    this._newWindowConnectorTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-            });
-        });
-
         this.connect('destroy', this._onDestroyThis.bind(this));
     }
 
     _onDestroyThis() {
+        this._doNotUpdateOnNewWindow = true;
         // this._initialDelayTimeoutId and this._noModsTimeoutId were already removed in super class
         let timeouts = [
             this._showWinImmediatelyTimeoutId,
@@ -238,12 +217,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (t)
                 GLib.source_remove(t);
         });
-        global.display.disconnect(this._newWindowConnector);
+        if (this._newWindowConnector)
+            global.display.disconnect(this._newWindowConnector);
+        this._removeOverlays();
         if (this._actions)
             this._actions.clean();
-        this._actions = null;
-        this._removeOverlays();
-    }
+            this._actions = null;
+        }
 
     _removeOverlays() {
         if (this._overlayTitle) {
@@ -324,17 +304,31 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
+    _connectNewWindows() {
+        this._newWindowConnector = global.display.connect_after('window-created', (w, win) => {
+            if (this._doNotUpdateOnNewWindow)
+                return;
+            // there are situations when window list updates later than this callback is executed
+            this._newWindowConnectorTimeoutId = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                200,
+                () => {
+                    this._updateSwitcher();
+
+                    if (win && this._showingApps && this._selectedIndex > -1)
+                        this._select(this._getItemIndexByID(_getWindowApp(win).get_id()));
+                    else if (this._selectedIndex > -1)
+                        this._select(this._getItemIndexByID(win.get_id()));
+
+                    this._newWindowConnectorTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+            });
+        });
+    }
+
     show(backward, binding, mask) {
         // remove overlay labels if exist
         this._removeOverlays();
-
-        // if just one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
-        if (Main.layoutManager.monitors.length < 2) {
-            if (this.WIN_FILTER_MODE === FilterMode.MONITOR)
-                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
-            if (this.APP_FILTER_MODE === FilterMode.MONITOR)
-                this.APP_FILTER_MODE = FilterMode.WORKSPACE;
-        }
 
         if (!Main.pushModal(this)) {
             if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
@@ -344,6 +338,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
+        // if just one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
+        if (Main.layoutManager.monitors.length < 2) {
+            if (this.WIN_FILTER_MODE === FilterMode.MONITOR)
+                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+            if (this.APP_FILTER_MODE === FilterMode.MONITOR)
+                this.APP_FILTER_MODE = FilterMode.WORKSPACE;
+        }
         if (binding == 'switch-group') {
             this._switchGroupInit = true;
             //this._doNotFinishBeforeUpdate = true;
@@ -395,6 +396,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return false;
         }
         this._tempFilterMode = null;
+        this._connectNewWindows();
         return true;
     }
 
@@ -1444,7 +1446,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
         this._updateSwitcher(winToApp);
     }
-    
+
     _toggleSearchMode() {
         if (this._searchEntry !== null) {
             this._searchEntry = null;
@@ -1587,7 +1589,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._setOverlayLabelPosition(this._overlaySearchLabel, 0, offset, this._switcherList);
     }
-    
+
     _showOverlayTitle() {
         let selected = this._items[this._selectedIndex];
         let title = '';
@@ -1904,8 +1906,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return Clutter.EVENT_PROPAGATE;
         }
     }
-
-    /////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     _getCustomWindowList(allWindows = false) {
         let filterMode;
@@ -2137,7 +2139,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return true;
     }
 });
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
     _init(item, iconIndex) {
@@ -2267,7 +2269,7 @@ class WindowIcon extends St.BoxLayout {
         return icon;
     }
 });
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var AppIcon = GObject.registerClass(
 class AppIcon extends Dash.DashIcon {
     _init(app, iconIndex, params = {}) {
@@ -2318,7 +2320,7 @@ class AppIcon extends Dash.DashIcon {
         Main.wm.actionMoveWorkspace(win.get_workspace());
     }*/
 });
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowSwitcher = GObject.registerClass(
 class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
     _init(items) {
@@ -2448,6 +2450,15 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
     }
 });
 
+var   AppSwitcherPopup = GObject.registerClass(
+class AppSwitcherPopup extends WindowSwitcherPopup {
+    _init() {
+        super._init();
+        this._switcherMode = SwitcherMode.APPS;
+        this.SHOW_APPS = true;
+    }
+});
+
 // icon indicating direct activation key
 function _createHotKeyNumIcon(index) {
     let icon = new St.Widget({
@@ -2468,12 +2479,3 @@ function _createHotKeyNumIcon(index) {
 
     return icon;
 }
-
-var   AppSwitcherPopup = GObject.registerClass(
-class AppSwitcherPopup extends WindowSwitcherPopup {
-    _init() {
-        super._init();
-        this._switcherMode = SwitcherMode.APPS;
-        this.SHOW_APPS = true;
-    }
-});
