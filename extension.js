@@ -42,7 +42,7 @@ function enable() {
             _delayId = 0;
             if (enabled)
                 _resumeThumbnailsIfExist();
-
+            WindowSwitcherPopup.options = new Settings.MscOptions();
             _origAltTabWSP = AltTab.WindowSwitcherPopup;
             _origAltTabASP = AltTab.AppSwitcherPopup;
             AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
@@ -70,6 +70,7 @@ function disable() {
         AltTab.AppSwitcherPopup = _origAltTabASP;
     _origAltTabWSP = null;
     _origAltTabASP = null;
+    WindowSwitcherPopup.options = null;
 }
 
 function _resumeThumbnailsIfExist() {
