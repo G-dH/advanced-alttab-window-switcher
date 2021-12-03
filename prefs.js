@@ -432,7 +432,7 @@ function _getCommonOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Overlay Title'),
-            _('Whether the item title label shoud be displayed with bigger font in the overlay label above (or below if needed) the switcher popup or keep the standard label at the bottom of the popup.'),
+            _('Whether the item title label shoud be displayed with bigger font in the overlay label above (or below if needed) the switcher popup.'),
             _newGtkSwitch(),
             'switcherPopupOverlayTitle'
         )
@@ -726,7 +726,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Skip minimized windows'),
+            _('Skip Minimized Windows'),
             null,
             _newGtkSwitch(),
             'winSkipMinimized'
@@ -735,7 +735,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Search all windows'),
+            _('Search All Windows'),
             _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
             _newGtkSwitch(),
             'winSwitcherPopupSearchAll'
@@ -759,7 +759,19 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Show workspace index of each window'),
+            _('Show Window Titles under each window item'),
+            _('Whether window titles should be displayed under each window item in the switcher list.'),
+            _newComboBox(),
+            'winSwitcherPopupTitles',
+               [[_('Enabled'), 1],
+                [_('Disabled'), 2],
+                [_('Single App Mode only'), 3]],
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Show Workspace Index on each window item'),
             null,
             _newGtkSwitch(),
             'winSwitcherPopupWsIndexes'

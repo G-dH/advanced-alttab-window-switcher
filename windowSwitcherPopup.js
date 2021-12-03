@@ -157,7 +157,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SHOW_WIN_IMEDIATELY   = options.switcherPopupShowImmediately;
         this.SHOW_WS_INDEX         = options.wsSwitchIndicator;
         this.SEARCH_ALL            = options.winSwitcherPopupSearchAll;
-        this.OVERLAY_TITLE         = options.switcherPopupOverlayTitle;
+        this.OVERLAY_TITLE              = options.switcherPopupOverlayTitle;
         this.SEARCH_DEFAULT        = options.switcherPopupStartSearch;
         if (this.SEARCH_DEFAULT)
             this._searchEntry = '';
@@ -178,6 +178,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SEARCH_APPS           = options.winSwitcherPopupSearchApps;
         this._initialSelectionMode = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE ? SelectionMode.ACTIVE : SelectionMode.SECOND;
         this._singleAppPreviewSize = options.singleAppPreviewSize;
+        this.WINDOW_TITLES         = options.winSwitcherPopupTitles;
         WINDOW_PREVIEW_SIZE        = options.winSwitcherPopupPreviewSize;
         APP_ICON_SIZE              = options.winSwitcherPopupIconSize;
         WS_INDEXES                 = options.winSwitcherPopupWsIndexes;
@@ -379,7 +380,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (switcherList.length > 0) {
             if (this._switcherList)
                 this._switcherList.destroy();
-            this._switcherList = new WindowSwitcher(switcherList);
+            let showTitles = this.WINDOW_TITLES === 1 || (this.WINDOW_TITLES === 3 && this._singleApp);
+            this._switcherList = new WindowSwitcher(switcherList, showTitles);
             this._switcherList._parent = this;
             if (!this.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
                 this._switcherList._itemEntered = function() {}
@@ -1595,7 +1597,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let title = '';
         title = selected.is_window
             ? selected.window.get_title()
-            : selected.ilabel.text;
+            : selected.titleLabel.text;
         if (this._overlayTitle) {
             this.destroyOverlayLabel(this._overlayTitle);
         }
@@ -2142,7 +2144,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
-    _init(item, iconIndex) {
+    _init(item, iconIndex, titles) {
         super._init({
             style_class: 'alt-tab-app',
             vertical: true,
@@ -2158,6 +2160,10 @@ class WindowIcon extends St.BoxLayout {
 
         if (showHotKeys && HOT_KEYS && iconIndex < 12)
             this._icon.add_actor(_createHotKeyNumIcon(iconIndex));
+
+        if (this.titleLabel && titles) {
+            this.add_child(this.titleLabel);
+        }
     }
 
     _createWindowIcon(window, iconIndex) {
@@ -2165,7 +2171,10 @@ class WindowIcon extends St.BoxLayout {
 
         this.window = window;
 
-        this.ilabel = new St.Label({text: window.get_title()});
+        this.titleLabel = new St.Label({
+            text: window.get_title(),
+            x_align: Clutter.ActorAlign.CENTER,
+        });
 
         let tracker = Shell.WindowTracker.get_default();
         this.app = tracker.get_window_app(window);
@@ -2274,7 +2283,7 @@ var AppIcon = GObject.registerClass(
 class AppIcon extends Dash.DashIcon {
     _init(app, iconIndex, params = {}) {
         super._init(app, params);
-        this.ilabel = new St.Label({text: app.get_name()});
+        this.titleLabel = new St.Label({text: app.get_name()});
         // disable original app icon style
         this.style_class = '';
         this._iconContainer.remove_child(this._dot);
@@ -2323,7 +2332,7 @@ class AppIcon extends Dash.DashIcon {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowSwitcher = GObject.registerClass(
 class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
-    _init(items) {
+    _init(items, showTitles = true) {
         super._init(true);
         this._statusLabel = new St.Label({
             x_align: Clutter.ActorAlign.START,
@@ -2348,7 +2357,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
             let item = items[i];
             let icon;
             if (item.get_title) {
-                icon = new WindowIcon(item, i);
+                icon = new WindowIcon(item, i, showTitles);
             } else {
                 icon = new AppIcon(item, i);
                 icon.connect('menu-state-changed',
@@ -2357,7 +2366,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
                     });
             }
 
-            this.addItem(icon, icon.ilabel);
+            this.addItem(icon, icon.titleLabel);
             this.icons.push(icon);
 
             // the icon could be an app, not just a window
@@ -2435,7 +2444,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
 
     highlight(index, justOutline) {
         super.highlight(index, justOutline);
-        this._label.set_text(index == -1 ? '' : this.icons[index].ilabel.text);
+        this._label.set_text(index == -1 ? '' : this.icons[index].titleLabel.text);
     }
 
     _removeWindow(window) {

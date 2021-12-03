@@ -1,6 +1,7 @@
 .workspace-index, .workspace-index-highlight, .hot-key-number{
   text-align: center;
   font-weight: normal;
+  margin-bottom: 4px;
   padding: 1px;
   border-width: 1px;
   border-radius: 0.2em;

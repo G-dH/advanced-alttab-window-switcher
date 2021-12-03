@@ -253,6 +253,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('win-switcher-popup-order', int_val);
     }
 
+    get winSwitcherPopupTitles() {
+        return this._gsettings.get_int('win-switcher-popup-titles');
+    }
+
+    set winSwitcherPopupTitles(int_val) {
+        this._gsettings.set_int('win-switcher-popup-titles', int_val);
+    }
+
 
     get winSwitcherPopupScrollItem() {
         return this._gsettings.get_int('win-switcher-popup-scroll-item');
