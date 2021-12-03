@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 
 <schemalist>
-  <schema id='org.gnome.shell.extensions.advanced-alt-tab-window-switcher'>
+  <schema path='/org/gnome/shell/extensions/advanced-alt-tab-window-switcher/' id='org.gnome.shell.extensions.advanced-alt-tab-window-switcher'>
     <key name='win-switch-skip-minimized' type='b'>
       <default>false</default>
     </key>
