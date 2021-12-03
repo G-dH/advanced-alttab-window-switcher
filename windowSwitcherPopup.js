@@ -74,17 +74,6 @@ const SelectionMode = {
 
 const Action = Settings.Actions;
 
-let WS_INDEXES;
-let HOT_KEYS;
-let SHIFT_AZ_HOTKEYS;
-let showHotKeys;
-
-let APP_ICON_SIZE           = 64;
-let WINDOW_PREVIEW_SIZE     = 128;
-let APP_MODE_ICON_SIZE      = 96;
-let SINGLE_APP_PREVIEW_SIZE = 0;
-let STATUS = true;
-
 let _cancelTimeout = false;
 
 function _shiftPressed() {
@@ -151,13 +140,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.INITIAL_DELAY         = options.switcherPopupTimeout;
         this.WRAPAROUND            = options.switcherPopupWrap;
         this.ACTIVATE_ON_HIDE      = options.switcherPopupActivateOnHide;
-        HOT_KEYS                   = options.switcherPopupHotKeys;
-        SHIFT_AZ_HOTKEYS           = options.switcherPopupShiftHotkeys;
-        STATUS                     = options.switcherPopupStatus;
+        this.HOT_KEYS              = options.switcherPopupHotKeys;
+        this.SHIFT_AZ_HOTKEYS      = options.switcherPopupShiftHotkeys;
+        this.STATUS                = options.switcherPopupStatus;
         this.SHOW_WIN_IMEDIATELY   = options.switcherPopupShowImmediately;
         this.SHOW_WS_INDEX         = options.wsSwitchIndicator;
         this.SEARCH_ALL            = options.winSwitcherPopupSearchAll;
-        this.OVERLAY_TITLE              = options.switcherPopupOverlayTitle;
+        this.OVERLAY_TITLE         = options.switcherPopupOverlayTitle;
         this.SEARCH_DEFAULT        = options.switcherPopupStartSearch;
         if (this.SEARCH_DEFAULT)
             this._searchEntry = '';
@@ -177,18 +166,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SKIP_MINIMIZED        = options.winSkipMinimized;
         this.SEARCH_APPS           = options.winSwitcherPopupSearchApps;
         this._initialSelectionMode = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE ? SelectionMode.ACTIVE : SelectionMode.SECOND;
-        this._singleAppPreviewSize = options.singleAppPreviewSize;
+        this.SINGLE_APP_PREVIEW_SIZE = options.singleAppPreviewSize;
         this.WINDOW_TITLES         = options.winSwitcherPopupTitles;
-        WINDOW_PREVIEW_SIZE        = options.winSwitcherPopupPreviewSize;
-        APP_ICON_SIZE              = options.winSwitcherPopupIconSize;
-        WS_INDEXES                 = options.winSwitcherPopupWsIndexes;
+        this.WINDOW_PREVIEW_SIZE   = options.winSwitcherPopupPreviewSize;
+        this.APP_ICON_SIZE         = options.winSwitcherPopupIconSize;
+        this.WS_INDEXES            = options.winSwitcherPopupWsIndexes;
 
         // App switcher
         this.APP_FILTER_MODE       = options.appSwitcherPopupFilter;
         this.APP_SORTING_MODE      = options.appSwitcherPopupSorting;
         this.SORT_FAVORITES_BY_MRU = options.appSwitcherPopupFavMru;
         this.INCLUDE_FAVORITES     = options.appSwitcherPopupFavoriteApps;
-        APP_MODE_ICON_SIZE         = options.appSwitcherPopupIconSize;
+        this.APP_MODE_ICON_SIZE         = options.appSwitcherPopupIconSize;
 
         this._switcherMode         = SwitcherMode.WINDOWS;
 
@@ -359,7 +348,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        showHotKeys = this.KEYBOARD_TRIGGERED;
+        this.showHotKeys = this.KEYBOARD_TRIGGERED;
         if (this._pointer == undefined) {
             this._pointer = [];
             [this._pointer.x, this._pointer.y] = global.get_pointer();
@@ -381,8 +370,19 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._switcherList)
                 this._switcherList.destroy();
             let showTitles = this.WINDOW_TITLES === 1 || (this.WINDOW_TITLES === 3 && this._singleApp);
-            this._switcherList = new WindowSwitcher(switcherList, showTitles);
-            this._switcherList._parent = this;
+            let switcherParams = {
+                'showTitles': showTitles,
+                'winPrevSize': this._singleApp ? this.SINGLE_APP_PREVIEW_SIZE : this.WINDOW_PREVIEW_SIZE,
+                'appIconSize': this.APP_ICON_SIZE,
+                'appModeIconSize': this.APP_MODE_ICON_SIZE,
+                'wsIndexes': this.WS_INDEXES,
+                'hotKeys': this.HOT_KEYS && this.KEYBOARD_TRIGGERED,
+                'status': this.STATUS,
+                //'overlayTitle': this.OVERLAY_TITLE,
+                'labelTitle': !this.OVERLAY_TITLE && this.WINDOW_TITLES === 2, // 2: Disabled
+                'singleApp': this._singleApp
+            }
+            this._switcherList = new WindowSwitcher(switcherList, switcherParams);
             if (!this.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
                 this._switcherList._itemEntered = function() {}
             }
@@ -477,7 +477,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let themeNode = this._switcherList.get_theme_node();
         let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
         let border = themeNode.get_border_width(St.Side.BOTTOM);
-        if (!this._firstRun && !STATUS && !(this._showingApps && (this._searchEntry !== null && this._searchEntry !== ''))) {
+        if (!this._firstRun && !this.STATUS && !(this._showingApps && (this._searchEntry !== null && this._searchEntry !== ''))) {
             let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
             fm = this._tempFilterMode ? this._tempFilterMode : fm;
             if (fm === FilterMode.MONITOR) {
@@ -1214,7 +1214,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // toggle sort by workspaces
-        else if ((options.hotkeyGroupWs.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyGroupWs.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWsOrder();
         }
@@ -1226,43 +1226,43 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // close window/app
         else if (options.hotkeyCloseQuit.includes(keyString)) {
-            if (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)
+            if (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)
                 this._closeWinQuitApp();
         }
 
         // close all listed windows that belongs to the selected app
-        else if ((options.hotkeyCloseAllApp.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyCloseAllApp.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._closeAppWindows();
         }
 
         // make selected window Always on Top
-        else if ((options.hotkeyAbove.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyAbove.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWinAbove();
         }
 
         // make selected window Allways on Visible Workspace
-        else if ((options.hotkeySticky.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeySticky.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleWinSticky();
         }
 
         // move selected window to the current workspace
         else if ((options.hotkeyMoveWinToMonitor.includes(keyString)) &&
-                 (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+                 (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._moveToCurrentWS();
         }
 
         // maximize (and move if needed) selected window on the current workspace and monitor
         else if ((options.hotkeyMaximize.includes(keyString)) &&
-                 (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+                 (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._toggleMaximizeOnCurrentMonitor();
         }
 
         // toggle FS on new ws
         else if ((options.hotkeyFsOnNewWs.includes(keyString)) &&
-                 (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+                 (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (this._showingApps || this._selectedIndex < 0)
                 return;
 
@@ -1271,24 +1271,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // open New Window
         else if (((options.hotkeyNewWin.includes(keyString)) &&
-                  (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) ||
+                  (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) ||
                  (keysym === Clutter.KEY_Return && _ctrlPressed())) {
             this._openNewWindow();
         }
 
         // toggle Switcher Mode
         else if ((options.hotkeySwitcherMode.includes(keyString)) &&
-                     (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+                     (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._toggleSwitcherMode();
         }
 
         // make thumbnail of selected window
-        else if ((options.hotkeyThumbnail.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyThumbnail.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps)
                 this._createWinThumbnail();
         }
 
-        else if ((options.hotkeyPrefs.includes(keyString)) && (SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if ((options.hotkeyPrefs.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._openPrefsWindow();
         }
 
@@ -1962,16 +1962,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (this._singleApp) {
-            SINGLE_APP_PREVIEW_SIZE = this._singleAppPreviewSize;
+            //this.SINGLE_APP_PREVIEW_SIZE = this._singleAppPreviewSize;
             if (this._switchNextApp) {
                 this._singleApp = this._getNextApp(winList);
                 this._switchNextApp = false;
             }
             let tracker = Shell.WindowTracker.get_default();
             winList = winList.filter(w => tracker.get_window_app(w).get_id() === this._singleApp);
-        } else {
-            SINGLE_APP_PREVIEW_SIZE = 0;
-        }
+        } /*else {
+            this.SINGLE_APP_PREVIEW_SIZE = 0;
+        }*/
 
         if (this._searchEntry) {
             const filterPatern = (wList, pattern) => {
@@ -2144,29 +2144,30 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
-    _init(item, iconIndex, titles) {
+    _init(item, iconIndex, switcherParams) {
         super._init({
-            style_class: 'alt-tab-app',
+            style_class: 'thumbnail-box',
             vertical: true,
             reactive: true,
         });
+        this._switcherParams = switcherParams;
         this._icon = new St.Widget({layout_manager: new Clutter.BinLayout()});
 
         this.add_child(this._icon);
         this._icon.destroy_all_children();
 
         if (item.get_title)
-            this._createWindowIcon(item, iconIndex);
+            this._createWindowIcon(item);
 
-        if (showHotKeys && HOT_KEYS && iconIndex < 12)
+        if ( this._switcherParams.hotKeys && iconIndex < 12)
             this._icon.add_actor(_createHotKeyNumIcon(iconIndex));
 
-        if (this.titleLabel && titles) {
+        if (this.titleLabel && this._switcherParams.showTitles) {
             this.add_child(this.titleLabel);
         }
     }
 
-    _createWindowIcon(window, iconIndex) {
+    _createWindowIcon(window) {
         this.is_window = true;
 
         this.window = window;
@@ -2186,20 +2187,20 @@ class WindowIcon extends St.BoxLayout {
         let switched = false;
         let size, cloneSize;
 
-        size = SINGLE_APP_PREVIEW_SIZE ? SINGLE_APP_PREVIEW_SIZE : WINDOW_PREVIEW_SIZE;
+        size = this._switcherParams.winPrevSize;
         cloneSize = size;
 
-        if (!SINGLE_APP_PREVIEW_SIZE && APP_ICON_SIZE > WINDOW_PREVIEW_SIZE) {
-            size = APP_ICON_SIZE;
+        if (!this._switcherParams.singleAppMode && this._switcherParams.appIconSize > size) {
+            size = this._switcherParams.appIconSize;
             switched = true;
-            cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * WINDOW_PREVIEW_SIZE);
+            cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * this._switcherParams.winPrevSize);
         }
 
         let clone = AltTab._createWindowClone(mutterWindow, cloneSize * scaleFactor);
         let icon;
         if (this.app) {
             icon = this._createAppIcon(this.app,
-                APP_ICON_SIZE);
+                this._switcherParams.appIconSize);
         }
         let base, front;
         if (switched) {
@@ -2218,7 +2219,7 @@ class WindowIcon extends St.BoxLayout {
         this._icon.add_actor(base);
         this._icon.add_actor(front);
 
-        if (WS_INDEXES)
+        if (this._switcherParams.wsIndexes)
             this._icon.add_actor(this._createWsIcon(window.get_workspace().index() + 1));
 
         if (this.window.is_on_all_workspaces())
@@ -2281,8 +2282,9 @@ class WindowIcon extends St.BoxLayout {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var AppIcon = GObject.registerClass(
 class AppIcon extends Dash.DashIcon {
-    _init(app, iconIndex, params = {}) {
-        super._init(app, params);
+    _init(app, iconIndex, switcherParams) {
+        super._init(app);
+        this._switcherParams = switcherParams;
         this.titleLabel = new St.Label({text: app.get_name()});
         // disable original app icon style
         this.style_class = '';
@@ -2292,13 +2294,13 @@ class AppIcon extends Dash.DashIcon {
         if (c)
             this._iconContainer.add_child(this._createRunningIndicator(c));
 
-        if (showHotKeys && HOT_KEYS && iconIndex < 12)
+        if (this._switcherParams.hotKeys && iconIndex < 12)
             this._iconContainer.add_child(_createHotKeyNumIcon(iconIndex));
     }
 
     // this is override of original function to adjust icon size
     _createIcon() {
-        return this.app.create_icon_texture(APP_MODE_ICON_SIZE);
+        return this.app.create_icon_texture(this._switcherParams.appModeIconSize);
     }
 
     _createRunningIndicator(num) {
@@ -2332,15 +2334,17 @@ class AppIcon extends Dash.DashIcon {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowSwitcher = GObject.registerClass(
 class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
-    _init(items, showTitles = true) {
-        super._init(true);
+    _init(items, switcherParams) {
+        let squareItems = false;
+        super._init(squareItems);
+        this._switcherParams = switcherParams;
         this._statusLabel = new St.Label({
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'status-label',
         });
         this._statusLabel.set_text('Filter: Order:'); // this text will be replaced immediately
-        if (STATUS)
+        if (this._switcherParams.status)
             this.add_actor(this._statusLabel);
         this._label = new St.Label({
             x_align: Clutter.ActorAlign.CENTER,
@@ -2357,9 +2361,9 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
             let item = items[i];
             let icon;
             if (item.get_title) {
-                icon = new WindowIcon(item, i, showTitles);
+                icon = new WindowIcon(item, i, this._switcherParams);
             } else {
-                icon = new AppIcon(item, i);
+                icon = new AppIcon(item, i, this._switcherParams);
                 icon.connect('menu-state-changed',
                     (o, opened) => {
                         _cancelTimeout = opened;
@@ -2394,8 +2398,8 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         let [labelMin, labelNat] = this._label.get_preferred_height(-1);
 
         let multiplier = 0;
-        multiplier += STATUS ? 1 : 0;
-        multiplier += this._parent.OVERLAY_TITLE ? 0 : 1;
+        multiplier += this._switcherParams.status ? 1 : 0;
+        multiplier += this._switcherParams.labelTitle ? 1 : 0;
         minHeight += multiplier * labelMin + spacing;
         natHeight += multiplier * labelNat + spacing;
 
@@ -2405,40 +2409,40 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
     vfunc_allocate(box, flags) {
         let themeNode = this.get_theme_node();
         let contentBox = themeNode.get_content_box(box);
-        const spacing = themeNode.get_padding(St.Side.BOTTOM);
-        const labelHeight = this._parent.OVERLAY_TITLE ? 0 : this._label.height;
-        const labelHeightF = STATUS ? this._statusLabel.height : 0;
+        const spacing = themeNode.get_padding(St.Side.BOTTOM) - (this._switcherParams.labelTitle ? 4 : 0); // -4 to move label 2px up
+        const labelHeight = this._switcherParams.labelTitle ? this._label.height : 0;
+        const labelHeightStatus = this._switcherParams.status ? this._statusLabel.height : 0;
         const totalLabelHeight =
-            labelHeightF + labelHeight + spacing;
+            labelHeightStatus + labelHeight + spacing;
 
         box.y2 -= totalLabelHeight;
         GNOME40 ? super.vfunc_allocate(box)
-            : super.vfunc_allocate(box, flags);
+                : super.vfunc_allocate(box, flags);
 
         // Hooking up the parent vfunc will call this.set_allocation() with
         // the height without the label height, so call it again with the
         // correct size here.
         box.y2 += totalLabelHeight;
         GNOME40 ? this.set_allocation(box)
-            : this.set_allocation(box, flags);
+                : this.set_allocation(box, flags);
 
         const childBox = new Clutter.ActorBox();
         childBox.x1 = contentBox.x1;
         childBox.x2 = contentBox.x2;
-        childBox.y2 = contentBox.y2 - labelHeightF + spacing;
-        childBox.y1 = childBox.y2 - labelHeight - labelHeightF;
-        if (!this.OVERLAY_TITLE) {
+        childBox.y2 = contentBox.y2 - labelHeightStatus + spacing;
+        childBox.y1 = childBox.y2 - labelHeight - labelHeightStatus;
+        if (this._switcherParams.labelTitle) {
             GNOME40 ? this._label.allocate(childBox)
-                : this._label.allocate(childBox, flags);
+                    : this._label.allocate(childBox, flags);
         }
-        const childBoxF = new Clutter.ActorBox();
-        childBoxF.x1 = contentBox.x1;
-        childBoxF.x2 = contentBox.x2;
-        childBoxF.y2 = contentBox.y2;
-        childBoxF.y1 = childBoxF.y2 - labelHeightF;
-        if (STATUS) {
-            GNOME40 ? this._statusLabel.allocate(childBoxF)
-                : this._statusLabel.allocate(childBoxF, flags);
+        const childBoxStatus = new Clutter.ActorBox();
+        childBoxStatus.x1 = contentBox.x1;
+        childBoxStatus.x2 = contentBox.x2;
+        childBoxStatus.y2 = contentBox.y2;
+        childBoxStatus.y1 = childBoxStatus.y2 - labelHeightStatus;
+        if (this._switcherParams.status) {
+            GNOME40 ? this._statusLabel.allocate(childBoxStatus)
+                    : this._statusLabel.allocate(childBoxStatus, flags);
         }
     }
 
@@ -2461,8 +2465,8 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
 
 var   AppSwitcherPopup = GObject.registerClass(
 class AppSwitcherPopup extends WindowSwitcherPopup {
-    _init() {
-        super._init();
+    _init(switcherParams) {
+        super._init(switcherParams);
         this._switcherMode = SwitcherMode.APPS;
         this.SHOW_APPS = true;
     }
