@@ -139,7 +139,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.NO_MODS_TIMEOUT       = options.switcherPopupPointerTimeout;
         this.INITIAL_DELAY         = options.switcherPopupTimeout;
         this.WRAPAROUND            = options.switcherPopupWrap;
-        this.ACTIVATE_ON_HIDE      = options.switcherPopupActivateOnHide;
+        this.ACTIVATE_ON_HIDE      = options.switcherPopupActivateOnHide || options.switcherPopupShowImmediately;
         this.HOT_KEYS              = options.switcherPopupHotKeys;
         this.SHIFT_AZ_HOTKEYS      = options.switcherPopupShiftHotkeys;
         this.STATUS                = options.switcherPopupStatus;
@@ -367,6 +367,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (switcherList.length > 0) {
+            if (this.SHOW_WIN_IMEDIATELY && !this.KEYBOARD_TRIGGERED) {
+                this._initialSelectionMode = SelectionMode.ACTIVE;
+            }
             if (this._switcherList)
                 this._switcherList.destroy();
             let showTitles = this.WINDOW_TITLES === 1 || (this.WINDOW_TITLES === 3 && this._singleApp);
@@ -378,7 +381,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 'wsIndexes': this.WS_INDEXES,
                 'hotKeys': this.HOT_KEYS && this.KEYBOARD_TRIGGERED,
                 'status': this.STATUS,
-                //'overlayTitle': this.OVERLAY_TITLE,
                 'labelTitle': !this.OVERLAY_TITLE && this.WINDOW_TITLES === 2, // 2: Disabled
                 'singleApp': this._singleApp
             }
@@ -634,7 +636,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             } else if (this._getSelected().cachedWindows[0]) {
                 // Main.activateWindow(this._getSelected().cachedWindows[0]);
                 // following not only activates the app recent window, but also rise all other windows of the app above other windows
+                // but if item is activated without key/button press, only the first window is raised
                 this._getSelected().activate_window(this._getSelected().cachedWindows[0], global.get_current_time());
+                // also, if item is activated automaticaly, the window is not going to be activated. therefore the following line
+                Main.activateWindow(this._getSelected().cachedWindows[0]);
             } else {
                 if (this._getSelected().get_n_windows() === 0) {
                     // app has no windows - probably not running
@@ -711,7 +716,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             if (this._getSelected().cachedWindows.length) {
                                 this._finish();
                             } else {
-                                this.fadeAndDestroy();
+                                //this.fadeAndDestroy();
+                                this._finish();
                             }
                         } else {
                             this._finish();
@@ -1404,15 +1410,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let a = selected.above;
         selected.make_above();
         a ? selected.make_above() : selected.unmake_above();
-        Main.wm.actionMoveWorkspace(selected.get_workspace());
-        this._showWsIndex();
-
+        if (global.workspace_manager.get_active_workspace() !== selected.get_workspace()) {
+            Main.wm.actionMoveWorkspace(selected.get_workspace());
+            this._showWsIndex();
+        }
+        // switcher cannot be updated because if it's wider than screen, some items wouldn't be accessible
+        // this._updateSwitcher();
         // avoid colision of creating new switcher while destroying popup during the initial show delay, when immediate show win is enabled
         /*if (!this._initialDelayTimeoutId) {
             if (global.workspace_manager.get_active_workspace() !== selected.get_workspace())
                 this.show();
         }
-
         this._doNotShowWin = true;
         this._select(this._getItemIndexByID(id));
         this._doNotShowWin = false;*/
@@ -2365,8 +2373,8 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
             } else {
                 icon = new AppIcon(item, i, this._switcherParams);
                 icon.connect('menu-state-changed',
-                    (o, opened) => {
-                        _cancelTimeout = opened;
+                    (o, open) => {
+                        _cancelTimeout = open;
                     });
             }
 
