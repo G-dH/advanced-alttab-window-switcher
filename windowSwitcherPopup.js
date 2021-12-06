@@ -346,9 +346,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this.APP_FILTER_MODE === FilterMode.MONITOR)
                 this.APP_FILTER_MODE = FilterMode.WORKSPACE;
         }
+        if (this._firstRun) {
+            if (this.SHOW_APPS)
+                this.WIN_FILTER_MODE = this.APP_FILTER_MODE;
+            else
+                this.APP_FILTER_MODE = this.WIN_FILTER_MODE;
+        }
+
         if (binding == 'switch-group') {
             this._switchGroupInit = true;
-            //this._doNotFinishBeforeUpdate = true;
             let id = null;
             let metaWin = global.display.get_tab_list(Meta.WindowType.NORMAL, null)[0];
             if (metaWin)
