@@ -178,7 +178,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.APP_SORTING_MODE      = options.appSwitcherPopupSorting;
         this.SORT_FAVORITES_BY_MRU = options.appSwitcherPopupFavMru;
         this.INCLUDE_FAVORITES     = options.appSwitcherPopupFavoriteApps;
-        this.APP_MODE_ICON_SIZE         = options.appSwitcherPopupIconSize;
+        this.APP_MODE_ICON_SIZE    = options.appSwitcherPopupIconSize;
 
         this._switcherMode         = SwitcherMode.WINDOWS;
 
@@ -380,8 +380,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (switcherList.length > 0) {
             if (this._shouldReverse())
                 switcherList.reverse();
-            if (this.SHOW_WIN_IMEDIATELY && !this.KEYBOARD_TRIGGERED) {
-                this._initialSelectionMode = SelectionMode.ACTIVE;
+            if (!this._showingApps && this.SHOW_WIN_IMEDIATELY && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU) {
+                this._initialSelectionMode = SelectionMode.FIRST;
             }
             if (this._switcherList)
                 this._switcherList.destroy();
@@ -729,8 +729,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             if (this._getSelected().cachedWindows.length) {
                                 this._finish();
                             } else {
-                                //this.fadeAndDestroy();
-                                this._finish();
+                                if (this.ACTIVATE_ON_HIDE)
+                                    this._finish();
+                                else
+                                    this.fadeAndDestroy();
                             }
                         } else {
                             this._finish();
