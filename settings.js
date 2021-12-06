@@ -458,6 +458,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('switcher-popup-pointer', bool_val);
     }
 
+    get switcherPopupReverseAuto() {
+        return this._gsettings.get_boolean('switcher-popup-reverse-auto');
+    }
+
+    set switcherPopupReverseAuto(bool_val) {
+        this._gsettings.set_boolean('switcher-popup-reverse-auto', bool_val);
+    }
+
     get switcherPopupPointerTimeout() {
         return this._gsettings.get_int('switcher-popup-pointer-timeout');
     }

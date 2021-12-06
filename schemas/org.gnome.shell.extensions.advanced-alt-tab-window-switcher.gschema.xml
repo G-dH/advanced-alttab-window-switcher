@@ -20,6 +20,9 @@
     <key name='switcher-popup-pointer' type='b'>
       <default>true</default>
     </key>
+    <key name='switcher-popup-reverse-auto' type='b'>
+      <default>false</default>
+    </key>
     <key name='win-switcher-popup-titles' type='i'>
       <default>1</default>
     </key>

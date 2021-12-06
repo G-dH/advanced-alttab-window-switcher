@@ -642,6 +642,15 @@ function _getCommonOptionsList() {
         )
     );
 
+    optionsList.push(
+        _optionsItem(
+            _('Automatically Reverse Items Order'),
+            _('List switcher items from right to left if this helps the mouse pointer be closer to the first item.'),
+            _newGtkSwitch(),
+            'switcherPopupReverseAuto'
+        )
+    );
+
     let popupPointerTimeoutAdjustment = new Gtk.Adjustment({
         upper: 60000,
         lower: 100,

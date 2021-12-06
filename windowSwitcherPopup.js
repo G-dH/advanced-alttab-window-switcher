@@ -133,8 +133,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = '';
 
-        this.KEYBOARD_TRIGGERED    = true;  // whether was popup triggered by a keyboard. when true, POSITION_POINTER will be ignored
+        this.KEYBOARD_TRIGGERED    = true;  // whether was popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
         this.POSITION_POINTER      = options.switcherPopupPointer; // place popup at pointer position
+        this.REVERSE_AUTO          = options.switcherPopupReverseAuto;  // reverse list in order to the first item be closer to the mouse pointer. only if !KEYBOARD_TRIGGERED
         this.POPUP_POSITION        = options.switcherPopupPosition;
         this.NO_MODS_TIMEOUT       = options.switcherPopupPointerTimeout;
         this.INITIAL_DELAY         = options.switcherPopupTimeout;
@@ -252,7 +253,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             childBox.x1 = x;
             if (childBox.x1 < monitor.x)
                 childBox.x1 = monitor.x;
-            childBox.y1 = Math.min(this._pointer.y, monitor.height - childNaturalHeight);
+            childBox.y1 = Math.min(Math.max(this._pointer.y - (childNaturalHeight / 2), monitor.y), monitor.height - childNaturalHeight);
         } else {
             if (x === undefined)
                 x = Math.max(monitor.x, monitor.x + Math.floor((monitor.width - childNaturalWidth) / 2));
@@ -277,15 +278,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._select(0);
         } else if (backward) {
             if (this._initialSelectionMode === SelectionMode.SECOND)
-                this._select(this._items.length - 1);
+                if (this._shouldReverse())
+                    this._select(1);
+                else
+                    this._select(this._items.length - 1);
             else if (this._initialSelectionMode === SelectionMode.ACTIVE)
                 this._select(this._getFocusedItemIndex());
                 // this._select(this._previous());
         } else if (this._initialSelectionMode === SelectionMode.FIRST) {
-            this._select(0);
+            if (this._shouldReverse())
+                this._select(this._items.length - 1);
+            else
+                this._select(0);
         } else if (this._initialSelectionMode === SelectionMode.SECOND) {
-            if (this._items.length > 1)
-                this._select(1);
+            if (this._items.length > 1) {
+                if (this._shouldReverse())
+                    this._select(this._items.length - 2);
+                else
+                    this._select(1);
+            }
             else
                 this._select(0);
         } else if (this._initialSelectionMode === SelectionMode.ACTIVE) {
@@ -367,6 +378,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (switcherList.length > 0) {
+            if (this._shouldReverse())
+                switcherList.reverse();
             if (this.SHOW_WIN_IMEDIATELY && !this.KEYBOARD_TRIGGERED) {
                 this._initialSelectionMode = SelectionMode.ACTIVE;
             }
@@ -808,7 +821,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._resetNoModsTimeout();
     }
 
-    _next() {
+    _next(reversed = false) {
+        if (this._reverseOrder  && !reversed)
+            return this._previous(true);
+
         let step = 1;
         if (!this.WRAPAROUND && this._selectedIndex === (this._items.length - 1))
             step = 0;
@@ -816,7 +832,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return mod(this._selectedIndex + step, this._items.length);
     }
 
-    _previous() {
+    _previous(reversed = false) {
+        if (this._reverseOrder && !reversed)
+            return this._next(true);
+
         let step = 1;
         if (!this.WRAPAROUND && this._selectedIndex === 0)
             step = 0;
@@ -1027,7 +1046,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             if (state === 0) {
                 if (this._selectedIndex !== -1) {
-                    this.blockSwitchWsFunction = true;
+                    //this.blockSwitchWsFunction = true;
                     this._finish(keyEvent.time);
                 } else {
                     this.fadeAndDestroy();
@@ -1855,6 +1874,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     ////////////////////////////////////////////////////////////////////////
 
     _triggerAction(action, direction = 0) {
+        if (this._recentSwitchTimeoutId && this.SHOW_WIN_IMEDIATELY) {
+            this._select(this._next());
+        }
         switch (action) {
         case Action.SELECT_ITEM:
             this._disableHover();
@@ -2147,6 +2169,20 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         return true;
+    }
+
+    _shouldReverse() {
+        if (this.KEYBOARD_TRIGGERED || !this.REVERSE_AUTO)
+            return false;
+        if (this._reverseOrder)
+            return true;
+
+        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
+        let mousePointerX = global.get_pointer()[0];
+        let diff = geometry.x + geometry.width - mousePointerX
+        let reverse = diff < 100;
+        this._reverseOrder = reverse;
+        return reverse;
     }
 });
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
