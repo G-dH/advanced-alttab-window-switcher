@@ -1310,8 +1310,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // toggle Switcher Mode
-        else if ((options.hotkeySwitcherMode.includes(keyString)) &&
-                     (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+        else if (options.hotkeySwitcherMode.includes(keyString)) {
             this._toggleSwitcherMode();
         }
 
@@ -1624,7 +1623,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             ? this._overlayTitle.height + margin
             : margin;
 
-        this._setOverlayLabelPosition(this._overlaySearchLabel, 0, offset, this._switcherList);
+        const xPosition = 0;
+        this._setOverlayLabelPosition(this._overlaySearchLabel, xPosition, offset, this._switcherList);
     }
 
     _showOverlayTitle() {
