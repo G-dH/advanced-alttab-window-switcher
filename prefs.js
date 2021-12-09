@@ -380,7 +380,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Action hotkeys require Shift'),
+            _('Action Hotkeys require Shift'),
             _('A-Z hotkeys, excuding those for navigation and filter switching, will require Shift key pressed to work. Very useful when you start to type without switching to Type to Search mode.'),
             _newGtkSwitch(),
             'switcherPopupShiftHotkeys'
@@ -389,7 +389,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Wraparound selector'),
+            _('Wraparound Selector'),
             _('Whether the selection should continue from the last item to the first one and vice versa.'),
             _newGtkSwitch(),
             'switcherPopupWrap'
@@ -398,7 +398,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Mouse hover selects item'),
+            _('Hover Selects item'),
             _('Whether hovering the mouse pointer over a switcher item selects the item. If the switcher is triggered by a mouse, the mouseover selection is always active.'),
             _newGtkSwitch(),
             'switcherPopupHoverSelect'
@@ -413,7 +413,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Show hotkeys F1-F12 for direct activation'),
+            _('Show Hotkeys F1-F12 for direct activation'),
             _('The hotkeys will work independently on this option.'),
             _newGtkSwitch(),
             'switcherPopupHotKeys'
@@ -422,7 +422,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Show status'),
+            _('Show Status'),
             _('Whether the label indicating filter, grouping and sorting modes should be displayed at the bottom left of the popup.'),
             _newGtkSwitch(),
             'switcherPopupStatus'
@@ -481,7 +481,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Primary Click on switcher background'),
+            _('Primary click on switcher Background'),
             _('Action to be triggered by a click of the primary (usualy left) mouse button on the switcher popup background'),
             _newComboBox(),
             'switcherPopupPrimClickIn',
@@ -491,7 +491,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Secondary Click on switcher background'),
+            _('Secondary click on switcher Background'),
             _('Action to be triggered by a click of the secondary (usualy right) mouse button on the switcher popup background'),
             _newComboBox(),
             'switcherPopupSecClickIn',
@@ -501,7 +501,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Middle Click on switcher background'),
+            _('Middle click on switcher Background'),
             _('Action to be triggered by a click of the middle mouse button on the switcher popup background'),
             _newComboBox(),
             'switcherPopupMidClickIn',
@@ -511,7 +511,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Scroll over switcher background'),
+            _('Scroll over switcher Background'),
             _('Action to be triggered by scrolling over the switcher popup, but not over the switcher item'),
             _newComboBox(),
             'switcherPopupScrollIn',
@@ -521,7 +521,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Primary Click outside switcher'),
+            _('Primary click Outside switcher'),
             _('Action to be triggered by a click of the primary (usualy left) mouse button outside the switcher popup'),
             _newComboBox(),
             'switcherPopupPrimClickOut',
@@ -531,7 +531,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Secondary Click outside switcher'),
+            _('Secondary click Outside switcher'),
             _('Action to be triggered by a click of the secondary (usualy right) mouse button outside the switcher popup'),
             _newComboBox(),
             'switcherPopupSecClickOut',
@@ -541,7 +541,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Middle Click outside switcher'),
+            _('Middle click Outside switcher'),
             _('Action to be triggered by a click of the middle mouse button outside the switcher popup'),
             _newComboBox(),
             'switcherPopupMidClickOut',
@@ -551,7 +551,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Scroll outside switcher popup'),
+            _('Scroll Outside switcher popup'),
             _('Action to be triggered by scrolling outside of the switcher popup'),
             _newComboBox(),
             'switcherPopupScrollOut',
@@ -561,7 +561,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Workspace switcher:')),
+            _makeTitle(_('Workspace Switcher:')),
         )
     );
 
@@ -585,7 +585,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Show workspace indicator'),
+            _('Show Workspace indicator'),
             null,
             _newGtkSwitch(),
             'wsSwitchIndicator'
@@ -636,7 +636,7 @@ function _getCommonOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Pop-up at mouse pointer position if triggered by mouse'),
-            _('If variable KEYBOARD_TRIGGERED is set false, then this option is reflected.'),
+            _('If variable KEYBOARD_TRIGGERED is set to false, then this option is reflected.'),
             _newGtkSwitch(),
             'switcherPopupPointer'
         )
@@ -644,7 +644,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Automatically Reverse Items Order'),
+            _('Automatically Reverse list order'),
             _('List switcher items from right to left if this helps the mouse pointer be closer to the first item.'),
             _newGtkSwitch(),
             'switcherPopupReverseAuto'
@@ -661,7 +661,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Pointer out timeout (ms)'),
+            _('Pointer Out Timeout (ms)'),
             _('If the switcher is activated by the mouse, the popup closes after this period of inactivity if the mouse pointer is outside the popup.'),
             _newSpinButton(popupPointerTimeoutAdjustment),
             'switcherPopupPointerTimeout'
@@ -670,7 +670,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Activate selected item on hide'),
+            _('Activate selected item on Hide'),
             _('When you move mouse pointer outside the switcher popup and "Pointer out timeout" expires, selected item will be activated before popup hides.'),
             _newGtkSwitch(),
             'switcherPopupActivateOnHide'
@@ -735,7 +735,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Skip Minimized Windows'),
+            _('Skip Minimized windows'),
             null,
             _newGtkSwitch(),
             'winSkipMinimized'
@@ -744,7 +744,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Search All Windows'),
+            _('Search All windows'),
             _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
             _newGtkSwitch(),
             'winSwitcherPopupSearchAll'
@@ -768,7 +768,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Show Window Titles under each window item'),
+            _('Show Window Title under each window item'),
             _('Whether window titles should be displayed under each window item in the switcher list.'),
             _newComboBox(),
             'winSwitcherPopupTitles',
@@ -796,7 +796,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Window preview size (px)'),
+            _('Window Preview Size (px)'),
             null,
             _newSpinButton(popupSizeAdjustment),
             'winSwitcherPopupPreviewSize'
@@ -812,7 +812,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Window icon size (px)'),
+            _('Window Icon Size (px)'),
             null,
             _newSpinButton(popupIconSizeAdjustment),
             'winSwitcherPopupIconSize'
@@ -840,7 +840,7 @@ function _getWindowOptionsList() {
     winActionList.splice(1,1);*/
     optionsList.push(
         _optionsItem(
-            _('Primary Click on Item'),
+            _('Primary click on Item'),
             _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (window icon)'),
             _newComboBox(),
             'winSwitcherPopupPrimClickItem',
@@ -850,7 +850,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Secondary Click on Item'),
+            _('Secondary click on Item'),
             _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (window icon)'),
             _newComboBox(),
             'winSwitcherPopupSecClickItem',
@@ -860,7 +860,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Middle Click on Item'),
+            _('Middle click on Item'),
             _('Action to be triggered by a click of the middle mouse button on any switcher item (window icon)'),
             _newComboBox(),
             'winSwitcherPopupMidClickItem',
@@ -936,7 +936,7 @@ function _getAppOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('App icon size (px)'),
+            _('App Icon Size (px)'),
             null,
             _newSpinButton(popupAppIconSizeAdjustment),
             'appSwitcherPopupIconSize'
@@ -963,7 +963,7 @@ function _getAppOptionsList() {
     // appActionList.splice(1,1);
     optionsList.push(
         _optionsItem(
-            _('Primary Click on Item'),
+            _('Primary click on Item'),
             _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (app icon)'),
             _newComboBox(),
             'appSwitcherPopupPrimClickItem',
@@ -973,7 +973,7 @@ function _getAppOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Secondary Click on Item'),
+            _('Secondary click on Item'),
             _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (app icon)'),
             _newComboBox(),
             'appSwitcherPopupSecClickItem',
@@ -983,7 +983,7 @@ function _getAppOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _('Middle Click on Item'),
+            _('Middle click on Item'),
             _('Action to be triggered by a click of the middle mouse button on any switcher item (app icon)'),
             _newComboBox(),
             'appSwitcherPopupMidClickItem',
@@ -1010,7 +1010,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Switch Filtering Mode'),
+            _('Switch Filter mode'),
             _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
             _newGtkEntry(),
             'hotkeySwitchFilter'
@@ -1019,7 +1019,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Toggle Search Mode On/Off'),
+            _('Toggle Search mode On/Off'),
             _("You can enter multiple patterns separated by a space and in arbitrary order to search windows/apps by titles, app names, app generic names and app executables. Generic names usually contain a basic app description so you can find most of editor apps by typing an 'edit', image viewers by typing 'image' and so on."),
             _newGtkEntry(),
             'hotkeySearch'
@@ -1028,7 +1028,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Toggle Sort by Workspace'),
+            _('Toggle Sort by workspace'),
             _('Toggles sorting by workspace, when Filter Mode is set to ALL.'),
             _newGtkEntry(),
             'hotkeyGroupWs'
@@ -1037,7 +1037,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Toggle Show only Windows of Selected App'),
+            _('Toggle Show only windows of selected app'),
             _('Toggles Single App mode - list only the windows of the selected application.'),
             _newGtkEntry(),
             'hotkeySingleApp'
@@ -1046,7 +1046,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Close Window / Quit Application'),
+            _('Close window / Quit application'),
             _('Closes the selected window or quits application, depending on the current Switcher Mode.'),
             _newGtkEntry(),
             'hotkeyCloseQuit'
@@ -1055,7 +1055,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Close all Windows of Selected app'),
+            _('Close all windows of selected app'),
             _('Closes all windows in the list that belong to the same application as the selected window/application.'),
             _newGtkEntry(),
             'hotkeyCloseAllApp'
@@ -1064,7 +1064,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Open New Window'),
+            _('Open new window'),
             _('Opens a new window of the selected application if the apllication supports it. You can also use default shortcut Ctrl+Enter'),
             _newGtkEntry(),
             'hotkeyNewWin'
@@ -1073,7 +1073,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionsList.push(
         _optionsItem(
-            _('Move Window to current Workspace/Monitor'),
+            _('Move window to current workspace/monitor'),
             _('Moves the selected window or windows of selected application to the current workspace and monitor.\
 The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             _newGtkEntry(),
@@ -1103,7 +1103,7 @@ If you press the 'A' key twice, it's actually equivalent to the one press of hot
 
     optionsList.push(
         _optionsItem(
-            _('Fullscreen on New Workspace'),
+            _('Fullscreen on new workspace'),
             _('Moves the selected window to the new empty workspace next to its current workspace and switches the window to the fullscreen mode.\
 Next use of this hotkey on the same window moves the window back to its original workspace (if exists) and turns off the fullscreen mode.'),
             _newGtkEntry(),
@@ -1113,7 +1113,7 @@ Next use of this hotkey on the same window moves the window back to its original
 
     optionsList.push(
         _optionsItem(
-            _('Toggle Maximize on Current Workspce/Monitor'),
+            _('Toggle Maximize on current workspce/monitor'),
             _('Toggles full maximization of the selected window on the current workspace and monitor.\
 The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             _newGtkEntry(),
@@ -1123,7 +1123,7 @@ The current monitor is the one where the switcher popup is located, or where the
 
     optionsList.push(
         _optionsItem(
-            _('Toggle Switcher Mode (Win/App)'),
+            _('Toggle Switcher mode (Win/App)'),
             _('Toggles between Windows and Applications modes'),
             _newGtkEntry(),
             'hotkeySwitcherMode'
@@ -1195,6 +1195,7 @@ Thumbnail controls:\n\
     );
 
     // Fixed Hotkeys ///////////////////////////////////////////////
+    // instead of settings variables include strings with predefined hotkeys
     optionsList.push(
         _optionsItem(
             _makeTitle(_('Fixed Hotkeys')),
@@ -1205,25 +1206,34 @@ Thumbnail controls:\n\
 
     optionsList.push(
         _optionsItem(
-            _('Window Mode: Iterate over aplications'),
+            _('Window mode: Iterate over aplications'),
             _('Switcher is in the Window mode: first press of the hotkey sorts windows by applications, each subsequent key press selects first window of the next app. Shift key changes direction.'),
             _newGtkEntry(),
-            _(';/~ (the key above Tab)')
+            _('`/~ (the key above Tab)')
         )
     );
 
     optionsList.push(
         _optionsItem(
-            _('App Mode: Switch to Single app switcher'),
+            _('App mode: Switch to Single app switcher'),
             _('Switcher is in the App mode: first press of the hotkey switches to Single App mode, each subsequent key press selects next window and Tab key switches back to the App view.'),
             _newGtkEntry(),
-            _(';/~ (the key above Tab)')
+            _('`/~ (the key above Tab)')
         )
     );
 
     optionsList.push(
         _optionsItem(
-            _('Force Quit'),
+            _('Toggle Search mode On/Off'),
+            _("You can enter multiple patterns separated by a space and in arbitrary order to search windows/apps by titles, app names, app generic names and app executables. Generic names usually contain a basic app description so you can find most of editor apps by typing an 'edit', image viewers by typing 'image' and so on."),
+            _newGtkEntry(),
+            _('Insert')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Force quit'),
             _('Sends kill -9 signal to the selected aplication or application of selected window'),
             _newGtkEntry(),
             _('Ctrl + Del')
@@ -1232,7 +1242,7 @@ Thumbnail controls:\n\
 
     optionsList.push(
         _optionsItem(
-            _('Show Selected Window'),
+            _('Show selected window'),
             _('Rises selected window and switches to the window\'s workspace if needed.'),
             _newGtkEntry(),
             _('Space, NumKey 0')
@@ -1241,7 +1251,7 @@ Thumbnail controls:\n\
 
     optionsList.push(
         _optionsItem(
-            _('Move Switcher to adjacent Monitor'),
+            _('Move switcher to adjacent monitor'),
             '',
             _newGtkEntry(),
             _('Ctrl + Left/Right/Up/Down')
@@ -1250,7 +1260,7 @@ Thumbnail controls:\n\
 
     optionsList.push(
         _optionsItem(
-            _('Move Switcher to next Monitor'),
+            _('Move switcher to next monitor'),
             _('Order is given by the Shell'),
             _newGtkEntry(),
             _('Ctrl + Tab')
@@ -1259,7 +1269,7 @@ Thumbnail controls:\n\
 
     optionsList.push(
         _optionsItem(
-            _('Reorder current Workspace'),
+            _('Reorder current workspace'),
             _('Move the current workspace by one position left or right (up or down on GNOME < 40)'),
             _newGtkEntry(),
             _('Ctrl + PageUp/PageDown')
@@ -1268,7 +1278,7 @@ Thumbnail controls:\n\
 
     optionsList.push(
         _optionsItem(
-            _('Reorder Favorite App'),
+            _('Reorder Favorite app'),
             _('In App Mode with Favorites Apps enabled you can change the possition of selected Favorite app. This change is system-wide.\n\
 If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'),
             _newGtkEntry(),
