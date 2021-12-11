@@ -272,7 +272,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _initialSelection(backward, binding) {
-        if (this._searchEntry !== null && this._searchEntry !== '')
+        if (this._searchEntryNotEmpty())
             this._initialSelectionMode = SelectionMode.FIRST;
         if (this._items.length === 1 && this._switcherList) {
             this._select(0);
@@ -437,7 +437,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '') ||
-                                    (this.SEARCH_ALL && this._searchEntry !== null && this._searchEntry !== '');
+                                    (this.SEARCH_ALL && this._searchEntryNotEmpty());
 
         // if no window matches the searched pattern, try to switch to a less restricted filter if possible and allowed
         // even if the switcher is in app mode, try to search windows if no app matches the search pattern
@@ -461,7 +461,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // if no windows/apps match the searched pattern and the searching apps is allowed, try to find some apps instead
-        if (switcherList.length === 0 && this.SEARCH_APPS === true && this._searchEntry !== null && this._searchEntry !== '') {
+        if (switcherList.length === 0 && this.SEARCH_APPS === true && this._searchEntryNotEmpty()) {
             switcherList = this._getAppList(this._searchEntry);
             this._initialSelectionMode = SelectionMode.FIRST;
         }
@@ -498,7 +498,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let themeNode = this._switcherList.get_theme_node();
         let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
         let border = themeNode.get_border_width(St.Side.BOTTOM);
-        if (!this._firstRun && !this.STATUS && !(this._showingApps && (this._searchEntry !== null && this._searchEntry !== ''))) {
+        if (!this._firstRun && !this.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
             let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
             fm = this._tempFilterMode ? this._tempFilterMode : fm;
             if (fm === FilterMode.MONITOR) {
@@ -712,7 +712,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 _('Sort: ')}${this._showingApps ? SortingModeLabel[this.APP_SORTING_MODE] : SortingModeLabel[this.WIN_SORTING_MODE]}, ${
                 _('Search: ')} ${this._searchEntry === null ? 'Off' : 'On'}`
         );
-        if (this._searchEntry !== null && this._searchEntry !== '') {
+        if (this._searchEntryNotEmpty()) {
             this._showOverlaySearchLabel(this._searchEntry);
         } else if (this._searchEntry === '' && this._overlaySearchLabel) {
             this.destroyOverlayLabel(this._overlaySearchLabel);
@@ -969,6 +969,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return -1;
     }
 
+    _searchEntryNotEmpty() {
+        return this._searchEntry !== null && this._searchEntry !== '';
+    }
+
     _onItemBtnPressEvent(actor, event) {
         const btn = event.get_button();
         let action;
@@ -1109,7 +1113,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (keysymName === 'space')
                     keysymName = ' ';
                 if (!(keysymName === ' ' && (this._searchEntry === '' || this._searchEntry[this._searchEntry.length-1] === ' '))) {
-                    this._searchEntry += keysymName;
+                    this._searchEntry += keysymName.toLowerCase();
                     this.show();
                     return Clutter.EVENT_STOP;
                 }
@@ -1440,16 +1444,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             Main.wm.actionMoveWorkspace(selected.get_workspace());
             this._showWsIndex();
         }
-        // switcher cannot be updated because if it's wider than screen, some items wouldn't be accessible
-        // this._updateSwitcher();
-        // avoid colision of creating new switcher while destroying popup during the initial show delay, when immediate show win is enabled
-        /*if (!this._initialDelayTimeoutId) {
-            if (global.workspace_manager.get_active_workspace() !== selected.get_workspace())
-                this.show();
-        }
-        this._doNotShowWin = true;
-        this._select(this._getItemIndexByID(id));
-        this._doNotShowWin = false;*/
     }
 
     _toggleSingleAppMode(switchOn = false) {
@@ -1517,9 +1511,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._switcherMode = SwitcherMode.APPS;
             this.SHOW_APPS = true;
             this._singleApp = null;
-            /* if (_searchEntry != null)
-                this._searchEntry = '';*/
-
             let id;
             if (this._showingApps) {
                 if (this._selectedIndex > -1 && this._getSelected().cachedWindows.length)
@@ -2000,19 +1991,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (this._singleApp) {
-            //this.SINGLE_APP_PREVIEW_SIZE = this._singleAppPreviewSize;
             if (this._switchNextApp) {
                 this._singleApp = this._getNextApp(winList);
                 this._switchNextApp = false;
             }
             let tracker = Shell.WindowTracker.get_default();
             winList = winList.filter(w => tracker.get_window_app(w).get_id() === this._singleApp);
-        } /*else {
-            this.SINGLE_APP_PREVIEW_SIZE = 0;
-        }*/
+        }
 
         if (this._searchEntry) {
-            const filterPatern = (wList, pattern) => {
+            const filterList = (wList, pattern) => {
                 return wList.filter(w => {
                 // search in window title and app name
                     const appInfo = Shell.WindowTracker.get_default().get_window_app(w).appInfo;
@@ -2028,12 +2016,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 });
             };
 
-            let winListP = filterPatern(winList, this._searchEntry);
-            // if no window match the pattern, remove the unmatched character
-            if (winListP.length === 0 && !this._tempFilterMode) {
-                // this._searchEntry = this._searchEntry.slice(0, -1);
-                winListP = filterPatern(winList, this._searchEntry);
-            }
+            let winListP = filterList(winList, this._searchEntry);
+            if (winListP.length > 0 && this._searchEntryNotEmpty())
+                winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), this._searchEntry));
 
             winList = winListP;
         }
@@ -2127,7 +2112,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             // sort apps by usage list
             appList.sort((a, b) => usage.compare(a.get_id(), b.get_id()));
-            appList.sort((a, b) => b.get_n_windows() > 0 && a.get_n_windows() === 0);
+            // prefer apps where any word in their name starts with the pattern
+            appList.sort((a, b) => this._isMoreRelevant(a.get_name(), b.get_name(), pattern));
+            /*// prefer currently running apps
+            appList.sort((a, b) => b.get_n_windows() > 0 && a.get_n_windows() === 0);*/
             // limit the app list size
             appList.splice(12);
         }
@@ -2177,6 +2165,23 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         return true;
+    }
+
+    _isMoreRelevant(stringA, stringB, pattern) {
+        let regex = /[^a-zA-Z\d]/;
+        let strSplitA = stringA.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(regex);
+        let strSplitB = stringB.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(regex);
+        let aAny = false;
+        strSplitA.forEach(w => {aAny = aAny || w.startsWith(pattern)});
+        let bAny = false;
+        strSplitB.forEach(w => {bAny = bAny || w.startsWith(pattern)});
+
+        // if both strings contain a word that starts with the pattern
+        // prefer the one whose first word starts with the pattern
+        if (aAny && bAny)
+            return !strSplitA[0].startsWith(pattern) && strSplitB[0].startsWith(pattern);
+        else
+            return !aAny && bAny;
     }
 
     _shouldReverse() {
@@ -2375,13 +2380,6 @@ class AppIcon extends Dash.DashIcon {
     vfunc_button_press_event(buttonEvent) {
         return Clutter.EVENT_PROPAGATE;
     }
-
-    /*_showWindow(win) {
-        let a = win.above;
-        win.make_above();
-        a ? win.make_above() : win.unmake_above();
-        Main.wm.actionMoveWorkspace(win.get_workspace());
-    }*/
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowSwitcher = GObject.registerClass(
