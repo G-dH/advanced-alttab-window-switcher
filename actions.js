@@ -135,11 +135,10 @@ var Actions = class {
                 ).length;
             if (nWindows > 1) {
                 win._originalWS = ws;
-                let lastWs = global.workspaceManager.n_workspaces - 1;
-                lastWs = global.workspaceManager.get_workspace_by_index(lastWs);
-                // Main.wm.actionMoveWorkspace(lastWs);
-                win.change_workspace(lastWs);
-                global.workspace_manager.reorder_workspace(lastWs, ws.index() + 1);
+                let newWsIndex = ws.index() + 1;
+                Main.wm.insertWorkspace(newWsIndex);
+                let newWs = global.workspace_manager.get_workspace_by_index(newWsIndex);
+                win.change_workspace(newWs);
                 win.activate(global.get_current_time());
             }
         }
