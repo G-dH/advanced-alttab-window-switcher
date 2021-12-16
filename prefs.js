@@ -107,13 +107,13 @@ function buildPrefsWidget() {
 
 const OptionsPageAATWS = GObject.registerClass(
 class OptionsPageAATWS extends Gtk.ScrolledWindow {
-    _init(optionList, constructProperties = {
+    _init(optionList, widgetPropetrties = {
         hscrollbar_policy: Gtk.PolicyType.NEVER,
         vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
         vexpand: true,
         hexpand: true,
     }) {
-        super._init(constructProperties);
+        super._init(widgetPropetrties);
 
         this.optionList = optionList;
         this._alreadyBuilt = false;
@@ -126,10 +126,10 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
 
         const mainBox = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
-            spacing: 10,
+            spacing: 5,
             homogeneous: false,
-            margin_start: 12,
-            margin_end: 20,
+            margin_start: 15,
+            margin_end: 15,
             margin_top: 12,
             margin_bottom: 12,
             visible: true,
@@ -139,14 +139,17 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
         let frameBox;
         for (let item of this.optionList) {
             if (!item[0][1]) {
-                let lbl = new Gtk.Label({visible: true});
+                let lbl = new Gtk.Label({
+                    xalign: 0,
+                    visible: true
+                });
                 lbl.set_markup(item[0][0]);
                 if (item[1])
                     lbl.set_tooltip_text(item[1]);
+                mainBox[mainBox.add ? 'add' : 'append'](lbl);
                 frame = new Gtk.Frame({
-                    label_widget: lbl,
-                    margin_start: 10,
                     visible: true,
+                    margin_bottom: 10,
                 });
                 frameBox = new Gtk.ListBox({
                     selection_mode: null,
@@ -333,7 +336,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Behavior:')),
+            _makeTitle(_('Behavior')),
         )
     );
 
@@ -407,7 +410,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Appearance:')),
+            _makeTitle(_('Appearance')),
         )
     );
 
@@ -475,7 +478,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Mouse control:')),
+            _makeTitle(_('Mouse control')),
         )
     );
 
@@ -561,7 +564,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Workspace Switcher:')),
+            _makeTitle(_('Workspace Switcher')),
         )
     );
 
@@ -595,7 +598,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('DND Window Thumbnails:')),
+            _makeTitle(_('DND Window Thumbnails')),
             `${_('Window thumbnails are overlay clones of windows, can be dragged and dropped by mouse anywhere on the screen.')}\n${
                 _('Thumbnail control:')}\n    ${
                 _('Double click:    \t\tactivate source window')}\n    ${
@@ -629,7 +632,7 @@ function _getCommonOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Options for external trigger:')),
+            _makeTitle(_('Options for external trigger')),
         )
     );
 
@@ -688,7 +691,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Behavior:')),
+            _makeTitle(_('Behavior')),
         )
     );
 
@@ -762,7 +765,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Appearance:')),
+            _makeTitle(_('Appearance')),
         )
     );
 
@@ -821,7 +824,7 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Mouse control:')),
+            _makeTitle(_('Mouse control')),
         )
     );
 
@@ -879,7 +882,7 @@ function _getAppOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Behavior:')),
+            _makeTitle(_('Behavior')),
         )
     );
 
@@ -921,7 +924,7 @@ function _getAppOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Appearance:')),
+            _makeTitle(_('Appearance')),
         )
     );
 
@@ -945,7 +948,7 @@ function _getAppOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Mouse control:')),
+            _makeTitle(_('Mouse control')),
         )
     );
 
@@ -1001,7 +1004,7 @@ function _getHotkeysOptionsList() {
 
     optionsList.push(
         _optionsItem(
-            _makeTitle(_('Hotkeys configuration:')),
+            _makeTitle(_('Hotkeys configuration')),
             "You can enter up to two hotkeys for each action, the second one is primarily dedicated to include non [a-zA-Z] keys with Shift pressed.\n\
 Delete hotkey to disable the action.\n\
 All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is turned on."
@@ -1206,6 +1209,24 @@ Thumbnail controls:\n\
 
     optionsList.push(
         _optionsItem(
+            _('Select Previous/Next Item'),
+            '',
+            _newGtkEntry(),
+            _('Left/Right Arrow Keys')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Switch to Previous/Next Workspace'),
+            '',
+            _newGtkEntry(),
+            _('Up/Down Arrow Keys')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
             _('Window mode: Iterate over aplications'),
             _('Switcher is in the Window mode: first press of the hotkey sorts windows by applications, each subsequent key press selects first window of the next app. Shift key changes direction.'),
             _newGtkEntry(),
@@ -1264,6 +1285,24 @@ Thumbnail controls:\n\
             _('Order is given by the Shell'),
             _newGtkEntry(),
             _('Ctrl + Tab')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Move selected to previous/next workspace'),
+            _('Moves selected window or windows of selected applications to an adjacent workspace. If you try to move windows in front of the first workspace, new workspace will be inserted automatically.'),
+            _newGtkEntry(),
+            _('Ctrl + Up/Down')
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
+            _('Move selected to new workspace'),
+            _('Moves selected window or windows of selected applications to a new workspace created in front of or behind the current one.'),
+            _newGtkEntry(),
+            _('Ctrl+Shift + Up/Down')
         )
     );
 
