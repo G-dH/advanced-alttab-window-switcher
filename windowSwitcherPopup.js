@@ -7,14 +7,14 @@ const Main            = imports.ui.main;
 const AltTab          = imports.ui.altTab;
 const SwitcherPopup   = imports.ui.switcherPopup;
 const Dash            = imports.ui.dash;
+const PopupMenu       = imports.ui.popupMenu;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
 const Settings        = Me.imports.settings;
 const ActionLib       = Me.imports.actions;
 
-const shellVersion    = imports.misc.config.PACKAGE_VERSION;
-const GNOME40         = parseFloat(shellVersion) >= 40;
+const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 // options inits in extension.enable()
 var options;
@@ -233,8 +233,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     vfunc_allocate(box, flags) {
         let monitor = this._getMonitorByIndex(this._monitorIndex);
-        GNOME40 ?   this.set_allocation(box)
-            :   this.set_allocation(box, flags);
+        shellVersion >= 40  ?   this.set_allocation(box)
+                            :   this.set_allocation(box, flags);
         let childBox = new Clutter.ActorBox();
         // Allocate the switcherList
         // We select a size based on an icon size that does not overflow the screen
@@ -267,8 +267,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
         childBox.x2 = Math.min(monitor.x + monitor.width, childBox.x1 + childNaturalWidth);
         childBox.y2 = childBox.y1 + childNaturalHeight;
-        GNOME40 ?   this._switcherList.allocate(childBox)
-            :   this._switcherList.allocate(childBox, flags);
+        shellVersion >= 40  ?   this._switcherList.allocate(childBox)
+                            :   this._switcherList.allocate(childBox, flags);
     }
 
     _initialSelection(backward, binding) {
@@ -314,13 +314,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 GLib.PRIORITY_DEFAULT,
                 200,
                 () => {
+                    if (this._doNotUpdateOnNewWindow)
+                        return GLib.SOURCE_REMOVE;
                     this._updateSwitcher();
-
-                    if (win && this._showingApps && this._selectedIndex > -1)
-                        this._select(this._getItemIndexByID(_getWindowApp(win).get_id()));
-                    else if (this._selectedIndex > -1)
+                    let app = _getWindowApp(win);
+                    if (win && this._showingApps && this._selectedIndex > -1) {
+                        if (app)
+                            this._select(this._getItemIndexByID(app.get_id()));
+                    }
+                    else if (this._selectedIndex > -1) {
                         this._select(this._getItemIndexByID(win.get_id()));
-
+                    }
                     this._newWindowConnectorTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
             });
@@ -1169,21 +1173,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (_shiftPressed() && _ctrlPressed())
                 this._moveFavotites(-1);
             else if (!_shiftPressed())
-                this._select(this._previous());
+                this._select(this._previous(true));
             else
                 this._switchMonitor(Meta.DisplayDirection.LEFT);
         } else if (keysym == Clutter.KEY_Right || options.hotkeyRight.includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed())
                 this._moveFavotites(+1);
             if (!_shiftPressed())
-                this._select(this._next());
+                this._select(this._next(true));
             else
                 this._switchMonitor(Meta.DisplayDirection.RIGHT);
         } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || options.hotkeyUp.includes(keyString)) {
             if (_ctrlPressed() && keysym == Clutter.KEY_Page_Up) {
                 this._reorderWorkspace(-1);
             }
-            else if (!_shiftPressed())
+            else if (_ctrlPressed() && !_shiftPressed())
+                this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
+            else if (_ctrlPressed() && _shiftPressed())
+                this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.UP)
+            else if (!_ctrlPressed() && !_shiftPressed())
                 this._switchWorkspace(Clutter.ScrollDirection.UP);
             else
                 this._switchMonitor(Meta.DisplayDirection.UP);
@@ -1191,7 +1199,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (_ctrlPressed() && keysym == Clutter.KEY_Page_Down) {
                 this._reorderWorkspace(+1);
             }
-            else if (!_shiftPressed())
+            else if (_ctrlPressed() && !_shiftPressed())
+                this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
+            else if (_ctrlPressed() && _shiftPressed())
+                this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.DOWN)
+            else if (!_ctrlPressed() && !_shiftPressed())
                 this._switchWorkspace(Clutter.ScrollDirection.DOWN);
             else
                 this._switchMonitor(Meta.DisplayDirection.DOWN);
@@ -1328,6 +1340,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._openPrefsWindow();
         }
 
+        else if (keysym === Clutter.KEY_Menu) {
+            if (this._showingApps)
+                this._openAppIconMenu();
+        }
+
         else {
             return Clutter.EVENT_PROPAGATE;
         }
@@ -1437,9 +1454,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (selected.minimized)
             selected.unminimize();
-        let a = selected.above;
-        selected.make_above();
-        a ? selected.make_above() : selected.unmake_above();
+        selected.raise();
         if (global.workspace_manager.get_active_workspace() !== selected.get_workspace()) {
             Main.wm.actionMoveWorkspace(selected.get_workspace());
             this._showWsIndex();
@@ -1564,7 +1579,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._wsOverlay = this._customOverlayLabel('ws-overlay', 'workspace-index-overlay');
-        this._wsOverlay.text = (global.workspace_manager.get_active_workspace().index() + 1).toString();
+        this._wsOverlay.text = (global.workspace_manager.get_active_workspace_index() + 1).toString();
         Main.layoutManager.addChrome(this._wsOverlay);
 
         let geometry = global.display.get_monitor_geometry(this._monitorIndex);
@@ -1707,6 +1722,66 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
+    /*_onlySelectedOnCurrentWs(selectedWindows) {
+        let wsWindows = global.workspace_manager.get_active_workspace().list_windows();
+        let match = 0;
+        wsWindows.forEach(w => match += selectedWindows.includes(w) ? 1 : 0);
+        if (match === wsWindows.length)
+            return true;
+        return false;
+    }*/
+
+    _moveWinToNewAdjacentWs(direction) {
+        let selected = this._getSelected();
+        if (!selected || (selected.cachedWindows && !selected.cachedWindows.length))
+            return;
+
+        let wsIndex = global.workspace_manager.get_active_workspace_index();
+        /*let doNotInsertNewWs = false;
+        // don't make unnecessary workspace
+        if ((wsIndex === 0 && direction === Clutter.ScrollDirection.UP) ||
+            (wsIndex === (global.workspace_manager.get_n_workspaces() - 2) && direction === Clutter.ScrollDirection.DOWN)
+        ) {
+            let selectedWindows = selected.cachedWindows ? selected.cachedWindows : [selected];
+            if (this._onlySelectedOnCurrentWs(selectedWindows))
+                doNotInsertNewWs = true;
+        }*/
+        //if (!doNotInsertNewWs) {
+            wsIndex = wsIndex + (direction === Clutter.ScrollDirection.UP ? 0 : 1);
+            Main.wm.insertWorkspace(wsIndex);
+            this._moveWinToAdjacentWs(direction);
+        /*} else {
+            this._moveToCurrentWS();
+        }*/
+    }
+
+    _moveWinToAdjacentWs(direction) {
+        let selected = this._getSelected();
+        if (!selected || (selected.cachedWindows && !selected.cachedWindows.length))
+            return;
+
+        this._doNotUpdateOnNewWindow = true;
+        let wsIndex = global.workspace_manager.get_active_workspace_index();
+        wsIndex = wsIndex + (direction === Clutter.ScrollDirection.UP ? -1 : 1);
+        wsIndex = Math.min(wsIndex, global.workspace_manager.get_n_workspaces() - 1);
+        if (wsIndex < 0) {
+            this._moveWinToNewAdjacentWs(direction);
+            this._doNotUpdateOnNewWindow = false;
+            return;
+        }
+
+        let ws = global.workspace_manager.get_workspace_by_index(wsIndex);
+        if (this._showingApps) {
+            this._getActions().switchWorkspace(direction, true);
+            this._moveToCurrentWS();
+        } else {
+            Main.wm.actionMoveWindow(selected, ws);
+            this._updateSwitcher();
+        }
+        this._showWsIndex();
+        this._doNotUpdateOnNewWindow = false;
+    }
+
     _moveToCurrentWS() {
         let selected = this._getSelected();
         if (!selected)
@@ -1769,22 +1844,28 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return;
         let nWindows = selected.cachedWindows.length;
         let popupItems = [
-            [_('Quit'), this._closeWinQuitApp],
+            [_(`Move ${nWindows} Windows to New Workspace`), this._moveWinToNewAdjacentWs, Clutter.ScrollDirection.DOWN],
+            [_(`Move ${nWindows} Windows to Current WS/Monitor`), this._moveToCurrentWS],
             [_('Force Quit'), this._killApp],
-            [_(`Close ${nWindows} Window(s)`), this._closeAppWindows],
-            [_(`Move ${nWindows} Window(s) to the current WS/Monitor`), this._moveToCurrentWS],
+            [_(`Close ${nWindows} Windows`), this._closeAppWindows],
         ];
+        if (shellVersion < 41)
+            popupItems.push([_('Quit'), this._closeWinQuitApp]);
+
         let appIcon = this._items[this._selectedIndex];
         if (appIcon) {
             appIcon.popupMenu();
-            //const PopupMenu = imports.ui.popupMenu;
-            //appIcon._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(_('Actions')));
-            if (nWindows) {
+            appIcon._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            if (nWindows && (!appIcon._menu._alreadyCompleted || shellVersion < 41)) {
                 popupItems.forEach(i => {
-                    let item = appIcon._menu._appendMenuItem(i[0]);
+                    let item = new PopupMenu.PopupMenuItem(i[0]);
+                    appIcon._menu.addMenuItem(item);
                     item.connect('activate', i[1].bind(this));
                 });
+                appIcon._menu._alreadyCompleted = true;
             }
+            let menuItems = appIcon._menu._getMenuItems();
+            menuItems[1].active = true;
         }
     }
 
@@ -1873,6 +1954,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     ////////////////////////////////////////////////////////////////////////
 
     _triggerAction(action, direction = 0) {
+        // select recent window instead of the first one
         if (this._recentSwitchTimeoutId && this.SHOW_WIN_IMEDIATELY) {
             this._select(this._next());
         }
@@ -2123,7 +2205,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let windowTracker = Shell.WindowTracker.get_default();
         this._tempFilterMode = filterMode;
         if ((filterMode === FilterMode.MONITOR || filterMode === FilterMode.WORKSPACE) && pattern === '') {
-            let currentWS = global.workspace_manager.get_active_workspace().index();
+            let currentWS = global.workspace_manager.get_active_workspace_index();
             this._tempFilterMode = this.APP_FILTER_MODE;
             appList = appList.filter(a => {
                 if (a.get_n_windows())
@@ -2300,7 +2382,7 @@ class WindowIcon extends St.BoxLayout {
     }
 
     _createWsIcon(index) {
-        let currentWS = global.workspace_manager.get_active_workspace().index();
+        let currentWS = global.workspace_manager.get_active_workspace_index();
         let icon = new St.Widget({
             x_expand: true,
             y_expand: true,
@@ -2423,7 +2505,7 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
             this.addItem(icon, icon.titleLabel);
             this.icons.push(icon);
 
-            // the icon could be an app, not just a window
+            // the icon could be an app, not only a window
             if (icon.is_window) {
                 icon._unmanagedSignalId = icon.window.connect('unmanaged', window => {
                     this._removeWindow(window);
@@ -2466,15 +2548,15 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
             labelHeightStatus + labelHeight + spacing;
 
         box.y2 -= totalLabelHeight;
-        GNOME40 ? super.vfunc_allocate(box)
-                : super.vfunc_allocate(box, flags);
+        shellVersion >= 40  ? super.vfunc_allocate(box)
+                            : super.vfunc_allocate(box, flags);
 
         // Hooking up the parent vfunc will call this.set_allocation() with
         // the height without the label height, so call it again with the
         // correct size here.
         box.y2 += totalLabelHeight;
-        GNOME40 ? this.set_allocation(box)
-                : this.set_allocation(box, flags);
+        shellVersion >= 40  ? this.set_allocation(box)
+                            : this.set_allocation(box, flags);
 
         const childBox = new Clutter.ActorBox();
         childBox.x1 = contentBox.x1;
@@ -2482,8 +2564,8 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         childBox.y2 = contentBox.y2 - labelHeightStatus + spacing;
         childBox.y1 = childBox.y2 - labelHeight - labelHeightStatus;
         if (this._switcherParams.labelTitle) {
-            GNOME40 ? this._label.allocate(childBox)
-                    : this._label.allocate(childBox, flags);
+            shellVersion >= 40  ? this._label.allocate(childBox)
+                                : this._label.allocate(childBox, flags);
         }
         const childBoxStatus = new Clutter.ActorBox();
         childBoxStatus.x1 = contentBox.x1;
@@ -2491,8 +2573,8 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         childBoxStatus.y2 = contentBox.y2;
         childBoxStatus.y1 = childBoxStatus.y2 - labelHeightStatus;
         if (this._switcherParams.status) {
-            GNOME40 ? this._statusLabel.allocate(childBoxStatus)
-                    : this._statusLabel.allocate(childBoxStatus, flags);
+            shellVersion >= 40  ? this._statusLabel.allocate(childBoxStatus)
+                                : this._statusLabel.allocate(childBoxStatus, flags);
         }
     }
 
