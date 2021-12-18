@@ -202,14 +202,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._showWinImmediatelyTimeoutId,
             this._overlayDelayId,
             this._recentSwitchTimeoutId,
-            this._newWindowConnectorTimeoutId
+            this._newWindowConnectorTimeoutId,
         ];
         timeouts.forEach(t => {
             if (t)
                 GLib.source_remove(t);
         });
-        if (this._newWindowConnector)
-            global.display.disconnect(this._newWindowConnector);
+        if (this._newWindowSignalId)
+            global.display.disconnect(this._newWindowSignalId);
         this._removeOverlays();
         if (this._actions)
             this._actions.clean();
@@ -284,7 +284,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._select(this._items.length - 1);
             else if (this._initialSelectionMode === SelectionMode.ACTIVE)
                 this._select(this._getFocusedItemIndex());
-                // this._select(this._previous());
         } else if (this._initialSelectionMode === SelectionMode.FIRST) {
             if (this._shouldReverse())
                 this._select(this._items.length - 1);
@@ -301,15 +300,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._select(0);
         } else if (this._initialSelectionMode === SelectionMode.ACTIVE) {
             this._select(this._getFocusedItemIndex());
-            // this._select(this._next());
         }
     }
 
     _connectNewWindows() {
-        this._newWindowConnector = global.display.connect_after('window-created', (w, win) => {
+        this._newWindowSignalId = global.display.connect_after('window-created', (w, win) => {
             if (this._doNotUpdateOnNewWindow)
                 return;
             // there are situations when window list updates later than this callback is executed
+            if (this._newWindowConnectorTimeoutId)
+                GLib.source_remove(this._newWindowConnectorTimeoutId);
             this._newWindowConnectorTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
                 200,
@@ -327,7 +327,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     }
                     this._newWindowConnectorTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
-            });
+                }
+            );
         });
     }
 
@@ -591,6 +592,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return true;
     }
 
+    _itemRemoved(switcher, n) {
+        // n is -1 when this._showingApps
+        if (n === -1)
+            this._delayedUpdate(200);
+        else
+            this._itemRemovedHandler(n);
+    }
+
     _shadeIn() {
         let height = this._switcherList.height;
         this.opacity = 255;
@@ -697,6 +706,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _delayedUpdate(delay) {
+        if (this._updateTimeoutId)
+            GLib.source_remove(this._updateTimeoutId);
         this._updateTimeoutId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
             delay,
@@ -1881,8 +1892,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             selected.delete(global.get_current_time());
         }
         // if any window remains, update the switcher content
-        if (this._items.length > 1)
-            this._delayedUpdate(200);
+        //if (this._items.length > 1)
+        //    this._delayedUpdate(200);
     }
 
     _closeAppWindows() {
@@ -1890,7 +1901,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!selected)
             return;
         this._getActions().closeAppWindows(selected, this._items);
-        this._delayedUpdate(200);
     }
 
     _killApp() {
@@ -1900,7 +1910,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._showingApps) {
             if (selected.cachedWindows.length > 0)
                 selected.cachedWindows[0].kill();
-            this._delayedUpdate(200);
         } else {
             selected.kill();
         }
@@ -2465,7 +2474,7 @@ class AppIcon extends Dash.DashIcon {
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowSwitcher = GObject.registerClass(
-class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
+class WindowSwitcher extends SwitcherPopup.SwitcherList {
     _init(items, switcherParams) {
         let squareItems = false;
         super._init(squareItems);
@@ -2507,9 +2516,13 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
 
             // the icon could be an app, not only a window
             if (icon.is_window) {
-                icon._unmanagedSignalId = icon.window.connect('unmanaged', window => {
-                    this._removeWindow(window);
-                });
+                icon._unmanagedSignalId = icon.window.connect('unmanaged', this._removeWindow.bind(this));
+            } else {
+                if (icon.app.cachedWindows.length > 0) {
+                    icon.app.cachedWindows.forEach(w =>
+                        w._unmanagedSignalId = w.connect('unmanaged', this._removeWindow.bind(this))
+                    )
+                }
             }
         }
 
@@ -2520,6 +2533,12 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
         this.icons.forEach(icon => {
             if (icon.window)
                 icon.window.disconnect(icon._unmanagedSignalId);
+            else
+                icon.app.cachedWindows.forEach(w => {
+                    if (w._unmanagedSignalId)
+                        w.disconnect(w._unmanagedSignalId)
+                }
+                );
         });
     }
 
@@ -2584,14 +2603,19 @@ class WindowSwitcher extends AltTab.SwitcherPopup.SwitcherList {
     }
 
     _removeWindow(window) {
-        let index = this.icons.findIndex(icon => {
-            return icon.window == window;
-        });
-        if (index === -1)
-            return;
+        if (this.icons[0].window) {
+            let index = this.icons.findIndex(icon => {
+                return icon.window == window;
+            });
+            if (index === -1)
+                return;
 
-        this.icons.splice(index, 1);
-        this.removeItem(index);
+            this.icons.splice(index, 1);
+            this.removeItem(index);
+        } else {
+            // if _showingApps
+            this.emit('item-removed', -1);
+        }
     }
 });
 
