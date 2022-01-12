@@ -366,7 +366,7 @@ function _getCommonOptionsList() {
     optionsList.push(
         _optionsItem(
             _('Show selected window/app immediately'),
-            _("Bring the window/app to the front (and switch a workspace if needed) immediately after it's selected."),
+            _("Raise the window/app (and switch a workspace if needed) immediately after it's selected."),
             _newGtkSwitch(),
             'switcherPopupShowImmediately'
         )
