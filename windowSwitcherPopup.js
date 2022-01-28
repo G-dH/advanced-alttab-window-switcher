@@ -254,7 +254,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             childBox.x1 = x;
             if (childBox.x1 < monitor.x)
                 childBox.x1 = monitor.x;
-            childBox.y1 = Math.min(Math.max(this._pointer.y - (childNaturalHeight / 2), monitor.y), monitor.height - childNaturalHeight);
+            childBox.y1 = Math.min(Math.max(this._pointer.y - (childNaturalHeight / 2), monitor.y), monitor.y + monitor.height - childNaturalHeight);
         } else {
             if (x === undefined)
                 x = Math.max(monitor.x, monitor.x + Math.floor((monitor.width - childNaturalWidth) / 2));
@@ -686,9 +686,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 }
             }
         } else {
-            Main.activateWindow(this._getSelected());
+            this._activateWindow(this._getSelected());
+            //Main.activateWindow(this._getSelected());
         }
         super._finish();
+    }
+
+    _activateWindow(metaWin) {
+        const wsSwitched = global.workspaceManager.get_active_workspace_index() !== metaWin.get_workspace().index();
+        Main.activateWindow(this._getSelected());
+        if (wsSwitched) {
+            this._showWsSwitcherPopup();
+        }
     }
 
     _connectIcons() {
@@ -1771,8 +1780,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return false;
     }*/
 
-    _moveWinToNewAdjacentWs(direction) {
-        let selected = this._getSelected();
+    _moveWinToNewAdjacentWs(direction, select = null) {
+        let selected = select;
+        if (!selected) {
+            selected = this._getSelected();
+        }
         if (!selected || (selected.cachedWindows && !selected.cachedWindows.length))
             return;
 
@@ -1789,14 +1801,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         //if (!doNotInsertNewWs) {
             wsIndex = wsIndex + (direction === Clutter.ScrollDirection.UP ? 0 : 1);
             Main.wm.insertWorkspace(wsIndex);
-            this._moveWinToAdjacentWs(direction);
+            this._moveWinToAdjacentWs(direction, selected);
         /*} else {
             this._moveToCurrentWS();
         }*/
     }
 
-    _moveWinToAdjacentWs(direction) {
-        let selected = this._getSelected();
+    _moveWinToAdjacentWs(direction, select = null) {
+        let selected = select;
+        if (!selected) {
+            selected = this._getSelected();
+        }
         if (!selected || (selected.cachedWindows && !selected.cachedWindows.length))
             return;
 
@@ -1806,9 +1821,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         wsIndex = wsIndex + (direction === Clutter.ScrollDirection.UP ? -1 : 1);
         wsIndex = Math.min(wsIndex, global.workspace_manager.get_n_workspaces() - 1);
         // create new workspace if window should be moved in front of the first workspace
-        if (wsIndex < 0) {
-            this._moveWinToNewAdjacentWs(direction);
+        if (wsIndex < 0 & !select) {
+            this._moveWinToNewAdjacentWs(direction, selected);
             this._doNotUpdateOnNewWindow = false;
+            return;
+        } else if (wsIndex < 0) {
             return;
         }
 
