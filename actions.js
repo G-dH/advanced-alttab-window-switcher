@@ -40,9 +40,7 @@ var Actions = class {
 
     _getShellSettings() {
         if (!this._shellSettings) {
-            this._shellSettings = Settings.getSettings(
-                'org.gnome.shell',
-                '/org/gnome/shell/');
+            this._shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
         }
         return this._shellSettings;
     }

@@ -106,9 +106,7 @@ function _removeThumbnails(full = true) {
 }
 
 function _extensionEnabled() {
-    const shellSettings = Settings.getSettings(
-        'org.gnome.shell',
-        '/org/gnome/shell/');
+    const shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
     let enabled = shellSettings.get_strv('enabled-extensions');
     enabled = enabled.indexOf(Me.metadata.uuid) > -1;
     let disabled = shellSettings.get_strv('disabled-extensions');

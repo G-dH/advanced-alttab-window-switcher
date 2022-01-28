@@ -12,7 +12,6 @@ const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
 var _ = Gettext.gettext;
 
 const _schema = 'org.gnome.shell.extensions.advanced-alt-tab-window-switcher';
-const _path = '/org/gnome/shell/extensions/advanced-alt-tab-window-switcher';
 
 var Actions = {
     NONE:              0,
@@ -43,7 +42,7 @@ var Actions = {
 
 var MscOptions = class MscOptions {
     constructor() {
-        this._gsettings = this._loadSettings();
+        this._gsettings = ExtensionUtils.getSettings(_schema);
         this._connectionIds = [];
     }
 
@@ -55,12 +54,6 @@ var MscOptions = class MscOptions {
 
     destroy() {
         this._connectionIds.forEach(id => this._gsettings.disconnect(id));
-    }
-
-    _loadSettings(schm) {
-        const schema = `${_schema}`;
-        const path = `${_path}/`;
-        return getSettings(schema, path);
     }
 
     // common options
@@ -645,43 +638,4 @@ var MscOptions = class MscOptions {
     set hotkeyRight(string) {
         this._gsettings.set_string('hotkey-right', string);
     }
-/*    getKeyBind(key) {
-        return this._gsettingsKB.get_strv(key);
-    }
-    setKeyBind(key, value) {
-        this._gsettingsKB.set_strv(key, value);
-    }*/
 };
-
-/**
- * Copied from Gnome Shells extensionUtils.js and adapted to allow
- * loading the setting with a specific path.
- */
-function getSettings(schema, path) {
-    const schemaDir = Me.dir.get_child('schemas');
-    let schemaSource;
-    if (schemaDir.query_exists(null)) {
-        schemaSource = Gio.SettingsSchemaSource.new_from_directory(
-            schemaDir.get_path(),
-            Gio.SettingsSchemaSource.get_default(),
-            false
-        );
-    } else {
-        schemaSource = Gio.SettingsSchemaSource.get_default();
-    }
-
-    const schemaObj = schemaSource.lookup(schema, true);
-    if (!schemaObj) {
-        throw new Error(
-            `Schema${schema} could not be found for extension ${
-                Me.metadata.uuid}. Please check your installation.`
-        );
-    }
-
-    const args = {settings_schema: schemaObj};
-    if (path)
-        args.path = path;
-
-
-    return new Gio.Settings(args);
-}
