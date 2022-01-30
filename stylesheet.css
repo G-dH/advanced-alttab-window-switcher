@@ -1,14 +1,19 @@
-.workspace-index, .workspace-index-highlight, .hot-key-number{
+.workspace-index, .running-counter, .workspace-index-highlight, .hot-key-number{
   text-align: center;
   font-weight: normal;
   margin-bottom: 4px;
   padding: 1px;
+  padding-left: 3px;
+  padding-right: 3px;
   border-width: 1px;
   border-radius: 0.2em;
-  min-width: 10px;
-  min-height: 15px;
   background-color: rgba(46, 52, 53, 0.7);
   color: #bebebe;
+}
+
+.running-counter {
+  /*margin-bottom: 0px;*/
+  border-color: grey;
 }
 
 .workspace-index-highlight {
