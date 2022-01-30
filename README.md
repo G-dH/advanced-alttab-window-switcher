@@ -110,7 +110,7 @@ Window thumbnails are scaled-down window clones that can be used to monitor wind
 
 ## Chanchelog
 
-### v11:
+### v11 (not yet released on e.g.o.):
 **Added:**
 - actions `Move selected to previous/next workspace` and `Move selected to previous/next workspace`.
 - some missing fixed hotkeys in the Preferences window.
