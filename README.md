@@ -15,8 +15,8 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 - Optional default sorting settings: *Most Recently Used* (MRU) */ Stable sequence / Stable sequence - current window first*.
 - Optional automatic filter switching in search mode - the switcher can be set to list windows from the current monitor but you can find windows from other monitors and workspaces by typing.
 - Optional default window grouping settings: *None / Current workspace first / Applications / Workspaces*.
-- **Filtering, sorting and grouping modes can be switched on the fly** when needed.
-- The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files).
+- **Filter, sorting and grouping modes can be switched on the fly** when needed.
+- The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files) and GNOME Settings.
 - Built-in **workspace switcher** allows you to navigate between workspaces using the Up/Down arrow keys and optionally indicates the current workspace by on screen index.
 - Separately **adjustable sizes** of window preview and app icon combo (the larger one is used as the base and the smaller one as the front icon), single application window list icons and application list icons.
 - `Always on Top` property of selected window can be controled from the switcher and is indicated by the TOP position of the front icon (or the win preview if smaller) instead of default BOTTOM.
@@ -31,11 +31,11 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 
 ### Hotkeys
 
-Most hotkeys can be customized in AATWS Preferences window, for each customizable action can be set upt to two hotkeys for case you need to cover a non [a-zA-Z] keystroke with and without Shift modifier. You can disable any customizable hotkey by deleting its entry. Some core hotkeys cannot be customized nor disabled.
+Most hotkeys can be customized in AATWS Preferences window, for each customizable action can be set up to two hotkeys for case you need to cover a non [a-zA-Z] keystroke with and without Shift modifier. You can disable any customizable hotkey by deleting its entry. Some core hotkeys cannot be customized nor disabled.
 
 **Default configuration:**
 
-`H/L, Left/Right`         - Window selection
+`H/L, Left/Right arrows`  - Window selection
 
 `J/K, Up/Down, PgUp/Down` - Workspace selection
 
@@ -107,10 +107,33 @@ Window thumbnails are scaled-down window clones that can be used to monitor wind
     Middle click          - closes the source window
     Shift + Scroll wheel  - changes thumbnail opacity
     Ctrl + Primary button - toggles window preview to app icon
- 
+
+## Chanchelog
+
+### v11:
+**Added:**
+- actions `Move selected to previous/next workspace` and `Move selected to previous/next workspace`.
+- some missing fixed hotkeys in the Preferences window.
+- option `Minimized windows at the end` of the list (default for GNOME Shell is `true`).
+
+### v10:
+
+**Added:**
+- Configurable hotkeys
+- Option `Hover Selects item` - allows to disable select item by hovering mouse.
+**Improved:**
+- Search prefers words and titles starting with entered pattern
+**Fixed:**
+- `Fullscreen Selected on Empty WS` action - restore window on removed workspace crashes GS.
+- Unaccessible items if `Show selected window/app imediately` is enabled and the switcher popup is wider than screen.
+- Filter not shared between `Window` and `App` modes before the filter is switched.
+- Global variables mess
+
 ## Contribution
 
-Contributions are welcome and I will try my best to answer quickly to all suggestions. Especially language corrections would be really helpful because my English is terrible.
+Contributions are welcome and I will try my best to answer quickly to all suggestions.
+
+##Screenshots##
 
 ![Window Switcher Popup](screenshot.png)
 ![Extension configuration window](screenshot1.png)
