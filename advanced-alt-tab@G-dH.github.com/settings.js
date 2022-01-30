@@ -295,6 +295,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('win-switch-minimized-to-end', bool_val);
     }
 
+    get winMarkMinimized() {
+        return this._gsettings.get_boolean('win-switch-mark-minimized');
+    }
+
+    set winMarkMinimized(bool_val) {
+        this._gsettings.set_boolean('win-switch-mark-minimized', bool_val);
+    }
+
     get winSkipMinimized() {
         return this._gsettings.get_boolean('win-switch-skip-minimized');
     }

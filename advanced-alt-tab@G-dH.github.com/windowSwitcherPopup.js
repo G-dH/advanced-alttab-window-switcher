@@ -166,6 +166,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._defaultGrouping      = this.GROUP_MODE; // remember default sorting
         this.WIN_SORTING_MODE      = options.winSwitcherPopupSorting;
         this.MINIMIZED_TO_END      = options.winMinimizedToEnd;
+        this.MARK_MINIMIZED        = options.winMarkMinimized;
         this.SKIP_MINIMIZED        = options.winSkipMinimized;
         this.SEARCH_APPS           = options.winSwitcherPopupSearchApps;
         this._initialSelectionMode = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE ? SelectionMode.ACTIVE : SelectionMode.SECOND;
@@ -409,7 +410,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 'hotKeys': this.HOT_KEYS && this.KEYBOARD_TRIGGERED,
                 'status': this.STATUS,
                 'labelTitle': !this.OVERLAY_TITLE && this.WINDOW_TITLES === 2, // 2: Disabled
-                'singleApp': this._singleApp
+                'singleApp': this._singleApp,
+                'markMinimized': this.MARK_MINIMIZED
             }
             this._switcherList = new WindowSwitcher(switcherList, switcherParams);
             // reduce gaps between switcher items
@@ -2416,7 +2418,7 @@ class WindowIcon extends St.BoxLayout {
             front = icon;
         }
 
-        if (this.window.minimized)
+        if (this.window.minimized && this._switcherParams.markMinimized)
             front.opacity = 80;
 
         this._alignFront(front);
