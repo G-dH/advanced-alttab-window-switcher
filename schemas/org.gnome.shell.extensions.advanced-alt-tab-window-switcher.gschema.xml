@@ -2,6 +2,9 @@
 
 <schemalist>
   <schema path='/org/gnome/shell/extensions/advanced-alt-tab-window-switcher/' id='org.gnome.shell.extensions.advanced-alt-tab-window-switcher'>
+    <key name='win-switch-minimized-to-end' type='b'>
+      <default>true</default>
+    </key>
     <key name='win-switch-skip-minimized' type='b'>
       <default>false</default>
     </key>

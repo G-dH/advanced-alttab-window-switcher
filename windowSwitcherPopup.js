@@ -165,6 +165,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.GROUP_MODE            = options.winSwitcherPopupOrder;
         this._defaultGrouping      = this.GROUP_MODE; // remember default sorting
         this.WIN_SORTING_MODE      = options.winSwitcherPopupSorting;
+        this.MINIMIZED_TO_END      = options.winMinimizedToEnd;
         this.SKIP_MINIMIZED        = options.winSkipMinimized;
         this.SEARCH_APPS           = options.winSwitcherPopupSearchApps;
         this._initialSelectionMode = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE ? SelectionMode.ACTIVE : SelectionMode.SECOND;
@@ -2106,6 +2107,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (filterMode === FilterMode.MONITOR && monitor > -1)
                 winList = winList.filter(w => w.get_monitor() === monitor);
         }
+
+        if (!this.MINIMIZED_TO_END)
+            winList = winList.sort((a,b) => b.get_user_time() > a.get_user_time());
 
         if (this.SKIP_MINIMIZED)
             winList = winList.filter(w => !w.minimized);

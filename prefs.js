@@ -738,6 +738,15 @@ function _getWindowOptionsList() {
 
     optionsList.push(
         _optionsItem(
+            _('Minimized windows at the end'),
+            _('Moves minimized windows to the end of the list, which is the default AltTab behavior in GNOME Shell.'),
+            _newGtkSwitch(),
+            'winMinimizedToEnd'
+        )
+    );
+
+    optionsList.push(
+        _optionsItem(
             _('Skip Minimized windows'),
             null,
             _newGtkSwitch(),

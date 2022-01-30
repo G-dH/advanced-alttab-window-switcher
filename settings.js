@@ -287,6 +287,13 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('win-switcher-popup-mid-click-item', int_val);
     }
 
+    get winMinimizedToEnd() {
+        return this._gsettings.get_boolean('win-switch-minimized-to-end');
+    }
+
+    set winMinimizedToEnd(bool_val) {
+        this._gsettings.set_boolean('win-switch-minimized-to-end', bool_val);
+    }
 
     get winSkipMinimized() {
         return this._gsettings.get_boolean('win-switch-skip-minimized');
