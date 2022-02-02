@@ -442,12 +442,12 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('ws-switch-wrap', bool_val);
     }
 
-    get wsSwitchIndicator() {
-        return this._gsettings.get_boolean('ws-switch-indicator');
+    get wsSwitchPopup() {
+        return this._gsettings.get_boolean('ws-switch-popup');
     }
 
-    set wsSwitchIndicator(bool_val) {
-        this._gsettings.set_boolean('ws-switch-indicator', bool_val);
+    set wsSwitchPopup(bool_val) {
+        this._gsettings.set_boolean('ws-switch-popup', bool_val);
     }
 
     /*    get wsSwitchIndicatorMode() {

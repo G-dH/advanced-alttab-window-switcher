@@ -146,7 +146,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SHIFT_AZ_HOTKEYS      = options.switcherPopupShiftHotkeys;
         this.STATUS                = options.switcherPopupStatus;
         this.SHOW_WIN_IMEDIATELY   = options.switcherPopupShowImmediately;
-        this.SHOW_WS_INDEX         = options.wsSwitchIndicator;
+        this.SHOW_WS_POPUP         = options.wsSwitchPopup;
         this.SEARCH_ALL            = options.winSwitcherPopupSearchAll;
         this.OVERLAY_TITLE         = options.switcherPopupOverlayTitle;
         this.SEARCH_DEFAULT        = options.switcherPopupStartSearch;
@@ -698,7 +698,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _activateWindow(metaWin) {
         const wsSwitched = global.workspaceManager.get_active_workspace_index() !== metaWin.get_workspace().index();
         Main.activateWindow(this._getSelected());
-        if (wsSwitched) {
+        if (wsSwitched && this.SHOW_WS_POPUP) {
             this._showWsSwitcherPopup();
         }
     }
@@ -1486,7 +1486,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (global.workspace_manager.get_active_workspace() !== selected.get_workspace()) {
             Main.wm.actionMoveWorkspace(selected.get_workspace());
             //this._showWsIndex();
-            this._showWsSwitcherPopup();
+            if (this.SHOW_WS_POPUP)
+                this._showWsSwitcherPopup();
         }
     }
 
@@ -1593,7 +1594,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.GROUP_MODE = GroupMode.WORKSPACES;
         this._updateSwitcher();
         //this._showWsIndex();
-        this._showWsSwitcherPopup();
+        if (this.SHOW_WS_POPUP)
+            this._showWsSwitcherPopup();
     }
 
 /*    _showWsIndex(text = null) {
@@ -1757,7 +1759,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         //this._showWsIndex();
-        this._showWsSwitcherPopup();
+        if (this.SHOW_WS_POPUP)
+            this._showWsSwitcherPopup();
     }
 
     _switchMonitor(direction) {
@@ -1841,7 +1844,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._updateSwitcher();
         }
         //this._showWsIndex();
-        this._showWsSwitcherPopup();
+        if (this.SHOW_WS_POPUP)
+            this._showWsSwitcherPopup();
         this._doNotUpdateOnNewWindow = false;
     }
 
@@ -1862,7 +1866,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _reorderWorkspace(direction = 0) {
         this._getActions().reorderWorkspace(direction);
         //this._showWsIndex();
-        this._showWsSwitcherPopup();
+        if (this.SHOW_WS_POPUP)
+            this._showWsSwitcherPopup();
     }
 
     _toggleMaximizeOnCurrentMonitor() {
@@ -1985,14 +1990,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(0));
         this.show();
         //this._showWsIndex();
-        this._showWsSwitcherPopup()
+        if (this.SHOW_WS_POPUP)
+            this._showWsSwitcherPopup()
     }
 
     _switchToLastWS() {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(global.workspace_manager.n_workspaces - 1));
         this.show();
         //this._showWsIndex();
-        this._showWsSwitcherPopup();
+        if (this.SHOW_WS_POPUP)
+            this._showWsSwitcherPopup();
     }
 
     _toggleWinAbove() {

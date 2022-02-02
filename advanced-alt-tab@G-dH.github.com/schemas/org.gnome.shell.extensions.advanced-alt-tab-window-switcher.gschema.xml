@@ -158,7 +158,7 @@
     <key name='ws-switch-wrap' type='b'>
       <default>false</default>
     </key>
-    <key name='ws-switch-indicator' type='b'>
+    <key name='ws-switch-popup' type='b'>
       <default>true</default>
     </key>
     <key name='ws-switch-indicator-mode' type='i'>
