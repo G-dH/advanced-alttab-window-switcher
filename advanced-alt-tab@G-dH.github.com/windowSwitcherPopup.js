@@ -1075,7 +1075,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     vfunc_key_release_event(keyEvent) {
-        // monitor relase of possible shortcut modifier keys only
+        // monitor release of possible shortcut modifier keys only
         if (!(keyEvent.keyval == 65513 || keyEvent.keyval == 65511 ||  // Alt and Alt while Shift pressed
               keyEvent.keyval == 65515 ||                             // Super
               keyEvent.keyval == 65507 || keyEvent.keyval == 65508 || // Ctrl

@@ -108,11 +108,7 @@ function _onRealize(widget) {
     const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
     const width = 800;
     const height = 700;
-    window.default_width = width;
     window.set_size_request(width, height);
-    if (Settings.shellVersion < 40) {
-        window.resize(width, height);
-    }
 }
 
 function _getCommonOptionList() {
@@ -122,6 +118,7 @@ function _getCommonOptionList() {
 
     const optionList = [
         opt.Behavior,
+            opt.SuperKeyMode,
             opt.Position,
             opt.DefaultMonitor,
             opt.ShowImediately,
@@ -272,7 +269,8 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
             }
 
             const grid = new Gtk.Grid({
-                column_homogeneous: true,
+                column_homogeneous: false,
+                column_spacing: 40,
                 margin_start: 8,
                 margin_end: 8,
                 margin_top: 8,
@@ -282,9 +280,9 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
             })
             /*for (let i of item) {
                 box[box.add ? 'add' : 'append'](i);*/
-            grid.attach(option, 0, 0, 10, 1);
+            grid.attach(option, 0, 0, 5, 1);
             if (widget) {
-                grid.attach(widget, 10, 0, 4, 1);
+                grid.attach(widget, 5, 0, 2, 1);
             }
             frameBox[frameBox.add ? 'add' : 'append'](grid);
         }
@@ -476,9 +474,19 @@ function _getCommonOpt() {
             _makeTitle(_('Behavior')),
         )
 
+    optDict.SuperKeyMode = _optionsItem(
+            _('Super Key Mode'),
+            _('Allows to open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn\'t change system behavior.'),
+            _newComboBox(),
+            'superKeyMode',
+               [[_('Default'),          1],
+                [_('App Switcher'),     2],
+                [_('Window Switcher'),  3]]
+        )
+
     optDict.Position = _optionsItem(
             _('Placement'),
-            _('Where the switcher popup should appear on the screen.'),
+            _('Where the switcher pop-up should appear on the screen.'),
             _newComboBox(),
             'switcherPopupPosition',
                [[_('Top'),    1],
@@ -488,7 +496,7 @@ function _getCommonOpt() {
 
     optDict.DefaultMonitor = _optionsItem(
             _('Default Monitor'),
-            _('Monitor on which the switcher popup should appear. The Current one is where the mouse pointer is currently located.'),
+            _('Monitor on which the switcher pop-up should appear. The Current one is where the mouse pointer is currently located.'),
             _newComboBox(),
             'switcherPopupMonitor',
                [[_('Current Monitor'), 1],
@@ -504,7 +512,7 @@ function _getCommonOpt() {
 
     optDict.SearchModeDefault = _optionsItem(
             _('Search Mode as Default'),
-            _('Type to search immediately after the switcher popup shows up. Hotkeys then can be used while holding down the Shift key.'),
+            _('Type to search immediately after the switcher pop-up shows up. Hotkeys then can be used while holding down the Shift key.'),
             _newGtkSwitch(),
             'switcherPopupStartSearch'
         )
@@ -543,7 +551,7 @@ function _getCommonOpt() {
 
     optDict.ShowStatus = _optionsItem(
             _('Show Status'),
-            _('Whether the label indicating filter, grouping and sorting modes should be displayed at the bottom left of the popup.'),
+            _('Whether the label indicating filter, grouping and sorting modes should be displayed at the bottom left of the pop-up.'),
             _newGtkSwitch(),
             'switcherPopupStatus'
         )
@@ -554,7 +562,7 @@ function _getCommonOpt() {
 
     optDict.OverlayTitle = _optionsItem(
             _('Overlay Title'),
-            _('Whether the item title label shoud be displayed with bigger font in the overlay label above (or below if needed) the switcher popup.'),
+            _('Whether the item title label shoud be displayed with bigger font in the overlay label above (or below if needed) the switcher pop-up.'),
             _newGtkSwitch(),
             'switcherPopupOverlayTitle'
         )
@@ -585,7 +593,7 @@ function _getCommonOpt() {
 
     optDict.DelayShowingSwitcher = _optionsItem(
             _('Delay Showing Switcher (ms)'),
-            _("Delay showing the popup so that fast Alt+Tab users aren't disturbed by the popup briefly flashing."),
+            _("Delay showing the pop-up so that fast Alt+Tab users aren't disturbed by the pop-up briefly flashing."),
             _newSpinButton(popupTimeoutAdjustment),
             'switcherPopupTimeout'
         )
@@ -596,7 +604,7 @@ function _getCommonOpt() {
 
     optDict.PrimaryBackground = _optionsItem(
             _('Primary Click on switcher Background'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button on the switcher popup background'),
+            _('Action to be triggered by a click of the primary (usualy left) mouse button on the switcher pop-up background'),
             _newComboBox(),
             'switcherPopupPrimClickIn',
             actionList
@@ -604,7 +612,7 @@ function _getCommonOpt() {
 
     optDict.SecondaryBackground = _optionsItem(
             _('Secondary Click on switcher Background'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button on the switcher popup background'),
+            _('Action to be triggered by a click of the secondary (usualy right) mouse button on the switcher pop-up background'),
             _newComboBox(),
             'switcherPopupSecClickIn',
             actionList
@@ -612,7 +620,7 @@ function _getCommonOpt() {
 
     optDict.MiddleBackground = _optionsItem(
             _('Middle Click on switcher Background'),
-            _('Action to be triggered by a click of the middle mouse button on the switcher popup background'),
+            _('Action to be triggered by a click of the middle mouse button on the switcher pop-up background'),
             _newComboBox(),
             'switcherPopupMidClickIn',
             actionList
@@ -620,7 +628,7 @@ function _getCommonOpt() {
 
     optDict.ScrollBackground = _optionsItem(
             _('Scroll over switcher Background'),
-            _('Action to be triggered by scrolling over the switcher popup, but not over the switcher item'),
+            _('Action to be triggered by scrolling over the switcher pop-up, but not over the switcher item'),
             _newComboBox(),
             'switcherPopupScrollIn',
             actionList
@@ -628,7 +636,7 @@ function _getCommonOpt() {
 
     optDict.PrimaryOutside = _optionsItem(
             _('Primary Click Outside switcher'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button outside the switcher popup'),
+            _('Action to be triggered by a click of the primary (usualy left) mouse button outside the switcher pop-up'),
             _newComboBox(),
             'switcherPopupPrimClickOut',
             actionList
@@ -636,7 +644,7 @@ function _getCommonOpt() {
 
     optDict.SecondaryOutside = _optionsItem(
             _('Secondary Click Outside switcher'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button outside the switcher popup'),
+            _('Action to be triggered by a click of the secondary (usualy right) mouse button outside the switcher pop-up'),
             _newComboBox(),
             'switcherPopupSecClickOut',
             actionList
@@ -644,7 +652,7 @@ function _getCommonOpt() {
 
     optDict.MiddleOutside = _optionsItem(
             _('Middle Click Outside switcher'),
-            _('Action to be triggered by a click of the middle mouse button outside the switcher popup'),
+            _('Action to be triggered by a click of the middle mouse button outside the switcher pop-up'),
             _newComboBox(),
             'switcherPopupMidClickOut',
             actionList
@@ -652,7 +660,7 @@ function _getCommonOpt() {
 
     optDict.ScrollOutside = _optionsItem(
             _('Scroll Outside switcher'),
-            _('Action to be triggered by scrolling outside of the switcher popup'),
+            _('Action to be triggered by scrolling outside of the switcher pop-up'),
             _newComboBox(),
             'switcherPopupScrollOut',
             actionList
@@ -677,7 +685,7 @@ function _getCommonOpt() {
         )
 
     optDict.ShowWsPopup = _optionsItem(
-            _('Show Workspace Popup'),
+            _('Show Workspace Pop-up'),
             _('While switching a workspace'),
             _newGtkSwitch(),
             'wsSwitchPopup'
@@ -742,14 +750,14 @@ function _getCommonOpt() {
 
     optDict.PointerOutTimeout = _optionsItem(
             _('Pointer Out Timeout (ms)'),
-            _('If the switcher is activated by the mouse, the popup closes after this period of inactivity if the mouse pointer is outside the popup.'),
+            _('If the switcher is activated by the mouse, the pop-up closes after this period of inactivity if the mouse pointer is outside the pop-up.'),
             _newSpinButton(popupPointerTimeoutAdjustment),
             'switcherPopupPointerTimeout'
         )
 
     optDict.ActivateOnHide = _optionsItem(
             _('Activate Selected Item on Hide'),
-            _('When you move mouse pointer outside the switcher popup and "Pointer out timeout" expires, selected item will be activated before popup hides.'),
+            _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before pop-up hides.'),
             _newGtkSwitch(),
             'switcherPopupActivateOnHide'
         )
@@ -770,17 +778,17 @@ function _getWindowsOpt() {
 
     optDict.DefaultFilter =_optionsItem(
             _('Default Filter'),
-            null,
+            _('Which windows should appear in the list. Filter can also be changed on the fly using a hotkey.'),
             _newComboBox(),
             'winSwitcherPopupFilter',
-            [[_('All Windows'),       1],
+            [   [_('All'),               1],
                 [_('Current Workspace'), 2],
                 [_('Current Monitor'),   3]]
         );
 
     optDict.DefaultSorting =_optionsItem(
             _('Default Sorting'),
-            null,
+            _('What key should be used to sort the window list.'),
             _newComboBox(),
             'winSwitcherPopupSorting',
             [
@@ -792,11 +800,10 @@ function _getWindowsOpt() {
 
     optDict.DefaultGrouping =_optionsItem(
             _('Default Grouping'),
-            null,
+            _('Group windows in the list by selected key.'),
             _newComboBox(),
             'winSwitcherPopupOrder',
-            [
-                [_('None'),                  1],
+            [   [_('None'),                  1],
                 [_('Current Monitor First'), 2],
                 [_('Applications'),          3],
                 [_('Workspaces'),            4],
@@ -946,11 +953,11 @@ function _getAppsOpt() {
 
     optDict.DefaultFilter = _optionsItem(
             _('Default Filter'),
-            null,
+            _('Which applications should appear in the list. Filter can also be changed on the fly using a hotkey.'),
             _newComboBox(),
             'appSwitcherPopupFilter',
             [
-                [_('All Windows'),       1],
+                [_('All'),               1],
                 [_('Current Workspace'), 2],
                 [_('Current Monitor'),   3],
             ]
@@ -958,7 +965,7 @@ function _getAppsOpt() {
 
     optDict.DefaultSorting = _optionsItem(
             _('Default Sorting'),
-            null,
+            _('What key should be used to sort the app list.'),
             _newComboBox(),
             'appSwitcherPopupSorting',
             [
@@ -1109,7 +1116,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     optionList.push(_optionsItem(
             _('Move Window to Current Workspace/Monitor'),
             _('Moves the selected window or windows of selected application to the current workspace and monitor.\
-The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
+The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             _newGtkEntry(),
             'hotkeyMoveWinToMonitor'
         )
@@ -1145,7 +1152,7 @@ Next use of this hotkey on the same window moves the window back to its original
     optionList.push(_optionsItem(
             _('Toggle Maximize on Current Workspce/Monitor'),
             _('Toggles full maximization of the selected window on the current workspace and monitor.\
-The current monitor is the one where the switcher popup is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
+The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             _newGtkEntry(),
             'hotkeyMaximize'
         )

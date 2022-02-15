@@ -57,6 +57,14 @@ var MscOptions = class MscOptions {
     }
 
     // common options
+    get superKeyMode() {
+        return this._gsettings.get_int('super-key-mode');
+    }
+
+    set superKeyMode(int_val) {
+        this._gsettings.set_int('super-key-mode', int_val);
+    }
+
     get switcherPopupPosition() {
         return this._gsettings.get_int('switcher-popup-position');
     }

@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const GLib                 = imports.gi.GLib;
+const { GObject, GLib, Gio }    = imports.gi;
 
 const Main                 = imports.ui.main;
 const AltTab               = imports.ui.altTab;
@@ -27,8 +27,11 @@ const WindowSwitcherPopup  = Me.imports.windowSwitcherPopup;
 
 let _delayId;
 let enabled = false;
+let _options;
 let _origAltTabWSP;
 let _origAltTabASP;
+let _originalSignalOverlayKey = null;
+let _signalOverlayKey = null;
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
@@ -42,11 +45,16 @@ function enable() {
             _delayId = 0;
             if (enabled)
                 _resumeThumbnailsIfExist();
-            WindowSwitcherPopup.options = new Settings.MscOptions();
+            _options = new Settings.MscOptions();
+            WindowSwitcherPopup.options = _options;
+            _options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
             _origAltTabWSP = AltTab.WindowSwitcherPopup;
             _origAltTabASP = AltTab.AppSwitcherPopup;
             AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
             AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
+            if (_options.superKeyMode > 1) {
+                _updateOverlayKeyHandler();
+            }
             enabled = true;
             return GLib.SOURCE_REMOVE;
         }
@@ -70,7 +78,9 @@ function disable() {
         AltTab.AppSwitcherPopup = _origAltTabASP;
     _origAltTabWSP = null;
     _origAltTabASP = null;
+    _restoreOverlayKeyHandler();
     WindowSwitcherPopup.options = null;
+    _options = null;
 }
 
 function _resumeThumbnailsIfExist() {
@@ -82,6 +92,55 @@ function _resumeThumbnailsIfExist() {
             }
         );
     }
+}
+
+function _updateOverlayKeyHandler() {
+    // Block original overlay key handler
+    _restoreOverlayKeyHandler();
+
+    if (_options.superKeyMode === 1) {
+        return;
+    }
+
+    _originalSignalOverlayKey = GObject.signal_handler_find(global.display, { signalId: "overlay-key" });
+    if (_originalSignalOverlayKey !== null) {
+        global.display.block_signal_handler(_originalSignalOverlayKey);
+    }
+
+    // Connect modified overlay key handler
+    const A11Y_SCHEMA = 'org.gnome.desktop.a11y.keyboard';
+    const STICKY_KEYS_ENABLE = 'stickykeys-enable';
+    let _a11ySettings = new Gio.Settings({ schema_id: A11Y_SCHEMA });
+    _signalOverlayKey = global.display.connect("overlay-key", () => {
+        if (!_a11ySettings.get_boolean(STICKY_KEYS_ENABLE))
+            _toggleSwitcher();
+    });
+}
+
+function _restoreOverlayKeyHandler() {
+    // Disconnect modified overlay key handler
+    if (_signalOverlayKey !== null) {
+        global.display.disconnect(_signalOverlayKey);
+        _signalOverlayKey = null;
+    }
+
+    // Unblock original overlay key handler
+    if (_originalSignalOverlayKey !== null) {
+        global.display.unblock_signal_handler(_originalSignalOverlayKey);
+        _originalSignalOverlayKey = null;
+    }
+}
+
+function _toggleSwitcher() {
+    let altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
+    const appSwitcherMode = _options.superKeyMode === 2;
+    altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
+    altTabPopup.SHOW_APPS = appSwitcherMode ? true : false;
+    altTabPopup.KEYBOARD_TRIGGERED = true;
+    altTabPopup._modifierMask = 0;
+    altTabPopup.POSITION_POINTER = false;
+    altTabPopup.connect('destroy', () => altTabPopup = null);
+    altTabPopup.show();
 }
 
 function _removeThumbnails(full = true) {
