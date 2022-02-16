@@ -497,7 +497,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._haveModal = true;
 
-        this.add_actor(this._switcherList);
+        this.add_child(this._switcherList);
         this._switcherList.connect('item-activated', this._itemActivated.bind(this));
         this._switcherList.connect('item-entered', this._itemEntered.bind(this));
         this._switcherList.connect('item-removed', this._itemRemoved.bind(this));
@@ -1598,54 +1598,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._showWsSwitcherPopup();
     }
 
-/*    _showWsIndex(text = null) {
-
-    // place the indicator overlay outside the switcher
-    _showWsIndex(text = null) {
-        if (!this.SHOW_WS_INDEX && !text)
-            return;
-
-        const offset = (this._overlayTitle ? this._overlayTitle.height : 0)
-                     + (this._overlaySearchLabel ? this._overlaySearchLabel.height : 0);
-
-        if (this._wsOverlay) {
-            this.destroyOverlayLabel(this._wsOverlay);
-        }
-
-        this._wsOverlay = this._customOverlayLabel('ws-overlay', 'workspace-index-overlay');
-        this._wsOverlay.text = (global.workspace_manager.get_active_workspace_index() + 1).toString();
-        Main.layoutManager.addChrome(this._wsOverlay);
-
-        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
-        const labelOffset = 10;
-        let l1 = this._overlayTitle ? (this._overlayTitle.height + labelOffset) : 0;
-        let l2 = this._overlaySearchLabel ? (this._overlaySearchLabel.height + labelOffset) : 0;
-        switch (this.POPUP_POSITION) {
-        case Position.TOP:
-            this._wsOverlay.y = Math.max(
-                geometry.height / 2,
-                Math.min(geometry.height - this._wsOverlay.height - this._switcherList.height - l1 - l2, geometry.height)
-            );
-            break;
-        case Position.CENTER:
-            this._wsOverlay.y = Math.min(
-                geometry.height / 2 + (this._switcherList.height / 2),
-                Math.max(geometry.height / 2 + this._wsOverlay.height / 2, geometry.height)
-            );
-            break;
-        case Position.BOTTOM :
-            this._wsOverlay.y = Math.min(
-                geometry.height / 2,
-                Math.max(geometry.height - this._wsOverlay.height - this._switcherList.height - l1 - l2, 0)
-            );
-            break;
-        }
-        this._wsOverlay.x = geometry.x;
-        this._wsOverlay.width = geometry.width;
-        //return wsLabel;
-    }
-*/
-
     _showWsSwitcherPopup(direction, wsIndex) {
         if (!wsIndex)
             wsIndex = global.workspace_manager.get_active_workspace_index();
@@ -1672,11 +1624,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._overlaySearchLabel = new St.BoxLayout({style_class: 'search-text'});
 
         let icon = new St.Icon({icon_name: 'edit-find-symbolic'});
-        this._overlaySearchLabel.add_actor(icon);
+        this._overlaySearchLabel.add_child(icon);
         this._overlaySearchLabel._label = this._customOverlayLabel('search-text', '');
         this._overlaySearchLabel._label.text = ` ${text}`;
 
-        this._overlaySearchLabel.add_actor(this._overlaySearchLabel._label);
+        this._overlaySearchLabel.add_child(this._overlaySearchLabel._label);
         Main.layoutManager.addChrome(this._overlaySearchLabel);
         const offset = this._overlayTitle
             ? this._overlayTitle.height + margin
@@ -2374,7 +2326,7 @@ class WindowIcon extends St.BoxLayout {
             this._createWindowIcon(item);
 
         if ( this._switcherParams.hotKeys && iconIndex < 12)
-            this._icon.add_actor(_createHotKeyNumIcon(iconIndex));
+            this._icon.add_child(_createHotKeyNumIcon(iconIndex));
 
         if (this.titleLabel && this._switcherParams.showTitles) {
             this.add_child(this.titleLabel);
@@ -2430,14 +2382,14 @@ class WindowIcon extends St.BoxLayout {
 
         this._alignFront(front);
 
-        this._icon.add_actor(base);
-        this._icon.add_actor(front);
+        this._icon.add_child(base);
+        this._icon.add_child(front);
 
         if (this._switcherParams.wsIndexes)
-            this._icon.add_actor(this._createWsIcon(window.get_workspace().index() + 1));
+            this._icon.add_child(this._createWsIcon(window.get_workspace().index() + 1));
 
         if (this.window.is_on_all_workspaces())
-            this._icon.add_actor(this._createStickyIcon());
+            this._icon.add_child(this._createStickyIcon());
 
         this._icon.set_size(size * scaleFactor, size * scaleFactor);
     }
@@ -2469,7 +2421,7 @@ class WindowIcon extends St.BoxLayout {
             text: index.toString(),
             style_class: currentWS + 1 === index ? 'workspace-index-highlight' : 'workspace-index',
         });
-        icon.add_actor(label);
+        icon.add_child(label);
         return icon;
     }
 
@@ -2489,7 +2441,7 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
         });
-        icon.add_actor(iconF);
+        icon.add_child(iconF);
         return icon;
     }
 });
@@ -2529,7 +2481,7 @@ class AppIcon extends Dash.DashIcon {
             text: num.toString(),
             style_class: 'running-counter',
         });
-        icon.add_actor(label);
+        icon.add_child(label);
 
         return icon;
     }
@@ -2553,12 +2505,12 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         });
         this._statusLabel.set_text('Filter: Order:'); // this text will be replaced immediately
         if (this._switcherParams.status)
-            this.add_actor(this._statusLabel);
+            this.add_child(this._statusLabel);
         this._label = new St.Label({
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
         });
-        this.add_actor(this._label);
+        this.add_child(this._label);
 
         // this line belongs to the original code but this.windows was unused...
         //this.windows = items;
@@ -2709,7 +2661,7 @@ function _createHotKeyNumIcon(index) {
         vertical: true,
     });
 
-    icon.add_actor(box);
+    icon.add_child(box);
     let label = new St.Label({text: `F${(index + 1).toString()}`});
     box.add(label);
 

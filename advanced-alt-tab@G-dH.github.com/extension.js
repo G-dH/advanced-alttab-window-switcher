@@ -56,6 +56,7 @@ function enable() {
                 _updateOverlayKeyHandler();
             }
             enabled = true;
+            _delayId = 0;
             return GLib.SOURCE_REMOVE;
         }
     );
@@ -108,12 +109,12 @@ function _updateOverlayKeyHandler() {
     }
 
     // Connect modified overlay key handler
-    const A11Y_SCHEMA = 'org.gnome.desktop.a11y.keyboard';
-    const STICKY_KEYS_ENABLE = 'stickykeys-enable';
-    let _a11ySettings = new Gio.Settings({ schema_id: A11Y_SCHEMA });
+    let _a11ySettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.a11y.keyboard' });
     _signalOverlayKey = global.display.connect("overlay-key", () => {
-        if (!_a11ySettings.get_boolean(STICKY_KEYS_ENABLE))
-            _toggleSwitcher();
+        if (_a11ySettings.get_boolean('stickykeys-enable'))
+            return;
+
+        _toggleSwitcher();
     });
 }
 
