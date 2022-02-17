@@ -1359,9 +1359,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // make thumbnail of selected window
-        else if ((options.hotkeyThumbnail.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
-            if (!this._showingApps)
+        else if (options.hotkeyThumbnail.includes(keyString)) {
+            if ((this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true) && !_ctrlPressed())
                 this._createWinThumbnail();
+            else if (_ctrlPressed() && _shiftPressed())
+                this._getActions().removeThumbnails();
+            else if (_ctrlPressed())
+                this._getActions().removeLastThumbnail();
         }
 
         else if ((options.hotkeyPrefs.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
@@ -1856,8 +1860,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _createWinThumbnail() {
         let selected = this._getSelected();
-        if (selected && !selected.get_windows)
-            this._getActions().makeThumbnailWindow(selected);
+        if (!selected) return;
+
+        if (selected && selected.get_windows) {
+            if (selected.cachedWindows)
+                selected = selected.cachedWindows[0];
+            else
+                return;
+        }
+
+        this._getActions().makeThumbnailWindow(selected);
     }
 
     _openAppIconMenu() {

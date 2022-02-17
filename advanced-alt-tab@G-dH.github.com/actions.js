@@ -38,6 +38,49 @@ var Actions = class {
         this._shellSettings = null;
     }
 
+    removeThumbnails() {
+        if (global.stage.windowThumbnails) {
+            global.stage.windowThumbnails.forEach(
+                t => {
+                    if (t)
+                        t.destroy();
+                }
+            );
+            global.stage.windowThumbnails = undefined;
+        }
+    }
+
+    removeLastThumbnail() {
+        if (!global.stage.windowThumbnails) return;
+
+        const length = global.stage.windowThumbnails.length;
+        if (length)
+            global.stage.windowThumbnails[length - 1].destroy();
+            global.stage.windowThumbnails.pop();
+    }
+
+    hideThumbnails() {
+        if (global.stage.windowThumbnails) {
+            global.stage.windowThumbnails.forEach(
+                t => {
+                    if (t)
+                        t.hide();
+                }
+            );
+        }
+    }
+
+    resumeThumbnailsIfExist() {
+        if (global.stage.windowThumbnails) {
+            global.stage.windowThumbnails.forEach(
+                t => {
+                    if (t)
+                        t.show();
+                }
+            );
+        }
+    }
+
     _getShellSettings() {
         if (!this._shellSettings) {
             this._shellSettings = ExtensionUtils.getSettings('org.gnome.shell');

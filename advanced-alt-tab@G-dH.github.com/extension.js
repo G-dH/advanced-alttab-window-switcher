@@ -24,6 +24,7 @@ const ExtensionUtils       = imports.misc.extensionUtils;
 const Me                   = ExtensionUtils.getCurrentExtension();
 const Settings             = Me.imports.settings;
 const WindowSwitcherPopup  = Me.imports.windowSwitcherPopup;
+const Actions              = Me.imports.actions;
 
 let _delayId;
 let enabled = false;
@@ -43,8 +44,11 @@ function enable() {
         300,
         () => {
             _delayId = 0;
-            if (enabled)
-                _resumeThumbnailsIfExist();
+            if (enabled) {
+                let actions = new Actions.Actions();
+                actions.resumeThumbnailsIfExist();
+                actions = undefined;
+            }
             _options = new Settings.MscOptions();
             WindowSwitcherPopup.options = _options;
             _options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
@@ -66,8 +70,13 @@ function disable() {
     if (_delayId)
         GLib.source_remove(_delayId);
 
+    let actions;
+    if (global.stage.windowThumbnails) {
+        actions = new Actions.Actions();
+    }
     if (_extensionEnabled()) {
-        _removeThumbnails(false);
+        const hide = true;
+        _removeThumbnails(hide);
     } else {
         _removeThumbnails();
         enabled = false;
@@ -84,15 +93,18 @@ function disable() {
     _options = null;
 }
 
-function _resumeThumbnailsIfExist() {
-    if (global.stage.windowThumbnails) {
-        global.stage.windowThumbnails.forEach(
-            t => {
-                if (t)
-                    t.show();
-            }
-        );
-    }
+function _removeThumbnails(hide = false) {
+    if (!global.stage.windowThumbnails) return;
+
+    let actions = new Actions.Actions();
+
+    if (hide)
+        actions.hideThumbnails();
+    else
+        actions.removeThumbnails();
+
+    actions.clean();
+    actions = undefined;
 }
 
 function _updateOverlayKeyHandler() {
@@ -142,27 +154,6 @@ function _toggleSwitcher() {
     altTabPopup.POSITION_POINTER = false;
     altTabPopup.connect('destroy', () => altTabPopup = null);
     altTabPopup.show();
-}
-
-function _removeThumbnails(full = true) {
-    if (full) {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
-                t => {
-                    if (t)
-                        t.destroy();
-                }
-            );
-            global.stage.windowThumbnails = undefined;
-        }
-    } else if (global.stage.windowThumbnails) {
-        global.stage.windowThumbnails.forEach(
-            t => {
-                if (t)
-                    t.hide();
-            }
-        );
-    }
 }
 
 function _extensionEnabled() {

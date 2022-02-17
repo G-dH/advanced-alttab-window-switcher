@@ -694,16 +694,7 @@ function _getCommonOpt() {
 
     optDict.Thumbnails = _optionsItem(
             _makeTitle(_('DND Window Thumbnails')),
-            `${_('Window thumbnails are overlay clones of windows, can be dragged and dropped by mouse anywhere on the screen.')}\n${
-                _('Thumbnail control:')}\n    ${
-                _('Double click:    \t\tactivate source window')}\n    ${
-                _('Primary click:   \t\ttoggle scroll wheel function (resize / source)')}\n    ${
-                _('Secondary click: \t\tremove thumbnail')}\n    ${
-                _('Middle click:    \t\tclose source window')}\n    ${
-                _('Scroll wheel:    \t\tresize or change source window')}\n    ${
-                _('Ctrl + Scroll wheel: \tchange source window or resize')}\n    ${
-                _('Shift + Scroll wheel: \tadjust opacity')}\n    `
-            ,
+            null,
             null
         )
 
@@ -1168,8 +1159,10 @@ The current monitor is the one where the switcher pop-up is located, or where th
 
     optionList.push(_optionsItem(
             _('Create Window Thumbnail'),
-            _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor.\n\
-You can move the thumbnail anywhere on the screen using a mouse and you can make as many thumbnails as you want.\n\
+            _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. \
+You can move the thumbnail anywhere on the screen using a mouse drag & drop and you can make as many thumbnails as you want.\n\
+To remove lastly created thumbnail, use this hotkey while pressing Ctrl key.\n\
+To remove all created thumbnails, use this hotkey while pressing Shift and Ctrl keys.\n\
 Thumbnail controls:\n\
     Double click:    \t\tactivates the source window\n\
     Primary click:   \t\ttoggles scroll wheel function (resize / source)\n\
@@ -1178,7 +1171,7 @@ Thumbnail controls:\n\
     Scroll wheel:    \t\tresizes or changes the source window\n\
     Ctrl + Scroll wheel: \tchange source window or resize\n\
     Shift + Scroll wheel: \tadjust opacity\n\
-    Ctrl + Primary click: \tToggles display the app icon instead of the window preview'),
+    Ctrl + Primary click: \tToggles thumbnail between a window preview and app icon'),
             _newGtkEntry(),
             'hotkeyThumbnail'
         )
