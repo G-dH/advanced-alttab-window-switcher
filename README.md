@@ -9,7 +9,7 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 ## Features:
 
 - Supports GNOME Shell 3.36 - 41.
-- Replacement for both the window switcher and the application switcher. Both modes can be also switched on the fly.
+- Replacement for both the window switcher and application switcher. Both modes can be also switched on the fly.
 - **Type to Search** mode - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode so you can type immediately as the popup shows up.
 - Optional default filter settings : *All windows / Current workspace / Current monitor*, plus *Skip minimized* option.
 - Optional default sorting settings: *Most Recently Used* (MRU) */ Stable sequence / Stable sequence - current window first*.
@@ -108,6 +108,8 @@ Window thumbnails are scaled-down window clones that can be used to monitor wind
     Shift + Scroll wheel  - changes thumbnail opacity
     Ctrl + Primary button - toggles window preview to app icon
 
+Known bugs: when the thumbnail is created above VirtualBox virtual machine window, the thumbnail becomes irresponsive.
+
 ## Chanchelog
 
 ### v11 (not yet released on e.g.o.):
@@ -115,6 +117,11 @@ Window thumbnails are scaled-down window clones that can be used to monitor wind
 - actions `Move selected to previous/next workspace` and `Move selected to previous/next workspace`.
 - some missing fixed hotkeys in the Preferences window.
 - option `Minimized windows at the end` of the list (default for GNOME Shell is `true`).
+- `Super Key Mode` option can override default Super key functionality and instead of Activities open App or Window Switcher, which then stays open until you choose an item or escape. If you want to activate Overview, press and hold any other modifier key and hit the (left) Super again. Sadly, the Super press event cannot be catched by the AATWS unless you simultaneously press and hold any other modifier key.
+- when searching apps, the tooltip title (if enabled) of selected application adds its `generic_name`, which usually contains short app description.
+
+**Other Changes**
+- tooltips replaced by captions directly under each option
 
 ### v10:
 
