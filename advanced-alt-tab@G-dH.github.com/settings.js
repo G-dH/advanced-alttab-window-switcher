@@ -400,6 +400,22 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('app-switcher-popup-fav-apps', bool_val);
     }
 
+    get appSwitcherPopupWinCounter() {
+        return this._gsettings.get_boolean('app-switcher-popup-win-counter');
+    }
+
+    set appSwitcherPopupWinCounter(bool_val) {
+        this._gsettings.set_boolean('app-switcher-popup-win-counter', bool_val);
+    }
+
+    get appSwitcherPopupTitles() {
+        return this._gsettings.get_boolean('app-switcher-popup-titles');
+    }
+
+    set appSwitcherPopupTitles(bool_val) {
+        this._gsettings.set_boolean('app-switcher-popup-titles', bool_val);
+    }
+
     get appSwitcherPopupScrollItem() {
         return this._gsettings.get_int('app-switcher-popup-scroll-item');
     }

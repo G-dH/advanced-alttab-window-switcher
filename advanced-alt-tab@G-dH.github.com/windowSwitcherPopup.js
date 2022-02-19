@@ -6,7 +6,8 @@ const Meta            = imports.gi.Meta;
 const Main            = imports.ui.main;
 const AltTab          = imports.ui.altTab;
 const SwitcherPopup   = imports.ui.switcherPopup;
-const Dash            = imports.ui.dash;
+//const Dash            = imports.ui.dash;
+const AppDisplay = imports.ui.appDisplay;
 const PopupMenu       = imports.ui.popupMenu;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
@@ -72,6 +73,8 @@ const SelectionMode = {
     SECOND: 1,
     ACTIVE: 2,
 };
+
+const LABEL_FONT_SIZE = 0.9;
 
 const Action = Settings.Actions;
 
@@ -181,6 +184,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.APP_SORTING_MODE      = options.appSwitcherPopupSorting;
         this.SORT_FAVORITES_BY_MRU = options.appSwitcherPopupFavMru;
         this.INCLUDE_FAVORITES     = options.appSwitcherPopupFavoriteApps;
+        this.SHOW_APP_TITLES       = options.appSwitcherPopupTitles;
+        this.SHOW_WIN_COUNTER      = options.appSwitcherPopupWinCounter;
         this.APP_MODE_ICON_SIZE    = options.appSwitcherPopupIconSize;
 
         this._switcherMode         = SwitcherMode.WINDOWS;
@@ -339,11 +344,22 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // remove overlay labels if exist
         this._removeOverlays();
 
-        if (!Main.pushModal(this)) {
-            if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
-                let focusApp = global.display.get_focus_window().get_wm_class();
-                log(`[${Me.metadata.uuid}] ${focusApp} probably grabbed the modal, exitting...`);
+        if (parseFloat(Settings.shellVersion) >= 42) {
+            let grab = Main.pushModal(this);
+            // We expect at least a keyboard grab here
+            if ((grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
+                Main.popModal(grab);
                 return false;
+            }
+            this._grab = grab;
+            this._haveModal = true;
+        } else {
+            if (!Main.pushModal(this)) {
+                if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
+                    let focusApp = global.display.get_focus_window().get_wm_class();
+                    log(`[${Me.metadata.uuid}] ${focusApp} probably grabbed the modal, exitting...`);
+                    return false;
+                }
             }
         }
 
@@ -400,9 +416,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
             if (this._switcherList)
                 this._switcherList.destroy();
-            let showTitles = this.WINDOW_TITLES === 1 || (this.WINDOW_TITLES === 3 && this._singleApp);
+            let showWinTitles = this.WINDOW_TITLES === 1 || (this.WINDOW_TITLES === 3 && this._singleApp);
             let switcherParams = {
-                'showTitles': showTitles,
+                'showWinTitles': showWinTitles,
+                'showAppTitles': this.SHOW_APP_TITLES,
+                'showWinCounter': this.SHOW_WIN_COUNTER,
                 'winPrevSize': this._singleApp ? this.SINGLE_APP_PREVIEW_SIZE : this.WINDOW_PREVIEW_SIZE,
                 'appIconSize': this.APP_ICON_SIZE,
                 'appModeIconSize': this.APP_MODE_ICON_SIZE,
@@ -739,9 +757,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList._statusLabel.set_text(
             `${_('Filter: ')}${FilterModeLabel[this._tempFilterMode === null ? this.WIN_FILTER_MODE : this._tempFilterMode]
             }${this._singleApp ? `/${_('APP')}` : ''},  ${
-                _('Group: ')}${GroupModeLabel[this.GROUP_MODE]}, ${
+                _('Group: ')}${this._showingApps ? 'No' : GroupModeLabel[this.GROUP_MODE]}, ${
                 _('Sort: ')}${this._showingApps ? SortingModeLabel[this.APP_SORTING_MODE] : SortingModeLabel[this.WIN_SORTING_MODE]}, ${
-                _('Search: ')} ${this._searchEntry === null ? 'Off' : 'On'}`
+                ('Search: ')} ${this._searchEntry === null ? 'Off' : 'On'}`
         );
         if (this._searchEntryNotEmpty()) {
             this._showOverlaySearchLabel(this._searchEntry);
@@ -797,7 +815,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let id;
         let pt;
 
-        if (this._items[0].is_window) {
+        if (this._items[0]._is_window) {
             id = metaWin.get_id();
             pt = 'window';
         } else {
@@ -960,7 +978,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let selected = null;
         if (this._selectedIndex > -1) {
             let it = this._items[this._selectedIndex];
-            if (it && it.is_window)
+            if (it && it._is_window)
                 selected = this._items[this._selectedIndex].window;
             else if (it)
                 selected = this._items[this._selectedIndex].app;
@@ -970,7 +988,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _getItemIndexByID(id) {
         for (let i = 0; i < this._items.length; i++) {
-            let pt  = this._items[i].is_window ? 'window' : 'app';
+            let pt  = this._items[i]._is_window ? 'window' : 'app';
             let cid = this._items[i][pt].get_id();
 
             if (cid === id)
@@ -1154,11 +1172,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (keysym === Clutter.KEY_Escape && this._singleApp && !this.KEYBOARD_TRIGGERED) {
             this._toggleSingleAppMode();
+        } else if (keysym === Clutter.KEY_Super_L) {
+            this.fadeAndDestroy();
+            Main.overview.toggle();
         } else if  (
             action == Meta.KeyBindingAction.SWITCH_WINDOWS ||
             action == Meta.KeyBindingAction.SWITCH_APPLICATIONS ||
             action == Meta.KeyBindingAction.SWITCH_WINDOWS_BACKWARD ||
             action == Meta.KeyBindingAction.SWITCH_APPLICATIONS_BACKWARD ||
+            ((keysym === Clutter.KEY_Tab || keysym === Clutter.KEY_ISO_Left_Tab) && !_ctrlPressed()) ||
             (this._keyBind &&
                 (keysym == Clutter[`KEY_${this._keyBind.toUpperCase()}`] ||
                  keysym == Clutter[`KEY_${this._keyBind.toLowerCase()}`]
@@ -1173,14 +1195,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             else
                 this._select(this._next());
-        } else if (keysym == Clutter.KEY_Tab && _ctrlPressed()) {
+        } else if ((keysym == Clutter.KEY_Tab || keysym === Clutter.KEY_ISO_Left_Tab) && _ctrlPressed()) {
             let mod = Main.layoutManager.monitors.length;
 
-            if (_shiftPressed())
-                this._monitorIndex = (this._monitorIndex + mod) % mod;
-
+            if (_shiftPressed()) {
+                this._monitorIndex = (this._monitorIndex + mod - 1) % (mod);
+            }
             else
-                this._monitorIndex = (this._monitorIndex + 1) % mod;
+                this._monitorIndex = (this._monitorIndex + 1) % (mod);
 
             this._updateSwitcher();
         } else if (options.hotkeySearch.includes(keyString) || keysym == Clutter.KEY_Insert) {
@@ -1359,9 +1381,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // make thumbnail of selected window
-        else if ((options.hotkeyThumbnail.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
-            if (!this._showingApps)
+        else if (options.hotkeyThumbnail.includes(keyString)) {
+            if ((this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true) && !_ctrlPressed())
                 this._createWinThumbnail();
+            else if (_ctrlPressed() && _shiftPressed())
+                this._getActions().removeThumbnails();
+            else if (_ctrlPressed())
+                this._getActions().removeLastThumbnail();
         }
 
         else if ((options.hotkeyPrefs.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
@@ -1640,15 +1666,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _showOverlayTitle() {
         let selected = this._items[this._selectedIndex];
-        let title = '';
-        title = selected.is_window
-            ? selected.window.get_title()
-            : selected.titleLabel.text;
+        let title;
+
+        if (selected._is_window) {
+            title = selected.window.get_title();
+        } else {
+            title = selected.titleLabel.get_text();
+            // if serching apps add more info to the app name
+            if (this._searchEntryNotEmpty() && selected._genericName) {
+                if (!this._match(title, selected._genericName))
+                    title += `\n(${selected._genericName})`;
+            }
+        }
+
         if (this._overlayTitle) {
             this.destroyOverlayLabel(this._overlayTitle);
         }
 
-        this._overlayTitle = this._customOverlayLabel('item-title', 'title-label');
+        this._overlayTitle = this._customOverlayLabel('item-title', 'title-label'); // name, css style
         this._overlayTitle.text = title;
         Main.layoutManager.addChrome(this._overlayTitle);
 
@@ -1856,8 +1891,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _createWinThumbnail() {
         let selected = this._getSelected();
-        if (selected && !selected.get_windows)
-            this._getActions().makeThumbnailWindow(selected);
+        if (!selected) return;
+
+        if (selected && selected.get_windows) {
+            if (selected.cachedWindows)
+                selected = selected.cachedWindows[0];
+            else
+                return;
+        }
+
+        this._getActions().makeThumbnailWindow(selected);
     }
 
     _openAppIconMenu() {
@@ -2328,13 +2371,13 @@ class WindowIcon extends St.BoxLayout {
         if ( this._switcherParams.hotKeys && iconIndex < 12)
             this._icon.add_child(_createHotKeyNumIcon(iconIndex));
 
-        if (this.titleLabel && this._switcherParams.showTitles) {
+        if (this.titleLabel && this._switcherParams.showWinTitles) {
             this.add_child(this.titleLabel);
         }
     }
 
     _createWindowIcon(window) {
-        this.is_window = true;
+        this._is_window = true;
 
         this.window = window;
 
@@ -2342,6 +2385,8 @@ class WindowIcon extends St.BoxLayout {
             text: window.get_title(),
             x_align: Clutter.ActorAlign.CENTER,
         });
+
+        this.titleLabel.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
 
         let tracker = Shell.WindowTracker.get_default();
         this.app = tracker.get_window_app(window);
@@ -2410,55 +2455,84 @@ class WindowIcon extends St.BoxLayout {
 
     _createWsIcon(index) {
         let currentWS = global.workspace_manager.get_active_workspace_index();
-        let icon = new St.Widget({
+
+        let label = new St.Label({
+            text: index.toString(),
+            style_class: currentWS + 1 === index ? 'workspace-index-highlight' : 'workspace-index',
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.END,
         });
 
-        let label = new St.Label({
-            text: index.toString(),
-            style_class: currentWS + 1 === index ? 'workspace-index-highlight' : 'workspace-index',
-        });
-        icon.add_child(label);
-        return icon;
+        return label;
     }
 
     _createStickyIcon() {
-        let icon = new St.Widget({
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.START,
-        });
-        let iconF = new St.Icon({
+        let icon = new St.Icon({
             style_class: 'workspace-index',
             icon_name: 'view-pin-symbolic',
             icon_size: 16,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.START,
         });
-        icon.add_child(iconF);
         return icon;
     }
 });
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var AppIcon = GObject.registerClass(
-class AppIcon extends Dash.DashIcon {
+//class AppIcon extends Dash.DashIcon {
+class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams) {
         super._init(app);
         this._switcherParams = switcherParams;
-        this.titleLabel = new St.Label({text: app.get_name()});
-        // disable original app icon style
-        this.style_class = '';
-        this._iconContainer.remove_child(this._dot);
 
-        const c = app.cachedWindows.length;
-        if (c)
-            this._iconContainer.add_child(this._createRunningIndicator(c));
+        this.titleLabel = new St.Label({
+            text: app.get_name(),
+            style_class: 'workspace-index'
+        });
+
+        if (app.get_app_info())
+            this._genericName = app.get_app_info().get_generic_name();
+
+        // remove original app icon style
+        this.style_class = '';
+
+        if (this._switcherParams.showAppTitles) {
+            if (this.icon.label) {
+                // replace original label that wraps words on hover on GS 40+ and I'm unable to locate the style
+                this.icon.label = this.titleLabel;
+                this.icon.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
+                this.icon.label.show();
+            }
+        } else {
+            if (this.icon.label) {
+                this.icon.label.hide();
+            }
+        }
+
+
+        if (this._switcherParams.showWinCounter) {
+            this._iconContainer.remove_child(this._dot);
+            const count = app.cachedWindows.length;
+            if (count) {
+                const runninIndicator = this._createRunningIndicator(count);
+                if (this._switcherParams.showAppTitles) {
+                    runninIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em;`);
+                }
+                this._iconContainer.add_child(runninIndicator);
+            }
+        } else {
+            const dotStyle = 'border: 1px; border-color: ghostwhite;';
+            if (this._switcherParams.showAppTitles) {
+                this._dot.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em; ${dotStyle}`);
+            } else {
+                this._dot.set_style(dotStyle);
+            }
+        }
+
 
         if (this._switcherParams.hotKeys && iconIndex < 12)
             this._iconContainer.add_child(_createHotKeyNumIcon(iconIndex));
@@ -2470,20 +2544,16 @@ class AppIcon extends Dash.DashIcon {
     }
 
     _createRunningIndicator(num) {
-        let icon = new St.Widget({
+        let label = new St.Label({
+            text: `${num}`,
+            style_class: 'running-counter',
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.END,
         });
 
-        let label = new St.Label({
-            text: num.toString(),
-            style_class: 'running-counter',
-        });
-        icon.add_child(label);
-
-        return icon;
+        return label;
     }
 
     vfunc_button_press_event(buttonEvent) {
@@ -2534,7 +2604,7 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             this.icons.push(icon);
 
             // the icon could be an app, not only a window
-            if (icon.is_window) {
+            if (icon._is_window) {
                 icon._unmanagedSignalId = icon.window.connect('unmanaged', this._removeWindow.bind(this));
             } else {
                 if (icon.app.cachedWindows.length > 0) {

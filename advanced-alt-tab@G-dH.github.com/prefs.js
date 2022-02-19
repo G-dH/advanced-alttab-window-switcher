@@ -128,10 +128,10 @@ function _getCommonOptionList() {
             opt.HoverSelectsItem,
             opt.DelayShowingSwitcher,
         opt.Content,
+            opt.OverlayTitle,
             opt.ShowDirectActivation,
             opt.ShowStatus,
         opt.Appearance,
-            opt.OverlayTitle,
             opt.SingleAppPreviewSize,
         opt.MouseControl,
             opt.PrimaryBackground,
@@ -194,7 +194,10 @@ function _getAppOptionList() {
         opt.Behavior,
             opt.DefaultFilter,
             opt.DefaultSorting,
+        opt.Content,
             opt.IncludeFavorites,
+            opt.ShowAppTitle,
+            opt.ShowWinCounter,
         opt.Appearance,
             opt.AppIconSize,
         opt.MouseControl,
@@ -433,7 +436,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
                 entry._doNotEdit = true;
                 let text = entry.get_text();
                 let txt = '';
-                for (let i=0; i < text.length; i++) {
+                for (let i = 0; i < text.length; i++) {
                     //if (/[a-zA-Z0-9]|/.test(text[i])) {
                     let char = text[i].toUpperCase();
                     if (!txt.includes(char))
@@ -542,6 +545,13 @@ function _getCommonOpt() {
             _makeTitle(_('Content')),
         )
 
+    optDict.OverlayTitle = _optionsItem(
+            _('Show Tooltip Title'),
+            _('The whole title of selected item will be displayed as a tooltip label above (or below if needed) the item.'),
+            _newGtkSwitch(),
+            'switcherPopupOverlayTitle'
+        )
+
     optDict.ShowDirectActivation = _optionsItem(
             _('Show Hotkeys F1-F12 for Direct Activation'),
             _('The hotkeys will work independently on this option.'),
@@ -558,13 +568,6 @@ function _getCommonOpt() {
 
     optDict.Appearance = _optionsItem(
             _makeTitle(_('Appearance')),
-        )
-
-    optDict.OverlayTitle = _optionsItem(
-            _('Overlay Title'),
-            _('Whether the item title label shoud be displayed with bigger font in the overlay label above (or below if needed) the switcher pop-up.'),
-            _newGtkSwitch(),
-            'switcherPopupOverlayTitle'
         )
 
     /*actionList.splice(6,1);
@@ -694,16 +697,7 @@ function _getCommonOpt() {
 
     optDict.Thumbnails = _optionsItem(
             _makeTitle(_('DND Window Thumbnails')),
-            `${_('Window thumbnails are overlay clones of windows, can be dragged and dropped by mouse anywhere on the screen.')}\n${
-                _('Thumbnail control:')}\n    ${
-                _('Double click:    \t\tactivate source window')}\n    ${
-                _('Primary click:   \t\ttoggle scroll wheel function (resize / source)')}\n    ${
-                _('Secondary click: \t\tremove thumbnail')}\n    ${
-                _('Middle click:    \t\tclose source window')}\n    ${
-                _('Scroll wheel:    \t\tresize or change source window')}\n    ${
-                _('Ctrl + Scroll wheel: \tchange source window or resize')}\n    ${
-                _('Shift + Scroll wheel: \tadjust opacity')}\n    `
-            ,
+            null,
             null
         )
 
@@ -825,8 +819,8 @@ function _getWindowsOpt() {
         );
 
     optDict.SkipMinimized =_optionsItem(
-            _('Skip Minimized windows'),
-            null,
+            _('Skip Minimized Windows'),
+            _('This option actually affects App switcher too.'),
             _newGtkSwitch(),
             'winSkipMinimized'
         );
@@ -850,8 +844,8 @@ function _getWindowsOpt() {
         );
 
     optDict.ShowWindowTitle =_optionsItem(
-            _('Show Window Title (under each window item)'),
-            _('Whether window titles should be displayed under each window item in the switcher list.'),
+            _('Show Window Titles'),
+            _('Whether window titles should be displayed under each window item in the list.'),
             _newComboBox(),
             'winSwitcherPopupTitles',
                [[_('Enabled'), 1],
@@ -860,7 +854,7 @@ function _getWindowsOpt() {
         );
 
     optDict.ShowWorkspaceIndex =_optionsItem(
-            _('Show Workspace Index (over each window item)'),
+            _('Show Workspace Index (for each window)'),
             null,
             _newGtkSwitch(),
             'winSwitcherPopupWsIndexes'
@@ -974,11 +968,29 @@ function _getAppsOpt() {
             ]
         );
 
+    optDict.Content =_optionsItem(
+            _makeTitle(_('Content')),
+        );
+
+    optDict.ShowAppTitle =_optionsItem(
+            _('Show App Names'),
+            _('Name of the application will be displayed under each app icon in the list.'),
+            _newGtkSwitch(),
+            'appSwitcherPopupTitles'
+        );
+
     optDict.IncludeFavorites = _optionsItem(
             _('Include Favorite Apps'),
             _('List Dash favorite apps even when not runnig so you can use the switcher as a app launcher.'),
             _newGtkSwitch(),
             'appSwitcherPopupFavoriteApps'
+        );
+
+    optDict.ShowWinCounter =_optionsItem(
+            _('Show Window Counter'),
+            _('Replaces the default dot indicating running applications by number of open windows.'),
+            _newGtkSwitch(),
+            'appSwitcherPopupWinCounter'
         );
 
     optDict.Appearance = _optionsItem(
@@ -1168,8 +1180,10 @@ The current monitor is the one where the switcher pop-up is located, or where th
 
     optionList.push(_optionsItem(
             _('Create Window Thumbnail'),
-            _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor.\n\
-You can move the thumbnail anywhere on the screen using a mouse and you can make as many thumbnails as you want.\n\
+            _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. \
+You can move the thumbnail anywhere on the screen using a mouse drag & drop and you can make as many thumbnails as you want.\n\
+To remove lastly created thumbnail, use this hotkey while pressing Ctrl key.\n\
+To remove all created thumbnails, use this hotkey while pressing Shift and Ctrl keys.\n\
 Thumbnail controls:\n\
     Double click:    \t\tactivates the source window\n\
     Primary click:   \t\ttoggles scroll wheel function (resize / source)\n\
@@ -1178,7 +1192,7 @@ Thumbnail controls:\n\
     Scroll wheel:    \t\tresizes or changes the source window\n\
     Ctrl + Scroll wheel: \tchange source window or resize\n\
     Shift + Scroll wheel: \tadjust opacity\n\
-    Ctrl + Primary click: \tToggles display the app icon instead of the window preview'),
+    Ctrl + Primary click: \tToggles thumbnail between a window preview and app icon'),
             _newGtkEntry(),
             'hotkeyThumbnail'
         )

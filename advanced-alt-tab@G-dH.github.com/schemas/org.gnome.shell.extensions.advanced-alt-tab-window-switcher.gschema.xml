@@ -155,6 +155,12 @@
     <key name='app-switcher-popup-fav-apps' type='b'>
       <default>true</default>
     </key>
+    <key name='app-switcher-popup-win-counter' type='b'>
+      <default>true</default>
+    </key>
+    <key name='app-switcher-popup-titles' type='b'>
+      <default>true</default>
+    </key>
     <key name='app-switcher-popup-fav-mru' type='b'>
       <default>true</default>
     </key>
