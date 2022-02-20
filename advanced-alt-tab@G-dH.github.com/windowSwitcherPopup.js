@@ -1172,9 +1172,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (keysym === Clutter.KEY_Escape && this._singleApp && !this.KEYBOARD_TRIGGERED) {
             this._toggleSingleAppMode();
-        } else if (keysym === Clutter.KEY_Super_L) {
-            this.fadeAndDestroy();
-            Main.overview.toggle();
+        } else if (keysymName.match('Super')) {
+            if (_ctrlPressed() && _shiftPressed()) {
+                this.fadeAndDestroy();
+                this._getActions().toggleAppGrid();
+            } else if (_ctrlPressed()) {
+                this._toggleSwitcherMode();
+            } else {
+                this.fadeAndDestroy();
+                Main.overview.toggle();
+            }
         } else if  (
             action == Meta.KeyBindingAction.SWITCH_WINDOWS ||
             action == Meta.KeyBindingAction.SWITCH_APPLICATIONS ||
@@ -1643,18 +1650,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _showOverlaySearchLabel(text) {
-        let margin = 10;
+        const margin = 10;
         if (this._overlaySearchLabel) {
             this.destroyOverlayLabel(this._overlaySearchLabel);
         }
-        this._overlaySearchLabel = new St.BoxLayout({style_class: 'search-text'});
 
-        let icon = new St.Icon({icon_name: 'edit-find-symbolic'});
+        const icon = new St.Icon({icon_name: 'edit-find-symbolic'});
+        this._overlaySearchLabel = this._customOverlayLabel('search-text', 'search-text', false); // name, css, vertcal box
         this._overlaySearchLabel.add_child(icon);
-        this._overlaySearchLabel._label = this._customOverlayLabel('search-text', '');
+        this._overlaySearchLabel.set_child_at_index(icon, 0);
         this._overlaySearchLabel._label.text = ` ${text}`;
 
-        this._overlaySearchLabel.add_child(this._overlaySearchLabel._label);
         Main.layoutManager.addChrome(this._overlaySearchLabel);
         const offset = this._overlayTitle
             ? this._overlayTitle.height + margin
@@ -1667,15 +1673,21 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _showOverlayTitle() {
         let selected = this._items[this._selectedIndex];
         let title;
+        let description = '';
 
         if (selected._is_window) {
             title = selected.window.get_title();
         } else {
             title = selected.titleLabel.get_text();
             // if serching apps add more info to the app name
-            if (this._searchEntryNotEmpty() && selected._genericName) {
-                if (!this._match(title, selected._genericName))
-                    title += `\n(${selected._genericName})`;
+            if (this._searchEntryNotEmpty() && selected._appDetails) {
+                if (selected._appDetails.generic_name && !this._match(title, selected._appDetails.generic_name))
+                    description += `${selected._appDetails.generic_name}`;
+                if (selected._appDetails.comment && !this._match(title, selected._appDetails.comment)) {
+                    if (description)
+                        description += '\n';
+                    description += `${selected._appDetails.comment}`;
+                }
             }
         }
 
@@ -1683,8 +1695,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.destroyOverlayLabel(this._overlayTitle);
         }
 
-        this._overlayTitle = this._customOverlayLabel('item-title', 'title-label'); // name, css style
-        this._overlayTitle.text = title;
+        this._overlayTitle = this._customOverlayLabel('item-title', 'title-name'); // name, css style
+        this._overlayTitle._label.text = title;
+
+        if (description) {
+            const descriptionLbl = new St.Label({
+                style_class: 'title-description',
+                text: description
+            });
+            this._overlayTitle.add_child(descriptionLbl);
+        }
+
         Main.layoutManager.addChrome(this._overlayTitle);
 
         let index = this._selectedIndex;
@@ -1710,13 +1731,21 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         [overlayLabel.x, overlayLabel.y] = [x, y];
     }
 
-    _customOverlayLabel(name, style_class) {
-        let label = new St.Label({
-            name: name,
-            style_class: style_class,
-            reactive: false,
+    _customOverlayLabel(name, style_class, vertical = true) {
+        const box = new St.BoxLayout({
+            vertical: vertical,
+            style_class: 'tooltip-box',
         });
-        return label;
+
+        const label = new St.Label({
+            name: name,
+            reactive: false,
+            style_class: style_class
+        });
+
+        box.add_child(label);
+        box._label = label;
+        return box;
     }
 
     destroyOverlayLabel(overlayLabel) {
@@ -2244,12 +2273,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return false;
                 }
 
-                let name = appInfo.get_name() || '';
+                //let name = appInfo.get_name() || '';
+                let dispName = appInfo.get_display_name() || '';
                 let gname = appInfo.get_generic_name() || '';
                 let exec = appInfo.get_executable() || '';
+                let comment = appInfo.get_string('Comment') || '';
+                let categories = appInfo.get_string('Categories') || '';
+                let keywords = appInfo.get_string('Keywords') || '';
                 // show only launchers that should be visible in this DE and invisible launchers of Gnome Settings items
                 return (appInfo.should_show() || (exec.includes('gnome-control-center', 0))) && this._match(
-                    `${name} ${gname} ${exec}`,
+                    `${dispName} ${gname} ${exec} ${comment} ${categories} ${keywords}`,
                     pattern);
             });
 
@@ -2265,7 +2298,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             // sort apps by usage list
             appList.sort((a, b) => usage.compare(a.get_id(), b.get_id()));
             // prefer apps where any word in their name starts with the pattern
-            appList.sort((a, b) => this._isMoreRelevant(a.get_name(), b.get_name(), pattern));
+            appList.sort((a, b) => this._isMoreRelevant(a.app_info.get_display_name(), b.app_info.get_display_name(), pattern));
             /*// prefer currently running apps
             appList.sort((a, b) => b.get_n_windows() > 0 && a.get_n_windows() === 0);*/
             // limit the app list size
@@ -2490,13 +2523,20 @@ class AppIcon extends AppDisplay.AppIcon {
         this._switcherParams = switcherParams;
 
         this.titleLabel = new St.Label({
+            //text: app.get_name(),
             text: app.get_name(),
             style_class: 'workspace-index'
         });
 
-        if (app.get_app_info())
-            this._genericName = app.get_app_info().get_generic_name();
-
+        if (app.get_app_info()) {
+            const appInfo = app.get_app_info();
+            const genericName = appInfo.get_generic_name();
+            const comment = appInfo.get_string('Comment');
+            this._appDetails = {
+                generic_name : genericName,
+                comment: comment
+            };
+        }
         // remove original app icon style
         this.style_class = '';
 

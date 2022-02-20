@@ -28,21 +28,28 @@
   background-color: rgba(0, 0, 0, 0.0);
 }
 
-.title-label, .search-text {
+.tooltip-box {
   color: rgb(200, 200, 200);
   font-weight: normal;
   text-align: center;
-  font-size: 1.5em;
   /*text-shadow: -1px -1px rgba(0, 0, 0, 0.7);*/
   background-color: rgba(29, 32, 33, 0.9);
-  padding-left: 0.3em;
-  padding-right: 0.3em;
-  padding-top: 0.2em;
-  padding-bottom: 0.2em;
-  border-radius: 0.4em;
+  padding-left: 0.6em;
+  padding-right: 0.6em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  border-radius: 8px;
   border-color: darkgrey;
   border-width: 1px;
   border-color: rgb(66, 64, 64);
+}
+
+.title-name {
+  font-size: 1.5em;
+}
+
+.title-description {
+  font-size: 1em;
 }
 
 .search-text {
