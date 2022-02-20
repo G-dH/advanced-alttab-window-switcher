@@ -119,6 +119,7 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 - option `Minimized windows at the end` of the list (default for GNOME Shell is `true`).
 - `Super Key Mode` option can override default Super key functionality and instead of Activities open App or Window Switcher, which then stays open until you choose an item or escape. If you want to activate Overview, press and hold any other modifier key and hit the (left) Super again. Sadly, the Super press event cannot be catched by the AATWS unless you simultaneously press and hold any other modifier key.
 - when searching apps, the tooltip title (if enabled) of selected application adds its `generic_name`, which usually contains short app description.
+- option for app switcher `Raise First Window Only` - on app activation raise only its most recently used window instead of all app windows.
 
 **Other Changes**
 - tooltips replaced by captions directly under each option
