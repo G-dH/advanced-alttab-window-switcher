@@ -139,11 +139,12 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 
 ## Contribution
 
-Contributions are welcome and I will try my best to answer quickly to all suggestions.
+Contributions are welcome and I will try my best to answer quickly to all suggestions. I'd really appreciate corrections of my bad english.
 
-##Screenshots##
+## Screenshots
 
 ![Window Switcher Popup](screenshot.png)
+![App Switcher Popup](screenshot0-1.png)
 ![Extension configuration window](screenshot1.png)
 ![Extension configuration window](screenshot2.png)
 ![Extension configuration window](screenshot3.png)
