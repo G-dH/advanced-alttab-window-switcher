@@ -142,6 +142,24 @@ var Actions = class {
         }
     }
 
+    toggleAppGrid() {
+        if (Main.overview.dash.showAppsButton.checked) {
+            Main.overview.hide();
+        } else {
+            // Pressing the apps btn before overview activation avoids icons animation in GS 3.36/3.38
+            // but in GS40 with Dash to Dock and its App button set to "no animation", this whole sequence is problematic
+            if (Settings.shellVersion < 40)
+                Main.overview.dash.showAppsButton.checked = true;
+            // in 3.36 pressing the button is usualy enough to activate overview, but not always
+            Main.overview.show();
+            // pressing apps btn before overview has no effect in GS 40, so once again
+            Main.overview.dash.showAppsButton.checked = true;
+
+            // Main.overview.showApps()  // GS 40 only, can show app grid, but not when overview is already active
+            // Main.overview.viewSelector._toggleAppsPage();  // GS 36/38
+        }
+    }
+
     fullscreenWinOnEmptyWs(metaWindow = null) {
         let win;
         if (!metaWindow)
