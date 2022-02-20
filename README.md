@@ -145,6 +145,7 @@ Contributions are welcome and I will try my best to answer quickly to all sugges
 
 ![Window Switcher Popup](screenshot.png)
 ![Extension configuration window](screenshot1.png)
-![Extension configuration window](screenshot1-1.png)
-![Extension configuration window](screenshot1-2.png)
+![Extension configuration window](screenshot2.png)
+![Extension configuration window](screenshot3.png)
+![Extension configuration window](screenshot4.png)
  
