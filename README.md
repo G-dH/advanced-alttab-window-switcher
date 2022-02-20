@@ -1,33 +1,31 @@
 # AATWS - Advanced Alt-Tab Window Switcher
-An extension for Gnome Shell that replaces following GNOME Shell's build-in functions: *Switch windows*, *Switch applications* and *Switch windows of an application*. Keyboard shortcuts for these functions can set in GNOME Settings > Keyboard Shortcuts.
+An extension for Gnome Shell that replaces following GNOME Shell's build-in functions: *Switch windows*, *Switch applications* and *Switch windows of an application*. Keyboard shortcuts for these functions can be set in GNOME Settings > Keyboard Shortcuts.
 
-*AATWS - Advanced Alt-Tab Window Switcher* offers effective navigation between windows, including type to search mode, various filtering and sorting options, workspace switcher and hotkeys for window control. In combination with `Custom Hot Corners - Extended` extension, `AATWS` can be also triggered (and controlled) using a mouse.
+*AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in type to search feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you dont exacty know its name. In combination with `Custom Hot Corners - Extended` extension, the `AATWS` can be also triggered (and controled) using a mouse and also serve as a dock.
 
 
 [<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
 
-## Features:
+## Main Features:
 
-- Supports GNOME Shell 3.36 - 41.
-- Replacement for both the window switcher and application switcher. Both modes can be also switched on the fly.
-- **Type to Search** mode - you can activate it by a hotkey or you can set in preferences to start the switcher directly in this mode so you can type immediately as the popup shows up.
+- Supports GNOME Shell 3.36 - 42.
+- Replacement for both the **Window Switcher** and **Application Switcher** popups. Both modes can be also switched on the fly.
+- **Type to Search** mode which allows you to find any window or application.
 - Optional default filter settings : *All windows / Current workspace / Current monitor*, plus *Skip minimized* option.
 - Optional default sorting settings: *Most Recently Used* (MRU) */ Stable sequence / Stable sequence - current window first*.
 - Optional automatic filter switching in search mode - the switcher can be set to list windows from the current monitor but you can find windows from other monitors and workspaces by typing.
 - Optional default window grouping settings: *None / Current workspace first / Applications / Workspaces*.
-- **Filter, sorting and grouping modes can be switched on the fly** when needed.
-- The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files) and GNOME Settings.
-- Built-in **workspace switcher** allows you to navigate between workspaces using the Up/Down arrow keys and optionally indicates the current workspace by on screen index.
+- **Filter, sorting and grouping modes can be switched on the fly** when needed using hotkeys.
+- The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files) and GNOME Settings. You can search applications not only by names, but also by their category, keywords, description and name of executable.
+- Built-in **workspace switcher** with `Wraparound` and `Ingore Last (empty) Workspace` options allows you to navigate between workspaces using the Up/Down arrow keys.
 - Separately **adjustable sizes** of window preview and app icon combo (the larger one is used as the base and the smaller one as the front icon), single application window list icons and application list icons.
-- `Always on Top` property of selected window can be controled from the switcher and is indicated by the TOP position of the front icon (or the win preview if smaller) instead of default BOTTOM.
-- The `view-pin` icon indicates whether the window is set as `Always on Visible Workspace` and you can control it from the switcher.
-- Minimized windows are indicated by a reduced opacity of the icon.
 - Optional workspace index on each window item so you can see to which workspace the window belongs.
-- Direct window activation using `F` keys with optional `F<n>` key indicator on each item in the list.
+- Direct window activation using `F`unction keys with optional `F<n>` key indicator on each item in the switcher.
 - Optionally windows can be rised immediately as they are selected in the switcher list, otherwise you can do so by pressing a dedicated hotkey.
-- With multimonitor setup **you can move the window switcher popup to any connected monitor on the fly**.
+- With multimonitor setup **you can move the switcher popup to any connected monitor on the fly** using hotkeys. You can also choose whether the switcher should appear always on the primary monitor or the one with mouse pointer.
 - Bult-in window and app controls, see Hotkeys paragraph below.
 - Hotkey for creating **live window previews - thumbnails** that you can place anywhere on the screen and are always on top. This thumbnails can be adjusted using a mouse and you can use them as a shortcut that can activate or close the source window as described below. The thumbnail can also be switched into an aplication icon instead of the preview.
+- Super key can be set to open App/Window switcher instad of the default Activities overview.
 
 ### Hotkeys
 
@@ -54,7 +52,7 @@ Most hotkeys can be customized in AATWS Preferences window, for each customizabl
 
 `G`                       - Toggles sorting by workspace, when Filter Mode is set to ALL.
 
-`1/+/!`                   - Toggles Single App mode - shows only the windows of the selected application.
+`1/+/!`                   - Toggles Single App mode - shows only windows of the selected application.
 
 `E/Insert`                - Toggles the `Type to Search` mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
 
@@ -77,17 +75,23 @@ Most hotkeys can be customized in AATWS Preferences window, for each customizabl
 
 `M`                       - Toggles full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.
 
-`N, Ctrl+Enter`           - Create a new window of selected application, if the application soupports it.
+`N, Ctrl+Enter`           - Opens new window of selected application, if the application soupports it.
 
 `F`                       - Moves the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.
                             Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.
 
-`Y, Ctrl+;/~`             - Toggles between Windows and Applications modes.
+`Ctrl+;/~, Ctrl+Super`    - Toggles between Windows and Applications modes.
 
 `T`                       - Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. You can move the thumbnail anywhere on the screen using a mouse and you can make as many thumbnails as you want
 `P`                       - Opens preferences window of this extension.
 
-`Ctrl+Shift+Left/Right`   - In Applications mode with Favorites, changes the position of the selected favorite application
+`Ctrl+Shift+Left/Right`   - In App mode with Favorites changes the position of the selected favorite application in favorites list
+
+`Shift+Super`             - Toggles Activities Overview
+
+`Ctrl+Shift+Super`        - Toggles App Grid view
+
+
 
 ### Type to Search
 
