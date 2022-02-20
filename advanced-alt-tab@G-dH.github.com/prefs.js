@@ -1248,6 +1248,14 @@ Thumbnail controls:\n\
     );
 
     optionList.push(_optionsItem(
+            _('Toggle Switcher Mode'),
+            _('Switch between Apps and Windows Modes.'),
+            _newGtkEntry(),
+            _('Ctrl + `/~, Ctrl + Super')
+        )
+    );
+
+    optionList.push(_optionsItem(
             _('Select Previous/Next Item'),
             '',
             _newGtkEntry(),
@@ -1267,7 +1275,7 @@ Thumbnail controls:\n\
             _('Window Mode: Iterate over Aplications'),
             _('Switcher is in the Window mode: first press of the hotkey sorts windows by applications, each subsequent key press selects first window of the next app. Shift key changes direction.'),
             _newGtkEntry(),
-            _('`/~ (the key above Tab)')
+            _('`/~ (key above Tab)')
         )
     );
 
@@ -1275,13 +1283,13 @@ Thumbnail controls:\n\
             _('App Mode: Switch to Single App Switcher'),
             _('Switcher is in the App mode: first press of the hotkey switches to Single App mode, each subsequent key press selects next window and Tab key switches back to the App view.'),
             _newGtkEntry(),
-            _('`/~ (the key above Tab)')
+            _('`/~ (key above Tab)')
         )
     );
 
     optionList.push(_optionsItem(
             _('Toggle Search Mode On/Off'),
-            _("You can enter multiple patterns separated by a space and in arbitrary order to search windows/apps by titles, app names, app generic names and app executables. Generic names usually contain a basic app description so you can find most of editor apps by typing an 'edit', image viewers by typing 'image' and so on."),
+            _("See the customizable hotkey above for details."),
             _newGtkEntry(),
             _('Insert')
         )
@@ -1349,6 +1357,22 @@ Thumbnail controls:\n\
 If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'),
             _newGtkEntry(),
             _('Ctrl+Shift + Left/Right')
+        )
+    );
+
+    optionList.push(_optionsItem(
+            _('Toggle Activities Overview'),
+            _('Closes the switcher and toggles Activities Overview.'),
+            _newGtkEntry(),
+            _('Shift + Super')
+        )
+    );
+
+    optionList.push(_optionsItem(
+            _('Toggle App Grid Overview'),
+            _('Closes the switcher and toggles App Grid Overview.'),
+            _newGtkEntry(),
+            _('Ctrl + Shift + Super')
         )
     );
 
