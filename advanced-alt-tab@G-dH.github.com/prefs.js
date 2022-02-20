@@ -194,6 +194,7 @@ function _getAppOptionList() {
         opt.Behavior,
             opt.DefaultFilter,
             opt.DefaultSorting,
+            opt.RaiseFirstWinOnly,
         opt.Content,
             opt.IncludeFavorites,
             opt.ShowAppTitle,
@@ -229,8 +230,7 @@ class OptionsPageAATWS extends Gtk.ScrolledWindow {
     }
 
     buildPage() {
-        if (this._alreadyBuilt)
-            return;
+        if (this._alreadyBuilt) return;
 
         const mainBox = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
@@ -400,8 +400,9 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
         widget.timeout_id = null;
         widget.connect('value-changed', () => {
             widget.update();
-            if (widget.timeout_id)
+            if (widget.timeout_id) {
                 GLib.Source.remove(widget.timeout_id);
+            }
 
             widget.timeout_id = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
@@ -418,29 +419,31 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
         for (const [label, value] of options) {
             let iter;
             model.set(iter = model.append(), [0, 1], [label, value]);
-            if (value === mscOptions[variable])
+            if (value === mscOptions[variable]) {
                 widget.set_active_iter(iter);
+            }
         }
         widget.connect('changed', () => {
             const [success, iter] = widget.get_active_iter();
-            if (!success)
-                return;
+
+            if (!success) return;
 
             mscOptions[variable] = model.get_value(iter, 1);
         });
     } else if (widget && widget.is_entry) {
         if (variable.startsWith('hotkey')) {
             widget.connect('changed', (entry) => {
-                if (entry._doNotEdit)
-                    return;
+                if (entry._doNotEdit) return;
+
                 entry._doNotEdit = true;
                 let text = entry.get_text();
                 let txt = '';
                 for (let i = 0; i < text.length; i++) {
                     //if (/[a-zA-Z0-9]|/.test(text[i])) {
                     let char = text[i].toUpperCase();
-                    if (!txt.includes(char))
+                    if (!txt.includes(char)) {
                         txt += char;
+                    }
                     //}
                 }
                 txt = txt.slice(0, 2);
@@ -966,6 +969,13 @@ function _getAppsOpt() {
                 [_('Most Recently Used'), 1],
                 [_('Stable Sequence'),    2],
             ]
+        );
+
+    optDict.RaiseFirstWinOnly =_optionsItem(
+            _('Raise First Window Only'),
+            _('If you activate a running app, only its most recently used window will be raised, instead of raising all app windows above windows of all other apps.'),
+            _newGtkSwitch(),
+            'appSwitcherPopupRaiseFirstOnly'
         );
 
     optDict.Content =_optionsItem(

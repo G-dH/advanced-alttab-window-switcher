@@ -122,6 +122,9 @@
     <key name='switcher-popup-activate-on-hide' type='b'>
       <default>false</default>
     </key>
+    <key name='app-switcher-popup-raise-first-only' type='b'>
+      <default>false</default>
+    </key>
     <key name='win-switcher-popup-preview-size' type='i'>
       <default>128</default>
     </key>

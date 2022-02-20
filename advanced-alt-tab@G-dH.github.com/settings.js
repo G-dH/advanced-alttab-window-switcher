@@ -376,6 +376,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('app-switcher-popup-sorting', int_val);
     }
 
+    get appSwitcherPopupRaiseFirstOnly() {
+        return this._gsettings.get_boolean('app-switcher-popup-raise-first-only');
+    }
+
+    set appSwitcherPopupRaiseFirstOnly(bool_val) {
+        this._gsettings.set_boolean('app-switcher-popup-raise-first-only', bool_val);
+    }
+
     get appSwitcherPopupIconSize() {
         return this._gsettings.get_int('app-switcher-popup-icon-size');
     }
