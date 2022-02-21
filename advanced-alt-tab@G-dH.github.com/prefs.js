@@ -1139,7 +1139,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     );
 
     optionList.push(_optionsItem(
-            _('Move Window to Current Workspace/Monitor'),
+            _('Move Window/App to Current Workspace/Monitor'),
             _('Moves the selected window or windows of selected application to the current workspace and monitor.\
 The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             _newGtkEntry(),
@@ -1310,7 +1310,7 @@ Thumbnail controls:\n\
 
     optionList.push(_optionsItem(
             _('Force Quit'),
-            _('Sends kill -9 signal to the selected aplication or application of selected window'),
+            _('Sends kill -9 signal to the selected aplication or application of selected window.'),
             _newGtkEntry(),
             _('Ctrl + Del')
         )
@@ -1341,18 +1341,18 @@ Thumbnail controls:\n\
     );
 
     optionList.push(_optionsItem(
-            _('Move Selected to Previous/Next Workspace'),
-            _('Moves selected window or windows of selected applications to an adjacent workspace. If you try to move windows in front of the first workspace, new workspace will be inserted automatically.'),
+            _('Move Window/App to Current Workspace/Monitor'),
+            _('Moves the selected window or windows of selected application to the current workspace and monitor.'),
             _newGtkEntry(),
-            _('Ctrl + Up/Down')
+            _('Ctrl + Down')
         )
     );
 
     optionList.push(_optionsItem(
-            _('Move Selected to New Workspace'),
-            _('Moves selected window or windows of selected applications to a new workspace created in front of or behind the current one.'),
+            _('Move Window/App to New Workspace'),
+            _('Moves the selected window or windows of selected application to the newly created workspace in front of or behind the current workspace.'),
             _newGtkEntry(),
-            _('Ctrl+Shift + Up/Down')
+            _('Ctrl + Shift + Up/Down')
         )
     );
 
