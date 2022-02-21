@@ -73,6 +73,12 @@ const SelectionMode = {
     ACTIVE: 2,
 };
 
+const PreviewMode = {
+    DISABLE: 1,
+    PREVIEW: 2,
+    SHOW_WIN: 3
+}
+
 const LABEL_FONT_SIZE = 0.9;
 
 const Action = Settings.Actions;
@@ -148,7 +154,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.HOT_KEYS              = options.switcherPopupHotKeys;
         this.SHIFT_AZ_HOTKEYS      = options.switcherPopupShiftHotkeys;
         this.STATUS                = options.switcherPopupStatus;
-        this.SHOW_WIN_IMEDIATELY   = options.switcherPopupShowImmediately;
+        //this.SHOW_WIN_IMEDIATELY   = options.switcherPopupShowImmediately;
+        this.PREVIEW_SELECTED      = options.switcherPopupPreviewSelected;
         this.SHOW_WS_POPUP         = options.wsSwitchPopup;
         this.SEARCH_ALL            = options.winSwitcherPopupSearchAll;
         this.OVERLAY_TITLE         = options.switcherPopupOverlayTitle;
@@ -219,14 +226,21 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (timeoutId) GLib.source_remove(timeoutId);
         });
 
-        if (this._newWindowSignalId)
+        if (this._newWindowSignalId) {
             global.display.disconnect(this._newWindowSignalId);
+        }
         this._removeOverlays();
 
-        if (this._actions)
+        if (this._actions) {
             this._actions.clean();
             this._actions = null;
         }
+
+        if (this._highlight) {
+            this._highlight.destroy();
+            this._highlight = null;
+        }
+    }
 
     _removeOverlays() {
         if (this._overlayTitle) {
@@ -441,8 +455,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._shouldReverse()) {
                 switcherList.reverse();
             }
-
-            if (!this._showingApps && this.SHOW_WIN_IMEDIATELY && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU) {
+            // avoid immediate switch to recent window when Show Win Preview mode is active
+            if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN && !this._showingApps && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU) {
                 this._initialSelectionMode = SelectionMode.FIRST;
             }
 
@@ -754,9 +768,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     Main.activateWindow(this._getSelected().cachedWindows[0]);
                 } else {
                     // following not only activates the app recent window, but also rise all other windows of the app above other windows
-                    // but if item is activated without key/button press, only the first window is raised
-                    this._getSelected().activate_window(this._getSelected().cachedWindows[0], global.get_current_time());
-                    // also, if item is activated automaticaly, the window is not going to be activated. therefore the following line
+                    // but if item is activated without key/button press (ACTIVATE_ON_HIDE), only the first window is raised, so we need to raise the windows anyway
+                    //this._getSelected().activate_window(this._getSelected().cachedWindows[0], global.get_current_time());
+
+                    const wins = this._getSelected().cachedWindows;
+                    for (let i = wins.length - 1; i >= 0; i--) {
+                        wins[i].raise();
+                    }
+
                     Main.activateWindow(this._getSelected().cachedWindows[0]);
                 }
             } else {
@@ -846,7 +865,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.NO_MODS_TIMEOUT,
             () => {
                 if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !_cancelTimeout) {
-                    if (this.SHOW_WIN_IMEDIATELY) {
+                    if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
                         if (this._lastShowed) {
                             this._selectedIndex = this._lastShowed;
                         }
@@ -927,7 +946,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        if (this.SHOW_WIN_IMEDIATELY) {
+        if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
             if (this._showWinImmediatelyTimeoutId) {
                 GLib.source_remove(this._showWinImmediatelyTimeoutId);
                 this._showWinImmediatelyTimeoutId = 0;
@@ -950,6 +969,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
 
             return;
+        } else if (this.PREVIEW_SELECTED === PreviewMode.PREVIEW) {
+            this._showPreview();
         }
 
         this._resetNoModsTimeout();
@@ -1619,6 +1640,37 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
+    _showPreview() {
+        let selected = this._getSelected();
+        if (!selected) {
+            return;
+        }
+
+        let metaWin;
+        if (selected.get_windows) {
+
+            if (!selected.cachedWindows.length) {
+                if (this._highlight) {
+                    this._highlight.destroy();
+                    this._highlight = null;
+                }
+                return;
+            }
+
+            metaWin = selected.cachedWindows[0];
+        } else {
+            metaWin = selected;
+        }
+
+        if (!this._highlight) {
+            this._highlight = new AltTab.CyclerHighlight();
+            global.window_group.add_actor(this._highlight);
+        }
+
+        this._highlight.window = metaWin;
+        global.window_group.set_child_above_sibling(this._highlight, null);
+    }
+
     _showWindow() {
         if (this._doNotShowWin)
             return;
@@ -2228,7 +2280,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _triggerAction(action, direction = 0) {
         // select recent window instead of the first one
-        if (this._recentSwitchTimeoutId && this.SHOW_WIN_IMEDIATELY) {
+        if (this._recentSwitchTimeoutId && this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
             this._select(this._next());
         }
 

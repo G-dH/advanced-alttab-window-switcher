@@ -97,12 +97,12 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('switcher-popup-timeout', int_val);
     }
 
-    get switcherPopupShowImmediately() {
-        return this._gsettings.get_boolean('switcher-popup-show-immediately');
+    get switcherPopupPreviewSelected() {
+        return this._gsettings.get_int('switcher-popup-preview-selected');
     }
 
-    set switcherPopupShowImmediately(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-show-immediately', bool_val);
+    set switcherPopupPreviewSelected(int_val) {
+        this._gsettings.set_int('switcher-popup-preview-selected', int_val);
     }
 
     get switcherPopupStartSearch() {

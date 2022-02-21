@@ -510,10 +510,13 @@ function _getCommonOpt() {
         )
 
     optDict.ShowImediately = _optionsItem(
-            _('Show Selected Window Immediately'),
-            _("Raise a window (and switch to its workspace) immediately when selected."),
-            _newGtkSwitch(),
-            'switcherPopupShowImmediately'
+            _('Show Selected Window'),
+            _("Allows to see selected window in its original size. Preview shows a clone of the window, second option raises the original window and switch to its workspace."),
+            _newComboBox(),
+            'switcherPopupPreviewSelected',
+            [[_('Disable'), 1],
+             [_('Show Preview'), 2],
+             [_('Show Window'), 3]]
         )
 
     optDict.SearchModeDefault = _optionsItem(

@@ -14,8 +14,8 @@
     <key name='win-switch-skip-minimized' type='b'>
       <default>false</default>
     </key>
-    <key name='switcher-popup-show-immediately' type='b'>
-      <default>false</default>
+    <key name='switcher-popup-preview-selected' type='i'>
+      <default>1</default>
     </key>
     <key name='switcher-popup-start-search' type='b'>
       <default>true</default>
