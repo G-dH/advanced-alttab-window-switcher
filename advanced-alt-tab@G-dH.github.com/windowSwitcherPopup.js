@@ -1376,7 +1376,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (_ctrlPressed() && keysym == Clutter.KEY_Page_Up) {
                 this._reorderWorkspace(-1);
             } else if (_ctrlPressed() && !_shiftPressed()) {
-                this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
+                //this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.UP)
             } else if (!_ctrlPressed() && !_shiftPressed()) {
@@ -1389,7 +1389,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._reorderWorkspace(+1);
             }
             else if (_ctrlPressed() && !_shiftPressed()) {
-                this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
+                //this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
+                this._moveToCurrentWS();
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.DOWN);
             } else if (!_ctrlPressed() && !_shiftPressed()) {
@@ -2433,8 +2434,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             };
 
             let winListP = filterList(winList, this._searchEntry);
-            if (winListP.length > 0 && this._searchEntryNotEmpty())
-                winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), this._searchEntry));
+            /*if (winListP.length > 0 && this._searchEntryNotEmpty())
+                winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), this._searchEntry));*/
 
             winList = winListP;
         }
