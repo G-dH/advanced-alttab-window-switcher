@@ -54,6 +54,7 @@ function buildPrefsWidget() {
     const commonOptionsPage   = new OptionsPageAATWS(_getCommonOptionList());
     const windowOptionsPage   = new OptionsPageAATWS(_getWindowOptionList());
     const appOptionsPage      = new OptionsPageAATWS(_getAppOptionList());
+    const miscOptionsPage     = new OptionsPageAATWS(_getMiscOptionList());
     const hotkeysOptionPage   = new OptionsPageAATWS(_getHotkeysOptionList());
     /*const helpPage            = new HelpPageAATWS();
 
@@ -92,6 +93,12 @@ function buildPrefsWidget() {
         halign: Gtk.Align.START,
         visible: true,
     }));
+
+    prefsWidget.append_page(miscOptionsPage, new Gtk.Label({
+        label: _('Misc'),
+        halign: Gtk.Align.START,
+        visible: true,
+    }))
 
     prefsWidget.append_page(hotkeysOptionPage, new Gtk.Label({
         label: _('Hotkeys'),
@@ -142,17 +149,6 @@ function _getCommonOptionList() {
             opt.SecondaryOutside,
             opt.MiddleOutside,
             opt.ScrollOutside,
-        opt.WorkspaceSwitcher,
-            opt.Wraparound,
-            opt.IgnoreLast,
-            opt.ShowWsPopup,
-        opt.Thumbnails,
-            opt.ThumbnailScale,
-        opt.ExternalTrigger,
-            opt.MousePointerPosition,
-            opt.AutomaticallyReverseOrder,
-            opt.PointerOutTimeout,
-            opt.ActivateOnHide
     ];
 
     return optionList;
@@ -206,6 +202,26 @@ function _getAppOptionList() {
             opt.PrimaryItem,
             opt.SecondaryItem,
             opt.MiddleItem,
+    ];
+
+    return optionList;
+}
+
+function _getMiscOptionList() {
+    const opt = _getMiscOpt();
+
+    const optionList = [
+        opt.WorkspaceSwitcher,
+            opt.Wraparound,
+            opt.IgnoreLast,
+            opt.ShowWsPopup,
+        opt.Thumbnails,
+            opt.ThumbnailScale,
+        opt.ExternalTrigger,
+            opt.MousePointerPosition,
+            opt.AutomaticallyReverseOrder,
+            opt.PointerOutTimeout,
+            opt.ActivateOnHide
     ];
 
     return optionList;
@@ -478,7 +494,7 @@ function _getCommonOpt() {
 
     optDict.Behavior = _optionsItem(
             _makeTitle(_('Behavior')),
-        )
+    );
 
     optDict.SuperKeyMode = _optionsItem(
             _('Super Key Mode'),
@@ -488,7 +504,7 @@ function _getCommonOpt() {
                [[_('Default'),          1],
                 [_('App Switcher'),     2],
                 [_('Window Switcher'),  3]]
-        )
+    );
 
     optDict.Position = _optionsItem(
             _('Placement'),
@@ -498,7 +514,7 @@ function _getCommonOpt() {
                [[_('Top'),    1],
                 [_('Center'), 2],
                 [_('Bottom'), 3]]
-        )
+    );
 
     optDict.DefaultMonitor = _optionsItem(
             _('Default Monitor'),
@@ -507,7 +523,7 @@ function _getCommonOpt() {
             'switcherPopupMonitor',
                [[_('Current Monitor'), 1],
                 [_('Primary Monitor'), 2]]
-        )
+    );
 
     optDict.ShowImediately = _optionsItem(
             _('Show Selected Window'),
@@ -517,64 +533,64 @@ function _getCommonOpt() {
             [[_('Disable'), 1],
              [_('Show Preview'), 2],
              [_('Show Window'), 3]]
-        )
+    );
 
     optDict.SearchModeDefault = _optionsItem(
             _('Search Mode as Default'),
             _('Type to search immediately after the switcher pop-up shows up. Hotkeys then can be used while holding down the Shift key.'),
             _newGtkSwitch(),
             'switcherPopupStartSearch'
-        )
+    );
 
     optDict.HotkesRequireShift = _optionsItem(
             _('Action Hotkeys Require Shift'),
             _('A-Z action hotkeys, except for navigation and filter switching, will require you to hold down the Shift key.'),
             _newGtkSwitch(),
             'switcherPopupShiftHotkeys'
-        )
+    );
 
     optDict.WraparoundSelector = _optionsItem(
             _('Wraparound Selector'),
             _('Whether the selection should continue from the last item to the first one and vice versa.'),
             _newGtkSwitch(),
             'switcherPopupWrap'
-        )
+    );
 
     optDict.HoverSelectsItem = _optionsItem(
             _('Hover Selects Item'),
             _('Whether hovering the mouse pointer over a switcher item selects the item.'),
             _newGtkSwitch(),
             'switcherPopupHoverSelect'
-        )
+    );
 
     optDict.Content = _optionsItem(
             _makeTitle(_('Content')),
-        )
+    );
 
     optDict.OverlayTitle = _optionsItem(
             _('Show Tooltip Title'),
             _('The whole title of selected item will be displayed as a tooltip label above (or below if needed) the item.'),
             _newGtkSwitch(),
             'switcherPopupOverlayTitle'
-        )
+    );
 
     optDict.ShowDirectActivation = _optionsItem(
             _('Show Hotkeys F1-F12 for Direct Activation'),
             _('The hotkeys will work independently on this option.'),
             _newGtkSwitch(),
             'switcherPopupHotKeys'
-        )
+    );
 
     optDict.ShowStatus = _optionsItem(
             _('Show Status'),
             _('Whether the label indicating filter, grouping and sorting modes should be displayed at the bottom left of the pop-up.'),
             _newGtkSwitch(),
             'switcherPopupStatus'
-        )
+    );
 
     optDict.Appearance = _optionsItem(
             _makeTitle(_('Appearance')),
-        )
+    );
 
     /*actionList.splice(6,1);
     actionList.splice(1,1);*/
@@ -591,7 +607,7 @@ function _getCommonOpt() {
             null,
             _newSpinButton(singlePrevSizeAdjustment),
             'singleAppPreviewSize'
-        )
+    );
 
     let popupTimeoutAdjustment = new Gtk.Adjustment({
         upper: 400,
@@ -605,11 +621,11 @@ function _getCommonOpt() {
             _("Delay showing the pop-up so that fast Alt+Tab users aren't disturbed by the pop-up briefly flashing."),
             _newSpinButton(popupTimeoutAdjustment),
             'switcherPopupTimeout'
-        )
+    );
 
     optDict.MouseControl = _optionsItem(
             _makeTitle(_('Mouse control')),
-        )
+    );
 
     optDict.PrimaryBackground = _optionsItem(
             _('Primary Click on switcher Background'),
@@ -617,7 +633,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupPrimClickIn',
             actionList
-        )
+    );
 
     optDict.SecondaryBackground = _optionsItem(
             _('Secondary Click on switcher Background'),
@@ -625,7 +641,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupSecClickIn',
             actionList
-        )
+    );
 
     optDict.MiddleBackground = _optionsItem(
             _('Middle Click on switcher Background'),
@@ -633,7 +649,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupMidClickIn',
             actionList
-        )
+    );
 
     optDict.ScrollBackground = _optionsItem(
             _('Scroll over switcher Background'),
@@ -641,7 +657,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupScrollIn',
             actionList
-        )
+    );
 
     optDict.PrimaryOutside = _optionsItem(
             _('Primary Click Outside switcher'),
@@ -649,7 +665,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupPrimClickOut',
             actionList
-        )
+    );
 
     optDict.SecondaryOutside = _optionsItem(
             _('Secondary Click Outside switcher'),
@@ -657,7 +673,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupSecClickOut',
             actionList
-        )
+    );
 
     optDict.MiddleOutside = _optionsItem(
             _('Middle Click Outside switcher'),
@@ -665,7 +681,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupMidClickOut',
             actionList
-        )
+    );
 
     optDict.ScrollOutside = _optionsItem(
             _('Scroll Outside switcher'),
@@ -673,94 +689,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupScrollOut',
             actionList
-        )
-
-    optDict.WorkspaceSwitcher = _optionsItem(
-            _makeTitle(_('Workspace Switcher')),
-        )
-
-    optDict.Wraparound = _optionsItem(
-            _('Wraparound'),
-            _('Whether the switcher should continue from the last workspace to the first one and vice versa.'),
-            _newGtkSwitch(),
-            'wsSwitchWrap'
-        )
-
-    optDict.IgnoreLast = _optionsItem(
-            _('Ignore Last (empty) Workspace'),
-            null,
-            _newGtkSwitch(),
-            'wsSwitchIgnoreLast'
-        )
-
-    optDict.ShowWsPopup = _optionsItem(
-            _('Show Workspace Pop-up'),
-            _('While switching a workspace'),
-            _newGtkSwitch(),
-            'wsSwitchPopup'
-        )
-
-
-    optDict.Thumbnails = _optionsItem(
-            _makeTitle(_('DND Window Thumbnails')),
-            null,
-            null
-        )
-
-    let tmbScaleAdjustment = new Gtk.Adjustment({
-        lower: 5,
-        upper: 50,
-        step_increment: 1,
-        page_increment: 10,
-    }
     );
-
-    optDict.ThumbnailScale = _optionsItem(
-            _('Thumbnail Height Scale (%)'),
-            _('Height of the thumbnail relative to the screen height'),
-            _newSpinButton(tmbScaleAdjustment),
-            'winThumbnailScale'
-        )
-
-    optDict.ExternalTrigger = _optionsItem(
-            _makeTitle(_('Options for External Trigger')),
-        )
-
-    optDict.MousePointerPosition = _optionsItem(
-            _('Pop-up at Mouse Pointer Position (if triggered by mouse)'),
-            _('If variable KEYBOARD_TRIGGERED is set to false, then this option is reflected.'),
-            _newGtkSwitch(),
-            'switcherPopupPointer'
-        )
-
-    optDict.AutomaticallyReverseOrder = _optionsItem(
-            _('Automatically Reverse List Order'),
-            _('List switcher items from right to left if this helps the mouse pointer be closer to the first item.'),
-            _newGtkSwitch(),
-            'switcherPopupReverseAuto'
-        )
-
-    let popupPointerTimeoutAdjustment = new Gtk.Adjustment({
-        upper: 60000,
-        lower: 100,
-        step_increment: 100,
-        page_increment: 1000,
-    });
-
-
-    optDict.PointerOutTimeout = _optionsItem(
-            _('Pointer Out Timeout (ms)'),
-            _('If the switcher is activated by the mouse, the pop-up closes after this period of inactivity if the mouse pointer is outside the pop-up.'),
-            _newSpinButton(popupPointerTimeoutAdjustment),
-            'switcherPopupPointerTimeout'
-        )
-
-    optDict.ActivateOnHide = _optionsItem(
-            _('Activate Selected Item on Hide'),
-            _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before pop-up hides.'),
-            _newGtkSwitch(),
-            'switcherPopupActivateOnHide'
-        )
 
     return optDict;
 }
@@ -774,7 +703,7 @@ function _getWindowsOpt() {
 
     optDict.Behavior =_optionsItem(
             _makeTitle(_('Behavior')),
-        );
+    );
 
     optDict.DefaultFilter =_optionsItem(
             _('Default Filter'),
@@ -784,7 +713,7 @@ function _getWindowsOpt() {
             [   [_('All'),               1],
                 [_('Current Workspace'), 2],
                 [_('Current Monitor'),   3]]
-        );
+    );
 
     optDict.DefaultSorting =_optionsItem(
             _('Default Sorting'),
@@ -796,7 +725,7 @@ function _getWindowsOpt() {
                 [_('Stable Sequence'),        2],
                 [_('Stable - Current First'), 3],
             ]
-        );
+    );
 
     optDict.DefaultGrouping =_optionsItem(
             _('Default Grouping'),
@@ -808,46 +737,46 @@ function _getWindowsOpt() {
                 [_('Applications'),          3],
                 [_('Workspaces'),            4],
             ]
-        );
+    );
 
     optDict.DistinguishMinimized =_optionsItem(
             _('Distinguish Minimized Windows'),
             _('The front icon of minimized windows will be faded.'),
             _newGtkSwitch(),
             'winMarkMinimized'
-        );
+    );
 
     optDict.MinimizedEnd =_optionsItem(
             _('Minimized Windows at the End'),
             _('Moves minimized windows to the end of the list, which is the default AltTab behavior in GNOME Shell.'),
             _newGtkSwitch(),
             'winMinimizedToEnd'
-        );
+    );
 
     optDict.SkipMinimized =_optionsItem(
             _('Skip Minimized Windows'),
             _('This option actually affects App switcher too.'),
             _newGtkSwitch(),
             'winSkipMinimized'
-        );
+    );
 
     optDict.SearchAllWindows =_optionsItem(
             _('Search All Windows'),
             _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
             _newGtkSwitch(),
             'winSwitcherPopupSearchAll'
-        );
+    );
 
     optDict.SearchApplications =_optionsItem(
             _('Search Applications'),
             _('Search installed applications to launch new when no window matches the searched pattern.'),
             _newGtkSwitch(),
             'winSwitcherPopupSearchApps'
-        );
+    );
 
     optDict.Content =_optionsItem(
             _makeTitle(_('Content')),
-        );
+    );
 
     optDict.ShowWindowTitle =_optionsItem(
             _('Show Window Titles'),
@@ -857,18 +786,18 @@ function _getWindowsOpt() {
                [[_('Enabled'), 1],
                 [_('Disabled'), 2],
                 [_('Single App Mode only'), 3]],
-        );
+    );
 
     optDict.ShowWorkspaceIndex =_optionsItem(
             _('Show Workspace Index (for each window)'),
             null,
             _newGtkSwitch(),
             'winSwitcherPopupWsIndexes'
-        );
+    );
 
     optDict.Appearance =_optionsItem(
             _makeTitle(_('Appearance')),
-        );
+    );
 
     const popupSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
@@ -882,7 +811,7 @@ function _getWindowsOpt() {
             null,
             _newSpinButton(popupSizeAdjustment),
             'winSwitcherPopupPreviewSize'
-        );
+    );
 
     let popupIconSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
@@ -896,11 +825,11 @@ function _getWindowsOpt() {
             null,
             _newSpinButton(popupIconSizeAdjustment),
             'winSwitcherPopupIconSize'
-        );
+    );
 
     optDict.MouseControl =_optionsItem(
             _makeTitle(_('Mouse control')),
-        );
+    );
 
     optDict.ScrollItem =_optionsItem(
             _('Scroll Over Item'),
@@ -908,7 +837,7 @@ function _getWindowsOpt() {
             _newComboBox(),
             'winSwitcherPopupScrollItem',
             actionList
-        );
+    );
 
     let winActionList = [...actionList];
     /*winActionList.splice(6,1);
@@ -919,7 +848,7 @@ function _getWindowsOpt() {
             _newComboBox(),
             'winSwitcherPopupPrimClickItem',
             winActionList
-        );
+    );
 
     optDict.SecondaryItem =_optionsItem(
             _('Secondary Click on Item'),
@@ -927,7 +856,7 @@ function _getWindowsOpt() {
             _newComboBox(),
             'winSwitcherPopupSecClickItem',
             winActionList
-        );
+    );
 
     optDict.MiddleItem =_optionsItem(
             _('Middle Click on Item'),
@@ -935,7 +864,7 @@ function _getWindowsOpt() {
             _newComboBox(),
             'winSwitcherPopupMidClickItem',
             winActionList
-        );
+    );
 
     return optDict;
 }
@@ -949,7 +878,7 @@ function _getAppsOpt() {
 
     optDict.Behavior = _optionsItem(
             _makeTitle(_('Behavior')),
-        );
+    );
 
     optDict.DefaultFilter = _optionsItem(
             _('Default Filter'),
@@ -961,7 +890,7 @@ function _getAppsOpt() {
                 [_('Current Workspace'), 2],
                 [_('Current Monitor'),   3],
             ]
-        );
+    );
 
     optDict.DefaultSorting = _optionsItem(
             _('Default Sorting'),
@@ -972,43 +901,43 @@ function _getAppsOpt() {
                 [_('Most Recently Used'), 1],
                 [_('Stable Sequence'),    2],
             ]
-        );
+    );
 
     optDict.RaiseFirstWinOnly =_optionsItem(
             _('Raise First Window Only'),
             _('If you activate a running app, only its most recently used window will be raised, instead of raising all app windows above windows of all other apps.'),
             _newGtkSwitch(),
             'appSwitcherPopupRaiseFirstOnly'
-        );
+    );
 
     optDict.Content =_optionsItem(
             _makeTitle(_('Content')),
-        );
+    );
 
     optDict.ShowAppTitle =_optionsItem(
             _('Show App Names'),
             _('Name of the application will be displayed under each app icon in the list.'),
             _newGtkSwitch(),
             'appSwitcherPopupTitles'
-        );
+    );
 
     optDict.IncludeFavorites = _optionsItem(
             _('Include Favorite Apps'),
             _('List Dash favorite apps even when not runnig so you can use the switcher as a app launcher.'),
             _newGtkSwitch(),
             'appSwitcherPopupFavoriteApps'
-        );
+    );
 
     optDict.ShowWinCounter =_optionsItem(
             _('Show Window Counter'),
             _('Replaces the default dot indicating running applications by number of open windows.'),
             _newGtkSwitch(),
             'appSwitcherPopupWinCounter'
-        );
+       );
 
     optDict.Appearance = _optionsItem(
             _makeTitle(_('Appearance')),
-        );
+    );
 
     let appActionList = [...actionList];
 
@@ -1024,11 +953,11 @@ function _getAppsOpt() {
             null,
             _newSpinButton(popupAppIconSizeAdjustment),
             'appSwitcherPopupIconSize'
-        );
+    );
 
     optDict.MouseControl = _optionsItem(
             _makeTitle(_('Mouse control')),
-        );
+    );
 
     optDict.ScrollItem = _optionsItem(
             _('Scroll Over Item'),
@@ -1036,7 +965,7 @@ function _getAppsOpt() {
             _newComboBox(),
             'appSwitcherPopupScrollItem',
             appActionList
-        );
+    );
 
     // appActionList.splice(6,1);
     // appActionList.splice(1,1);
@@ -1046,7 +975,7 @@ function _getAppsOpt() {
             _newComboBox(),
             'appSwitcherPopupPrimClickItem',
             appActionList
-        );
+    );
 
     optDict.SecondaryItem = _optionsItem(
             _('Secondary Click on Item'),
@@ -1054,7 +983,7 @@ function _getAppsOpt() {
             _newComboBox(),
             'appSwitcherPopupSecClickItem',
             appActionList
-        );
+    );
 
     optDict.MiddleItem = _optionsItem(
             _('Middle Click on Item'),
@@ -1062,12 +991,103 @@ function _getAppsOpt() {
             _newComboBox(),
             'appSwitcherPopupMidClickItem',
             appActionList
-        );
+    );
 
     return optDict;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
+function _getMiscOpt() {
+    const optDict = {};
+
+    optDict.WorkspaceSwitcher = _optionsItem(
+            _makeTitle(_('Workspace Switcher')),
+    );
+
+    optDict.Wraparound = _optionsItem(
+            _('Wraparound'),
+            _('Whether the switcher should continue from the last workspace to the first one and vice versa.'),
+            _newGtkSwitch(),
+            'wsSwitchWrap'
+    );
+
+    optDict.IgnoreLast = _optionsItem(
+            _('Ignore Last (empty) Workspace'),
+            null,
+            _newGtkSwitch(),
+            'wsSwitchIgnoreLast'
+    );
+
+    optDict.ShowWsPopup = _optionsItem(
+            _('Show Workspace Pop-up'),
+            _('While switching a workspace'),
+            _newGtkSwitch(),
+            'wsSwitchPopup'
+    );
+
+    optDict.Thumbnails = _optionsItem(
+            _makeTitle(_('DND Window Thumbnails')),
+            null,
+            null
+    );
+
+    let tmbScaleAdjustment = new Gtk.Adjustment({
+            lower: 5,
+            upper: 50,
+            step_increment: 1,
+            page_increment: 10,
+        }
+    );
+
+    optDict.ThumbnailScale = _optionsItem(
+            _('Thumbnail Height Scale (%)'),
+            _('Height of the thumbnail relative to the screen height'),
+            _newSpinButton(tmbScaleAdjustment),
+            'winThumbnailScale'
+    );
+
+    optDict.ExternalTrigger = _optionsItem(
+            _makeTitle(_('Options for External Trigger')),
+    );
+
+    optDict.MousePointerPosition = _optionsItem(
+            _('Pop-up at Mouse Pointer Position (if triggered by mouse)'),
+            _('If variable KEYBOARD_TRIGGERED is set to false, then this option is reflected.'),
+            _newGtkSwitch(),
+            'switcherPopupPointer'
+    );
+
+    optDict.AutomaticallyReverseOrder = _optionsItem(
+            _('Automatically Reverse List Order'),
+            _('List switcher items from right to left if this helps the mouse pointer be closer to the first item.'),
+            _newGtkSwitch(),
+            'switcherPopupReverseAuto'
+    );
+
+    let popupPointerTimeoutAdjustment = new Gtk.Adjustment({
+        upper: 60000,
+        lower: 100,
+        step_increment: 100,
+        page_increment: 1000,
+    });
+
+    optDict.PointerOutTimeout = _optionsItem(
+            _('Pointer Out Timeout (ms)'),
+            _('If the switcher is activated by the mouse, the pop-up closes after this period of inactivity if the mouse pointer is outside the pop-up.'),
+            _newSpinButton(popupPointerTimeoutAdjustment),
+            'switcherPopupPointerTimeout'
+    );
+
+    optDict.ActivateOnHide = _optionsItem(
+            _('Activate Selected Item on Hide'),
+            _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before pop-up hides.'),
+            _newGtkSwitch(),
+            'switcherPopupActivateOnHide'
+    );
+
+    return optDict;
+}
 
 function _getHotkeysOptionList() {
     let optionList = [];
