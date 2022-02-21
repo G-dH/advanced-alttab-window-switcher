@@ -88,14 +88,6 @@ var Actions = class {
         return this._shellSettings;
     }
 
-    _getActorByMetaWin(metaWindow) {
-        for (let actor of global.get_window_actors()) {
-            if (actor.get_meta_window() === metaWindow)
-                return actor;
-        }
-        return null;
-    }
-
     _getMonitorByIndex(monitorIndex) {
         let monitors = Main.layoutManager.monitors;
         for (let monitor of monitors) {
@@ -133,7 +125,7 @@ var Actions = class {
         let currentMonitorIndex = win.get_monitor();
         if (currentMonitorIndex !== targetMonitorIndex) {
             // move window to target monitor
-            let actor = this._getActorByMetaWin(win);
+            let actor = win.get_compositor_private();
             let targetMonitor  = this._getMonitorByIndex(targetMonitorIndex);
 
             let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
