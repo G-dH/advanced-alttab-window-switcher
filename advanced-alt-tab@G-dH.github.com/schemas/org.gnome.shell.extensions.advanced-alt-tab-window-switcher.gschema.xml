@@ -77,6 +77,9 @@
     <key name='win-switcher-popup-scroll-item' type='i'>
       <default>3</default>
     </key>
+    <key name='app-switcher-popup-results-limit' type='i'>
+      <default>12</default>
+    </key>
     <key name='app-switcher-popup-scroll-item' type='i'>
       <default>3</default>
     </key>

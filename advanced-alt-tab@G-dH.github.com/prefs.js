@@ -41,11 +41,6 @@ function init() {
 }
 
 function buildPrefsWidget() {
-    /*let notebook = new Gtk.Notebook({
-        tab_pos: Gtk.PositionType.LEFT,
-        visible: true,
-    });*/
-
     const prefsWidget = new Gtk.Notebook({
         tab_pos: Gtk.PositionType.TOP,
         visible: true,
@@ -56,25 +51,7 @@ function buildPrefsWidget() {
     const appOptionsPage      = new OptionsPageAATWS(_getAppOptionList());
     const miscOptionsPage     = new OptionsPageAATWS(_getMiscOptionList());
     const hotkeysOptionPage   = new OptionsPageAATWS(_getHotkeysOptionList());
-    /*const helpPage            = new HelpPageAATWS();
 
-    notebook.append_page(prefsWidget, new Gtk.Label({
-        label: _('Options'),
-        halign: Gtk.Align.START,
-        visible: true,
-    }));
-
-    notebook.append_page(helpPage, new Gtk.Label({
-        label: _('Help'),
-        halign: Gtk.Align.START,
-        visible: true,
-    }));
-
-    // notebook.get_nth_page(0).buildPage();
-    // notebook.set_current_page(0);
-    /* notebook.connect('switch-page', (notebook, page, index) => {
-            page.buildPage();
-    });*/
 
     prefsWidget.append_page(commonOptionsPage, new Gtk.Label({
         label: _('Common'),
@@ -106,7 +83,6 @@ function buildPrefsWidget() {
         visible: true,
     }))
 
-    //return notebook;
     prefsWidget.connect('realize', _onRealize);
     return prefsWidget;
 }
@@ -191,6 +167,7 @@ function _getAppOptionList() {
             opt.DefaultFilter,
             opt.DefaultSorting,
             opt.RaiseFirstWinOnly,
+            opt.ResultsLimit,
         opt.Content,
             opt.IncludeFavorites,
             opt.ShowAppTitle,
@@ -355,7 +332,8 @@ function _newComboBox() {
 
 function _newGtkEntry() {
     const entry = new Gtk.Entry({
-        width_chars: 3,
+        width_chars: 5,
+        max_width_chars: 5,
         halign: Gtk.Align.END,
         valign: Gtk.Align.CENTER,
         hexpand: true,
@@ -472,6 +450,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
             widget.width_chars = 25;
             widget.set_text(variable);
             widget.editable = false;
+            widget.can_focus = false;
         }
     }
 
@@ -910,6 +889,20 @@ function _getAppsOpt() {
             'appSwitcherPopupRaiseFirstOnly'
     );
 
+    let popupAppLimitAdjustment = new Gtk.Adjustment({
+        upper: 30,
+        lower: 5,
+        step_increment: 1,
+        page_increment: 1,
+    });
+
+    optDict.ResultsLimit = _optionsItem(
+            _('Max Number of Search Results'),
+            _('Maximum number of results that the search provider can return.'),
+            _newSpinButton(popupAppLimitAdjustment),
+            'appSwitcherPopupResultsLimit'
+    );
+
     optDict.Content =_optionsItem(
             _makeTitle(_('Content')),
     );
@@ -1095,7 +1088,7 @@ function _getHotkeysOptionList() {
     // [text, tooltip, widget, settings-variable, options for combo]
 
     optionList.push(_optionsItem(
-            _makeTitle(_('Hotkeys configuration')),
+            _makeTitle(_('Hotkeys configuration (you can set up to 2 characters for each action)')),
             "You can enter up to two hotkeys for each action, the second one is primarily dedicated to include non [a-zA-Z] keys with Shift pressed.\n\
 Delete hotkey to disable the action.\n\
 All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is turned on."
@@ -1241,7 +1234,7 @@ Thumbnail controls:\n\
 
     optionList.push(_optionsItem(
             _('Left'),
-            _('Navigate Left. Adds option to default Arrow and Page navigation keys.'),
+            _('Has the same functionality as arrow Left. Selects previous item, if Search mode is off.'),
             _newGtkEntry(),
             'hotkeyLeft'
         )
@@ -1249,7 +1242,7 @@ Thumbnail controls:\n\
 
     optionList.push(_optionsItem(
             _('Down'),
-            _('Navigate Down. Adds option to default Arrow and Page navigation keys.'),
+            _('Has the same functionality as arrow Down. Switches to next workspace, if Search mode is off.'),
             _newGtkEntry(),
             'hotkeyDown'
         )
@@ -1257,7 +1250,7 @@ Thumbnail controls:\n\
 
     optionList.push(_optionsItem(
             _('Up'),
-            _('Navigate Up. Adds option to default Arrow and Page navigation keys.'),
+            _('Has the same functionality as arrow Up. Switches to previous workspace, if Search mode is off.'),
             _newGtkEntry(),
             'hotkeyUp'
         )
@@ -1265,7 +1258,7 @@ Thumbnail controls:\n\
 
     optionList.push(_optionsItem(
             _('Right'),
-            _('Navigate Right. Adds option to default Arrow and Page navigation keys.'),
+            _('Has the same functionality as arrow Right. Slects next item, if Search mode is off.'),
             _newGtkEntry(),
             'hotkeyRight'
         )

@@ -183,6 +183,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.APP_SORTING_MODE      = options.appSwitcherPopupSorting;
         this.SORT_FAVORITES_BY_MRU = options.appSwitcherPopupFavMru;
         this.APP_RAISE_FIRST_ONLY  = options.appSwitcherPopupRaiseFirstOnly;
+        this.APP_SEARCH_LIMIT      = options.appSwitcherPopupResultsLimit;
         this.INCLUDE_FAVORITES     = options.appSwitcherPopupFavoriteApps;
         this.SHOW_APP_TITLES       = options.appSwitcherPopupTitles;
         this.SHOW_WIN_COUNTER      = options.appSwitcherPopupWinCounter;
@@ -780,7 +781,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         wins[i].raise();
                     }
 
-                    Main.activateWindow(this._getSelected().cachedWindows[0]);
+                    this._getSelected().activate();
                 }
             } else {
                 if (this._getSelected().get_n_windows() === 0) {
@@ -2543,7 +2544,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             /*// prefer currently running apps
             appList.sort((a, b) => b.get_n_windows() > 0 && a.get_n_windows() === 0);*/
             // limit the app list size
-            appList.splice(12);
+            appList.splice(this.APP_SEARCH_LIMIT);
         }
 
         let windowTracker = Shell.WindowTracker.get_default();

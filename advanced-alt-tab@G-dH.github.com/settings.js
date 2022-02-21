@@ -384,6 +384,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('app-switcher-popup-raise-first-only', bool_val);
     }
 
+    get appSwitcherPopupResultsLimit() {
+        return this._gsettings.get_int('app-switcher-popup-results-limit');
+    }
+
+    set appSwitcherPopupResultsLimit(int_val) {
+        this._gsettings.set_int('app-switcher-popup-results-limit', int_val);
+    }
+
     get appSwitcherPopupIconSize() {
         return this._gsettings.get_int('app-switcher-popup-icon-size');
     }
