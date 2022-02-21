@@ -236,9 +236,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._actions = null;
         }
 
-        if (this._highlight) {
-            this._highlight.destroy();
-            this._highlight = null;
+        this._destroyWinPreview();
+    }
+
+    _destroyWinPreview() {
+        if (this._winPreview) {
+            this._winPreview.destroy();
+            this._winPreview = null;
         }
     }
 
@@ -946,6 +950,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
+        this._destroyWinPreview();
+
         if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
             if (this._showWinImmediatelyTimeoutId) {
                 GLib.source_remove(this._showWinImmediatelyTimeoutId);
@@ -958,7 +964,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     100,
                     () => {
                         if (this.KEYBOARD_TRIGGERED || (!this.KEYBOARD_TRIGGERED && !this._isPointerOut())) {
-                            this._showWindow(this._selectedIndex);
+                            this._showWindow();
                             this._lastShowed = this._selectedIndex;
                         }
 
@@ -1464,7 +1470,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // show window
         else if (keysym === Clutter.KEY_space || keysym === Clutter.KEY_KP_0 || keysym === Clutter.KEY_KP_Insert) {
-            this._showWindow();
+            //this._showWindow();
+            this._showPreview();
         }
 
         // close window/app
@@ -1651,10 +1658,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (selected.get_windows) {
 
             if (!selected.cachedWindows.length) {
-                if (this._highlight) {
-                    this._highlight.destroy();
-                    this._highlight = null;
-                }
+                this._destroyWinPreview();
                 return;
             }
 
@@ -1663,13 +1667,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             metaWin = selected;
         }
 
-        if (!this._highlight) {
-            this._highlight = new AltTab.CyclerHighlight();
-            global.window_group.add_actor(this._highlight);
+        if (!this._winPreview) {
+            this._winPreview = new AltTab.CyclerHighlight();
+            global.window_group.add_actor(this._winPreview);
         }
 
-        this._highlight.window = metaWin;
-        global.window_group.set_child_above_sibling(this._highlight, null);
+        this._winPreview.window = metaWin;
+        global.window_group.set_child_above_sibling(this._winPreview, null);
     }
 
     _showWindow() {
@@ -2090,7 +2094,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._getActions().moveWindowToCurrentWs(win, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
         });
 
-        this._showWindow(this._selectedIndex);
+        this._showWindow();
         this._updateSwitcher();
         //this._showWsIndex();
         //this._showWsSwitcherPopup();
@@ -2297,7 +2301,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switchWorkspace(direction);
                 break;
             case Action.SHOW:
-                this._showWindow(this._selectedIndex);
+                //this._showWindow();
+                this._showPreview();
                 break;
             case Action.GROUP_APP:
                 this._groupWindowsByApp();
@@ -2484,7 +2489,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (app) appList.push(app);
             });
 
-            if (this.APP_SORTING_MODE === SortingMode.STABLE_SEQUENCE) {
+            if (this.APP_SORTING_MODE === SortingMode.STABLE_SEQUENCE || !this.KEYBOARD_TRIGGERED) {
                 running.sort((a, b) => runningIds.indexOf(a.get_id()) - runningIds.indexOf(b.get_id()));
             }
 
