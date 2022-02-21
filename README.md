@@ -16,16 +16,15 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 - Optional automatic filter switching in search mode - the switcher can be set to list windows from the current monitor but you can find windows from other monitors and workspaces by typing.
 - Optional default window grouping settings: *None / Current workspace first / Applications / Workspaces*.
 - **Filter, sorting and grouping modes can be switched on the fly** when needed using hotkeys.
-- The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files) and GNOME Settings. You can search applications not only by names, but also by their category, keywords, description and name of executable.
+- The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files) and GNOME Settings. You can search applications not only by names, but also by their description, keywords, category and name of executable.
 - Built-in **workspace switcher** with `Wraparound` and `Ingore Last (empty) Workspace` options allows you to navigate between workspaces using the Up/Down arrow keys.
 - Separately **adjustable sizes** of window preview and app icon combo (the larger one is used as the base and the smaller one as the front icon), single application window list icons and application list icons.
+- windows can be rised immediately as they are selected in the switcher list, otherwise you can do so by pressing a dedicated hotkey.
+- With multimonitor setup **you can move the switcher popup to any connected monitor on the fly** using hotkeys. You can also choose whether the switcher should appear always on the primary monitor or the one with mouse pointer.
 - Optional workspace index on each window item so you can see to which workspace the window belongs.
 - Direct window activation using `F`unction keys with optional `F<n>` key indicator on each item in the switcher.
-- Optionally windows can be rised immediately as they are selected in the switcher list, otherwise you can do so by pressing a dedicated hotkey.
-- With multimonitor setup **you can move the switcher popup to any connected monitor on the fly** using hotkeys. You can also choose whether the switcher should appear always on the primary monitor or the one with mouse pointer.
+- Super key can be set to open App or Window switcher instead of the default Activities overview.
 - Bult-in window and app controls, see Hotkeys paragraph below.
-- Hotkey for creating **live window previews - thumbnails** that you can place anywhere on the screen and are always on top. This thumbnails can be adjusted using a mouse and you can use them as a shortcut that can activate or close the source window as described below. The thumbnail can also be switched into an aplication icon instead of the preview.
-- Super key can be set to open App/Window switcher instad of the default Activities overview.
 
 ### Hotkeys
 
@@ -95,13 +94,23 @@ Most hotkeys can be customized in AATWS Preferences window, for each customizabl
 
 ### Type to Search
 
-If the `Search mode` is activated (by the `E` or `Insert` hotkeys or as the default mode in the preferences window), the `A-Z` and `0-9` keys can be used to enter a pattern to be searched in the window title, app name, app generic name (which usually contains short description of the aplication) and name of the app executable file, the window/app list will be filtered accordingly. Characters with diacritics in the title and app name will be converted to its basic form and case doesn't matter. You can also enter more patterns separated by a space and in arbitrary order, so if you enter 'fox ext', a window with 'Extensions - Firefox' in the title will be also found. If you enter a character that would filter out all windows (no match), this character will be removed and the selection will stay unchanged waiting for another character. You can also enable an option that allows the AATWS to search for windows outside the current filter scope if no window was found in the current list. You can also enable searching applications in the windows mode, so you don't have to leave the window switcher to launch a new app (if now window match the pattern). Search results in the application mode contain installed applications and Gnome Settings categories and if no application was found automatically searches windows.
+- If the `Search mode` is activated (by the `E` or `Insert` hotkeys or as the default mode in the preferences window), the `A-Z` and `0-9` keys can be used to enter a pattern to be searched for and the switcher window/app list is imediately filtered/repopulated accordingly.
+- AATWS is saerching in the window title, app name, app generic name (which usually contains information what type of application it is), comment, keywords, categories and name of the app executable file. Properties for apps comes from their `.desktop` launchers.
+- Characters with diacritics will be converted to its basic form and case doesn't matter.
+- You can also enter more patterns separated by a space and in arbitrary order, so if you enter 'fox ext', a window with 'Extensions - Firefox' in the title will be also found. If you enter a character that would filter out all windows (no match), this character will be removed and the selection will stay unchanged waiting for another character.
+- You can enable an option that allows the AATWS to search for windows outside the current filter scope if no window was found in the current list.
+- You can enable searching applications in the windows mode, so you don't have to leave the window switcher to launch a new app (if no window match the entered pattern).
+- Search results in the application mode include installed applications and Gnome Settings categories, and if no application was found automatically searches windows.
+- Search results for application contain generic name (if differ from name) and comment (description) in their tooltip titles.
+- Search results are limited to 12 items
+- Search results are weighted by the following criteria: app name/win title starts with the pattern, any word in searched string starts with the pattern, position in the list of frequently used applications (for the resulting 12 items)
 
 **Even in the search mode you can use all hotkeys if you press and hold the Shift modifier key**.
 
 ### DND Window Thumbnails
 
-Window thumbnails are scaled-down window clones that can be used to monitor windows not currently visible on the screen. By pressing the `T` hotkey you can create a thumbnail of the selected window which will be placed at bottom right of the current monitor. You can create as many clones as you want and place them anywhere on the screen. Each thumbnail can be independently resized, you can adjust its opacity and even change its source window. When the thumbnail's source window is closed, its thumbnail will be removed too.
+Window thumbnails are scaled-down window clones that can be used to monitor windows not currently visible on the screen. By pressing the `T` hotkey (which you can change) you can create a thumbnail of the selected window which will be placed at bottom right of the current monitor. You can create as many clones as you want and place them anywhere on the screen. Each thumbnail can be independently resized, you can adjust its opacity and even change its source window. When the thumbnail's source window is closed, its thumbnail will be removed too.
+You can remove the lastly created thumbnail using `Ctrl + T` or remove all thumbnails using `Ctrl + Shift + T`.
 
     Double click          - activates source window
     Primary cLick         - toggles scroll wheel function (resize / source)

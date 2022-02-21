@@ -150,6 +150,7 @@ function _toggleSwitcher() {
     altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
     altTabPopup.SHOW_APPS = appSwitcherMode ? true : false;
     altTabPopup.KEYBOARD_TRIGGERED = false;
+    altTabPopup.NO_MODS_TIMEOUT = 5000;
     altTabPopup._modifierMask = 0;
     altTabPopup.POSITION_POINTER = false;
     altTabPopup.connect('destroy', () => altTabPopup = null);
