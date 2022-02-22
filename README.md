@@ -101,7 +101,18 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 
 ## Chanchelog
 
-### v11 (not yet released on e.g.o.):
+### v12 (not yet released on e.g.o.)
+**Added:**
+- option `Tooltip Label Scale` allows to adjust tooltip labels size.
+- option `Prioritize Running Apps` for serch in applications.
+
+**Fixed**
+- pushModal function
+
+**Improved**
+- own tooltip label style replaced with the system `dash-label` style with fixed radius
+
+### v11:
 **Added:**
 - actions `Move Window/App to New Workspace` with `Ctrl + Shift + Up/Down` shortcut.
 - option `Minimized Windows at the End` of the list (default in GNOME Shell is `true`).
