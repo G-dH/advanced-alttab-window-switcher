@@ -28,34 +28,15 @@
   background-color: rgba(0, 0, 0, 0.0);
 }
 
-.tooltip-box {
-  color: rgb(200, 200, 200);
-  font-weight: normal;
-  text-align: center;
-  /*text-shadow: -1px -1px rgba(0, 0, 0, 0.7);*/
-  background-color: rgba(29, 32, 33, 0.9);
-  padding-left: 0.6em;
-  padding-right: 0.6em;
-  padding-top: 0.4em;
-  padding-bottom: 0.4em;
-  border-radius: 8px;
-  border-color: darkgrey;
-  border-width: 1px;
-  border-color: rgb(66, 64, 64);
-}
-
-.title-name {
-  font-size: 1.5em;
+.title-label {
+  padding-left: 0.3em;
+  padding-right: 0.3em;
 }
 
 .title-description {
+  padding-left: 0.3em;
+  padding-right: 0.3em;
   font-size: 1em;
-}
-
-.search-text {
-  font-size: 2.5em;
-  /*font-weight: bold;
-  /*background-color: rgba(20, 20, 20, 0.9);*/
 }
 
 .hot-key-number {

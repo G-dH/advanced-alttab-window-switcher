@@ -154,14 +154,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.HOT_KEYS              = options.switcherPopupHotKeys;
         this.SHIFT_AZ_HOTKEYS      = options.switcherPopupShiftHotkeys;
         this.STATUS                = options.switcherPopupStatus;
-        //this.SHOW_WIN_IMEDIATELY   = options.switcherPopupShowImmediately;
         this.PREVIEW_SELECTED      = options.switcherPopupPreviewSelected;
         this.SHOW_WS_POPUP         = options.wsSwitchPopup;
         this.SEARCH_ALL            = options.winSwitcherPopupSearchAll;
         this.OVERLAY_TITLE         = options.switcherPopupOverlayTitle;
         this.SEARCH_DEFAULT        = options.switcherPopupStartSearch;
+        this.TOOLTIP_SCALE         = options.switcherPopupTooltipLabelScale;
 
         this.HOVER_SELECT          = options.switcherPopupHoverSelect;
+
         this.SHOW_APPS             = false;
 
         // Window switcher
@@ -188,6 +189,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SHOW_APP_TITLES       = options.appSwitcherPopupTitles;
         this.SHOW_WIN_COUNTER      = options.appSwitcherPopupWinCounter;
         this.APP_MODE_ICON_SIZE    = options.appSwitcherPopupIconSize;
+        this.SEARCH_PREF_RUNNING   = options.appSwitcherPopupSearchPrefRunning;
 
         // Runtime variables
         this._monitorIndex         = options.switcherPopupMonitor === 1 // 1: current, 2: primary
@@ -383,10 +385,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         });
     }
 
-    show(backward, binding, mask) {
-        // remove overlay labels if exist
-        this._removeOverlays();
-
+    _pushModal() {
         if (parseFloat(Settings.shellVersion) >= 42) {
             let grab = Main.pushModal(this);
             // We expect at least a keyboard grab here
@@ -405,6 +404,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 }
             }
         }
+        return true;
+    }
+
+    show(backward, binding, mask) {
+        // remove overlay labels if exist
+        this._removeOverlays();
+
+        if (!this._pushModal()) {
+            return false;
+        };
 
         // if just one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
         if (Main.layoutManager.monitors.length < 2) {
@@ -730,7 +739,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     fadeAndDestroy() {
         this._doNotShowImmediately = true;
-        this._popModal();
+        try {
+            this._popModal();
+        } catch (e){
+            log(`${Me.metadata.name}: Error: incorrect pop`)
+        }
 
         if (this._overlayTitle) {
             this._removeOverlays();
@@ -1471,8 +1484,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // show window
         else if (keysym === Clutter.KEY_space || keysym === Clutter.KEY_KP_0 || keysym === Clutter.KEY_KP_Insert) {
-            //this._showWindow();
-            this._showPreview();
+            if (_ctrlPressed()) {
+                this._popModal();
+                Main.overview.toggle();
+                // need to release and grab the input back, otherwise the Shell gets to an irresponsive state
+                this._pushModal();
+            } else {
+                //this._showWindow();
+                const toggle = true;
+                this._showPreview(toggle);
+            }
         }
 
         // close window/app
@@ -1649,9 +1670,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
-    _showPreview() {
+    _showPreview(toggle = false) {
         let selected = this._getSelected();
         if (!selected) {
+            return;
+        }
+
+        if (toggle && this._winPreview) {
+            this._destroyWinPreview();
             return;
         }
 
@@ -1861,13 +1887,20 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.destroyOverlayLabel(this._overlaySearchLabel);
         }
 
-        const icon = new St.Icon({icon_name: 'edit-find-symbolic'});
+        const icon = new St.Icon({
+            icon_name: 'edit-find-symbolic',
+        });
+
         this._overlaySearchLabel = this._customOverlayLabel('search-text', 'search-text', false); // name, css, vertcal box
         this._overlaySearchLabel.add_child(icon);
         this._overlaySearchLabel.set_child_at_index(icon, 0);
         this._overlaySearchLabel._label.text = ` ${text}`;
 
+        const fontSize = this.TOOLTIP_SCALE * 2 / 100;
+        this._overlaySearchLabel.set_style(`font-size: ${fontSize}em; border-radius: 12px; padding: 6px`);
+
         Main.layoutManager.addChrome(this._overlaySearchLabel);
+
         const offset = this._overlayTitle
             ? this._overlayTitle.height + margin
             : margin;
@@ -1907,12 +1940,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._overlayTitle = this._customOverlayLabel('item-title', 'title-name'); // name, css style
         this._overlayTitle._label.text = title;
+        const fontSize = this.TOOLTIP_SCALE / 100;
+        this._overlayTitle._label.set_style(`font-size: ${fontSize}em;`);
+        this._overlayTitle.set_style(`border-radius: 12px`);
 
         if (description) {
             const descriptionLbl = new St.Label({
                 style_class: 'title-description',
                 text: description
             });
+            const descSize = this.TOOLTIP_SCALE * 0.7 / 100;
+            descriptionLbl.set_style(`font-size: ${descSize}em;`);
+
             this._overlayTitle.add_child(descriptionLbl);
         }
 
@@ -1944,13 +1983,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _customOverlayLabel(name, style_class, vertical = true) {
         const box = new St.BoxLayout({
             vertical: vertical,
-            style_class: 'tooltip-box',
+            //style_class: 'tooltip-box',
+            style_class: 'dash-label',
         });
 
         const label = new St.Label({
             name: name,
             reactive: false,
-            style_class: style_class
+            style_class: style_class,
+            y_align: Clutter.ActorAlign.CENTER
         });
 
         box.add_child(label);
@@ -2425,23 +2466,27 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._searchEntry) {
             const filterList = (wList, pattern) => {
                 return wList.filter(w => {
-                // search in window title and app name
+                // search in window title and app name/exec
                     const appInfo = Shell.WindowTracker.get_default().get_window_app(w).appInfo;
-                    let appInfoText = appInfo
-                        ? (appInfo.get_name()         ? appInfo.get_name()         : '') +
-                          (appInfo.get_generic_name() ? appInfo.get_generic_name() : '') +
-                          (appInfo.get_executable()   ? appInfo.get_executable()   : '')
-                        : '';
-                    return this._match(
-                        w.title +
-                        appInfoText,
-                        pattern);
+                    const title = w.title;
+                    let appName;
+                    let appGeneric;
+                    let appExec;
+
+                    if (appInfo) {
+                        appName = appInfo.get_name() || '';
+                        appGeneric = appInfo.get_generic_name() || '';
+                        appExec = appInfo.get_executable() || '';
+                    }
+                    let text = `${title} ${appName} ${appGeneric} ${appExec}`;
+
+                    return this._match(text, pattern);
                 });
             };
 
             let winListP = filterList(winList, this._searchEntry);
-            /*if (winListP.length > 0 && this._searchEntryNotEmpty())
-                winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), this._searchEntry));*/
+            if (winListP.length > 0 && this._searchEntryNotEmpty())
+                winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), this._searchEntry));
 
             winList = winListP;
         }
@@ -2541,8 +2586,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             appList.sort((a, b) => usage.compare(a.get_id(), b.get_id()));
             // prefer apps where any word in their name starts with the pattern
             appList.sort((a, b) => this._isMoreRelevant(a.app_info.get_display_name(), b.app_info.get_display_name(), pattern));
-            /*// prefer currently running apps
-            appList.sort((a, b) => b.get_n_windows() > 0 && a.get_n_windows() === 0);*/
+            // prefer currently running apps
+            if (this.SEARCH_PREF_RUNNING) {
+                appList.sort((a, b) => b.get_n_windows() > 0 && a.get_n_windows() === 0);
+            }
             // limit the app list size
             appList.splice(this.APP_SEARCH_LIMIT);
         }

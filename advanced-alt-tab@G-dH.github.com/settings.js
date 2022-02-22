@@ -161,6 +161,13 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('switcher-popup-overlay-title', bool_val);
     }
 
+    get switcherPopupTooltipLabelScale() {
+        return this._gsettings.get_int('switcher-popup-tooltip-label-scale');
+    }
+
+    set switcherPopupTooltipLabelScale(int_val) {
+        this._gsettings.set_int('switcher-popup-tooltip-label-scale', int_val);
+    }
 
     get switcherPopupPrimClickIn() {
         return this._gsettings.get_int('switcher-popup-prim-click-in');
@@ -382,6 +389,14 @@ var MscOptions = class MscOptions {
 
     set appSwitcherPopupRaiseFirstOnly(bool_val) {
         this._gsettings.set_boolean('app-switcher-popup-raise-first-only', bool_val);
+    }
+
+    get appSwitcherPopupSearchPrefRunning() {
+        return this._gsettings.get_boolean('app-switcher-popup-search-pref-running');
+    }
+
+    set appSwitcherPopupSearchPrefRunning(bool_val) {
+        this._gsettings.set_boolean('app-switcher-popup-search-pref-running', bool_val);
     }
 
     get appSwitcherPopupResultsLimit() {

@@ -32,6 +32,9 @@
     <key name='switcher-popup-reverse-auto' type='b'>
       <default>false</default>
     </key>
+    <key name='switcher-popup-tooltip-label-scale' type='i'>
+      <default>150</default>
+    </key>
     <key name='win-switcher-popup-titles' type='i'>
       <default>1</default>
     </key>
@@ -76,9 +79,6 @@
     </key>
     <key name='win-switcher-popup-scroll-item' type='i'>
       <default>3</default>
-    </key>
-    <key name='app-switcher-popup-results-limit' type='i'>
-      <default>12</default>
     </key>
     <key name='app-switcher-popup-scroll-item' type='i'>
       <default>3</default>
@@ -126,6 +126,12 @@
       <default>false</default>
     </key>
     <key name='app-switcher-popup-raise-first-only' type='b'>
+      <default>false</default>
+    </key>
+    <key name='app-switcher-popup-results-limit' type='i'>
+      <default>12</default>
+    </key>
+    <key name='app-switcher-popup-search-pref-running' type='b'>
       <default>false</default>
     </key>
     <key name='win-switcher-popup-preview-size' type='i'>

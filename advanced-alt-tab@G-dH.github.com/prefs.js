@@ -115,6 +115,7 @@ function _getCommonOptionList() {
             opt.ShowDirectActivation,
             opt.ShowStatus,
         opt.Appearance,
+            opt.TooltipLabelScale,
             opt.SingleAppPreviewSize,
         opt.MouseControl,
             opt.PrimaryBackground,
@@ -168,6 +169,7 @@ function _getAppOptionList() {
             opt.DefaultSorting,
             opt.RaiseFirstWinOnly,
             opt.ResultsLimit,
+            opt.SearchPrefRunning,
         opt.Content,
             opt.IncludeFavorites,
             opt.ShowAppTitle,
@@ -506,7 +508,7 @@ function _getCommonOpt() {
 
     optDict.ShowImediately = _optionsItem(
             _('Show Selected Window'),
-            _("Allows to see selected window in its original size. Preview shows a clone of the window, second option raises the original window and switch to its workspace."),
+            _("Allows to see selected window in its original size. Preview shows a clone of the window, second option raises the original window and switches to its workspace."),
             _newComboBox(),
             'switcherPopupPreviewSelected',
             [[_('Disable'), 1],
@@ -551,6 +553,20 @@ function _getCommonOpt() {
             _('The whole title of selected item will be displayed as a tooltip label above (or below if needed) the item.'),
             _newGtkSwitch(),
             'switcherPopupOverlayTitle'
+    );
+
+    let tooltipScaleAdjustment = new Gtk.Adjustment({
+        upper: 300,
+        lower: 50,
+        step_increment: 5,
+        page_increment: 5,
+    });
+
+    optDict.TooltipLabelScale = _optionsItem(
+            _('Tooltip Label Scale (%)'),
+            _('Chanege font size for tooltip label.'),
+            _newSpinButton(tooltipScaleAdjustment),
+            'switcherPopupTooltipLabelScale'
     );
 
     optDict.ShowDirectActivation = _optionsItem(
@@ -748,7 +764,7 @@ function _getWindowsOpt() {
 
     optDict.SearchApplications =_optionsItem(
             _('Search Applications'),
-            _('Search installed applications to launch new when no window matches the searched pattern.'),
+            _('Search installed applications to launch new when no window matches the entered pattern.'),
             _newGtkSwitch(),
             'winSwitcherPopupSearchApps'
     );
@@ -888,6 +904,13 @@ function _getAppsOpt() {
             _newGtkSwitch(),
             'appSwitcherPopupRaiseFirstOnly'
     );
+
+    optDict.SearchPrefRunning =_optionsItem(
+        _('Prioritize Running Apps'),
+        _('Whether the search engine should prioritize running applications.'),
+        _newGtkSwitch(),
+        'appSwitcherPopupSearchPrefRunning'
+);
 
     let popupAppLimitAdjustment = new Gtk.Adjustment({
         upper: 30,
@@ -1105,7 +1128,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionList.push(_optionsItem(
             _('Toggle Search Mode On/Off'),
-            _("You can enter multiple patterns separated by a space and in arbitrary order to search windows/apps by titles, app names, app generic names and app executables. Generic names usually contain a basic app description so you can find most of editor apps by typing an 'edit', image viewers by typing 'image' and so on."),
+            _("You can enter multiple patterns separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, comment, categories, keywords, and app executables, so you can find most of editor apps by typing an 'edit', games by typing 'game' and so on."),
             _newGtkEntry(),
             'hotkeySearch'
         )
@@ -1318,6 +1341,14 @@ Thumbnail controls:\n\
             _("See the customizable hotkey above for details."),
             _newGtkEntry(),
             _('Insert')
+        )
+    );
+
+    optionList.push(_optionsItem(
+            _('Clear Search Entry'),
+            _('Clears typed pattern when the switcher is in Search mode.'),
+            _newGtkEntry(),
+            _('Del')
         )
     );
 
