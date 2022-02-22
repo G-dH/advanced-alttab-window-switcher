@@ -66,16 +66,20 @@ Most hotkeys can be customized in AATWS Preferences window, for each customizabl
 
 ### Type to Search
 
-- If the `Search mode` is activated (by the `E` or `Insert` hotkeys or as the default mode in the preferences window), the `A-Z` and `0-9` keys can be used to enter a pattern to be searched for and the switcher window/app list is imediately filtered/repopulated accordingly.
+- If the `Search mode` is activated (by the `E` or `Insert` hotkeys or as the default mode in the preferences window), the `A-Z` and `0-9` keys can be used to enter the search pattern. The switcher window/app list is imediately filtered/repopulated accordingly.
+- When you activate the Search mode using the hotkey, you can release the modifier keys used to activate the switcher (Alt, Super) and the switcher stays open. If the Search mode is active as default, relese of the modifier key activates the selected result as usual. If you activate the switcher using Super key, you have 5 seconds to start typing, or you can pres and release the `Ctrl` key to cancel the timeout.
+- Characters with diacritics are converted to its basic form and case doesn't matter.
+- You can also enter more patterns separated by a space in arbitrary order, so if you enter 'fox ext', a window with 'Extensions - Firefox' in the title will also be found. If you enter a character that would filter out all items (no match), this character will be removed and the selection will stays unchanged waiting for another character.
 - AATWS is saerching in the window title, app name, app generic name (which usually contains information what type of application it is), comment, keywords, categories and name of the app executable file. Properties for apps comes from their `.desktop` launchers.
-- Characters with diacritics will be converted to its basic form and case doesn't matter.
-- You can also enter more patterns separated by a space and in arbitrary order, so if you enter 'fox ext', a window with 'Extensions - Firefox' in the title will be also found. If you enter a character that would filter out all windows (no match), this character will be removed and the selection will stay unchanged waiting for another character.
-- You can enable an option that allows the AATWS to search for windows outside the current filter scope if no window was found in the current list.
-- You can enable searching applications in the windows mode, so you don't have to leave the window switcher to launch a new app (if no window match the entered pattern).
-- Search results in the application mode include installed applications and Gnome Settings categories, and if no application was found automatically searches windows.
-- Search results for application contain generic name (if differ from name) and comment (description) in their tooltip titles.
-- Search results for apps are limited to 12 items.
-- Search results for apps are weighted by the following criteria: app name/win title starts with the pattern, any word in searched string starts with the pattern, position in the list of frequently used applications (for the resulting 12 items).
+- Window search results are based not only on window titles but also on their app names and names of executable, so you can find all default file manager windows by typing `files` or even `nautilus`.
+- Option `Search All Windows` for the Window Switcher allows AATWS to search for windows outside the current filter scope if no window was found with the current filter mode.
+- YOption `Search Applications` for the Window Switcher allows AATWS to search applications in the Window switcher mode, so you don't have to leave the window switcher to launch a new app (if no window match the entered pattern).
+- Search results in the application mode include installed applications and Gnome Settings Sections (they have their own launchers).
+- In the App Switcher if no app match the entered pattern, windows are searched automatically.
+- Application search results add generic name (if different from name) and comment (description) to the name in icon tooltips to help identify unknown apps.
+- Option `Max Number of Search Results` for App Switcher limits output of search engine. Default is 12.
+- Application search results are weighted by the following criteria (in this order): position in the list of frequently used applications, app name starts with the pattern, any word in the item name/description/category/executable starts with the pattern. This means that you can very quicky and consistently find apps if you know their names, mostly using just one letter.
+- Window search results are weighted by the following criteria (in this order): app name starts with the pattern, any word in the window title/app name/executable starts with the pattern.
 
 **Even in the search mode you can use all hotkeys if you press and hold the Shift modifier key**.
 
@@ -102,10 +106,12 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 - actions `Move Window/App to New Workspace` with `Ctrl + Shift + Up/Down` shortcut.
 - option `Minimized Windows at the End` of the list (default in GNOME Shell is `true`).
 - `Super Key Mode` option can override default Super key functionality and instead of Activities open App or Window Switcher. Sadly, the Super press event cannot be catched by the AATWS unless you simultaneously press and hold any other modifier key, so I've added `Shift + Super` to toggle Activities Overview and `Ctrl + Shift + Super` to toggle App Grid view. 
-- app search now search also in `comment`, `keywords` and `category` properties of app `.desktop` file, so it's easier to find application if you don't remember its name.
+- app switcher now search also in `comment`, `keywords` and `category` properties of app `.desktop` file, so it's easier to find application if you don't remember its name.
 - when searching apps, the tooltip title (if enabled) of selected application adds its `generic_name` (if differ from name), which usually contains generic type of application, and also adds `comment`, which contains app description.
 - option for app switcher `Raise First Window Only` - on app activation raise only its most recently used window instead of all app windows.
 - option `Show Selected Window` now has two options - `Show Preview` and `Show Window`
+- `Show Window` hotkey no longer raises a real window but shows a preview instead, which dowsn't alter the current window stack.
+- option `Max Number of Search Results` in App Switcher
 
 **Other Changes**
 - tooltips replaced by captions directly under each option
@@ -116,7 +122,7 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 - Configurable hotkeys
 - Option `Hover Selects item` - allows to disable select item by hovering mouse.
 **Improved:**
-- Search prefers words and titles starting with entered pattern
+- Search prefers words and titles starting with entered string
 **Fixed:**
 - `Fullscreen Selected on Empty WS` action - restore window on removed workspace crashes GS.
 - Unaccessible items if `Show selected window/app imediately` is enabled and the switcher popup is wider than screen.
