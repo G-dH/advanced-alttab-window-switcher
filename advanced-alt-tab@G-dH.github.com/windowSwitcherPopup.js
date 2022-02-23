@@ -1916,6 +1916,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (selected._is_window) {
             title = selected.window.get_title();
+            //if (this._searchEntryNotEmpty()) {
+                description = selected.app.get_name();
+            //}
         } else {
             title = selected.titleLabel.get_text();
             // if serching apps add more info to the app name
