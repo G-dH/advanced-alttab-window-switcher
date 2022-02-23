@@ -50,8 +50,8 @@ Most hotkeys can be customized in AATWS Preferences window, for each customizabl
 |`Ctrl+W`|                  - Closes the application of the selected window.|
 |`Shift+Del`|               - Force close - sends a `kill -9` signal to the application of selected window or to the selected application.|
 |`C`|                       - Closes all windows in the list belonging to the same application as the selected window.|
-|`A`|                       - Toggles window 'Always on Top'. Also switches to window workspace and rise the window.<br>-This state is indicated by the front icon at the top instead of the bottom.<br>If you press the 'A' key twice, it's actually equivalent to the one press of the hotkey for `Show selected window`|
-|`S`|                       - Toggles selected window `Always on Visible Workspace`, indicated by the 'pin' icon.|
+|`A`|                       - Toggles window 'Always on Top' and also switches to window workspace and rise the window.<br>- The `Above` state is indicated by the front icon at the top instead of the bottom.|
+|`S`|                       - Toggles selected window `Always on Visible Workspace`. Ths state is indicated by the 'pin' icon at the top. Note, that this flag have all windows located on other than the primary monitor, when the GNOME Shell's option `Workspaces on Primary Display Only` is active.|
 |`X, Ctrl+Down`|             - Moves selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
 |`M`|                       - Toggles full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.|
 |`N, Ctrl+Enter`|           - Opens new window of selected application, if the application soupports it.|
@@ -99,18 +99,20 @@ You can remove the lastly created thumbnail using `Ctrl + T` or remove all thumb
 
 Known bugs: when the thumbnail is created above VirtualBox virtual machine window, the thumbnail becomes irresponsive.
 
-## Chanchelog
+## Changelog
 
 ### v12 (not yet released on e.g.o.)
 **Added:**
 - option `Tooltip Label Scale` allows to adjust tooltip labels size.
 - option `Prioritize Running Apps` for serch in applications.
+- window title tooltip shows app name
+- updated metadata to support GNOME Shell 42
 
 **Fixed**
-- pushModal function
+- pushModal function - AATWS chrashes when grabing input not successful
 
 **Improved**
-- own tooltip label style replaced with the system `dash-label` style with fixed radius
+- own tooltip label style replaced with the system `dash-label` style with fixed radius, to better fit the current Shell theme.
 
 ### v11:
 **Added:**
