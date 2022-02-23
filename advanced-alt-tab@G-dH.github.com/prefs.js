@@ -564,7 +564,7 @@ function _getCommonOpt() {
 
     optDict.TooltipLabelScale = _optionsItem(
             _('Tooltip Label Scale (%)'),
-            _('Chanege font size for tooltip label.'),
+            _('Change font size for tooltip label.'),
             _newSpinButton(tooltipScaleAdjustment),
             'switcherPopupTooltipLabelScale'
     );
