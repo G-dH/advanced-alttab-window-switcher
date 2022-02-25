@@ -297,7 +297,7 @@ function _newGtkSwitch() {
         hexpand: true,
         visible: true,
     });
-    sw.is_switch = true;
+    sw._is_switch = true;
     return sw;
 }
 
@@ -311,7 +311,7 @@ function _newSpinButton(adjustment) {
         visible: true,
     });
     spinButton.set_adjustment(adjustment);
-    spinButton.is_spinbutton = true;
+    spinButton._is_spinbutton = true;
     return spinButton;
 }
 
@@ -328,7 +328,7 @@ function _newComboBox() {
     const renderer = new Gtk.CellRendererText();
     comboBox.pack_start(renderer, true);
     comboBox.add_attribute(renderer, 'text', 0);
-    comboBox.is_combo_box = true;
+    comboBox._is_combo_box = true;
     return comboBox;
 }
 
@@ -342,7 +342,7 @@ function _newGtkEntry() {
         visible: true,
         xalign: 0.5,
     });
-    entry.is_entry = true;
+    entry._is_entry = true;
     return entry;
 }
 
@@ -386,12 +386,12 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
     item.push(label);
     item.push(widget);
 
-    if (widget && widget.is_switch) {
+    if (widget && widget._is_switch) {
         widget.active = mscOptions[variable];
         widget.connect('notify::active', () => {
             mscOptions[variable] = widget.active;
         });
-    } else if (widget && widget.is_spinbutton) {
+    } else if (widget && widget._is_spinbutton) {
         widget.value = mscOptions[variable];
         widget.timeout_id = null;
         widget.connect('value-changed', () => {
@@ -410,7 +410,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
                 }
             );
         });
-    } else if (widget && widget.is_combo_box) {
+    } else if (widget && widget._is_combo_box) {
         let model = widget.get_model();
         for (const [label, value] of options) {
             let iter;
@@ -426,7 +426,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
 
             mscOptions[variable] = model.get_value(iter, 1);
         });
-    } else if (widget && widget.is_entry) {
+    } else if (widget && widget._is_entry) {
         if (variable.startsWith('hotkey')) {
             widget.connect('changed', (entry) => {
                 if (entry._doNotEdit) return;
@@ -1361,8 +1361,8 @@ Thumbnail controls:\n\
     );
 
     optionList.push(_optionsItem(
-            _('Show Selected Window'),
-            _('Rises selected window and switches to the window\'s workspace if needed.'),
+            _('Toggle Preview Selected Window'),
+            _('Toggles preview of selected window On/Off.'),
             _newGtkEntry(),
             _('Space, NumKey 0')
         )
