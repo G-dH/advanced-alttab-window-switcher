@@ -1491,8 +1491,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._pushModal();
             } else {
                 //this._showWindow();
-                const toggle = true;
-                this._showPreview(toggle);
+                this._toggleShowPreview();
             }
         }
 
@@ -1569,6 +1568,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         else if ((options.hotkeyPrefs.includes(keyString)) && (this.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._openPrefsWindow();
+            this.fadeAndDestroy();
         }
 
         else if (keysym === Clutter.KEY_Menu) {
@@ -1667,6 +1667,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 global.settings.set_strv('favorite-apps', favorites);
                 this._updateSwitcher();
             }
+        }
+    }
+
+    _toggleShowPreview() {
+        if (this.PREVIEW_SELECTED === PreviewMode.PREVIEW) {
+            this.PREVIEW_SELECTED = PreviewMode.DISABLE;
+            this._destroyWinPreview();
+        } else {
+            this.PREVIEW_SELECTED = PreviewMode.PREVIEW;
+            this._showPreview();
         }
     }
 
@@ -2347,7 +2357,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 break;
             case Action.SHOW:
                 //this._showWindow();
-                this._showPreview();
+                this._toggleShowPreview();
                 break;
             case Action.GROUP_APP:
                 this._groupWindowsByApp();
