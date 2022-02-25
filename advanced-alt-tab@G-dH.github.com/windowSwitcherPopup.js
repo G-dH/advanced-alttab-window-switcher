@@ -347,6 +347,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         } else if (this._initialSelectionMode === SelectionMode.ACTIVE) {
             this._select(this._getFocusedItemIndex());
+
+        } else if (this._initialSelectionMode === SelectionMode.NONE && this._shouldReverse()) {
+            // if reversed and list longer than display, move to the last (reversed first) item
+            this._switcherList.highlight(this._items.length - 1);
+            this._switcherList.removeHighlight();
         }
     }
 
@@ -355,7 +360,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._doNotUpdateOnNewWindow)
                 return;
 
-                // there are situations when window list updates later than this callback is executed
+            // there are situations when window list updates later than this callback is executed
             if (this._newWindowConnectorTimeoutId)
                 GLib.source_remove(this._newWindowConnectorTimeoutId);
 
@@ -386,7 +391,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _pushModal() {
-        if (parseFloat(Settings.shellVersion) >= 42) {
+        if (shellVersion >= 42) {
             let grab = Main.pushModal(this);
             // We expect at least a keyboard grab here
             if ((grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
@@ -414,21 +419,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!this._pushModal()) {
             return false;
         };
-
-        // if just one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
+        // if only one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
         if (Main.layoutManager.monitors.length < 2) {
-            if (this.WIN_FILTER_MODE === FilterMode.MONITOR)
+            if (this.WIN_FILTER_MODE === FilterMode.MONITOR) {
                 this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+            }
 
-            if (this.APP_FILTER_MODE === FilterMode.MONITOR)
+            if (this.APP_FILTER_MODE === FilterMode.MONITOR) {
                 this.APP_FILTER_MODE = FilterMode.WORKSPACE;
+            }
         }
 
+        // set filter for both switchers to the value of the currently activated switcher
         if (this._firstRun) {
-            if (this.SHOW_APPS)
+            if (this._switcherMode === SwitcherMode.APPS) {
                 this.WIN_FILTER_MODE = this.APP_FILTER_MODE;
-            else
+            }
+            else {
                 this.APP_FILTER_MODE = this.WIN_FILTER_MODE;
+            }
         }
 
         if (binding == 'switch-group') {
@@ -529,7 +538,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 switcherList = this._getAppList(this._searchEntry);
             }
         } else {
-            switcherList = this._getCustomWindowList();
+            switcherList = this._getCustomWindowList(this._searchEntry);
         }
 
         let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '') ||
@@ -544,7 +553,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         ) {
             for (mode; mode > 0; mode--) {
                 this._tempFilterMode = mode;
-                switcherList = this._getCustomWindowList();
+                switcherList = this._getCustomWindowList(this._searchEntry);
                 if (switcherList.length > 0) {
                     // if on empty WS/monitor, don't select any item
                     if (this._searchEntry === null || this._searchEntry === '') {
@@ -2409,14 +2418,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    _getCustomWindowList(allWindows = false) {
+    _getCustomWindowList(pattern = '', allWindows = false) {
+        pattern = pattern.trim();
         let filterMode;
         if (this._tempFilterMode) {
             filterMode = this._tempFilterMode;
         } else {
             filterMode = this.WIN_FILTER_MODE;
         }
-
         let ws = global.workspace_manager.get_active_workspace();
         let monitor = this._monitorIndex;
         let workspace = null;
@@ -2476,7 +2485,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             winList = winList.filter(w => tracker.get_window_app(w).get_id() === this._singleApp);
         }
 
-        if (this._searchEntry) {
+        if (pattern) {
             const filterList = (wList, pattern) => {
                 return wList.filter(w => {
                 // search in window title and app name/exec
@@ -2497,9 +2506,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 });
             };
 
-            let winListP = filterList(winList, this._searchEntry);
+            let winListP = filterList(winList, pattern);
             if (winListP.length > 0 && this._searchEntryNotEmpty())
-                winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), this._searchEntry));
+                winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), pattern));
 
             winList = winListP;
         }
@@ -2519,6 +2528,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // pattern can be null
         if (!pattern) pattern = '';
+        pattern = pattern.trim();
 
         let appList = [];
 
@@ -2614,7 +2624,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._tempFilterMode = this.APP_FILTER_MODE;
             appList = appList.filter(a => {
                 if (a.get_n_windows()) {
-                    a.cachedWindows = this._getCustomWindowList().filter(
+                    a.cachedWindows = this._getCustomWindowList(pattern).filter(
                         w => windowTracker.get_window_app(w) === a);
                 } else {
                     a.cachedWindows = [];
@@ -2627,7 +2637,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             appList.forEach(
                 a => {
                     if (a.get_n_windows()) {
-                        a.cachedWindows = this._getCustomWindowList().filter(
+                        a.cachedWindows = this._getCustomWindowList(pattern).filter(
                             w => windowTracker.get_window_app(w) === a);
                     } else {
                         a.cachedWindows = [];
@@ -3047,6 +3057,13 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
     highlight(index, justOutline) {
         super.highlight(index, justOutline);
         this._label.set_text(index == -1 ? '' : this.icons[index].titleLabel.text);
+    }
+
+    removeHighlight() {
+        if (this._items[this._highlighted]) {
+            this._items[this._highlighted].remove_style_pseudo_class('outlined');
+            this._items[this._highlighted].remove_style_pseudo_class('selected');
+        }
     }
 
     _removeWindow(window) {
