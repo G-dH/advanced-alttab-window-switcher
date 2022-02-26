@@ -2877,26 +2877,27 @@ class AppIcon extends AppDisplay.AppIcon {
             }
         }
 
-
+        const count = app.cachedWindows.length;
         if (this._switcherParams.showWinCounter) {
             this._iconContainer.remove_child(this._dot);
-            const count = app.cachedWindows.length;
             if (count) {
                 const runninIndicator = this._createRunningIndicator(count);
+                // move the counter above app title
                 if (this._switcherParams.showAppTitles) {
                     runninIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em;`);
                 }
                 this._iconContainer.add_child(runninIndicator);
             }
-        } else {
+        } else if (count) {
             const dotStyle = 'border: 1px; border-color: ghostwhite;';
             if (this._switcherParams.showAppTitles) {
                 this._dot.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em; ${dotStyle}`);
             } else {
                 this._dot.set_style(dotStyle);
             }
+        } else {
+            this._iconContainer.remove_child(this._dot);
         }
-
 
         if (this._switcherParams.hotKeys && iconIndex < 12) {
             this._iconContainer.add_child(_createHotKeyNumIcon(iconIndex));
