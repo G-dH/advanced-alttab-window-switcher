@@ -1931,27 +1931,27 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _showOverlayTitle() {
         let selected = this._items[this._selectedIndex];
         let title;
-        let description = '';
+        let details = '';
 
         if (selected._is_window) {
             title = selected.window.get_title();
             //if (this._searchEntryNotEmpty()) {
-                description = selected.app.get_name();
+                details = selected.app.get_name();
             //}
         } else {
             title = selected.titleLabel.get_text();
             // if serching apps add more info to the app name
             if (selected._appDetails) {
                 if (selected._appDetails.generic_name && !this._match(title, selected._appDetails.generic_name)) {
-                    description += `${selected._appDetails.generic_name}`;
+                    details += `${selected._appDetails.generic_name}`;
                 }
 
-                if (selected._appDetails.comment && !this._match(title, selected._appDetails.comment)) {
-                    if (description) {
-                        description += '\n';
+                if (selected._appDetails.description && !this._match(title, selected._appDetails.description)) {
+                    if (details) {
+                        details += '\n';
                     }
 
-                    description += `${selected._appDetails.comment}`;
+                    details += `${selected._appDetails.description}`;
                 }
             }
         }
@@ -1966,10 +1966,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._overlayTitle._label.set_style(`font-size: ${fontSize}em;`);
         this._overlayTitle.set_style(`border-radius: 12px`);
 
-        if (description) {
+        if (details) {
             const descriptionLbl = new St.Label({
                 style_class: 'title-description',
-                text: description
+                text: details
             });
             const descSize = this.TOOLTIP_SCALE * 0.7 / 100;
             descriptionLbl.set_style(`font-size: ${descSize}em;`);
@@ -2587,12 +2587,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 let dispName = appInfo.get_display_name() || '';
                 let gname = appInfo.get_generic_name() || '';
                 let exec = appInfo.get_executable() || '';
-                let comment = appInfo.get_string('Comment') || '';
+                let description = appInfo.get_description() || '';
                 let categories = appInfo.get_string('Categories') || '';
                 let keywords = appInfo.get_string('Keywords') || '';
                 // show only launchers that should be visible in this DE and invisible launchers of Gnome Settings items
                 return (appInfo.should_show() || (exec.includes('gnome-control-center', 0))) && this._match(
-                    `${dispName} ${gname} ${exec} ${comment} ${categories} ${keywords}`,
+                    `${dispName} ${gname} ${exec} ${description} ${categories} ${keywords}`,
                     pattern);
             });
 
@@ -2855,10 +2855,10 @@ class AppIcon extends AppDisplay.AppIcon {
         if (this._switcherParams.addAppDetails && app.get_app_info()) {
             const appInfo = app.get_app_info();
             const genericName = appInfo.get_generic_name();
-            const comment = appInfo.get_string('Comment');
+            const description = appInfo.get_description();
             this._appDetails = {
                 generic_name : genericName,
-                comment: comment
+                description: description
             };
         }
         // remove original app icon style
