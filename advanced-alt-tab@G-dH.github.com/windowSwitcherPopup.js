@@ -712,6 +712,29 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
+    _itemEntered(switcher, n) {
+        if (!this.mouseActive)
+            return;
+        const item = this._items[n];
+        // avoid unnecessary reentrancy, reenter only when close button needs to be displayed
+        if (!(this._selectedIndex === n && (item._closeButton && item._closeButton.opacity === 255)))
+            this._itemEnteredHandler(n);
+    }
+
+    _updateCloseButtons(showButton = true) {
+        const item = this._items[this._selectedIndex];
+        if (item._closeButton) {
+            this._items.forEach((w) => {
+                //w._closeButton.hide();
+                w._closeButton.opacity = 0;
+            });
+            if (!this._isPointerOut()) {
+                //item._closeButton.show();
+                item._closeButton.opacity = 255;
+            }
+        }
+    }
+
     _shadeIn() {
         let height = this._switcherList.height;
         this.opacity = 255;
@@ -831,8 +854,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _connectIcons() {
         this._iconsConnections = [];
-        this._switcherList.icons.forEach(icon => this._iconsConnections.push(icon.connect('button-press-event', this._onItemBtnPressEvent.bind(this))));
-        this._switcherList.icons.forEach(icon => this._iconsConnections.push(icon.connect('scroll-event', this._onItemScrollEvent.bind(this))));
+        this._switcherList._items.forEach(icon => this._iconsConnections.push(icon.connect('button-press-event', this._onItemBtnPressEvent.bind(this))));
+        this._switcherList._items.forEach(icon => this._iconsConnections.push(icon.connect('scroll-event', this._onItemScrollEvent.bind(this))));
     }
 
     _updateSwitcher(winToApp = false) {
@@ -1003,6 +1026,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._resetNoModsTimeout();
+        this._updateCloseButtons();
     }
 
     _next(reversed = false) {
@@ -1144,10 +1168,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let switcher = this._switcherList;
         let margin = 15;
 
-        if (x < (switcher.x - margin) || x > (switcher.x + switcher.width + margin)) {
+        if (x < (switcher.allocation.x1 - margin) || x > (switcher.allocation.x1 + switcher.width + margin)) {
             return true;
         }
-        if (y < (switcher.y - margin) || y > (switcher.y + switcher.height + margin)) {
+        if (y < (switcher.allocation.y1 - margin) || y > (switcher.allocation.y1 + switcher.height + margin)) {
             return true;
         }
 
@@ -1936,7 +1960,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (selected._is_window) {
             title = selected.window.get_title();
             //if (this._searchEntryNotEmpty()) {
-                details = selected.app.get_name();
+                const appName = selected.app.get_name();
+                details = appName == title ? null : appName;
             //}
         } else {
             title = selected.titleLabel.get_text();
@@ -2707,6 +2732,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 var WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
     _init(item, iconIndex, switcherParams) {
+        const metaWin = item;
         super._init({
             style_class: 'thumbnail-box',
             vertical: true,
@@ -2718,8 +2744,8 @@ class WindowIcon extends St.BoxLayout {
         this.add_child(this._icon);
         this._icon.destroy_all_children();
 
-        if (item.get_title) {
-            this._createWindowIcon(item);
+        if (metaWin.get_title) {
+            this._createWindowIcon(metaWin);
         }
 
         if ( this._switcherParams.hotKeys && iconIndex < 12) {
@@ -2729,6 +2755,25 @@ class WindowIcon extends St.BoxLayout {
         if (this.titleLabel && this._switcherParams.showWinTitles) {
             this.add_child(this.titleLabel);
         }
+
+        const closeButton = new St.Icon({
+            style_class: 'window-close',
+            icon_name: 'window-close-symbolic',
+            x_align: Clutter.ActorAlign.END,
+            y_align: Clutter.ActorAlign.START,
+            x_expand: true,
+            y_expand: true,
+            reactive: true
+        });
+        closeButton.set_style('background-color: dimgrey; width: 1em; height: 1em; padding: 2px');
+        closeButton.connect('button-press-event', () => {
+            metaWin.delete(global.get_current_time());
+            return Clutter.EVENT_STOP;
+        });
+        this._closeButton = closeButton;
+        this._closeButton.opacity = 0;
+
+        this._icon.add_child(closeButton);
     }
 
     _createWindowIcon(window) {
@@ -2847,7 +2892,6 @@ class AppIcon extends AppDisplay.AppIcon {
         this._switcherParams = switcherParams;
 
         this.titleLabel = new St.Label({
-            //text: app.get_name(),
             text: app.get_name(),
             style_class: 'workspace-index'
         });
@@ -3053,6 +3097,14 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             shellVersion >= 40  ? this._statusLabel.allocate(childBoxStatus)
                                 : this._statusLabel.allocate(childBoxStatus, flags);
         }
+    }
+
+    _onItemEnter(item) {
+        // Avoid reentrancy
+        //if (item !== this._items[this._highlighted])
+            this._itemEntered(this._items.indexOf(item));
+
+        return Clutter.EVENT_PROPAGATE;
     }
 
     highlight(index, justOutline) {
