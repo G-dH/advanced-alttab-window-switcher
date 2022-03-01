@@ -1,25 +1,30 @@
 ## Changelog
 
 ### v13 (not yet released on e.g.o.)
-**Fixed**
-- reverse ordered switcher list wider than the display has the first item out of the display
-- red dot indicator of running app ignores app filter mode
-- app description not localized
+**Added:**
+- each window preview in the switcher list reveals the Close Window button on mouse hover to easily close the window.
+- option `Up/Down Keys Action` allows to choose what action will be assigned to the arrow keys Up and Down - `Nothing`, `Switch Workspace`, `Toggle Single App Mode` or `Down:Single App, Up:Switcher Mode`.
 
-**Changed**
-- Space (KP_0) key toggles `Show Selected Window` `Preview` mode On/Off instead of one time preview
+**Fixed:**
+- reverse ordered switcher list wider than the display has the first item out of the display.
+- red dot indicator of running app ignores app filter mode.
+- app description not localized.
+- mouse buttons and scroll wheel events for switcher item not read from the whole highlited area.
+
+**Changed:**
+- Space/KP_0 keys toggles `Show Selected Window` `Preview` mode On/Off instead of one time preview.
 
 ### v12
 **Added:**
 - option `Tooltip Label Scale` allows to adjust tooltip labels size.
 - option `Prioritize Running Apps` for serch in applications.
-- window title tooltip shows app name
-- updated metadata to support GNOME Shell 42
+- window title tooltip shows app name.
+- updated metadata to support GNOME Shell 42.
 
-**Fixed**
-- pushModal function - AATWS chrashes when grabing input not successful
+**Fixed:**
+- pushModal function - AATWS chrashes when grabing input not successful.
 
-**Improved**
+**Improved:**
 - own tooltip label style replaced with the system `dash-label` style with fixed radius, to better fit the current Shell theme.
 
 ### v11:
@@ -34,16 +39,17 @@
 - `Show Window` hotkey no longer raises a real window but shows a preview instead, which dowsn't alter the current window stack.
 - option `Max Number of Search Results` in App Switcher
 
-**Other Changes**
+**Other Changes:**
 - tooltips replaced by captions directly under each option
 
 ### v10:
-
 **Added:**
 - Configurable hotkeys
 - Option `Hover Selects item` - allows to disable select item by hovering mouse.
+
 **Improved:**
 - Search prefers words and titles starting with entered string
+
 **Fixed:**
 - `Fullscreen Selected on Empty WS` action - restore window on removed workspace crashes GS.
 - Unaccessible items if `Show selected window/app imediately` is enabled and the switcher popup is wider than screen.
