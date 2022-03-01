@@ -29,7 +29,7 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 
 ### Hotkeys
 
-Most hotkeys can be customized in AATWS Preferences window, for each customizable action can be set up to two hotkeys for case you need to cover a non [a-zA-Z] keystroke with and without Shift modifier. You can disable any customizable hotkey by deleting its entry. Some core hotkeys cannot be customized nor disabled.
+[A-Z] hotkeys can be customized in AATWS Preferences window, for each customizable action can be set up to two hotkeys for case you need to cover a non [a-zA-Z] keystroke with and without Shift modifier. You can disable any customizable hotkey by deleting its entry. Some core hotkeys cannot be customized nor disabled.
 
 **Default configuration:**
 
@@ -37,26 +37,26 @@ Most hotkeys can be customized in AATWS Preferences window, for each customizabl
 |------|---------------------------------|
 |`H/L, Left/Right arrows`|  - Window selection|
 |`J/K, Up/Down, PgUp/Down`| - Workspace selection|
-|`Ctrl+[PgUp/Down]`|        - Reorders the current workspace - changes the workspace index -1/+1.|
-|`Shift + arrow keys`|      - Moves the switcher popup to the adjacent monitor in corresponding direction.|
-|`Ctrl+Tab`|                - Moves the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.|
-|`Space, KP_0/KP_Ins`|      - Shows selected window - switches to the window workspace and rises the window.|
-|`Q`|                       - Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).|
-|`;/~ (the key above Tab)`| - In the Window mode - sorts windows by application, each subsequent key press jumps to the first window of the next app.<br>-In the Application mode - iterates over windows of the selected application, Tab switches back to apps.|
-|`G`|                       - Toggles sorting by workspace, when Filter Mode is set to ALL.|
-|`1/+/!`|                   - Toggles Single App mode - shows only windows of the selected application.|
-|`E/Insert`|                - Toggles the `Type to Search` mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
-|`W`|                       - Closes the selected window or application.|
-|`Ctrl+W`|                  - Closes the application of the selected window.|
-|`Shift+Del`|               - Force close - sends a `kill -9` signal to the application of selected window or to the selected application.|
-|`C`|                       - Closes all windows in the list belonging to the same application as the selected window.|
-|`A`|                       - Toggles window 'Always on Top' and also switches to window workspace and rise the window.<br>- The `Above` state is indicated by the front icon at the top instead of the bottom.|
-|`S`|                       - Toggles selected window `Always on Visible Workspace`. Ths state is indicated by the 'pin' icon at the top. Note, that this flag have all windows located on other than the primary monitor, when the GNOME Shell's option `Workspaces on Primary Display Only` is active.|
-|`X, Ctrl+Down`|             - Moves selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
-|`M`|                       - Toggles full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.|
-|`N, Ctrl+Enter`|           - Opens new window of selected application, if the application soupports it.|
-|`F`|                       - Moves the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.|
-|`Ctrl+;/~, Ctrl+Super`|    - Toggles between Windows and Applications modes.|
+|`Ctrl+[PgUp/Down]`|        - Reorder the current workspace - changes the workspace index -1/+1.|
+|`Shift + arrow keys`|      - Move the switcher popup to the adjacent monitor in corresponding direction.|
+|`Ctrl+Tab`|                - Move the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.|
+|`Space, KP_0/KP_Ins`|      - Toggle `Shows selected window` `Preview` mode on/off.|
+|`Q`|                       - Switch the window `Filter` mode - `ALL / WS / MONITOR` (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).|
+|`;/~ (the key above Tab)`| - In the Window mode - sort windows by application, each subsequent key press selects the first window of the next app.<br>-In the Application mode - iterate over windows of the selected application, Tab switches back to apps.|
+|`G`|                       - Toggle `Sort windows by workspace`, if `Filter` mode is set to `ALL`.|
+|`1/+/!`|                   - Toggle `Single App` mode - shows only windows of the selected application.|
+|`E/Insert`|                - Toggle the `Type to Search` mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
+|`W`|                       - `Close` the selected window or `Quit` selected application.|
+|`Ctrl+W`|                  - Close the application of the selected window.|
+|`Shift+Del`|               - Force Close - sends a `kill -9` signal to the application of selected window or to the selected application.|
+|`C`|                       - Close all windows in the list that belong to the same application as the selected window.|
+|`A`|                       - Toggle window `Always on Top` and also switch to window workspace and rise the window.<br>- The `Above` state is indicated by the front icon at the top instead of the bottom.|
+|`S`|                       - Toggle selected window `Always on Visible Workspace`. Ths state is indicated by the 'pin' icon at the top. Note, that this flag have all windows located on other than the primary monitor, when the GNOME Shell's option `Workspaces on Primary Display Only` is active.|
+|`X, Ctrl+Down`|             - Move selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
+|`M`|                       - Toggle full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.|
+|`N, Ctrl+Enter`|           - Open new window of selected application, if the application soupports it.|
+|`F`|                       - Move the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.|
+|`Ctrl+;/~, Ctrl+Super`|    - Toggle between Windows and Applications modes.|
 |`T`|                       - Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor.|
 |`P`|                       - Opens preferences window for this extension.|
 |`Ctrl+Shift+Up/Down`|      - Move selected window/app to the newly created workspace in front of or behind the current workspace.|
@@ -70,13 +70,13 @@ Most hotkeys can be customized in AATWS Preferences window, for each customizabl
 - When you activate the Search mode using the hotkey, you can release the modifier keys used to activate the switcher (Alt, Super) and the switcher stays open. If the Search mode is active as default, relese of the modifier key activates the selected result as usual. If you activate the switcher using Super key, you have 5 seconds to start typing, or you can pres and release the `Ctrl` key to cancel the timeout.
 - Characters with diacritics are converted to its basic form and case doesn't matter.
 - You can also enter more patterns separated by a space in arbitrary order, so if you enter 'fox ext', a window with 'Extensions - Firefox' in the title will also be found. If you enter a character that would filter out all items (no match), this character will be removed and the selection will stays unchanged waiting for another character.
-- AATWS is saerching in the window title, app name, app generic name (which usually contains information what type of application it is), comment, keywords, categories and name of the app executable file. Properties for apps comes from their `.desktop` launchers.
+- AATWS is saerching in the window title, app name, app generic name (which usually contains information what type of application it is), description, keywords (not localized), categories (not localized) and name of the app executable file. Properties for apps comes from their `.desktop` launchers.
 - Window search results are based not only on window titles but also on their app names and names of executable, so you can find all default file manager windows by typing `files` or even `nautilus`.
 - Option `Search All Windows` for the Window Switcher allows AATWS to search for windows outside the current filter scope if no window was found with the current filter mode.
 - YOption `Search Applications` for the Window Switcher allows AATWS to search applications in the Window switcher mode, so you don't have to leave the window switcher to launch a new app (if no window match the entered pattern).
 - Search results in the application mode include installed applications and Gnome Settings Sections (they have their own launchers).
 - In the App Switcher if no app match the entered pattern, windows are searched automatically.
-- Application search results add generic name (if different from name) and comment (description) to the name in icon tooltips to help identify unknown apps.
+- Application search results add generic name (if different from name) and description to the name in icon tooltips to help identify unknown apps.
 - Option `Max Number of Search Results` for App Switcher limits output of search engine. Default is 12.
 - Application search results are weighted by the following criteria (in this order): position in the list of frequently used applications, app name starts with the pattern, any word in the item name/description/category/executable starts with the pattern. This means that you can very quicky and consistently find apps if you know their names, mostly using just one letter.
 - Window search results are weighted by the following criteria (in this order): app name starts with the pattern, any word in the window title/app name/executable starts with the pattern.
@@ -101,46 +101,8 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 
 ## Changelog
 
-### v12 (not yet released on e.g.o.)
-**Added:**
-- option `Tooltip Label Scale` allows to adjust tooltip labels size.
-- option `Prioritize Running Apps` for serch in applications.
-- window title tooltip shows app name
-- updated metadata to support GNOME Shell 42
+[CHANGELOG.md](CHANGELOG.md)
 
-**Fixed**
-- pushModal function - AATWS chrashes when grabing input not successful
-
-**Improved**
-- own tooltip label style replaced with the system `dash-label` style with fixed radius, to better fit the current Shell theme.
-
-### v11:
-**Added:**
-- actions `Move Window/App to New Workspace` with `Ctrl + Shift + Up/Down` shortcut.
-- option `Minimized Windows at the End` of the list (default in GNOME Shell is `true`).
-- `Super Key Mode` option can override default Super key functionality and instead of Activities open App or Window Switcher. Sadly, the Super press event cannot be catched by the AATWS unless you simultaneously press and hold any other modifier key, so I've added `Shift + Super` to toggle Activities Overview and `Ctrl + Shift + Super` to toggle App Grid view. 
-- app switcher now search also in `comment`, `keywords` and `category` properties of app `.desktop` file, so it's easier to find application if you don't remember its name.
-- when searching apps, the tooltip title (if enabled) of selected application adds its `generic_name` (if differ from name), which usually contains generic type of application, and also adds `comment`, which contains app description.
-- option for app switcher `Raise First Window Only` - on app activation raise only its most recently used window instead of all app windows.
-- option `Show Selected Window` now has two options - `Show Preview` and `Show Window`
-- `Show Window` hotkey no longer raises a real window but shows a preview instead, which dowsn't alter the current window stack.
-- option `Max Number of Search Results` in App Switcher
-
-**Other Changes**
-- tooltips replaced by captions directly under each option
-
-### v10:
-
-**Added:**
-- Configurable hotkeys
-- Option `Hover Selects item` - allows to disable select item by hovering mouse.
-**Improved:**
-- Search prefers words and titles starting with entered string
-**Fixed:**
-- `Fullscreen Selected on Empty WS` action - restore window on removed workspace crashes GS.
-- Unaccessible items if `Show selected window/app imediately` is enabled and the switcher popup is wider than screen.
-- Filter not shared between `Window` and `App` modes before the filter is switched.
-- Global variables mess
 
 ## Contribution
 
