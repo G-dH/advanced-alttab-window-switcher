@@ -26,6 +26,9 @@
     <key name='switcher-popup-monitor' type='i'>
       <default>1</default>
     </key>
+    <key name='switcher-popup-up-down-action' type='i'>
+      <default>2</default>
+    </key>
     <key name='switcher-popup-pointer' type='b'>
       <default>true</default>
     </key>

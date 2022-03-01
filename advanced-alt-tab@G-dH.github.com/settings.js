@@ -105,6 +105,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('switcher-popup-preview-selected', int_val);
     }
 
+    get switcherPopupUpDownAction() {
+        return this._gsettings.get_int('switcher-popup-up-down-action');
+    }
+
+    set switcherPopupUpDownAction(int_val) {
+        this._gsettings.set_int('switcher-popup-up-down-action', int_val);
+    }
+
     get switcherPopupStartSearch() {
         return this._gsettings.get_boolean('switcher-popup-start-search');
     }

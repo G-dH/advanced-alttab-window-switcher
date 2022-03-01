@@ -106,6 +106,7 @@ function _getCommonOptionList() {
             opt.DefaultMonitor,
             opt.ShowImediately,
             opt.SearchModeDefault,
+            opt.UpDownArrowAction,
             opt.HotkesRequireShift,
             opt.WraparoundSelector,
             opt.HoverSelectsItem,
@@ -508,7 +509,7 @@ function _getCommonOpt() {
 
     optDict.ShowImediately = _optionsItem(
             _('Show Selected Window'),
-            _("Allows to see selected window in its original size. Preview shows a clone of the window, second option raises the original window and switches to its workspace."),
+            _("Allows to see selected window in its original size immediately as the item is selected in the switcher. Preview shows a clone of the window, second option raises the original window and switches to its workspace."),
             _newComboBox(),
             'switcherPopupPreviewSelected',
             [[_('Disable'), 1],
@@ -522,6 +523,17 @@ function _getCommonOpt() {
             _newGtkSwitch(),
             'switcherPopupStartSearch'
     );
+
+    optDict.UpDownArrowAction = _optionsItem(
+        _('Up/Down Keys Action'),
+        _('Choose what Up/Down arrow keys should do.'),
+        _newComboBox(),
+        'switcherPopupUpDownAction',
+           [[_('Nothing'), 1],
+            [_('Switch Workspace'), 2],
+            [_('Toggle Single App Mode'), 3],
+            [_('Down: Single App, Up: Switcher Mode'), 4]]
+);
 
     optDict.HotkesRequireShift = _optionsItem(
             _('Action Hotkeys Require Shift'),
@@ -946,7 +958,7 @@ function _getAppsOpt() {
 
     optDict.ShowWinCounter =_optionsItem(
             _('Show Window Counter'),
-            _('Replaces the default dot indicating running applications by number of open windows.'),
+            _('Replaces the default dot indicating running applications by the number of open windows.'),
             _newGtkSwitch(),
             'appSwitcherPopupWinCounter'
        );

@@ -79,6 +79,13 @@ const PreviewMode = {
     SHOW_WIN: 3
 }
 
+const UpDownAction = {
+    DISABLE: 1,
+    SWITCH_WS: 2,
+    SINGLE_APP: 3,
+    SINGLE_AND_SWITCHER: 4
+}
+
 const LABEL_FONT_SIZE = 0.9;
 
 const Action = Settings.Actions;
@@ -151,6 +158,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.INITIAL_DELAY         = options.switcherPopupTimeout;
         this.WRAPAROUND            = options.switcherPopupWrap;
         this.ACTIVATE_ON_HIDE      = options.switcherPopupActivateOnHide || options.switcherPopupShowImmediately;
+        this.UP_DOWN_ACTION        = options.switcherPopupUpDownAction;
         this.HOT_KEYS              = options.switcherPopupHotKeys;
         this.SHIFT_AZ_HOTKEYS      = options.switcherPopupShiftHotkeys;
         this.STATUS                = options.switcherPopupStatus;
@@ -212,6 +220,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._doNotReactOnScroll   = false;
         _cancelTimeout             = false;
 
+        global.advancedWindowSwitcher = this;
         this.connect('destroy', this._onDestroyThis.bind(this));
     }
 
@@ -240,6 +249,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._destroyWinPreview();
+
+        global.advancedWindowSwitcher = null;
     }
 
     _destroyWinPreview() {
@@ -1425,29 +1436,42 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             } else {
                 this._switchMonitor(Meta.DisplayDirection.RIGHT);
             }
-        } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || options.hotkeyUp.includes(keyString)) {
-            if (_ctrlPressed() && keysym == Clutter.KEY_Page_Up) {
+        } else if (keysym == Clutter.KEY_Page_Up) {
+            if (_ctrlPressed()) {
                 this._reorderWorkspace(-1);
-            } else if (_ctrlPressed() && !_shiftPressed()) {
+            } else {
+                this._switchWorkspace(Clutter.ScrollDirection.UP);
+            }
+        } else if (keysym == Clutter.KEY_Page_Down) {
+            if (_ctrlPressed()) {
+                this._reorderWorkspace(+1);
+            } else {
+                this._switchWorkspace(Clutter.ScrollDirection.DOWN);
+            }
+        } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || options.hotkeyUp.includes(keyString)) {
+            if (_ctrlPressed() && !_shiftPressed()) {
                 //this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.UP)
-            } else if (!_ctrlPressed() && !_shiftPressed()) {
+            } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SWITCH_WS) {
                 this._switchWorkspace(Clutter.ScrollDirection.UP);
+            } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SINGLE_APP) {
+                this._toggleSingleAppMode();
+            } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SINGLE_AND_SWITCHER) {
+                this._toggleSwitcherMode();
             } else {
                 this._switchMonitor(Meta.DisplayDirection.UP);
             }
         } else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || options.hotkeyDown.includes(keyString)) {
-            if (_ctrlPressed() && keysym == Clutter.KEY_Page_Down) {
-                this._reorderWorkspace(+1);
-            }
-            else if (_ctrlPressed() && !_shiftPressed()) {
+            if (_ctrlPressed() && !_shiftPressed()) {
                 //this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
                 this._moveToCurrentWS();
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.DOWN);
-            } else if (!_ctrlPressed() && !_shiftPressed()) {
+            } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SWITCH_WS) {
                 this._switchWorkspace(Clutter.ScrollDirection.DOWN);
+            } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION >= UpDownAction.SINGLE_APP) {
+                this._toggleSingleAppMode();
             } else {
                 this._switchMonitor(Meta.DisplayDirection.DOWN);
             }
@@ -2756,6 +2780,13 @@ class WindowIcon extends St.BoxLayout {
             this.add_child(this.titleLabel);
         }
 
+        this._closeButton = this._createCloseButton(metaWin);
+        this._closeButton.opacity = 0;
+
+        this._icon.add_child(this._closeButton);
+    }
+
+    _createCloseButton(metaWin) {
         const closeButton = new St.Icon({
             style_class: 'window-close',
             icon_name: 'window-close-symbolic',
@@ -2766,14 +2797,13 @@ class WindowIcon extends St.BoxLayout {
             reactive: true
         });
         closeButton.set_style('background-color: dimgrey; width: 1em; height: 1em; padding: 2px');
-        closeButton.connect('button-press-event', () => {
+        closeButton.connect('button-press-event', () => { return Clutter.EVENT_STOP; });
+        closeButton.connect('button-release-event', () => {
             metaWin.delete(global.get_current_time());
             return Clutter.EVENT_STOP;
         });
-        this._closeButton = closeButton;
-        this._closeButton.opacity = 0;
 
-        this._icon.add_child(closeButton);
+        return closeButton;
     }
 
     _createWindowIcon(window) {

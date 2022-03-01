@@ -67,6 +67,10 @@ function enable() {
 }
 
 function disable() {
+    if (global.advancedWindowSwitcher) {
+        global.advancedWindowSwitcher.destroy();
+        global.advancedWindowSwitcher = null;
+    }
     if (_delayId)
         GLib.source_remove(_delayId);
 
