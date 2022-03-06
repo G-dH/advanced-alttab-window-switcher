@@ -66,7 +66,7 @@ const GroupModeLabel = ['',
     _('APPS'),
     _('WS')];
 
-const SelectionMode = {
+const SelectMode = {
     NONE:  -1,
     FIRST:  0,
     SECOND: 1,
@@ -209,7 +209,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._searchEntry = null;
         }
         this._defaultGrouping      = this.GROUP_MODE; // remember default sorting
-        this._initialSelectionMode = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE ? SelectionMode.ACTIVE : SelectionMode.SECOND;
+        this._initialSelectionMode = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE ? SelectMode.ACTIVE : SelectMode.SECOND;
         this._switcherMode         = SwitcherMode.WINDOWS;
         this._singleApp            = null;
 
@@ -322,30 +322,30 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _initialSelection(backward, binding) {
         if (this._searchEntryNotEmpty())
-            this._initialSelectionMode = SelectionMode.FIRST;
+            this._initialSelectionMode = SelectMode.FIRST;
 
         if (this._items.length === 1 && this._switcherList) {
             this._select(0);
 
         } else if (backward) {
-            if (this._initialSelectionMode === SelectionMode.SECOND) {
+            if (this._initialSelectionMode === SelectMode.SECOND) {
                 if (this._shouldReverse()) {
                     this._select(1);
                 } else {
                     this._select(this._items.length - 1);
                 }
-            } else if (this._initialSelectionMode === SelectionMode.ACTIVE) {
+            } else if (this._initialSelectionMode === SelectMode.ACTIVE) {
                 this._select(this._getFocusedItemIndex());
             }
 
-        } else if (this._initialSelectionMode === SelectionMode.FIRST) {
+        } else if (this._initialSelectionMode === SelectMode.FIRST) {
             if (this._shouldReverse()) {
                 this._select(this._items.length - 1);
             } else {
                 this._select(0);
             }
 
-        } else if (this._initialSelectionMode === SelectionMode.SECOND) {
+        } else if (this._initialSelectionMode === SelectMode.SECOND) {
             if (this._items.length > 1) {
                 if (this._shouldReverse()) {
                     this._select(this._items.length - 2);
@@ -356,10 +356,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._select(0);
             }
 
-        } else if (this._initialSelectionMode === SelectionMode.ACTIVE) {
+        } else if (this._initialSelectionMode === SelectMode.ACTIVE) {
             this._select(this._getFocusedItemIndex());
 
-        } else if (this._initialSelectionMode === SelectionMode.NONE && this._shouldReverse()) {
+        } else if (this._initialSelectionMode === SelectMode.NONE && this._shouldReverse()) {
             // if reversed and list longer than display, move to the last (reversed first) item
             this._switcherList.highlight(this._items.length - 1);
             this._switcherList.removeHighlight();
@@ -402,25 +402,29 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _pushModal() {
+        let result = true;
         if (shellVersion >= 42) {
             let grab = Main.pushModal(this);
             // We expect at least a keyboard grab here
             if ((grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
                 Main.popModal(grab);
-                return false;
+                result = false;
             }
             this._grab = grab;
             this._haveModal = true;
         } else {
             if (!Main.pushModal(this)) {
                 if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
-                    let focusApp = global.display.get_focus_window().get_wm_class();
-                    log(`[${Me.metadata.uuid}] ${focusApp} probably grabbed the modal, exitting...`);
-                    return false;
+                    result = false;
                 }
             }
         }
-        return true;
+        if (!result) {
+            let focusApp = global.display.get_focus_window().get_wm_class();
+            log(`[${Me.metadata.uuid}] ${focusApp} probably grabbed the modal, exiting...`);
+        }
+
+        return result;
     }
 
     show(backward, binding, mask) {
@@ -491,7 +495,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
             // avoid immediate switch to recent window when Show Win Preview mode is active
             if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN && !this._showingApps && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU) {
-                this._initialSelectionMode = SelectionMode.FIRST;
+                this._initialSelectionMode = SelectMode.FIRST;
             }
 
             if (this._switcherList) {
@@ -568,7 +572,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (switcherList.length > 0) {
                     // if on empty WS/monitor, don't select any item
                     if (this._searchEntry === null || this._searchEntry === '') {
-                        this._initialSelectionMode = SelectionMode.NONE;
+                        this._initialSelectionMode = SelectMode.NONE;
                         this._selectedIndex = -1;
                     }
                     break;
@@ -579,14 +583,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // if no windows/apps match the searched pattern and the searching apps is allowed, try to find some apps instead
         if (switcherList.length === 0 && this.SEARCH_APPS === true && this._searchEntryNotEmpty()) {
             switcherList = this._getAppList(this._searchEntry);
-            this._initialSelectionMode = SelectionMode.FIRST;
+            this._initialSelectionMode = SelectMode.FIRST;
         }
 
         if (!switcherList.length && !AltTab.getWindows(null).length) {
             this._switcherMode = SwitcherMode.APPS;
             this.INCLUDE_FAVORITES = true;
             this.SHOW_APPS = true;
-            this._initialSelectionMode = SelectionMode.FIRST;
+            this._initialSelectionMode = SelectMode.FIRST;
 
             return this._getAppList();
         }
@@ -698,8 +702,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.opacity = 255;
         }
 
-        if (this._initialSelectionMode === SelectionMode.RECENT || this._initialSelectionMode === SelectionMode.NONE) {
-            this._initialSelectionMode = SelectionMode.ACTIVE;
+        if (this._initialSelectionMode === SelectMode.RECENT || this._initialSelectionMode === SelectMode.NONE) {
+            this._initialSelectionMode = SelectMode.ACTIVE;
         }
 
         this._resetNoModsTimeout();
@@ -997,8 +1001,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _select(index) {
         if (!this._switcherList) return;
 
-        if (this._initialSelectionMode === SelectionMode.NONE) {
-            this._initialSelectionMode = SelectionMode.ACTIVE;
+        if (this._initialSelectionMode === SelectMode.NONE) {
+            this._initialSelectionMode = SelectMode.ACTIVE;
         } else {
             this._selectedIndex = index;
             this._switcherList.highlight(index);
@@ -1884,7 +1888,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 }
             }
 
-            this._initialSelectionMode = SelectionMode.FIRST;
+            this._initialSelectionMode = SelectMode.FIRST;
             this.show();
 
             if (id !== undefined) {
@@ -2621,10 +2625,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return  b > -1 && (b < a || a === -1);
                 });
 
-                this._initialSelectionMode = SelectionMode.ACTIVE;
+                this._initialSelectionMode = SelectMode.ACTIVE;
             }
         } else {
-            this._initialSelectionMode = SelectionMode.FIRST;
+            this._initialSelectionMode = SelectMode.FIRST;
             let appInfoList = Shell.AppSystem.get_default().get_installed().filter(appInfo => {
                 try {
                     appInfo.get_id(); // catch invalid file encodings
