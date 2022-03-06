@@ -1,6 +1,12 @@
 'use strict';
 
 const { Gtk, GLib, GObject } = imports.gi;
+// libadwaita is available starting with GNOME Shell 42.
+let Adw = null;
+try {
+  Adw = imports.gi.Adw;
+} catch (e) {
+}
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
@@ -17,17 +23,17 @@ const actionList = [
     [_('Do Nothing'),                      Actions.NONE],
     [_('Select Next Item'),                Actions.SELECT_ITEM],
     [_('Activate Selected'),               Actions.ACTIVATE],
-    [_('Show Selected'),                   Actions.SHOW],
+    [_('Switch Workspace'),                Actions.SWITCH_WS],
     [_('Open New Window'),                 Actions.NEW_WINDOW],
+    [_('Show Selected'),                   Actions.SHOW],
     [_('Open Context Menu'),               Actions.MENU],
+    [_('Switch Filter Mode'),              Actions.SWITCH_FILTER],
+    [_('Toggle Single App Mode'),          Actions.SINGLE_APP],
+    [_('Toggle Switcher Mode'),            Actions.SWITCHER_MODE],
     [_('Close/Quit Selected'),             Actions.CLOSE_QUIT],
     [_('Force Quit Selected App'),         Actions.KILL],
     [_('Move Selected to Current WS'),     Actions.MOVE_TO_WS],
     [_('Fullscreen Selected on Empty WS'), Actions.FS_ON_NEW_WS],
-    [_('Switch Filter Mode'),              Actions.SWITCH_FILTER],
-    [_('Toggle Single App Mode'),          Actions.SINGLE_APP],
-    [_('Switch Workspace'),                Actions.SWITCH_WS],
-    [_('Toggle Switcher Mode'),            Actions.SWITCHER_MODE],
     [_('Group by Applications'),           Actions.GROUP_APP],
     [_('Current Monitor First'),           Actions.CURRENT_MON_FIRST],
     [_('Create Window Thumbnail'),         Actions.THUMBNAIL],
@@ -40,50 +46,65 @@ function init() {
     mscOptions = new Settings.MscOptions();
 }
 
+function fillPreferencesWindow(window) {
+    const commonOptionsPage   = getAdwPage(_getCommonOptionList(), {
+        title: _('Common'),
+        icon_name: 'preferences-system-symbolic',
+    });
+    const windowOptionsPage   = getAdwPage(_getWindowOptionList(), {
+        title: _('Window Switcher'),
+        icon_name: 'focus-windows-symbolic',
+    });
+    const appOptionsPage      = getAdwPage(_getAppOptionList(), {
+        title: _('App Switcher'),
+        icon_name: 'view-app-grid-symbolic',
+    });
+    const miscOptionsPage     = getAdwPage(_getMiscOptionList(), {
+        title: _('Misc'),
+        icon_name: 'preferences-other-symbolic',
+    });
+    const hotkeysOptionPage   = getAdwPage(_getHotkeysOptionList(), {
+        title: _('Hotkeys'),
+        icon_name: 'input-keyboard-symbolic',
+    });
+    window.add(commonOptionsPage);
+    window.add(windowOptionsPage);
+    window.add(appOptionsPage);
+    window.add(miscOptionsPage);
+    window.add(hotkeysOptionPage);
+
+    window.set_search_enabled(true);
+
+    return window;
+}
+
 function buildPrefsWidget() {
     const prefsWidget = new Gtk.Notebook({
         tab_pos: Gtk.PositionType.TOP,
-        visible: true,
     });
 
-    const commonOptionsPage   = new OptionsPageAATWS(_getCommonOptionList());
-    const windowOptionsPage   = new OptionsPageAATWS(_getWindowOptionList());
-    const appOptionsPage      = new OptionsPageAATWS(_getAppOptionList());
-    const miscOptionsPage     = new OptionsPageAATWS(_getMiscOptionList());
-    const hotkeysOptionPage   = new OptionsPageAATWS(_getHotkeysOptionList());
+    const pageProperties = {
+        hscrollbar_policy: Gtk.PolicyType.NEVER,
+        vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
+        vexpand: true,
+        hexpand: true,
+    };
+    const commonOptionsPage   = getLegacyPage(_getCommonOptionList(), pageProperties);
+    const windowOptionsPage   = getLegacyPage(_getWindowOptionList(), pageProperties);
+    const appOptionsPage      = getLegacyPage(_getAppOptionList(), pageProperties);
+    const miscOptionsPage     = getLegacyPage(_getMiscOptionList(), pageProperties);
+    const hotkeysOptionPage   = getLegacyPage(_getHotkeysOptionList(), pageProperties);
 
 
-    prefsWidget.append_page(commonOptionsPage, new Gtk.Label({
-        label: _('Common'),
-        halign: Gtk.Align.START,
-        visible: true,
-    }));
-
-    prefsWidget.append_page(windowOptionsPage, new Gtk.Label({
-        label: _('Window Switcher'),
-        halign: Gtk.Align.START,
-        visible: true,
-    }));
-
-    prefsWidget.append_page(appOptionsPage, new Gtk.Label({
-        label: _('App Switcher'),
-        halign: Gtk.Align.START,
-        visible: true,
-    }));
-
-    prefsWidget.append_page(miscOptionsPage, new Gtk.Label({
-        label: _('Misc'),
-        halign: Gtk.Align.START,
-        visible: true,
-    }))
-
-    prefsWidget.append_page(hotkeysOptionPage, new Gtk.Label({
-        label: _('Hotkeys'),
-        halign: Gtk.Align.START,
-        visible: true,
-    }))
+    prefsWidget.append_page(commonOptionsPage, new Gtk.Label({ label: _('Common') }));
+    prefsWidget.append_page(windowOptionsPage, new Gtk.Label({ label: _('Window Switcher') }));
+    prefsWidget.append_page(appOptionsPage, new Gtk.Label({ label: _('App Switcher') }));
+    prefsWidget.append_page(miscOptionsPage, new Gtk.Label({ label: _('Misc') }))
+    prefsWidget.append_page(hotkeysOptionPage, new Gtk.Label({ label: _('Hotkeys') }))
 
     prefsWidget.connect('realize', _onRealize);
+    prefsWidget.show_all && prefsWidget.show_all();
+
     return prefsWidget;
 }
 
@@ -207,96 +228,126 @@ function _getMiscOptionList() {
     return optionList;
 }
 
-const OptionsPageAATWS = GObject.registerClass(
-class OptionsPageAATWS extends Gtk.ScrolledWindow {
-    _init(optionList, widgetPropetrties = {
-        hscrollbar_policy: Gtk.PolicyType.NEVER,
-        vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
-        vexpand: true,
-        hexpand: true,
-    }) {
-        super._init(widgetPropetrties);
-
-        const context = this.get_style_context();
-        context.add_class('background');
-
-        this.optionList = optionList;
-        this._alreadyBuilt = false;
-        this.buildPage();
+function getOptionsPage(optionList, pageProperties = {}) {
+    if (Adw) {
+        return getAdwPage(optionList, pageProperties);
+    } else {
+        return getLegacyPage(optionList, pageProperties);
     }
+}
 
-    buildPage() {
-        if (this._alreadyBuilt) return;
-
-        const mainBox = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-            spacing: 5,
-            homogeneous: false,
-            margin_start: 30,
-            margin_end: 30,
-            margin_top: 12,
-            margin_bottom: 12,
-            visible: true,
-        });
-
-        let frame;
-        let frameBox;
-        for (let item of this.optionList) {
-            // label can be plain text for Section Title
-            // or GtkBox for Option
-            const option = item[0];
-            const widget = item[1];
-
-            if (!widget) {
-                const lbl = new Gtk.Label({
-                    xalign: 0,
-                    visible: true
-                });
-                lbl.set_markup(option);
-                mainBox[mainBox.add ? 'add' : 'append'](lbl);
-                frame = new Gtk.Frame({
-                    visible: true,
-                    margin_bottom: 16,
-                });
-                frameBox = new Gtk.ListBox({
-                    selection_mode: null,
-                    visible: true,
-                });
-                mainBox[mainBox.add ? 'add' : 'append'](frame);
-                frame[frame.add ? 'add' : 'set_child'](frameBox);
-                continue;
+function getAdwPage(optionList, pageProperties = {}) {
+    pageProperties.width_request = 840;
+    const page = new Adw.PreferencesPage(pageProperties);
+    let group;
+    for (let item of optionList) {
+        // label can be plain text for Section Title
+        // or GtkBox for Option
+        const option = item[0];
+        const widget = item[1];
+        if (!widget) {
+            if (group) {
+                page.add(group);
             }
-
-            const grid = new Gtk.Grid({
-                column_homogeneous: false,
-                column_spacing: 40,
-                margin_start: 8,
-                margin_end: 8,
-                margin_top: 8,
-                margin_bottom: 8,
+            group = new Adw.PreferencesGroup({
+                title: option,
                 hexpand: true,
-                visible: true,
-            })
-            /*for (let i of item) {
-                box[box.add ? 'add' : 'append'](i);*/
-            grid.attach(option, 0, 0, 5, 1);
-            if (widget) {
-                grid.attach(widget, 5, 0, 2, 1);
-            }
-            frameBox[frameBox.add ? 'add' : 'append'](grid);
+                width_request: 700
+            });
+            continue;
         }
-        this[this.add ? 'add' : 'set_child'](mainBox);
-        this.show_all && this.show_all();
-        this._alreadyBuilt = true;
+
+        const row = new Adw.PreferencesRow({
+            title: option._title,
+        });
+        const grid = new Gtk.Grid({
+            column_homogeneous: false,
+            column_spacing: 20,
+            margin_start: 8,
+            margin_end: 8,
+            margin_top: 8,
+            margin_bottom: 8,
+            hexpand: true,
+        })
+        /*for (let i of item) {
+            box[box.add ? 'add' : 'append'](i);*/
+        grid.attach(option, 0, 0, 1, 1);
+        if (widget) {
+            grid.attach(widget, 1, 0, 1, 1);
+        }
+        row.set_child(grid);
+        group.add(row);
     }
-});
+    page.add(group);
+    return page;
+}
+
+function getLegacyPage(optionList, pageProperties) {
+    const page = new Gtk.ScrolledWindow(pageProperties);
+    const mainBox = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
+        spacing: 5,
+        homogeneous: false,
+        margin_start: 30,
+        margin_end: 30,
+        margin_top: 12,
+        margin_bottom: 12,
+    });
+
+    let frame;
+    let frameBox;
+    for (let item of optionList) {
+        // label can be plain text for Section Title
+        // or GtkBox for Option
+        const option = item[0];
+        const widget = item[1];
+
+        if (!widget) {
+            const lbl = new Gtk.Label({
+                xalign: 0,
+            });
+            lbl.set_markup(option);
+            mainBox[mainBox.add ? 'add' : 'append'](lbl);
+            frame = new Gtk.Frame({
+                margin_bottom: 16,
+            });
+            frameBox = new Gtk.ListBox({
+                selection_mode: null,
+            });
+            mainBox[mainBox.add ? 'add' : 'append'](frame);
+            frame[frame.add ? 'add' : 'set_child'](frameBox);
+            continue;
+        }
+
+        const grid = new Gtk.Grid({
+            column_homogeneous: false,
+            column_spacing: 20,
+            margin_start: 8,
+            margin_end: 8,
+            margin_top: 8,
+            margin_bottom: 8,
+            hexpand: true,
+        })
+        /*for (let i of item) {
+            box[box.add ? 'add' : 'append'](i);*/
+        grid.attach(option, 0, 0, 5, 1);
+        if (widget) {
+            grid.attach(widget, 5, 0, 2, 1);
+        }
+        frameBox[frameBox.add ? 'add' : 'append'](grid);
+    }
+    page[page.add ? 'add' : 'set_child'](mainBox);
+
+    return page;
+}
+
+///////////////////////////////////////////////////////////////////
 
 function _newGtkSwitch() {
     let sw = new Gtk.Switch({
         halign: Gtk.Align.END,
         valign: Gtk.Align.CENTER,
         hexpand: true,
-        visible: true,
     });
     sw._is_switch = true;
     return sw;
@@ -309,7 +360,6 @@ function _newSpinButton(adjustment) {
         hexpand: true,
         vexpand: false,
         xalign: 0.5,
-        visible: true,
     });
     spinButton.set_adjustment(adjustment);
     spinButton._is_spinbutton = true;
@@ -324,7 +374,6 @@ function _newComboBox() {
         halign: Gtk.Align.END,
         valign: Gtk.Align.CENTER,
         hexpand: true,
-        visible: true,
     });
     const renderer = new Gtk.CellRendererText();
     comboBox.pack_start(renderer, true);
@@ -340,7 +389,6 @@ function _newGtkEntry() {
         halign: Gtk.Align.END,
         valign: Gtk.Align.CENTER,
         hexpand: true,
-        visible: true,
         xalign: 0.5,
     });
     entry._is_entry = true;
@@ -358,11 +406,10 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
             orientation: Gtk.Orientation.VERTICAL,
             spacing: 4,
             halign: Gtk.Align.START,
-            visible: true,
+            valign: Gtk.Align.CENTER,
         });
         const option = new Gtk.Label({
             halign: Gtk.Align.START,
-            visible: true,
         });
         option.set_text(text);
         label[label.add ? 'add' : 'append'](option);
@@ -370,7 +417,6 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
         if (tooltip) {
             const caption = new Gtk.Label({
                 halign: Gtk.Align.START,
-                visible: true,
                 wrap: true,
                 /*width_chars: 80,*/
                 xalign: 0
@@ -381,6 +427,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
             caption.set_text(tooltip);
             label[label.add ? 'add' : 'append'](caption);
         }
+        label._title = text;
     } else {
         label = text;
     }
@@ -532,7 +579,7 @@ function _getCommonOpt() {
            [[_('Nothing'), 1],
             [_('Switch Workspace'), 2],
             [_('Toggle Single App Mode'), 3],
-            [_('Down: Single App, Up: Switcher Mode'), 4]]
+            [_('Switcher Mode/Single App Mode'), 4]]
 );
 
     optDict.HotkesRequireShift = _optionsItem(
@@ -1171,7 +1218,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     );
 
     optionList.push(_optionsItem(
-            _('Close Aall Windows of Selected App'),
+            _('Close All Windows of Selected App'),
             _('Closes all windows in the list that belong to the same application as the selected window/application.'),
             _newGtkEntry(),
             'hotkeyCloseAllApp'
