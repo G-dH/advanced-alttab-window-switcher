@@ -47,31 +47,26 @@ function init() {
 }
 
 function fillPreferencesWindow(window) {
-    const commonOptionsPage   = getAdwPage(_getCommonOptionList(), {
+    window.add(getAdwPage(_getCommonOptionList(), {
         title: _('Common'),
         icon_name: 'preferences-system-symbolic',
-    });
-    const windowOptionsPage   = getAdwPage(_getWindowOptionList(), {
+    }));
+    window.add(getAdwPage(_getWindowOptionList(), {
         title: _('Window Switcher'),
         icon_name: 'focus-windows-symbolic',
-    });
-    const appOptionsPage      = getAdwPage(_getAppOptionList(), {
+    }));
+    window.add(getAdwPage(_getAppOptionList(), {
         title: _('App Switcher'),
         icon_name: 'view-app-grid-symbolic',
-    });
-    const miscOptionsPage     = getAdwPage(_getMiscOptionList(), {
+    }));
+    window.add(getAdwPage(_getMiscOptionList(), {
         title: _('Misc'),
         icon_name: 'preferences-other-symbolic',
-    });
-    const hotkeysOptionPage   = getAdwPage(_getHotkeysOptionList(), {
+    }));
+    window.add(getAdwPage(_getHotkeysOptionList(), {
         title: _('Hotkeys'),
         icon_name: 'input-keyboard-symbolic',
-    });
-    window.add(commonOptionsPage);
-    window.add(windowOptionsPage);
-    window.add(appOptionsPage);
-    window.add(miscOptionsPage);
-    window.add(hotkeysOptionPage);
+    }));
 
     window.set_search_enabled(true);
 
@@ -799,10 +794,10 @@ function _getWindowsOpt() {
     );
 
     optDict.MinimizedEnd =_optionsItem(
-            _('Minimized Windows at the End'),
-            _('Moves minimized windows to the end of the list, which is the default AltTab behavior in GNOME Shell.'),
+            _('Minimized Windows Last'),
+            _('Moves minimized windows to the end of the list, which is the default behavior in GNOME Shell.'),
             _newGtkSwitch(),
-            'winMinimizedToEnd'
+            'winMinimizedLast'
     );
 
     optDict.SkipMinimized =_optionsItem(
@@ -1175,7 +1170,7 @@ function _getHotkeysOptionList() {
     // [text, tooltip, widget, settings-variable, options for combo]
 
     optionList.push(_optionsItem(
-            _makeTitle(_('Hotkeys configuration (you can set up to 2 characters for each action)')),
+            _makeTitle(_('Hotkeys configuration (you can assign up to 2 characters (keys) to each action)')),
             "You can enter up to two hotkeys for each action, the second one is primarily dedicated to include non [a-zA-Z] keys with Shift pressed.\n\
 Delete hotkey to disable the action.\n\
 All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is turned on."

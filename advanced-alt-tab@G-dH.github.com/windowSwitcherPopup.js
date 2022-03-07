@@ -194,7 +194,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.WIN_FILTER_MODE       = options.winSwitcherPopupFilter;
         this.GROUP_MODE            = options.winSwitcherPopupOrder;
         this.WIN_SORTING_MODE      = options.winSwitcherPopupSorting;
-        this.MINIMIZED_TO_END      = options.winMinimizedToEnd;
+        this.MINIMIZED_LAST        = options.winMinimizedLast;
         this.MARK_MINIMIZED        = options.winMarkMinimized;
         this.SKIP_MINIMIZED        = options.winSkipMinimized;
         this.INCLUDE_MODALS        = options.winIncludeModals;
@@ -2490,7 +2490,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     _getCustomWindowList(pattern = '', allWindows = false) {
-        pattern = pattern.trim();
+        if (typeof(pattern) === 'string') {
+            pattern = pattern.trim();
+        }
+
         let filterMode;
         if (this._tempFilterMode) {
             filterMode = this._tempFilterMode;
@@ -2514,7 +2517,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        if (!this.MINIMIZED_TO_END && !this.SKIP_MINIMIZED) {
+        if (!this.MINIMIZED_LAST && !this.SKIP_MINIMIZED) {
             // wm returns tablist with the minimized windows at the end of the list, we want to move them back to their real MRU position
             // but avoid sorting all windows because parents of the modal windows could already be moved to their children possition.
             winList = winList.sort((a,b) => (b.get_user_time() > a.get_user_time()) && b.minimized);
