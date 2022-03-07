@@ -755,6 +755,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateCloseButtons(showButton = true) {
+        if (this._selectedIndex < 0) return;
         const item = this._items[this._selectedIndex];
         if (item._closeButton) {
             this._items.forEach((w) => {
