@@ -139,6 +139,23 @@ function mod(a, b) {
     return (a + b) % b;
 }
 
+function _getWindows(workspace, modals = false) {
+    // We ignore skip-taskbar windows in switchers, but if they are attached
+    // to their parent, their position in the MRU list may be more appropriate
+    // than the parent; so start with the complete list ...
+    let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL,
+                                              workspace);
+    // ... map windows to their parent where appropriate ...
+    return windows.map(w => {
+        if (!modals) {
+            return w.is_attached_dialog() ? w.get_transient_for() : w;
+        } else {
+            return w;
+        }
+    // ... and filter out skip-taskbar windows and duplicates
+    }).filter((w, i, a) => (!w.skip_taskbar && a.indexOf(w) == i) || w.is_attached_dialog());
+}
+
 
 var   WindowSwitcherPopup = GObject.registerClass(
 class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
@@ -180,6 +197,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.MINIMIZED_TO_END      = options.winMinimizedToEnd;
         this.MARK_MINIMIZED        = options.winMarkMinimized;
         this.SKIP_MINIMIZED        = options.winSkipMinimized;
+        this.INCLUDE_MODALS        = options.winIncludeModals;
         this.SEARCH_APPS           = options.winSwitcherPopupSearchApps;
         this.SINGLE_APP_PREVIEW_SIZE = options.singleAppPreviewSize;
         this.WINDOW_TITLES         = options.winSwitcherPopupTitles;
@@ -2482,7 +2500,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let ws = global.workspace_manager.get_active_workspace();
         let monitor = this._monitorIndex;
         let workspace = null;
-        let winList = AltTab.getWindows(workspace);
+        //let winList = AltTab.getWindows(workspace);
+        let winList = _getWindows(workspace, this.INCLUDE_MODALS);
 
         const currentWin = winList[0];
 
@@ -2495,8 +2514,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        if (!this.MINIMIZED_TO_END) {
-            winList = winList.sort((a,b) => b.get_user_time() > a.get_user_time());
+        if (!this.MINIMIZED_TO_END && !this.SKIP_MINIMIZED) {
+            // wm returns tablist with the minimized windows at the end of the list, we want to move them back to their real MRU position
+            // but avoid sorting all windows because parents of the modal windows could already be moved to their children possition.
+            winList = winList.sort((a,b) => (b.get_user_time() > a.get_user_time()) && b.minimized);
         }
 
         if (this.SKIP_MINIMIZED) {

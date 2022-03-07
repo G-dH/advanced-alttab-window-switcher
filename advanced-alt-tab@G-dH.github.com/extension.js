@@ -31,7 +31,7 @@ let enabled = false;
 let _options;
 let _origAltTabWSP;
 let _origAltTabASP;
-let _originalSignalOverlayKey = null;
+let _originalOverlayKeyHandlerId = null;
 let _signalOverlayKey = null;
 
 function init() {
@@ -119,9 +119,9 @@ function _updateOverlayKeyHandler() {
         return;
     }
 
-    _originalSignalOverlayKey = GObject.signal_handler_find(global.display, { signalId: "overlay-key" });
-    if (_originalSignalOverlayKey !== null) {
-        global.display.block_signal_handler(_originalSignalOverlayKey);
+    _originalOverlayKeyHandlerId = GObject.signal_handler_find(global.display, { signalId: "overlay-key" });
+    if (_originalOverlayKeyHandlerId !== null) {
+        global.display.block_signal_handler(_originalOverlayKeyHandlerId);
     }
 
     // Connect modified overlay key handler
@@ -142,9 +142,9 @@ function _restoreOverlayKeyHandler() {
     }
 
     // Unblock original overlay key handler
-    if (_originalSignalOverlayKey !== null) {
-        global.display.unblock_signal_handler(_originalSignalOverlayKey);
-        _originalSignalOverlayKey = null;
+    if (_originalOverlayKeyHandlerId !== null) {
+        global.display.unblock_signal_handler(_originalOverlayKeyHandlerId);
+        _originalOverlayKeyHandlerId = null;
     }
 }
 

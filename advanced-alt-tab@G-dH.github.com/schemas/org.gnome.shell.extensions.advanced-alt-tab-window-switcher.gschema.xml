@@ -14,6 +14,9 @@
     <key name='win-switch-skip-minimized' type='b'>
       <default>false</default>
     </key>
+    <key name='win-switch-include-modals' type='b'>
+      <default>false</default>
+    </key>
     <key name='switcher-popup-preview-selected' type='i'>
       <default>1</default>
     </key>

@@ -334,6 +334,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('win-switch-skip-minimized', bool_val);
     }
 
+    get winIncludeModals() {
+        return this._gsettings.get_boolean('win-switch-include-modals');
+    }
+
+    set winIncludeModals(bool_val) {
+        this._gsettings.set_boolean('win-switch-include-modals', bool_val);
+    }
+
     get winSwitcherPopupWsIndexes() {
         return this._gsettings.get_boolean('win-switcher-popup-ws-indexes');
     }

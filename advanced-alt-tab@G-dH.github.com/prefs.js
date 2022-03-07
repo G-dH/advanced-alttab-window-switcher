@@ -132,11 +132,10 @@ function _getCommonOptionList() {
             opt.WraparoundSelector,
             opt.HoverSelectsItem,
             opt.DelayShowingSwitcher,
-        opt.Content,
+        opt.Appearance,
             opt.OverlayTitle,
             opt.ShowDirectActivation,
             opt.ShowStatus,
-        opt.Appearance,
             opt.TooltipLabelScale,
             opt.SingleAppPreviewSize,
         opt.MouseControl,
@@ -164,12 +163,12 @@ function _getWindowOptionList() {
             opt.DistinguishMinimized,
             opt.MinimizedEnd,
             opt.SkipMinimized,
+            opt.IncludeModals,
             opt.SearchAllWindows,
             opt.SearchApplications,
-        opt.Content,
+        opt.Appearance,
             opt.ShowWindowTitle,
             opt.ShowWorkspaceIndex,
-        opt.Appearance,
             opt.WindowPreviewSize,
             opt.WindowIconSize,
         opt.MouseControl,
@@ -192,11 +191,10 @@ function _getAppOptionList() {
             opt.RaiseFirstWinOnly,
             opt.ResultsLimit,
             opt.SearchPrefRunning,
-        opt.Content,
             opt.IncludeFavorites,
+        opt.Appearance,
             opt.ShowAppTitle,
             opt.ShowWinCounter,
-        opt.Appearance,
             opt.AppIconSize,
         opt.MouseControl,
             opt.ScrollItem,
@@ -814,6 +812,13 @@ function _getWindowsOpt() {
             'winSkipMinimized'
     );
 
+    optDict.IncludeModals =_optionsItem(
+        _('Include Modal Windows'),
+        _('Modal windows, such as dialogs, are usually attached to their parent windows and cannot be focused separately. The default behavior of the window switcher is to ignore modal windows and list only their parents.'),
+        _newGtkSwitch(),
+        'winIncludeModals'
+    );
+
     optDict.SearchAllWindows =_optionsItem(
             _('Search All Windows'),
             _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
@@ -843,8 +848,8 @@ function _getWindowsOpt() {
     );
 
     optDict.ShowWorkspaceIndex =_optionsItem(
-            _('Show Workspace Index (for each window)'),
-            null,
+            _('Show Workspace Index'),
+            _('Place a label with corresponding workspace index over each window thumbnail.'),
             _newGtkSwitch(),
             'winSwitcherPopupWsIndexes'
     );
@@ -1089,7 +1094,7 @@ function _getMiscOpt() {
 
     optDict.IgnoreLast = _optionsItem(
             _('Ignore Last (empty) Workspace'),
-            null,
+            _("If dynamic workspaces are enabled (default for GNOME), there is always one empty workspace at the end of the list. The switcher can ignore this workspace like it's not there."),
             _newGtkSwitch(),
             'wsSwitchIgnoreLast'
     );
