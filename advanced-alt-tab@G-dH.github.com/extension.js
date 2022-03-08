@@ -1,4 +1,4 @@
-/* Copyright 2021 GdH <https://github.com/G-dH>
+/* Copyright 2021-2022 GdH <https://github.com/G-dH>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ let _origAltTabWSP;
 let _origAltTabASP;
 let _originalOverlayKeyHandlerId = null;
 let _signalOverlayKey = null;
+let _wmFocusToActiveHandlerId = 0;
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
@@ -56,9 +57,21 @@ function enable() {
             _origAltTabASP = AltTab.AppSwitcherPopup;
             AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
             AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
+
             if (_options.superKeyMode > 1) {
                 _updateOverlayKeyHandler();
             }
+
+            if(_options.wmAlwaysActivateFocused) {
+                _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', ()=>{
+                    let win = global.display.get_focus_window();
+                    if (win) {
+                        Main.activateWindow(win);
+                    }
+                });
+            }
+            _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
+
             enabled = true;
             _delayId = 0;
             return GLib.SOURCE_REMOVE;
@@ -67,6 +80,9 @@ function enable() {
 }
 
 function disable() {
+    if (_wmFocusToActiveHandlerId) {
+        global.display.disconnect(_wmFocusToActiveHandlerId);
+    }
     if (global.advancedWindowSwitcher) {
         global.advancedWindowSwitcher.destroy();
         global.advancedWindowSwitcher = null;
@@ -109,6 +125,18 @@ function _removeThumbnails(hide = false) {
 
     actions.clean();
     actions = undefined;
+}
+
+function _updateAlwaysActivateFocusedConnection() {
+    if (_options.wmAlwaysActivateFocused && !_wmFocusToActiveHandlerId) {
+        _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', ()=>{
+            let win = global.display.get_focus_window();
+            if (win) Main.activateWindow(win);
+        });
+    } else if (_wmFocusToActiveHandlerId) {
+        global.display.disconnect(_wmFocusToActiveHandlerId);
+        _wmFocusToActiveHandlerId = 0;
+    }
 }
 
 function _updateOverlayKeyHandler() {

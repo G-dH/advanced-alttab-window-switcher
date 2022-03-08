@@ -209,6 +209,8 @@ function _getMiscOptionList() {
             opt.Wraparound,
             opt.IgnoreLast,
             opt.ShowWsPopup,
+        opt.Windows,
+            opt.AlwaysActivateFocused,
         opt.Thumbnails,
             opt.ThumbnailScale,
         opt.ExternalTrigger,
@@ -1100,6 +1102,20 @@ function _getMiscOpt() {
             _('While switching a workspace'),
             _newGtkSwitch(),
             'wsSwitchPopup'
+    );
+
+
+    optDict.Windows = _optionsItem(
+            _makeTitle(_('Window Manager')),
+            null,
+            null
+    );
+
+    optDict.AlwaysActivateFocused = _optionsItem(
+            _('Always Activate Focused Window'),
+            _('This is a hack for the window manager, it should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interact with the window.'),
+            _newGtkSwitch(),
+            'wmAlwaysActivateFocused'
     );
 
     optDict.Thumbnails = _optionsItem(

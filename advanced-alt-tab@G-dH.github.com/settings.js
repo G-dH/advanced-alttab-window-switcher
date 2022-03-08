@@ -561,6 +561,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_boolean('switcher-popup-activate-on-hide', bool_val);
     }
 
+    get wmAlwaysActivateFocused() {
+        return this._gsettings.get_boolean('wm-always-activate-focused');
+    }
+
+    set wmAlwaysActivateFocused(bool_val) {
+        this._gsettings.set_boolean('wm-always-activate-focused', bool_val);
+    }
+
     // thumbnails options
     get winThumbnailScale() {
         return this._gsettings.get_int('win-thumbnail-scale');
