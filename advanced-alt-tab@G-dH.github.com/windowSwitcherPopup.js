@@ -145,14 +145,11 @@ function _getWindows(workspace, modals = false) {
     // than the parent; so start with the complete list ...
     let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL,
                                               workspace);
-    // ... map windows to their parent where appropriate ...
+    // ... map windows to their parent where appropriate, or leave it if the user wants to list modal windows too...
     return windows.map(w => {
-        if (!modals) {
-            return w.is_attached_dialog() ? w.get_transient_for() : w;
-        } else {
-            return w;
-        }
+            return w.is_attached_dialog() && !modals ? w.get_transient_for() : w;
     // ... and filter out skip-taskbar windows and duplicates
+    // ... (if modal windows (attached_dialogs) hanen't been removed in map function, leave them in the list)
     }).filter((w, i, a) => (!w.skip_taskbar && a.indexOf(w) == i) || w.is_attached_dialog());
 }
 
@@ -160,6 +157,7 @@ function _getWindows(workspace, modals = false) {
 var   WindowSwitcherPopup = GObject.registerClass(
 class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _init() {
+        this.t = new Date();
         super._init();
         this._actions              = null;
         // Global options
@@ -167,7 +165,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = '';
 
-        this.KEYBOARD_TRIGGERED    = true;  // whether was popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
+        this.KEYBOARD_TRIGGERED    = true;  // popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
         this.POSITION_POINTER      = options.switcherPopupPointer; // place popup at pointer position
         this.REVERSE_AUTO          = options.switcherPopupReverseAuto;  // reverse list in order to the first item be closer to the mouse pointer. only if !KEYBOARD_TRIGGERED
         this.POPUP_POSITION        = options.switcherPopupPosition;
@@ -185,7 +183,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.OVERLAY_TITLE         = options.switcherPopupOverlayTitle;
         this.SEARCH_DEFAULT        = options.switcherPopupStartSearch;
         this.TOOLTIP_SCALE         = options.switcherPopupTooltipLabelScale;
-
         this.HOVER_SELECT          = options.switcherPopupHoverSelect;
 
         this.SHOW_APPS             = false;
@@ -438,8 +435,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
         if (!result) {
-            let focusApp = global.display.get_focus_window().get_wm_class();
-            log(`[${Me.metadata.uuid}] ${focusApp} probably grabbed the modal, exiting...`);
+            let focusApp = global.display.get_focus_window();
+            if (focusApp) {
+                log(`[${Me.metadata.uuid}] ${focusApp.get_wm_class()} probably grabbed the inputs, exiting...`);
+            }
         }
 
         return result;
@@ -732,7 +731,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._firstRun = false;
-
         return true;
     }
 

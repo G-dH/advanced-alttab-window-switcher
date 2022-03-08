@@ -298,6 +298,7 @@ function getLegacyPage(optionList, pageProperties) {
         if (!widget) {
             const lbl = new Gtk.Label({
                 xalign: 0,
+                margin_bottom: 4,
             });
             lbl.set_markup(option);
             mainBox[mainBox.add ? 'add' : 'append'](lbl);
