@@ -118,6 +118,7 @@ function _getCommonOptionList() {
     const optionList = [
         opt.Behavior,
             opt.SuperKeyMode,
+            opt.SuperDoublePress,
             opt.Position,
             opt.DefaultMonitor,
             opt.ShowImediately,
@@ -523,12 +524,24 @@ function _getCommonOpt() {
 
     optDict.SuperKeyMode = _optionsItem(
             _('Super Key Mode'),
-            _('Allows to open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn\'t change system behavior.'),
+            _("Open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
             _newComboBox(),
             'superKeyMode',
                [[_('Default'),          1],
                 [_('App Switcher'),     2],
                 [_('Window Switcher'),  3]]
+    );
+
+    optDict.SuperDoublePress = _optionsItem(
+            _('Double Super Key Press'),
+            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action. Default means that the second press works as in any other time.'),
+            _newComboBox(),
+            'superDoublePressAction',
+               [[_('Default'),          1],
+                [_('Open Activities Overview'),     2],
+                [_('Open App Grid Overview'),  3],
+                [_('Activate Previos Window'),  4]
+            ]
     );
 
     optDict.Position = _optionsItem(
@@ -1113,7 +1126,7 @@ function _getMiscOpt() {
 
     optDict.AlwaysActivateFocused = _optionsItem(
             _('Always Activate Focused Window'),
-            _('This is a hack for the window manager, it should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interact with the window.'),
+            _('This is a hack for the window manager, it should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interacts with the window.'),
             _newGtkSwitch(),
             'wmAlwaysActivateFocused'
     );

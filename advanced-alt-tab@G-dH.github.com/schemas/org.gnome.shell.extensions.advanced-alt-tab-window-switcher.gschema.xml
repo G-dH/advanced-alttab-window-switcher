@@ -5,6 +5,9 @@
     <key name='super-key-mode' type='i'>
       <default>1</default>
     </key>
+    <key name='super-double-press-action' type='i'>
+      <default>1</default>
+    </key>
     <key name='win-switch-minimized-to-end' type='b'>
       <default>true</default>
     </key>

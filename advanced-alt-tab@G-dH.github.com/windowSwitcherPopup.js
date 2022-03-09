@@ -166,6 +166,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._keyBind              = '';
 
         this.KEYBOARD_TRIGGERED    = true;  // popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
+        this.SUPER_DOUBLE_PRESS_ACT = options.superDoublePressAction; // 1 - dafault, 2, Overview, 3 - App Grid, 4 - Activate Previous Window
         this.POSITION_POINTER      = options.switcherPopupPointer; // place popup at pointer position
         this.REVERSE_AUTO          = options.switcherPopupReverseAuto;  // reverse list in order to the first item be closer to the mouse pointer. only if !KEYBOARD_TRIGGERED
         this.POPUP_POSITION        = options.switcherPopupPosition;
@@ -237,6 +238,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         global.advancedWindowSwitcher = this;
         this.connect('destroy', this._onDestroyThis.bind(this));
+
+        //const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
+        //_overlaySettings.set_string('overlay-key', 'Super_R');
     }
 
     _onDestroyThis() {
@@ -264,6 +268,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._destroyWinPreview();
+
+        if (this._originalOverlayKey) {
+            const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
+            _overlaySettings.set_string('overlay-key', this._originalOverlayKey);
+        }
 
         global.advancedWindowSwitcher = null;
     }
@@ -445,6 +454,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     show(backward, binding, mask) {
+        
         // remove overlay labels if exist
         this._removeOverlays();
 
@@ -697,10 +707,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             this._initialDelayTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                this.KEYBOARD_TRIGGERED ? this.INITIAL_DELAY : 0,
+                (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) ? this.INITIAL_DELAY : 0,
                 () => {
                     if (!this._doNotShowImmediately) {
-                        if (this.KEYBOARD_TRIGGERED) {
+                        if (this.KEYBOARD_TRIGGERED || true) {
                             if (this._overlayTitle)
                                 this._overlayTitle.opacity = 255;
                             this.opacity = 255;
@@ -728,6 +738,22 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._searchEntry === '' && !this.SEARCH_DEFAULT) {
             this._showOverlaySearchLabel('Type to search...');
+        }
+
+        if (this._overlayKeyTriggered) {
+            // do this only for the first run
+            this._overlayKeyTriggered = false;
+            const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
+            this._originalOverlayKey = _overlaySettings.get_string('overlay-key');
+            _overlaySettings.set_string('overlay-key', '');
+            this._overlayKeyInitTimeout = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                500,
+                () => {
+                    this._overlayKeyInitTimeout = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+            );
         }
 
         this._firstRun = false;
@@ -770,7 +796,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _shadeIn() {
         let height = this._switcherList.height;
         this.opacity = 255;
-
         if (this._overlayTitle) {
             this._overlayTitle.opacity = 0;
         }
@@ -778,7 +803,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList.height = 0;
         this._switcherList.ease({
             height,
-            duration: 50,
+            duration: 70,
             mode: Clutter.AnimationMode.LINEAR,
             onComplete: () => {
                 if (this._overlayTitle) {
@@ -792,10 +817,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._overlayTitle) {
             this._overlayTitle.opacity = 0;
         }
-
+        // realease the input before the animation so the user can interact with the rest of the desktop
+        this._popModal();
         this._switcherList.ease({
             height: 0,
-            duration: 50,
+            duration: 100,
             mode: Clutter.AnimationMode.LINEAR,
             onComplete: () => this.destroy(),
         });
@@ -1386,15 +1412,28 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (keysym === Clutter.KEY_Escape && this._singleApp && !this.KEYBOARD_TRIGGERED) {
             this._toggleSingleAppMode();
-        } else if (keysymName.match('Super')) {
-            if (_ctrlPressed() && _shiftPressed()) {
-                this.fadeAndDestroy();
-                this._getActions().toggleAppGrid();
-            } else if (_ctrlPressed()) {
-                this._toggleSwitcherMode();
-            } else {
+        } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
+            // if overlay-key (usually Super_L) is pressed within the timeout afetr AATWS was triggered - double press
+            /*if (this._overlayKeyInitTimeout || _shiftPressed()) {
                 this.fadeAndDestroy();
                 Main.overview.toggle();
+            } else*/ if (_shiftPressed() || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 2)) {
+                this.fadeAndDestroy();
+                Main.overview.toggle();
+                if (this._searchEntryNotEmpty) {
+                    if (Main.overview.viewSelector) {
+                        Main.overview.viewSelector._entry.set_text(this._searchEntry);
+                    } else {
+                        Main.overview._overview.controls._searchController._entry.set_text(this._searchEntry);
+                    }
+                }
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 3) {
+                this.fadeAndDestroy();
+                this._getActions().toggleAppGrid();
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 4) {
+                this._finish();
+            } else {
+                this._toggleSwitcherMode();
             }
         } else if (action == Meta.KeyBindingAction.SWITCH_WINDOWS ||
                    action == Meta.KeyBindingAction.SWITCH_APPLICATIONS ||

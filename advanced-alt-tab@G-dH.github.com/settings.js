@@ -65,6 +65,14 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('super-key-mode', int_val);
     }
 
+    get superDoublePressAction() {
+        return this._gsettings.get_int('super-double-press-action');
+    }
+
+    set superDoublePressAction(int_val) {
+        this._gsettings.set_int('super-double-press-action', int_val);
+    }
+
     get switcherPopupPosition() {
         return this._gsettings.get_int('switcher-popup-position');
     }
