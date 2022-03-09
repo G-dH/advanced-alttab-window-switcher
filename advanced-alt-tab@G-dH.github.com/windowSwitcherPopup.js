@@ -710,7 +710,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) ? this.INITIAL_DELAY : 0,
                 () => {
                     if (!this._doNotShowImmediately) {
-                        if (this.KEYBOARD_TRIGGERED || true) {
+                        if (this.KEYBOARD_TRIGGERED) {
                             if (this._overlayTitle)
                                 this._overlayTitle.opacity = 255;
                             this.opacity = 255;
@@ -748,7 +748,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             _overlaySettings.set_string('overlay-key', '');
             this._overlayKeyInitTimeout = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                500,
+                300,
                 () => {
                     this._overlayKeyInitTimeout = 0;
                     return GLib.SOURCE_REMOVE;
@@ -1414,10 +1414,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._toggleSingleAppMode();
         } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
             // if overlay-key (usually Super_L) is pressed within the timeout afetr AATWS was triggered - double press
-            /*if (this._overlayKeyInitTimeout || _shiftPressed()) {
-                this.fadeAndDestroy();
-                Main.overview.toggle();
-            } else*/ if (_shiftPressed() || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 2)) {
+            if (!_ctrlPressed() && (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 2)) {
                 this.fadeAndDestroy();
                 Main.overview.toggle();
                 if (this._searchEntryNotEmpty) {
@@ -1432,8 +1429,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._getActions().toggleAppGrid();
             } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 4) {
                 this._finish();
-            } else {
+            } else if (_ctrlPressed()) {
+                this._switchFilterMode();
+            } else if (_shiftPressed()) {
                 this._toggleSwitcherMode();
+            } else {
+                this.fadeAndDestroy();
+                //this._toggleSwitcherMode();
             }
         } else if (action == Meta.KeyBindingAction.SWITCH_WINDOWS ||
                    action == Meta.KeyBindingAction.SWITCH_APPLICATIONS ||
@@ -1824,10 +1826,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!this._winPreview) {
             this._winPreview = new AltTab.CyclerHighlight();
             global.window_group.add_actor(this._winPreview);
+            global.window_group.set_child_above_sibling(this._winPreview, null);
         }
 
         this._winPreview.window = metaWin;
-        global.window_group.set_child_above_sibling(this._winPreview, null);
     }
 
     _showWindow() {
