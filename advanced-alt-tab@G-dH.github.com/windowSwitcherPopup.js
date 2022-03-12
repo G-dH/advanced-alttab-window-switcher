@@ -37,14 +37,14 @@ const FilterModeLabel = ['',
     _('MON')];
 
 const Position = {
-    TOP:    1,
+    TOP: 1,
     CENTER: 2,
     BOTTOM: 3,
 };
 
 const SortingMode = {
-    MRU:                  1,
-    STABLE_SEQUENCE:      2,
+    MRU: 1,
+    STABLE_SEQUENCE: 2,
     STABLE_CURRENT_FIRST: 3,
 };
 
@@ -54,10 +54,10 @@ const SortingModeLabel = ['',
     _('STABLE - current 1.')];
 
 const GroupMode = {
-    NONE:              1,
+    NONE: 1,
     CURRENT_MON_FIRST: 2,
-    APPS:              3,
-    WORKSPACES:        4,
+    APPS: 3,
+    WORKSPACES: 4,
 };
 
 const GroupModeLabel = ['',
@@ -67,8 +67,8 @@ const GroupModeLabel = ['',
     _('WS')];
 
 const SelectMode = {
-    NONE:  -1,
-    FIRST:  0,
+    NONE: -1,
+    FIRST: 0,
     SECOND: 1,
     ACTIVE: 2,
 };
@@ -77,14 +77,22 @@ const PreviewMode = {
     DISABLE: 1,
     PREVIEW: 2,
     SHOW_WIN: 3
-}
+};
 
 const UpDownAction = {
     DISABLE: 1,
     SWITCH_WS: 2,
     SINGLE_APP: 3,
     SINGLE_AND_SWITCHER: 4
-}
+};
+
+const DoublePressAction = {
+    DEFAULT: 1,
+    SWITCHER_MODE: 2,
+    OVERVIEW: 3,
+    APP_GRID: 4,
+    PREV_WIN: 5
+};
 
 const LABEL_FONT_SIZE = 0.9;
 
@@ -748,7 +756,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             _overlaySettings.set_string('overlay-key', '');
             this._overlayKeyInitTimeout = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                300,
+                500,
                 () => {
                     this._overlayKeyInitTimeout = 0;
                     return GLib.SOURCE_REMOVE;
@@ -1413,22 +1421,31 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (keysym === Clutter.KEY_Escape && this._singleApp && !this.KEYBOARD_TRIGGERED) {
             this._toggleSingleAppMode();
         } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
-            // if overlay-key (usually Super_L) is pressed within the timeout afetr AATWS was triggered - double press
-            if (!_ctrlPressed() && (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 2)) {
+            // if overlay-key (usually Super_L) is pressed within the timeout aftetr AATWS was triggered - double press
+            if (_ctrlPressed() || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.OVERVIEW)) {
                 this.fadeAndDestroy();
                 Main.overview.toggle();
                 if (this._searchEntryNotEmpty) {
                     if (Main.overview.viewSelector) {
                         Main.overview.viewSelector._entry.set_text(this._searchEntry);
+                        Main.overview.viewSelector._entry.grab_key_focus();
                     } else {
                         Main.overview._overview.controls._searchController._entry.set_text(this._searchEntry);
                     }
                 }
-            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 3) {
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.APP_GRID) {
                 this.fadeAndDestroy();
                 this._getActions().toggleAppGrid();
-            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === 4) {
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.PREV_WIN) {
                 this._finish();
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.SWITCHER_MODE) {
+                // set default filter for respective mode, as if the switcher was launched for the first time
+                if (this._switcherMode === SwitcherMode.WINDOWS) {
+                    this.APP_FILTER_MODE = options.appSwitcherPopupFilter;
+                } else {
+                    this.WIN_FILTER_MODE = options.winSwitcherPopupFilter;
+                }
+                this._toggleSwitcherMode();
             } else if (_ctrlPressed()) {
                 this._switchFilterMode();
             } else if (_shiftPressed()) {

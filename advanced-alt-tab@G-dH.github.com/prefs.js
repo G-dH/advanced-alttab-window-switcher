@@ -538,9 +538,10 @@ function _getCommonOpt() {
             _newComboBox(),
             'superDoublePressAction',
                [[_('Default'),          1],
-                [_('Open Activities Overview'),     2],
-                [_('Open App Grid Overview'),  3],
-                [_('Activate Previos Window'),  4]
+                [_('Toggle Switcher Mode'),     2],
+                [_('Open Activities Overview'),     3],
+                [_('Open App Grid Overview'),  4],
+                [_('Activate Previous Window'),  5]
             ]
     );
 
