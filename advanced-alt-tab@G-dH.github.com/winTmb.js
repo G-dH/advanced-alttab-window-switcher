@@ -1,11 +1,6 @@
 'use strict';
 
-const GObject                = imports.gi.GObject;
-const GLib                   = imports.gi.GLib;
-const St                     = imports.gi.St;
-const Clutter                = imports.gi.Clutter;
-const Meta                   = imports.gi.Meta;
-const Shell                  = imports.gi.Shell;
+const { GObject, GLib, Clutter, St, Meta, Shell } = imports.gi;
 
 const Main                   = imports.ui.main;
 const DND                    = imports.ui.dnd;
@@ -27,6 +22,8 @@ class WindowThumbnail extends St.Bin {
         this._scrollTimeout = args.actionTimeout;
         this._positionOffset = args.thumbnailsOnScreen;
         this._reverseTmbWheelFunc = false;
+        this._click_count = 1;
+        this._prevBtnPressTime = 0;
         this._tmbCollector = global.stage.windowThumbnails;
         this.w = metaWin;
         super._init({visible: true, reactive: true, can_focus: true, track_hover: true});
@@ -104,9 +101,18 @@ class WindowThumbnail extends St.Bin {
     } */
 
     _onBtnPressed(actor, event) {
-        let doubleclick = event.get_click_count() === 2;
-        if (doubleclick)
+        // Clutter.Event.click_count property in no longer available, since GS42
+        //let doubleclick = event.get_click_count() === 2;
+        if ((event.get_time() - this._prevBtnPressTime) < Clutter.Settings.get_default().double_click_time) {
+            this._click_count +=1;
+        } else {
+            this._click_count = 1;
+        }
+        this._prevBtnPressTime = event.get_time();
+
+        if (this._click_count === 2) {
             this.w.activate(global.get_current_time());
+        }
     }
 
     _onBtnReleased(actor, event) {
@@ -147,20 +153,16 @@ class WindowThumbnail extends St.Bin {
                 this.opacity = Math.min(255, this.opacity + 24);
             else if (this._reverseTmbWheelFunc !== _ctrlPressed(state))
                 this._switchSourceWin(-1);
-
             else if (this._reverseTmbWheelFunc === _ctrlPressed(state))
                 this.scale = Math.max(0.05, this.scale - 0.025);
-
             break;
         case Clutter.ScrollDirection.DOWN:
             if (_shiftPressed(state))
                 this.opacity = Math.max(48, this.opacity - 24);
             else if (this._reverseTmbWheelFunc !== _ctrlPressed(state))
                 this._switchSourceWin(+1);
-
             else if (this._reverseTmbWheelFunc === _ctrlPressed(state))
                 this.scale = Math.min(1, this.scale + 0.025);
-
             break;
         default:
             return Clutter.EVENT_PROPAGATE;
@@ -215,7 +217,6 @@ class WindowThumbnail extends St.Bin {
                 this._remove();
         });
         this.w = w;
-        let scale = this._setSize();
 
         this._setIcon();
     }
