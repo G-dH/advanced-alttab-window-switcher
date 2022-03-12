@@ -2,17 +2,21 @@
 
 ### v13 (not yet released on e.g.o.)
 **Added:**
-- each window preview in the switcher list reveals the Close Window button on mouse hover to easily close the window.
+- each window preview in the switcher list reveals the `Close Window` button on mouse hover to easily close the window.
 - option `Up/Down Keys Action` allows to choose what action will be assigned to the arrow keys Up and Down - `Nothing`, `Switch Workspace`, `Toggle Single App Mode` or `Down:Single App, Up:Switcher Mode`.
+- option `Always Activate Focused Window` - hack for the window manager that should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interacts with the window.
+- Adwaita prefs window support for GNOME Shell 42
+- Overlay (Super_L in default) key press can now close the popup and initial double-press of the key can be set to user defined action - Open Activities Overview, Open App Grid, Activate Previous Window, Toggle Switcher Mode (App/Windows).
 
 **Fixed:**
 - reverse ordered switcher list wider than the display has the first item out of the display.
 - red dot indicator of running app ignores app filter mode.
 - app description not localized.
-- mouse buttons and scroll wheel events for switcher item not read from the whole highlited area.
+- mouse buttons and scroll wheel events for the switcher item not read from the whole highlited area.
+- double click on DND window thumbnail doesn't work for GNOME Shell 42
 
-**Changed:**
-- Space/KP_0 keys toggles `Show Selected Window` `Preview` mode On/Off instead of one time preview.
+**Improved**
+- Space/KP_0 keys toggle `Show Selected Window` `Preview` mode On/Off instead of one time preview.
 
 ### v12
 **Added:**
