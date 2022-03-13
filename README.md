@@ -57,12 +57,12 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 |`N, Ctrl+Enter`|           - Open new window of selected application, if the application soupports it.|
 |`F`|                       - Move the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.|
 |`Ctrl+;/~, Ctrl+Super`|    - Toggle between Windows and Applications modes.|
-|`T`|                       - Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor.|
-|`P`|                       - Opens preferences window for this extension.|
+|`T`|                       - Create a thumbnail preview of the selected window and place it at the bottom right of the current monitor. You can remove the lastly created thumbnail using this hotkey while holding the `Ctrl` key pressed, or remove all created thumbnails while holding `Ctrl` and `Shift` keys pressed.|
+|`P`|                       - Open preferences window for this extension.|
 |`Ctrl+Shift+Up/Down`|      - Move selected window/app to the newly created workspace in front of or behind the current workspace.|
-|`Ctrl+Shift+Left/Right`|   - In App mode with Favorites changes the position of the selected favorite application in favorites list.|
-|`Shift+Super`|             - Toggles Activities Overview.|
-|`Ctrl+Shift+Super`|        - Toggles App Grid view|
+|`Ctrl+Shift+Left/Right`|   - In App mode with Favorites change the position of the selected favorite application in the Favorite apps list.|
+|`Shift+Super`|             - Toggle Activities Overview.|
+|`Ctrl+Shift+Super`|        - Toggle App Grid view|
 
 ### Type to Search
 
@@ -103,10 +103,36 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 
 [CHANGELOG.md](CHANGELOG.md)
 
+## Installation
+
+You can install this extension in several ways.
+
+### Installing from extensions.gnome.org
+
+The easiest way to install AATWS: go to [extensions.gnome.org](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/) and toggle the switch. This installation also gives you automatic updates in the future.
+
+### Installing from the latest Github release
+*Sorry, first I need to update the release, I'll do it with next verion.*
+
+Download the latest release archive using following command:
+
+    wget https://github.com/G-dH/advanced-alttab-window-switcher/releases/latest/download/advanced-alt-tab@G-dH.github.com.zip
+
+Install the extension (`--force` switch needs to be used only if some version of the extension is already installed):
+
+    gnome-extensions install --force advanced-alttab-window-switcher@G-dH.github.com.zip
+
+Then restart GNOME Shell (`ALt` + `F2`, `r`, `Enter`, or Log Out/Log In if you use Wayland). Now you should see the new extension in *Extensions* (or *GNOME Tweak Tool* on older systems) application (reopen the app too if needed to load new data), where you can enable it and access its Preferences. 
+
+You can also enable the extension from the command line:
+
+    gnome-extensions enable advanced-alt-tab@G-dH.github.com
 
 ## Contribution
 
 Contributions are welcome and I will try my best to answer quickly to all suggestions. I'd really appreciate corrections of my bad english.
+
+If you like my work and want to keep me motivated, give me some feedback. You can also [buy me a coffee](buymeacoffee.com/georgdh).
 
 ## Screenshots
 
