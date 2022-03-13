@@ -94,6 +94,12 @@ const DoublePressAction = {
     PREV_WIN: 5
 };
 
+const TooltipTitleMode = {
+    DISABLE: 1,
+    ITEM: 2,
+    CENTER: 3
+}
+
 const LABEL_FONT_SIZE = 0.9;
 
 const Action = Settings.Actions;
@@ -189,7 +195,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.PREVIEW_SELECTED      = options.switcherPopupPreviewSelected;
         this.SHOW_WS_POPUP         = options.wsSwitchPopup;
         this.SEARCH_ALL            = options.winSwitcherPopupSearchAll;
-        this.OVERLAY_TITLE         = options.switcherPopupOverlayTitle;
+        this.OVERLAY_TITLE         = options.switcherPopupTooltipTitle;
         this.SEARCH_DEFAULT        = options.switcherPopupStartSearch;
         this.TOOLTIP_SCALE         = options.switcherPopupTooltipLabelScale;
         this.HOVER_SELECT          = options.switcherPopupHoverSelect;
@@ -246,9 +252,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         global.advancedWindowSwitcher = this;
         this.connect('destroy', this._onDestroyThis.bind(this));
-
-        //const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
-        //_overlaySettings.set_string('overlay-key', 'Super_R');
     }
 
     _onDestroyThis() {
@@ -411,15 +414,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 GLib.PRIORITY_DEFAULT,
                 200,
                 () => {
-                    if (this._doNotUpdateOnNewWindow)
+                    if (this._doNotUpdateOnNewWindow) {
                         return GLib.SOURCE_REMOVE;
+                    }
 
-                        this._updateSwitcher();
+                    this._updateSwitcher();
                     let app = _getWindowApp(win);
 
                     if (win && this._showingApps && this._selectedIndex > -1) {
-                        if (app)
+                        if (app) {
                             this._select(this._getItemIndexByID(app.get_id()));
+                        }
                     }
 
                     else if (this._selectedIndex > -1) {
@@ -462,7 +467,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     show(backward, binding, mask) {
-        
         // remove overlay labels if exist
         this._removeOverlays();
 
@@ -548,7 +552,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 wsIndexes: this.WS_INDEXES,
                 hotKeys: this.HOT_KEYS && this.KEYBOARD_TRIGGERED,
                 status: this.STATUS,
-                labelTitle: !this.OVERLAY_TITLE && this.WINDOW_TITLES === 2, // 2: Disabled
+                labelTitle: !this.OVERLAY_TITLE > 1 && this.WINDOW_TITLES === 2, // 2: Disabled
                 singleApp: this._singleApp,
                 markMinimized: this.MARK_MINIMIZED,
                 addAppDetails: this._searchEntryNotEmpty()
@@ -562,7 +566,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switcherList._itemEntered = function() {}
             }
 
-            if (this.OVERLAY_TITLE) {
+            if (this.OVERLAY_TITLE > 1) {
                 this._switcherList._label.hide();
             }
 
@@ -754,6 +758,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
             this._originalOverlayKey = _overlaySettings.get_string('overlay-key');
             _overlaySettings.set_string('overlay-key', '');
+
             this._overlayKeyInitTimeout = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
                 500,
@@ -786,18 +791,29 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._itemEnteredHandler(n);
     }
 
-    _updateCloseButtons(showButton = true) {
+    _updateMouseControls() {
         if (this._selectedIndex < 0) return;
         const item = this._items[this._selectedIndex];
-        if (item._closeButton) {
-            this._items.forEach((w) => {
-                //w._closeButton.hide();
+
+        if (!item.window) return;
+
+        if (!item._closeButton && !this._isPointerOut()) {
+            item._createCloseButton(item.window);
+        }
+
+        this._items.forEach((w) => {
+            if (w._closeButton) {
                 w._closeButton.opacity = 0;
-            });
-            if (!this._isPointerOut()) {
-                //item._closeButton.show();
-                item._closeButton.opacity = 255;
             }
+        });
+
+        if (!this._isPointerOut()) {
+            item._closeButton.opacity = 255;
+        }
+
+        if (!item._frontConnection) {
+            item._frontConnection = item._front.connect('button-press-event', this._onWindowItemAppClicked.bind(this));
+            this._iconsConnections.push(item._frontConnection);
         }
     }
 
@@ -922,6 +938,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._iconsConnections = [];
         this._switcherList._items.forEach(icon => this._iconsConnections.push(icon.connect('button-press-event', this._onItemBtnPressEvent.bind(this))));
         this._switcherList._items.forEach(icon => this._iconsConnections.push(icon.connect('scroll-event', this._onItemScrollEvent.bind(this))));
+    }
+
+    _onWindowItemAppClicked (actor, event) {
+        const button = event.get_button();
+        if (button === Clutter.BUTTON_PRIMARY) {
+            this._toggleSingleAppMode();
+            return Clutter.EVENT_STOP;
+        }
+        return Clutter.EVENT_PROPAGATE;
     }
 
     _updateSwitcher(winToApp = false) {
@@ -1057,7 +1082,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else {
             this._selectedIndex = index;
             this._switcherList.highlight(index);
-            if (this.OVERLAY_TITLE) {
+            if (this.OVERLAY_TITLE > 1) {
                 this._showOverlayTitle();
             }
         }
@@ -1092,7 +1117,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._resetNoModsTimeout();
-        this._updateCloseButtons();
+        this._updateMouseControls();
     }
 
     _next(reversed = false) {
@@ -2109,8 +2134,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         let index = this._selectedIndex;
         // get item position on the screen and calculate center position of the label
-        let [xPos] = this._items[index].get_transformed_position();
-        xPos = Math.floor(xPos + this._items[index].width / 2);
+        let actor, xPos;
+        if (this.OVERLAY_TITLE === 2) {
+            actor = this._items[index];
+        } else {
+            actor = this._switcherList;
+        }
+
+        [xPos] = actor.get_transformed_position();
+        xPos = Math.floor(xPos + actor.width / 2);
+
         this._setOverlayLabelPosition(this._overlayTitle, xPos, 0, this._switcherList);
     }
 
@@ -2864,11 +2897,6 @@ class WindowIcon extends St.BoxLayout {
         if (this.titleLabel && this._switcherParams.showWinTitles) {
             this.add_child(this.titleLabel);
         }
-
-        this._closeButton = this._createCloseButton(metaWin);
-        this._closeButton.opacity = 0;
-
-        this._icon.add_child(this._closeButton);
     }
 
     _createCloseButton(metaWin) {
@@ -2888,7 +2916,9 @@ class WindowIcon extends St.BoxLayout {
             return Clutter.EVENT_STOP;
         });
 
-        return closeButton;
+        this._closeButton = closeButton;
+        this._closeButton.opacity = 0;
+        this._icon.add_child(this._closeButton);
     }
 
     _createWindowIcon(window) {
@@ -2945,6 +2975,9 @@ class WindowIcon extends St.BoxLayout {
         this._icon.add_child(base);
         this._icon.add_child(front);
 
+        // will be used to connect on icon signals (switcherList.icons[n]._front)
+        this._front = front;
+
         if (this._switcherParams.wsIndexes) {
             this._icon.add_child(this._createWsIcon(window.get_workspace().index() + 1));
         }
@@ -2968,6 +3001,7 @@ class WindowIcon extends St.BoxLayout {
             ? app.create_icon_texture(size)
             : new St.Icon({icon_name: 'icon-missing', icon_size: size});
         appIcon.x_expand = appIcon.y_expand = true;
+        appIcon.reactive = true;
         return appIcon;
     }
 

@@ -169,12 +169,12 @@ var MscOptions = class MscOptions {
         this._gsettings.set_int('switcher-popup-scroll-in', int_val);
     }
 
-    get switcherPopupOverlayTitle() {
-        return this._gsettings.get_boolean('switcher-popup-overlay-title');
+    get switcherPopupTooltipTitle() {
+        return this._gsettings.get_int('switcher-popup-tooltip-title');
     }
 
-    set switcherPopupOverlayTitle(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-overlay-title', bool_val);
+    set switcherPopupTooltipTitle(int_val) {
+        this._gsettings.set_int('switcher-popup-tooltip-title', int_val);
     }
 
     get switcherPopupTooltipLabelScale() {

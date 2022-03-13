@@ -523,8 +523,8 @@ function _getCommonOpt() {
     );
 
     optDict.SuperKeyMode = _optionsItem(
-            _('Super Key Mode'),
-            _("Open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
+            _('System Super Key Action'),
+            _("You can open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
             _newComboBox(),
             'superKeyMode',
                [[_('Default'),          1],
@@ -532,16 +532,23 @@ function _getCommonOpt() {
                 [_('Window Switcher'),  3]]
     );
 
+    optDict.SearchModeDefault = _optionsItem(
+            _('Enable Super as Hot Key'),
+            _('Enabling this option allows to close the switcher by pressing Super key and enables Double Super Key Press option. By enabling this option you can experience brief graphics stutering during opening an closing the switcher popup.'),
+            _newGtkSwitch(),
+            'switcherPopupEnableSuper'
+    );
+
     optDict.SuperDoublePress = _optionsItem(
             _('Double Super Key Press'),
-            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action. Default means that the second press works as in any other time.'),
+            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action.'),
             _newComboBox(),
             'superDoublePressAction',
-               [[_('Default'),          1],
-                [_('Toggle Switcher Mode'),     2],
-                [_('Open Activities Overview'),     3],
-                [_('Open App Grid Overview'),  4],
-                [_('Activate Previous Window'),  5]
+               [[_('Default'), 1],
+                [_('Toggle Switcher Mode'), 2],
+                [_('Open Activities Overview'), 3],
+                [_('Open App Grid Overview'), 4],
+                [_('Activate Previous Window'), 5]
             ]
     );
 
@@ -550,7 +557,7 @@ function _getCommonOpt() {
             _('Where the switcher pop-up should appear on the screen.'),
             _newComboBox(),
             'switcherPopupPosition',
-               [[_('Top'),    1],
+               [[_('Top'), 1],
                 [_('Center'), 2],
                 [_('Bottom'), 3]]
     );
@@ -618,10 +625,13 @@ function _getCommonOpt() {
     );
 
     optDict.OverlayTitle = _optionsItem(
-            _('Show Tooltip Title'),
+            _('Tooltip Title'),
             _('The whole title of selected item will be displayed as a tooltip label above (or below if needed) the item.'),
-            _newGtkSwitch(),
-            'switcherPopupOverlayTitle'
+            _newComboBox(),
+            'switcherPopupTooltipTitle',
+            [[_('Disable'), 1],
+             [_('Show Above Item'), 2],
+             [_('Show Centered'), 3]]
     );
 
     let tooltipScaleAdjustment = new Gtk.Adjustment({

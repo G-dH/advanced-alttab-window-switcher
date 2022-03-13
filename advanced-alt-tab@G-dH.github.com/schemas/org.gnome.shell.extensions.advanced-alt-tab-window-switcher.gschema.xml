@@ -56,8 +56,8 @@
     <key name='switcher-popup-status' type='b'>
       <default>true</default>
     </key>
-    <key name='switcher-popup-overlay-title' type='b'>
-      <default>true</default>
+    <key name='switcher-popup-tooltip-title' type='i'>
+      <default>2</default>
     </key>
     <key name='switcher-popup-hover-select' type='b'>
       <default>true</default>

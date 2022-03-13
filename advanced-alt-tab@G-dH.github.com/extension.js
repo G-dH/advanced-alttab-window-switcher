@@ -157,7 +157,6 @@ function _updateOverlayKeyHandler() {
     _signalOverlayKey = global.display.connect("overlay-key", () => {
         if (_a11ySettings.get_boolean('stickykeys-enable'))
             return;
-
         _toggleSwitcher();
     });
 }
