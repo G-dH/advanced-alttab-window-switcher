@@ -44,6 +44,120 @@ var MscOptions = class MscOptions {
     constructor() {
         this._gsettings = ExtensionUtils.getSettings(_schema);
         this._connectionIds = [];
+
+        this.options = {
+            superKeyMode: ['int', 'super-key-mode'],
+            enableSuper: ['boolean', 'enable-super'],
+            superDoublePressAction: ['int', 'super-double-press-action'],
+            switcherPopupPosition: ['int', 'switcher-popup-position'],
+            switcherPopupMonitor: ['int', 'switcher-popup-monitor'],
+            switcherPopupShiftHotkeys: ['boolean', 'switcher-popup-shift-hotkeys'],
+            switcherPopupTimeout: ['int', 'switcher-popup-timeout'],
+            switcherPopupPreviewSelected: ['int', 'switcher-popup-preview-selected'],
+            switcherPopupUpDownAction: ['int', 'switcher-popup-up-down-action'],
+            switcherPopupStartSearch: ['boolean', 'switcher-popup-start-search'],
+            switcherPopupWrap: ['boolean', 'switcher-popup-wrap'],
+            switcherPopupHotKeys: ['boolean', 'switcher-popup-hot-keys'],
+            switcherPopupHoverSelect: ['boolean', 'switcher-popup-hover-select'],
+            switcherPopupScrollOut: ['int', 'switcher-popup-scroll-out'],
+            switcherPopupScrollIn: ['int', 'switcher-popup-scroll-in'],
+            switcherPopupTooltipTitle: ['int', 'switcher-popup-tooltip-title'],
+            switcherPopupTooltipLabelScale: ['int', 'switcher-popup-tooltip-label-scale'],
+            switcherPopupPrimClickIn: ['int', 'switcher-popup-prim-click-in'],
+            switcherPopupSecClickIn: ['int', 'switcher-popup-sec-click-in'],
+            switcherPopupMidClickIn: ['int', 'switcher-popup-mid-click-in'],
+            switcherPopupPrimClickOut: ['int', 'switcher-popup-prim-click-out'],
+            switcherPopupSecClickOut: ['int', 'switcher-popup-sec-click-out'],
+            switcherPopupMidClickOut: ['int', 'switcher-popup-mid-click-out'],
+            switcherPopupStatus: ['boolean', 'switcher-popup-status'],
+            singleAppPreviewSize: ['int', 'win-switcher-single-prev-size'],
+            winSwitcherPopupFilter: ['int', 'win-switcher-popup-filter'],
+            winSwitcherPopupSorting: ['int', 'win-switcher-popup-sorting'],
+            winSwitcherPopupOrder: ['int', 'win-switcher-popup-order'],
+            winSwitcherPopupTitles: ['int', 'win-switcher-popup-titles'],
+            winSwitcherPopupScrollItem: ['int', 'win-switcher-popup-scroll-item'],
+            winSwitcherPopupPrimClickItem: ['int', 'win-switcher-popup-prim-click-item'],
+            winSwitcherPopupSecClickItem: ['int', 'win-switcher-popup-sec-click-item'],
+            winSwitcherPopupMidClickItem: ['int', 'win-switcher-popup-mid-click-item'],
+            winMinimizedLast: ['boolean', 'win-switch-minimized-to-end'],
+            winMarkMinimized: ['boolean', 'win-switch-mark-minimized'],
+            winSkipMinimized: ['boolean', 'win-switch-skip-minimized'],
+            winIncludeModals: ['boolean', 'win-switch-include-modals'],
+            winSwitcherPopupWsIndexes: ['boolean', 'win-switcher-popup-ws-indexes'],
+            winSwitcherPopupSearchApps: ['boolean', 'win-switcher-popup-search-apps'],
+            winSwitcherPopupSearchAll: ['boolean', 'win-switcher-popup-search-all'],
+            winSwitcherPopupPreviewSize: ['int', 'win-switcher-popup-preview-size'],
+            winSwitcherPopupIconSize: ['int', 'win-switcher-popup-icon-size'],
+            appSwitcherPopupFilter: ['int', 'app-switcher-popup-filter'],
+            appSwitcherPopupSorting: ['int', 'app-switcher-popup-sorting'],
+            appSwitcherPopupRaiseFirstOnly: ['boolean', 'app-switcher-popup-raise-first-only'],
+            appSwitcherPopupSearchPrefRunning: ['boolean', 'app-switcher-popup-search-pref-running'],
+            appSwitcherPopupResultsLimit: ['int', 'app-switcher-popup-results-limit'],
+            appSwitcherPopupIconSize: ['int', 'app-switcher-popup-icon-size'],
+            appSwitcherPopupFavMru: ['boolean', 'app-switcher-popup-fav-mru'],
+            appSwitcherPopupFavoriteApps: ['boolean', 'app-switcher-popup-fav-apps'],
+            appSwitcherPopupWinCounter: ['boolean', 'app-switcher-popup-win-counter'],
+            appSwitcherPopupTitles: ['boolean', 'app-switcher-popup-titles'],
+            appSwitcherPopupScrollItem: ['int', 'app-switcher-popup-scroll-item'],
+            appSwitcherPopupPrimClickItem: ['int', 'app-switcher-popup-prim-click-item'],
+            appSwitcherPopupSecClickItem: ['int', 'app-switcher-popup-sec-click-item'],
+            appSwitcherPopupMidClickItem: ['int', 'app-switcher-popup-mid-click-item'],
+            wsSwitchIgnoreLast: ['boolean', 'ws-switch-ignore-last'],
+            wsSwitchWrap: ['boolean', 'ws-switch-wrap'],
+            wsSwitchPopup: ['boolean', 'ws-switch-popup'],
+            wsSwitchIndicatorMode: ['int', 'ws-switch-indicator-mode'],
+            switcherPopupPointer: ['boolean', 'switcher-popup-pointer'],
+            switcherPopupExtAppStable: ['boolean', 'switcher-popup-ext-app-stable'],
+            switcherPopupReverseAuto: ['boolean', 'switcher-popup-reverse-auto'],
+            switcherPopupPointerTimeout: ['int', 'switcher-popup-pointer-timeout'],
+            switcherPopupActivateOnHide: ['boolean', 'switcher-popup-activate-on-hide'],
+            wmAlwaysActivateFocused: ['boolean', 'wm-always-activate-focused'],
+            winThumbnailScale: ['int', 'win-thumbnail-scale'],
+            hotkeySwitchFilter: ['string', 'hotkey-switch-filter'],
+            hotkeySingleApp: ['string', 'hotkey-single-app'],
+            hotkeyCloseQuit: ['string', 'hotkey-close-quit'],
+            hotkeySearch: ['string', 'hotkey-search'],
+            hotkeyNewWin: ['string', 'hotkey-new-win'],
+            hotkeyMoveWinToMonitor: ['string', 'hotkey-move-win-to-monitor'],
+            hotkeyAbove: ['string', 'hotkey-above'],
+            hotkeySticky: ['string', 'hotkey-sticky'],
+            hotkeyCloseAllApp: ['string', 'hotkey-close-all-app'],
+            hotkeyFsOnNewWs: ['string', 'hotkey-fs-on-new-ws'],
+            hotkeyMaximize: ['string', 'hotkey-maximize'],
+            hotkeyGroupWs: ['string', 'hotkey-group-ws'],
+            hotkeySwitcherMode: ['string', 'hotkey-switcher-mode'],
+            hotkeyThumbnail: ['string', 'hotkey-thumbnail'],
+            hotkeyPrefs: ['string', 'hotkey-prefs'],
+            hotkeyLeft: ['string', 'hotkey-left'],
+            hotkeyDown: ['string', 'hotkey-down'],
+            hotkeyUp: ['string', 'hotkey-up'],
+            hotkeyRight: ['string', 'hotkey-right'],
+        };
+    }
+
+    get(option) {
+        const [format, key] = this.options[option];
+        return this._gsettings.get_value(key).deep_unpack();
+    }
+
+    set(option, value) {
+        const [format, key] = this.options[option];
+        switch (format) {
+            case 'string':
+                this._gsettings.set_string(key, value);
+                break;
+            case 'int':
+                this._gsettings.set_int(key, value);
+                break;
+            case 'boolean':
+                this._gsettings.set_boolean(key, value);
+                break;
+        }
+    }
+
+    getDefault(option) {
+        const [format, key] = this.options[option];
+        return this._gsettings.get_default_value(key).deep_unpack();
     }
 
     connect(name, callback) {
@@ -54,690 +168,5 @@ var MscOptions = class MscOptions {
 
     destroy() {
         this._connectionIds.forEach(id => this._gsettings.disconnect(id));
-    }
-
-    // common options
-    get superKeyMode() {
-        return this._gsettings.get_int('super-key-mode');
-    }
-
-    set superKeyMode(int_val) {
-        this._gsettings.set_int('super-key-mode', int_val);
-    }
-
-    get superDoublePressAction() {
-        return this._gsettings.get_int('super-double-press-action');
-    }
-
-    set superDoublePressAction(int_val) {
-        this._gsettings.set_int('super-double-press-action', int_val);
-    }
-
-    get switcherPopupPosition() {
-        return this._gsettings.get_int('switcher-popup-position');
-    }
-
-    set switcherPopupPosition(int_val) {
-        this._gsettings.set_int('switcher-popup-position', int_val);
-    }
-
-    get switcherPopupMonitor() {
-        return this._gsettings.get_int('switcher-popup-monitor');
-    }
-
-    set switcherPopupMonitor(int_val) {
-        this._gsettings.set_int('switcher-popup-monitor', int_val);
-    }
-
-    get switcherPopupShiftHotkeys() {
-        return this._gsettings.get_boolean('switcher-popup-shift-hotkeys');
-    }
-
-    set switcherPopupShiftHotkeys(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-shift-hotkeys', bool_val);
-    }
-
-    get switcherPopupTimeout() {
-        return this._gsettings.get_int('switcher-popup-timeout');
-    }
-
-    set switcherPopupTimeout(int_val) {
-        this._gsettings.set_int('switcher-popup-timeout', int_val);
-    }
-
-    get switcherPopupPreviewSelected() {
-        return this._gsettings.get_int('switcher-popup-preview-selected');
-    }
-
-    set switcherPopupPreviewSelected(int_val) {
-        this._gsettings.set_int('switcher-popup-preview-selected', int_val);
-    }
-
-    get switcherPopupUpDownAction() {
-        return this._gsettings.get_int('switcher-popup-up-down-action');
-    }
-
-    set switcherPopupUpDownAction(int_val) {
-        this._gsettings.set_int('switcher-popup-up-down-action', int_val);
-    }
-
-    get switcherPopupStartSearch() {
-        return this._gsettings.get_boolean('switcher-popup-start-search');
-    }
-
-    set switcherPopupStartSearch(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-start-search', bool_val);
-    }
-
-    get switcherPopupWrap() {
-        return this._gsettings.get_boolean('switcher-popup-wrap');
-    }
-
-    set switcherPopupWrap(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-wrap', bool_val);
-    }
-
-    get switcherPopupHotKeys() {
-        return this._gsettings.get_boolean('switcher-popup-hot-keys');
-    }
-
-    set switcherPopupHotKeys(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-hot-keys', bool_val);
-    }
-
-    get switcherPopupHoverSelect() {
-        return this._gsettings.get_boolean('switcher-popup-hover-select');
-    }
-
-    set switcherPopupHoverSelect(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-hover-select', bool_val);
-    }
-
-    get switcherPopupScrollOut() {
-        return this._gsettings.get_int('switcher-popup-scroll-out');
-    }
-
-    set switcherPopupScrollOut(int_val) {
-        this._gsettings.set_int('switcher-popup-scroll-out', int_val);
-    }
-
-    get switcherPopupScrollIn() {
-        return this._gsettings.get_int('switcher-popup-scroll-in');
-    }
-
-    set switcherPopupScrollIn(int_val) {
-        this._gsettings.set_int('switcher-popup-scroll-in', int_val);
-    }
-
-    get switcherPopupTooltipTitle() {
-        return this._gsettings.get_int('switcher-popup-tooltip-title');
-    }
-
-    set switcherPopupTooltipTitle(int_val) {
-        this._gsettings.set_int('switcher-popup-tooltip-title', int_val);
-    }
-
-    get switcherPopupTooltipLabelScale() {
-        return this._gsettings.get_int('switcher-popup-tooltip-label-scale');
-    }
-
-    set switcherPopupTooltipLabelScale(int_val) {
-        this._gsettings.set_int('switcher-popup-tooltip-label-scale', int_val);
-    }
-
-    get switcherPopupPrimClickIn() {
-        return this._gsettings.get_int('switcher-popup-prim-click-in');
-    }
-
-    set switcherPopupPrimClickIn(int_val) {
-        this._gsettings.set_int('switcher-popup-prim-click-in', int_val);
-    }
-
-    get switcherPopupSecClickIn() {
-        return this._gsettings.get_int('switcher-popup-sec-click-in');
-    }
-
-    set switcherPopupSecClickIn(int_val) {
-        this._gsettings.set_int('switcher-popup-sec-click-in', int_val);
-    }
-
-    get switcherPopupMidClickIn() {
-        return this._gsettings.get_int('switcher-popup-mid-click-in');
-    }
-
-    set switcherPopupMidClickIn(int_val) {
-        this._gsettings.set_int('switcher-popup-mid-click-in', int_val);
-    }
-
-
-    get switcherPopupPrimClickOut() {
-        return this._gsettings.get_int('switcher-popup-prim-click-out');
-    }
-
-    set switcherPopupPrimClickOut(int_val) {
-        this._gsettings.set_int('switcher-popup-prim-click-out', int_val);
-    }
-
-    get switcherPopupSecClickOut() {
-        return this._gsettings.get_int('switcher-popup-sec-click-out');
-    }
-
-    set switcherPopupSecClickOut(int_val) {
-        this._gsettings.set_int('switcher-popup-sec-click-out', int_val);
-    }
-
-    get switcherPopupMidClickOut() {
-        return this._gsettings.get_int('switcher-popup-mid-click-out');
-    }
-
-    set switcherPopupMidClickOut(int_val) {
-        this._gsettings.set_int('switcher-popup-mid-click-out', int_val);
-    }
-
-
-    get switcherPopupStatus() {
-        return this._gsettings.get_boolean('switcher-popup-status');
-    }
-
-    set switcherPopupStatus(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-status', bool_val);
-    }
-
-    get singleAppPreviewSize() {
-        return this._gsettings.get_int('win-switcher-single-prev-size');
-    }
-
-    set singleAppPreviewSize(int_val) {
-        this._gsettings.set_int('win-switcher-single-prev-size', int_val);
-    }
-
-
-    // window switcher options
-    get winSwitcherPopupFilter() {
-        return this._gsettings.get_int('win-switcher-popup-filter');
-    }
-
-    set winSwitcherPopupFilter(int_val) {
-        this._gsettings.set_int('win-switcher-popup-filter', int_val);
-    }
-
-    get winSwitcherPopupSorting() {
-        return this._gsettings.get_int('win-switcher-popup-sorting');
-    }
-
-    set winSwitcherPopupSorting(int_val) {
-        this._gsettings.set_int('win-switcher-popup-sorting', int_val);
-    }
-
-    get winSwitcherPopupOrder() {
-        return this._gsettings.get_int('win-switcher-popup-order');
-    }
-
-    set winSwitcherPopupOrder(int_val) {
-        this._gsettings.set_int('win-switcher-popup-order', int_val);
-    }
-
-    get winSwitcherPopupTitles() {
-        return this._gsettings.get_int('win-switcher-popup-titles');
-    }
-
-    set winSwitcherPopupTitles(int_val) {
-        this._gsettings.set_int('win-switcher-popup-titles', int_val);
-    }
-
-
-    get winSwitcherPopupScrollItem() {
-        return this._gsettings.get_int('win-switcher-popup-scroll-item');
-    }
-
-    set winSwitcherPopupScrollItem(int_val) {
-        this._gsettings.set_int('win-switcher-popup-scroll-item', int_val);
-    }
-
-    get winSwitcherPopupPrimClickItem() {
-        return this._gsettings.get_int('win-switcher-popup-prim-click-item');
-    }
-
-    set winSwitcherPopupPrimClickItem(int_val) {
-        this._gsettings.set_int('win-switcher-popup-prim-click-item', int_val);
-    }
-
-    get winSwitcherPopupSecClickItem() {
-        return this._gsettings.get_int('win-switcher-popup-sec-click-item');
-    }
-
-    set winSwitcherPopupSecClickItem(int_val) {
-        this._gsettings.set_int('win-switcher-popup-sec-click-item', int_val);
-    }
-
-    get winSwitcherPopupMidClickItem() {
-        return this._gsettings.get_int('win-switcher-popup-mid-click-item');
-    }
-
-    set winSwitcherPopupMidClickItem(int_val) {
-        this._gsettings.set_int('win-switcher-popup-mid-click-item', int_val);
-    }
-
-    get winMinimizedLast() {
-        return this._gsettings.get_boolean('win-switch-minimized-to-end');
-    }
-
-    set winMinimizedLast(bool_val) {
-        this._gsettings.set_boolean('win-switch-minimized-to-end', bool_val);
-    }
-
-    get winMarkMinimized() {
-        return this._gsettings.get_boolean('win-switch-mark-minimized');
-    }
-
-    set winMarkMinimized(bool_val) {
-        this._gsettings.set_boolean('win-switch-mark-minimized', bool_val);
-    }
-
-    get winSkipMinimized() {
-        return this._gsettings.get_boolean('win-switch-skip-minimized');
-    }
-
-    set winSkipMinimized(bool_val) {
-        this._gsettings.set_boolean('win-switch-skip-minimized', bool_val);
-    }
-
-    get winIncludeModals() {
-        return this._gsettings.get_boolean('win-switch-include-modals');
-    }
-
-    set winIncludeModals(bool_val) {
-        this._gsettings.set_boolean('win-switch-include-modals', bool_val);
-    }
-
-    get winSwitcherPopupWsIndexes() {
-        return this._gsettings.get_boolean('win-switcher-popup-ws-indexes');
-    }
-
-    set winSwitcherPopupWsIndexes(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-ws-indexes', bool_val);
-    }
-
-    get winSwitcherPopupSearchApps() {
-        return this._gsettings.get_boolean('win-switcher-popup-search-apps');
-    }
-
-    set winSwitcherPopupSearchApps(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-search-apps', bool_val);
-    }
-
-    get winSwitcherPopupSearchAll() {
-        return this._gsettings.get_boolean('win-switcher-popup-search-all');
-    }
-
-    set winSwitcherPopupSearchAll(bool_val) {
-        this._gsettings.set_boolean('win-switcher-popup-search-all', bool_val);
-    }
-
-    get winSwitcherPopupPreviewSize() {
-        return this._gsettings.get_int('win-switcher-popup-preview-size');
-    }
-
-    set winSwitcherPopupPreviewSize(int_val) {
-        this._gsettings.set_int('win-switcher-popup-preview-size', int_val);
-    }
-
-    get winSwitcherPopupIconSize() {
-        return this._gsettings.get_int('win-switcher-popup-icon-size');
-    }
-
-    set winSwitcherPopupIconSize(int_val) {
-        this._gsettings.set_int('win-switcher-popup-icon-size', int_val);
-    }
-
-    // app switcher options
-    get appSwitcherPopupFilter() {
-        return this._gsettings.get_int('app-switcher-popup-filter');
-    }
-
-    set appSwitcherPopupFilter(int_val) {
-        this._gsettings.set_int('app-switcher-popup-filter', int_val);
-    }
-
-    get appSwitcherPopupSorting() {
-        return this._gsettings.get_int('app-switcher-popup-sorting');
-    }
-
-    set appSwitcherPopupSorting(int_val) {
-        this._gsettings.set_int('app-switcher-popup-sorting', int_val);
-    }
-
-    get appSwitcherPopupRaiseFirstOnly() {
-        return this._gsettings.get_boolean('app-switcher-popup-raise-first-only');
-    }
-
-    set appSwitcherPopupRaiseFirstOnly(bool_val) {
-        this._gsettings.set_boolean('app-switcher-popup-raise-first-only', bool_val);
-    }
-
-    get appSwitcherPopupSearchPrefRunning() {
-        return this._gsettings.get_boolean('app-switcher-popup-search-pref-running');
-    }
-
-    set appSwitcherPopupSearchPrefRunning(bool_val) {
-        this._gsettings.set_boolean('app-switcher-popup-search-pref-running', bool_val);
-    }
-
-    get appSwitcherPopupResultsLimit() {
-        return this._gsettings.get_int('app-switcher-popup-results-limit');
-    }
-
-    set appSwitcherPopupResultsLimit(int_val) {
-        this._gsettings.set_int('app-switcher-popup-results-limit', int_val);
-    }
-
-    get appSwitcherPopupIconSize() {
-        return this._gsettings.get_int('app-switcher-popup-icon-size');
-    }
-
-    set appSwitcherPopupIconSize(int_val) {
-        this._gsettings.set_int('app-switcher-popup-icon-size', int_val);
-    }
-
-    get appSwitcherPopupFavMru() {
-        return this._gsettings.get_boolean('app-switcher-popup-fav-mru');
-    }
-
-    set appSwitcherPopupFavMru(bool_val) {
-        this._gsettings.set_boolean('app-switcher-popup-fav-mru', bool_val);
-    }
-
-    get appSwitcherPopupFavoriteApps() {
-        return this._gsettings.get_boolean('app-switcher-popup-fav-apps');
-    }
-
-    set appSwitcherPopupFavoriteApps(bool_val) {
-        this._gsettings.set_boolean('app-switcher-popup-fav-apps', bool_val);
-    }
-
-    get appSwitcherPopupWinCounter() {
-        return this._gsettings.get_boolean('app-switcher-popup-win-counter');
-    }
-
-    set appSwitcherPopupWinCounter(bool_val) {
-        this._gsettings.set_boolean('app-switcher-popup-win-counter', bool_val);
-    }
-
-    get appSwitcherPopupTitles() {
-        return this._gsettings.get_boolean('app-switcher-popup-titles');
-    }
-
-    set appSwitcherPopupTitles(bool_val) {
-        this._gsettings.set_boolean('app-switcher-popup-titles', bool_val);
-    }
-
-    get appSwitcherPopupScrollItem() {
-        return this._gsettings.get_int('app-switcher-popup-scroll-item');
-    }
-
-    set appSwitcherPopupScrollItem(int_val) {
-        this._gsettings.set_int('app-switcher-popup-scroll-item', int_val);
-    }
-
-    get appSwitcherPopupPrimClickItem() {
-        return this._gsettings.get_int('app-switcher-popup-prim-click-item');
-    }
-
-    set appSwitcherPopupPrimClickItem(int_val) {
-        this._gsettings.set_int('app-switcher-popup-prim-click-item', int_val);
-    }
-
-    get appSwitcherPopupSecClickItem() {
-        return this._gsettings.get_int('app-switcher-popup-sec-click-item');
-    }
-
-    set appSwitcherPopupSecClickItem(int_val) {
-        this._gsettings.set_int('app-switcher-popup-sec-click-item', int_val);
-    }
-
-    get appSwitcherPopupMidClickItem() {
-        return this._gsettings.get_int('app-switcher-popup-mid-click-item');
-    }
-
-    set appSwitcherPopupMidClickItem(int_val) {
-        this._gsettings.set_int('app-switcher-popup-mid-click-item', int_val);
-    }
-
-
-    // workspace switcher options
-    get wsSwitchIgnoreLast() {
-        return this._gsettings.get_boolean('ws-switch-ignore-last');
-    }
-
-    set wsSwitchIgnoreLast(bool_val) {
-        this._gsettings.set_boolean('ws-switch-ignore-last', bool_val);
-    }
-
-    get wsSwitchWrap() {
-        return this._gsettings.get_boolean('ws-switch-wrap');
-    }
-
-    set wsSwitchWrap(bool_val) {
-        this._gsettings.set_boolean('ws-switch-wrap', bool_val);
-    }
-
-    get wsSwitchPopup() {
-        return this._gsettings.get_boolean('ws-switch-popup');
-    }
-
-    set wsSwitchPopup(bool_val) {
-        this._gsettings.set_boolean('ws-switch-popup', bool_val);
-    }
-
-    /*    get wsSwitchIndicatorMode() {
-        return this._gsettings.get_int('ws-switch-indicator-mode');
-    }
-    set wsSwitchIndicatorMode(mode) {
-        this._gsettings.set_int('ws-switch-indicator-mode', mode);
-    }
-*/
-    // options for external trigger
-    get switcherPopupPointer() {
-        return this._gsettings.get_boolean('switcher-popup-pointer');
-    }
-
-    set switcherPopupPointer(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-pointer', bool_val);
-    }
-
-    get switcherPopupReverseAuto() {
-        return this._gsettings.get_boolean('switcher-popup-reverse-auto');
-    }
-
-    set switcherPopupReverseAuto(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-reverse-auto', bool_val);
-    }
-
-    get switcherPopupPointerTimeout() {
-        return this._gsettings.get_int('switcher-popup-pointer-timeout');
-    }
-
-    set switcherPopupPointerTimeout(int_val) {
-        this._gsettings.set_int('switcher-popup-pointer-timeout', int_val);
-    }
-
-    get switcherPopupActivateOnHide() {
-        return this._gsettings.get_boolean('switcher-popup-activate-on-hide');
-    }
-
-    set switcherPopupActivateOnHide(bool_val) {
-        this._gsettings.set_boolean('switcher-popup-activate-on-hide', bool_val);
-    }
-
-    get wmAlwaysActivateFocused() {
-        return this._gsettings.get_boolean('wm-always-activate-focused');
-    }
-
-    set wmAlwaysActivateFocused(bool_val) {
-        this._gsettings.set_boolean('wm-always-activate-focused', bool_val);
-    }
-
-    // thumbnails options
-    get winThumbnailScale() {
-        return this._gsettings.get_int('win-thumbnail-scale');
-    }
-
-    set winThumbnailScale(int_val) {
-        this._gsettings.set_int('win-thumbnail-scale', int_val);
-    }
-
-
-
-    // Hotkeys
-    get hotkeySwitchFilter() {
-        return this._gsettings.get_string('hotkey-switch-filter');
-    }
-
-    set hotkeySwitchFilter(string) {
-        this._gsettings.set_string('hotkey-switch-filter', string);
-    }
-
-    get hotkeySingleApp() {
-        return this._gsettings.get_string('hotkey-single-app');
-    }
-
-    set hotkeySingleApp(string) {
-        this._gsettings.set_string('hotkey-single-app', string);
-    }
-
-    get hotkeyCloseQuit() {
-        return this._gsettings.get_string('hotkey-close-quit');
-    }
-
-    set hotkeyCloseQuit(string) {
-        this._gsettings.set_string('hotkey-close-quit', string);
-    }
-
-    get hotkeySearch() {
-        return this._gsettings.get_string('hotkey-search');
-    }
-
-    set hotkeySearch(string) {
-        this._gsettings.set_string('hotkey-search', string);
-    }
-
-    get hotkeyNewWin() {
-        return this._gsettings.get_string('hotkey-new-win');
-    }
-
-    set hotkeyNewWin(string) {
-        this._gsettings.set_string('hotkey-new-win', string);
-    }
-
-    get hotkeyMoveWinToMonitor() {
-        return this._gsettings.get_string('hotkey-move-win-to-monitor');
-    }
-
-    set hotkeyMoveWinToMonitor(string) {
-        this._gsettings.set_string('hotkey-move-win-to-monitor', string);
-    }
-
-    get hotkeyAbove() {
-        return this._gsettings.get_string('hotkey-above');
-    }
-
-    set hotkeyAbove(string) {
-        this._gsettings.set_string('hotkey-above', string);
-    }
-
-    get hotkeySticky() {
-        return this._gsettings.get_string('hotkey-sticky');
-    }
-
-    set hotkeySticky(string) {
-        this._gsettings.set_string('hotkey-sticky', string);
-    }
-
-    get hotkeyCloseAllApp() {
-        return this._gsettings.get_string('hotkey-close-all-app');
-    }
-
-    set hotkeyCloseAllApp(string) {
-        this._gsettings.set_string('hotkey-close-all-app', string);
-    }
-
-    get hotkeyFsOnNewWs() {
-        return this._gsettings.get_string('hotkey-fs-on-new-ws');
-    }
-
-    set hotkeyFsOnNewWs(string) {
-        this._gsettings.set_string('hotkey-fs-on-new-ws', string);
-    }
-
-    get hotkeyMaximize() {
-        return this._gsettings.get_string('hotkey-maximize');
-    }
-
-    set hotkeyMaximize(string) {
-        this._gsettings.set_string('hotkey-maximize', string);
-    }
-
-    get hotkeyGroupWs() {
-        return this._gsettings.get_string('hotkey-group-ws');
-    }
-
-    set hotkeyGroupWs(string) {
-        this._gsettings.set_string('hotkey-group-ws', string);
-    }
-
-    get hotkeySwitcherMode() {
-        return this._gsettings.get_string('hotkey-switcher-mode');
-    }
-
-    set hotkeySwitcherMode(string) {
-        this._gsettings.set_string('hotkey-switcher-mode', string);
-    }
-
-    get hotkeyThumbnail() {
-        return this._gsettings.get_string('hotkey-thumbnail');
-    }
-
-    set hotkeyThumbnail(string) {
-        this._gsettings.set_string('hotkey-thumbnail', string);
-    }
-
-    get hotkeyPrefs() {
-        return this._gsettings.get_string('hotkey-prefs');
-    }
-
-    set hotkeyPrefs(string) {
-        this._gsettings.set_string('hotkey-prefs', string);
-    }
-
-    get hotkeyLeft() {
-        return this._gsettings.get_string('hotkey-left');
-    }
-
-    set hotkeyLeft(string) {
-        this._gsettings.set_string('hotkey-left', string);
-    }
-
-    get hotkeyDown() {
-        return this._gsettings.get_string('hotkey-down');
-    }
-
-    set hotkeyDown(string) {
-        this._gsettings.set_string('hotkey-down', string);
-    }
-
-    get hotkeyUp() {
-        return this._gsettings.get_string('hotkey-up');
-    }
-
-    set hotkeyUp(string) {
-        this._gsettings.set_string('hotkey-up', string);
-    }
-
-    get hotkeyRight() {
-        return this._gsettings.get_string('hotkey-right');
-    }
-
-    set hotkeyRight(string) {
-        this._gsettings.set_string('hotkey-right', string);
     }
 };

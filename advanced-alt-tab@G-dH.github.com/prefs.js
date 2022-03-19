@@ -12,7 +12,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
 
-let   mscOptions;
+let   gOptions;
 
 // gettext
 const _  = Settings._;
@@ -43,7 +43,7 @@ const actionList = [
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    mscOptions = new Settings.MscOptions();
+    gOptions = new Settings.MscOptions();
 }
 
 function fillPreferencesWindow(window) {
@@ -117,8 +117,6 @@ function _getCommonOptionList() {
 
     const optionList = [
         opt.Behavior,
-            opt.SuperKeyMode,
-            opt.SuperDoublePress,
             opt.Position,
             opt.DefaultMonitor,
             opt.ShowImediately,
@@ -157,8 +155,8 @@ function _getWindowOptionList() {
             opt.DefaultSorting,
             opt.DefaultGrouping,
             opt.DistinguishMinimized,
-            opt.MinimizedEnd,
             opt.SkipMinimized,
+            opt.MinimizedLast,
             opt.IncludeModals,
             opt.SearchAllWindows,
             opt.SearchApplications,
@@ -206,6 +204,10 @@ function _getMiscOptionList() {
     const opt = _getMiscOpt();
 
     const optionList = [
+        opt.SystemIntegration,
+            opt.SuperKeyMode,
+            opt.EnableSuper,
+            opt.SuperDoublePress,
         opt.WorkspaceSwitcher,
             opt.Wraparound,
             opt.IgnoreLast,
@@ -216,6 +218,7 @@ function _getMiscOptionList() {
             opt.ThumbnailScale,
         opt.ExternalTrigger,
             opt.MousePointerPosition,
+            opt.AppStableOrder,
             opt.AutomaticallyReverseOrder,
             opt.PointerOutTimeout,
             opt.ActivateOnHide
@@ -381,7 +384,7 @@ function _newComboBox() {
 
 function _newGtkEntry() {
     const entry = new Gtk.Entry({
-        width_chars: 5,
+        width_chars: 6,
         max_width_chars: 5,
         halign: Gtk.Align.END,
         valign: Gtk.Align.CENTER,
@@ -432,12 +435,12 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
     item.push(widget);
 
     if (widget && widget._is_switch) {
-        widget.active = mscOptions[variable];
+        widget.active = gOptions.get(variable);
         widget.connect('notify::active', () => {
-            mscOptions[variable] = widget.active;
+            gOptions.set(variable, widget.active);
         });
     } else if (widget && widget._is_spinbutton) {
-        widget.value = mscOptions[variable];
+        widget.value = gOptions.get(variable);
         widget.timeout_id = null;
         widget.connect('value-changed', () => {
             widget.update();
@@ -449,7 +452,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
                 GLib.PRIORITY_DEFAULT,
                 500,
                 () => {
-                    mscOptions[variable] = widget.value;
+                    gOptions.set(variable, widget.value);
                     widget.timeout_id = null;
                     return 0;
                 }
@@ -460,7 +463,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
         for (const [label, value] of options) {
             let iter;
             model.set(iter = model.append(), [0, 1], [label, value]);
-            if (value === mscOptions[variable]) {
+            if (value === gOptions.get(variable)) {
                 widget.set_active_iter(iter);
             }
         }
@@ -469,7 +472,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
 
             if (!success) return;
 
-            mscOptions[variable] = model.get_value(iter, 1);
+            gOptions.set(variable, model.get_value(iter, 1));
         });
     } else if (widget && widget._is_entry) {
         if (variable.startsWith('hotkey')) {
@@ -490,9 +493,17 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
                 txt = txt.slice(0, 2);
                 entry.set_text(txt);
                 entry._doNotEdit = false;
-                mscOptions[variable] = txt;
+                gOptions.set(variable, txt);
             });
-            widget.set_text(mscOptions[variable]);
+            widget.set_text(gOptions.get(variable));
+            widget.set_icon_from_icon_name(Gtk.EntryIconPosition.SECONDARY, 'edit-clear-symbolic');
+            widget.set_icon_activatable(Gtk.EntryIconPosition.SECONDARY, true);
+            widget.connect('icon-press', (e) => {
+                if (e.get_text() === '')
+                    e.set_text(gOptions.getDefault(variable));
+                else
+                    e.set_text('');
+            });
         } else {
             widget.width_chars = 25;
             widget.set_text(variable);
@@ -520,36 +531,6 @@ function _getCommonOpt() {
 
     optDict.Behavior = _optionsItem(
             _makeTitle(_('Behavior')),
-    );
-
-    optDict.SuperKeyMode = _optionsItem(
-            _('System Super Key Action'),
-            _("You can open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
-            _newComboBox(),
-            'superKeyMode',
-               [[_('Default'),          1],
-                [_('App Switcher'),     2],
-                [_('Window Switcher'),  3]]
-    );
-
-    optDict.SearchModeDefault = _optionsItem(
-            _('Enable Super as Hot Key'),
-            _('Enabling this option allows to close the switcher by pressing Super key and enables Double Super Key Press option. By enabling this option you can experience brief graphics stutering during opening an closing the switcher popup.'),
-            _newGtkSwitch(),
-            'switcherPopupEnableSuper'
-    );
-
-    optDict.SuperDoublePress = _optionsItem(
-            _('Double Super Key Press'),
-            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action.'),
-            _newComboBox(),
-            'superDoublePressAction',
-               [[_('Default'), 1],
-                [_('Toggle Switcher Mode'), 2],
-                [_('Open Activities Overview'), 3],
-                [_('Open App Grid Overview'), 4],
-                [_('Activate Previous Window'), 5]
-            ]
     );
 
     optDict.Position = _optionsItem(
@@ -820,18 +801,25 @@ function _getWindowsOpt() {
             'winMarkMinimized'
     );
 
-    optDict.MinimizedEnd =_optionsItem(
-            _('Minimized Windows Last'),
-            _('Moves minimized windows to the end of the list, which is the default behavior in GNOME Shell.'),
-            _newGtkSwitch(),
-            'winMinimizedLast'
-    );
-
+    const skipMinimizedBtn = _newGtkSwitch();
     optDict.SkipMinimized =_optionsItem(
             _('Skip Minimized Windows'),
             _('This option actually affects App switcher too.'),
-            _newGtkSwitch(),
+            skipMinimizedBtn,
             'winSkipMinimized'
+    );
+
+    skipMinimizedBtn.connect('notify::active', () => {
+        minimizedLastBtn.set_sensitive(!skipMinimizedBtn.active);
+    });
+
+    const minimizedLastBtn = _newGtkSwitch();
+    minimizedLastBtn.set_sensitive(!gOptions.get('winSkipMinimized'));
+    optDict.MinimizedLast =_optionsItem(
+            _('Minimized Windows Last'),
+            _('Moves minimized windows to the end of the list, which is the default behavior in GNOME Shell.'),
+            minimizedLastBtn,
+            'winMinimizedLast'
     );
 
     optDict.IncludeModals =_optionsItem(
@@ -1103,6 +1091,49 @@ function _getAppsOpt() {
 function _getMiscOpt() {
     const optDict = {};
 
+    optDict.SystemIntegration = _optionsItem(
+            _makeTitle(_('System Integration')),
+            null,
+            null
+    );
+
+    optDict.SuperKeyMode = _optionsItem(
+            _('System Super Key Action'),
+            _("Allows to open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
+            _newComboBox(),
+            'superKeyMode',
+               [[_('Default'),          1],
+                [_('App Switcher'),     2],
+                [_('Window Switcher'),  3]]
+    );
+
+    const enableSuperSwitch = _newGtkSwitch();
+    optDict.EnableSuper = _optionsItem(
+            _('Enable Super as Hot Key (Experimental)'),
+            _('Enabling this option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in the animations and video during opening an closing the switcher popup, but only in case the switcher was opened by the Super key, this does not affect the usual Alt/Super+Tab experince.'),
+            enableSuperSwitch,
+            'enableSuper'
+    );
+
+    const superDoublePressSwitch = _newComboBox();
+    optDict.SuperDoublePress = _optionsItem(
+            _('Double Super Key Press (needs previous option enabled)'),
+            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action.'),
+            superDoublePressSwitch,
+            'superDoublePressAction',
+               [[_('Default'), 1],
+                [_('Toggle Switcher Mode'), 2],
+                [_('Open Activities Overview'), 3],
+                [_('Open App Grid Overview'), 4],
+                [_('Activate Previous Window'), 5]
+            ]
+    );
+
+    superDoublePressSwitch.set_sensitive(gOptions.get('enableSuper'));
+    enableSuperSwitch.connect('notify::active', (widget) => {
+        superDoublePressSwitch.set_sensitive(widget.active);
+    });
+
     optDict.WorkspaceSwitcher = _optionsItem(
             _makeTitle(_('Workspace Switcher')),
     );
@@ -1164,7 +1195,7 @@ function _getMiscOpt() {
     );
 
     optDict.ExternalTrigger = _optionsItem(
-            _makeTitle(_('Options for External Trigger')),
+            _makeTitle(_('Options for External Mouse Trigger')),
     );
 
     optDict.MousePointerPosition = _optionsItem(
@@ -1172,6 +1203,13 @@ function _getMiscOpt() {
             _('If variable KEYBOARD_TRIGGERED is set to false, then this option is reflected.'),
             _newGtkSwitch(),
             'switcherPopupPointer'
+    );
+
+    optDict.AppStableOrder = _optionsItem(
+            _('Force App Switcher Stable Sequence'),
+            _('When the app switcher is triggered using a mouse, the default app order can be overriden to behave more like a dock. Favorit apps (if included) keep the order they have in the Dash and other open apps the order as they were launched.'),
+            _newGtkSwitch(),
+            'switcherPopupExtAppStable'
     );
 
     optDict.AutomaticallyReverseOrder = _optionsItem(

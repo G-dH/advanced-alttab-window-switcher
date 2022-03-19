@@ -58,11 +58,11 @@ function enable() {
             AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
             AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
 
-            if (_options.superKeyMode > 1) {
+            if (_options.get('superKeyMode') > 1) {
                 _updateOverlayKeyHandler();
             }
 
-            if(_options.wmAlwaysActivateFocused) {
+            if(_options.get('wmAlwaysActivateFocused')) {
                 _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', ()=>{
                     let win = global.display.get_focus_window();
                     if (win) {
@@ -128,7 +128,7 @@ function _removeThumbnails(hide = false) {
 }
 
 function _updateAlwaysActivateFocusedConnection() {
-    if (_options.wmAlwaysActivateFocused && !_wmFocusToActiveHandlerId) {
+    if (_options.get('wmAlwaysActivateFocused') && !_wmFocusToActiveHandlerId) {
         _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', ()=>{
             let win = global.display.get_focus_window();
             if (win) Main.activateWindow(win);
@@ -143,7 +143,7 @@ function _updateOverlayKeyHandler() {
     // Block original overlay key handler
     _restoreOverlayKeyHandler();
 
-    if (_options.superKeyMode === 1) {
+    if (_options.get('superKeyMode') === 1) {
         return;
     }
 
@@ -177,7 +177,7 @@ function _restoreOverlayKeyHandler() {
 
 function _toggleSwitcher() {
     let altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
-    const appSwitcherMode = _options.superKeyMode === 2;
+    const appSwitcherMode = _options.get('superKeyMode') === 2;
     altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
     altTabPopup.SHOW_APPS = appSwitcherMode ? true : false;
     altTabPopup.KEYBOARD_TRIGGERED = true;
