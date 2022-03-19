@@ -26,15 +26,12 @@ function _getWindowApp(metaWindow) {
 
 var Actions = class {
     constructor() {
-        this._mscOptions = new Settings.MscOptions();
-        this.WS_IGNORE_LAST         = this._mscOptions.wsSwitchIgnoreLast;
-        this.WS_WRAPAROUND          = this._mscOptions.wsSwitchWrap;
-        this.WS_INDICATOR_MODE      = this._mscOptions.wsSwitchIndicatorMode;
-        this.WIN_SKIP_MINIMIZED     = this._mscOptions.winSkipMinimized;
+        this._gOptions = new Settings.MscOptions();
+        this.WIN_SKIP_MINIMIZED     = this._gOptions.get('winSkipMinimized');
     }
 
     clean() {
-        this._mscOptions = null;
+        this._gOptions = null;
         this._shellSettings = null;
     }
 
@@ -95,6 +92,23 @@ var Actions = class {
                 return monitor;
         }
         return -1;
+    }
+
+    _isWsOrientationHorizontal() {
+        if (global.workspace_manager.layout_rows == -1)
+			return false;
+        return true;
+    }
+
+    _translateDirectionToHorizontal(direction) {
+        if (this._isWsOrientationHorizontal()) {
+            if (direction == Meta.MotionDirection.UP) {
+                direction = Meta.MotionDirection.LEFT;
+            } else {
+                direction = Meta.MotionDirection.RIGHT;
+            }
+        }
+        return direction;
     }
 
     // ///////////////////////////////////////////////////////////////////////////
@@ -233,13 +247,19 @@ var Actions = class {
     }
 
     switchWorkspace(direction, noIndicator = false) {
-        let n_workspaces = global.workspaceManager.n_workspaces;
+        direction = this._translateDirectionToHorizontal(direction);
+        const targetWs = global.workspaceManager.get_active_workspace().get_neighbor(direction);
+        Main.wm.actionMoveWorkspace(targetWs);
+        /*if (!noIndicator)
+            this._showWsSwitcherPopup(direction, targetWs.index());
+
+        /*let n_workspaces = global.workspaceManager.n_workspaces;
         let lastWsIndex =  n_workspaces - (this.WS_IGNORE_LAST ? 2 : 1);
         let motion;
 
         let activeWs  = global.workspaceManager.get_active_workspace();
         let activeIdx = activeWs.index();
-        let targetIdx = this.WS_WRAPAROUND
+        let targetIdx = global.workspaceManager.getNeighbor
             ? (activeIdx + (direction ? 1 : lastWsIndex)) % (lastWsIndex + 1)
             : activeIdx + (direction ? 1 : -1);
         if (targetIdx < 0 || targetIdx > lastWsIndex)
@@ -267,7 +287,7 @@ var Actions = class {
                 Main.wm._workspaceSwitcherPopup.display(motion, ws.index());
             }
         }
-        Main.wm.actionMoveWorkspace(ws);
+        Main.wm.actionMoveWorkspace(ws);*/
     }
 
     // directions -1/+1
@@ -291,9 +311,8 @@ var Actions = class {
             return;
 
         let monitorHeight = get_current_monitor_geometry().height;
-        let scale = this._mscOptions.winThumbnailScale;
+        let scale = this._gOptions.get('winThumbnailScale');
         global.stage.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this, {
-            'actionTimeout': this._mscOptions.actionEventDelay,
             'height': Math.floor(scale / 100 * monitorHeight),
             'thumbnailsOnScreen': global.stage.windowThumbnails.length,
         }));

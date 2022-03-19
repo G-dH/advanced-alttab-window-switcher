@@ -86,7 +86,7 @@ const UpDownAction = {
     SINGLE_AND_SWITCHER: 4
 };
 
-const DoublePressAction = {
+const DoubleSuperAction = {
     DEFAULT: 1,
     SWITCHER_MODE: 2,
     OVERVIEW: 3,
@@ -1447,7 +1447,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._toggleSingleAppMode();
         } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
             // if overlay-key (usually Super_L) is pressed within the timeout aftetr AATWS was triggered - double press
-            if (_ctrlPressed() || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.OVERVIEW)) {
+            if (_ctrlPressed() || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.OVERVIEW)) {
                 this.fadeAndDestroy();
                 Main.overview.toggle();
                 if (this._searchEntryNotEmpty) {
@@ -1458,12 +1458,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         Main.overview._overview.controls._searchController._entry.set_text(this._searchEntry);
                     }
                 }
-            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.APP_GRID) {
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.APP_GRID) {
                 this.fadeAndDestroy();
                 this._getActions().toggleAppGrid();
-            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.PREV_WIN) {
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.PREV_WIN) {
                 this._finish();
-            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoublePressAction.SWITCHER_MODE) {
+            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.SWITCHER_MODE) {
                 // set default filter for respective mode, as if the switcher was launched for the first time
                 if (this._switcherMode === SwitcherMode.WINDOWS) {
                     this.APP_FILTER_MODE = options.get('appSwitcherPopupFilter');
@@ -1544,13 +1544,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (_ctrlPressed()) {
                 this._reorderWorkspace(-1);
             } else {
-                this._switchWorkspace(Clutter.ScrollDirection.UP);
+                this._switchWorkspace(Meta.MotionDirection.UP);
             }
         } else if (keysym == Clutter.KEY_Page_Down) {
             if (_ctrlPressed()) {
                 this._reorderWorkspace(+1);
             } else {
-                this._switchWorkspace(Clutter.ScrollDirection.DOWN);
+                this._switchWorkspace(Meta.MotionDirection.DOWN);
             }
         } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || options.get('hotkeyUp').includes(keyString)) {
             if (_ctrlPressed() && !_shiftPressed()) {
@@ -1558,7 +1558,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.UP)
             } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SWITCH_WS) {
-                this._switchWorkspace(Clutter.ScrollDirection.UP);
+                this._switchWorkspace(Meta.MotionDirection.UP);
             } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SINGLE_APP) {
                 this._toggleSingleAppMode();
             } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SINGLE_AND_SWITCHER) {
@@ -1573,7 +1573,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.DOWN);
             } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SWITCH_WS) {
-                this._switchWorkspace(Clutter.ScrollDirection.DOWN);
+                this._switchWorkspace(Meta.MotionDirection.DOWN);
             } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION >= UpDownAction.SINGLE_APP) {
                 this._toggleSingleAppMode();
             } else {
@@ -1787,6 +1787,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._doNotReactOnScroll = false;
             return;
         }
+        direction = direction === Clutter.ScrollDirection.UP ? Meta.MotionDirection.UP : Meta.MotionDirection.DOWN;
 
         this._resetNoModsTimeout();
 
