@@ -59,13 +59,17 @@ function fillPreferencesWindow(window) {
         title: _('App Switcher'),
         icon_name: 'view-app-grid-symbolic',
     }));
-    window.add(getAdwPage(_getMiscOptionList(), {
-        title: _('Misc'),
-        icon_name: 'preferences-other-symbolic',
-    }));
     window.add(getAdwPage(_getHotkeysOptionList(), {
         title: _('Hotkeys'),
         icon_name: 'input-keyboard-symbolic',
+    }));
+    window.add(getAdwPage(_getMouseOptionList(), {
+        title: _('Mouse'),
+        icon_name: 'input-mouse-symbolic',
+    }));
+    window.add(getAdwPage(_getMiscOptionList(), {
+        title: _('Misc'),
+        icon_name: 'preferences-other-symbolic',
     }));
 
     window.set_search_enabled(true);
@@ -84,18 +88,20 @@ function buildPrefsWidget() {
         vexpand: true,
         hexpand: true,
     };
-    const commonOptionsPage   = getLegacyPage(_getCommonOptionList(), pageProperties);
-    const windowOptionsPage   = getLegacyPage(_getWindowOptionList(), pageProperties);
-    const appOptionsPage      = getLegacyPage(_getAppOptionList(), pageProperties);
-    const miscOptionsPage     = getLegacyPage(_getMiscOptionList(), pageProperties);
-    const hotkeysOptionPage   = getLegacyPage(_getHotkeysOptionList(), pageProperties);
+    const commonOptionsPage = getLegacyPage(_getCommonOptionList(), pageProperties);
+    const windowOptionsPage = getLegacyPage(_getWindowOptionList(), pageProperties);
+    const appOptionsPage    = getLegacyPage(_getAppOptionList(), pageProperties);
+    const miscOptionsPage   = getLegacyPage(_getMiscOptionList(), pageProperties);
+    const mouseOptionsPage  = getLegacyPage(_getMouseOptionList(), pageProperties);
+    const hotkeysOptionPage = getLegacyPage(_getHotkeysOptionList(), pageProperties);
 
 
     prefsWidget.append_page(commonOptionsPage, new Gtk.Label({ label: _('Common') }));
     prefsWidget.append_page(windowOptionsPage, new Gtk.Label({ label: _('Window Switcher') }));
     prefsWidget.append_page(appOptionsPage, new Gtk.Label({ label: _('App Switcher') }));
-    prefsWidget.append_page(miscOptionsPage, new Gtk.Label({ label: _('Misc') }))
+    prefsWidget.append_page(mouseOptionsPage, new Gtk.Label({ label: _('Mouse') }));
     prefsWidget.append_page(hotkeysOptionPage, new Gtk.Label({ label: _('Hotkeys') }))
+    prefsWidget.append_page(miscOptionsPage, new Gtk.Label({ label: _('Misc') }));
 
     prefsWidget.connect('realize', _onRealize);
     prefsWidget.show_all && prefsWidget.show_all();
@@ -132,15 +138,10 @@ function _getCommonOptionList() {
             opt.ShowStatus,
             opt.TooltipLabelScale,
             opt.SingleAppPreviewSize,
-        opt.MouseControl,
-            opt.PrimaryBackground,
-            opt.SecondaryBackground,
-            opt.MiddleBackground,
-            opt.ScrollBackground,
-            opt.PrimaryOutside,
-            opt.SecondaryOutside,
-            opt.MiddleOutside,
-            opt.ScrollOutside,
+        opt.SystemIntegration,
+            opt.SuperKeyMode,
+            opt.EnableSuper,
+            opt.SuperDoublePress
     ];
 
     return optionList;
@@ -164,12 +165,7 @@ function _getWindowOptionList() {
             opt.ShowWindowTitle,
             opt.ShowWorkspaceIndex,
             opt.WindowPreviewSize,
-            opt.WindowIconSize,
-        opt.MouseControl,
-            opt.ScrollItem,
-            opt.PrimaryItem,
-            opt.SecondaryItem,
-            opt.MiddleItem,
+            opt.WindowIconSize
     ];
 
     return optionList;
@@ -190,11 +186,6 @@ function _getAppOptionList() {
             opt.ShowAppTitle,
             opt.ShowWinCounter,
             opt.AppIconSize,
-        opt.MouseControl,
-            opt.ScrollItem,
-            opt.PrimaryItem,
-            opt.SecondaryItem,
-            opt.MiddleItem,
     ];
 
     return optionList;
@@ -204,14 +195,10 @@ function _getMiscOptionList() {
     const opt = _getMiscOpt();
 
     const optionList = [
-        opt.SystemIntegration,
-            opt.SuperKeyMode,
-            opt.EnableSuper,
-            opt.SuperDoublePress,
-        opt.WorkspaceSwitcher,
+        /*opt.WorkspaceSwitcher,
             opt.Wraparound,
             opt.IgnoreLast,
-            opt.ShowWsPopup,
+            opt.ShowWsPopup,*/
         opt.Windows,
             opt.AlwaysActivateFocused,
         opt.Thumbnails,
@@ -223,6 +210,34 @@ function _getMiscOptionList() {
             opt.PointerOutTimeout,
             opt.ActivateOnHide
     ];
+
+    return optionList;
+}
+
+function _getMouseOptionList() {
+    const opt = _getMouseOpt();
+
+    const optionList = [
+        opt.Common,
+            opt.PrimaryBackground,
+            opt.SecondaryBackground,
+            opt.MiddleBackground,
+            opt.ScrollBackground,
+            opt.PrimaryOutside,
+            opt.SecondaryOutside,
+            opt.MiddleOutside,
+            opt.ScrollOutside,
+        opt.WindowSwitcher,
+            opt.ScrollWinItem,
+            opt.PrimaryWinItem,
+            opt.SecondaryWinItem,
+            opt.MiddleWinItem,
+        opt.AppSwitcher,
+            opt.ScrollAppItem,
+            opt.PrimaryAppItem,
+            opt.SecondaryAppItem,
+            opt.MiddleAppItem,
+    ]
 
     return optionList;
 }
@@ -292,6 +307,9 @@ function getLegacyPage(optionList, pageProperties) {
         margin_top: 12,
         margin_bottom: 12,
     });
+
+    const context = page.get_style_context();
+    context.add_class('background');
 
     let frame;
     let frameBox;
@@ -647,9 +665,6 @@ function _getCommonOpt() {
             _makeTitle(_('Appearance')),
     );
 
-    /*actionList.splice(6,1);
-    actionList.splice(1,1);*/
-
     let singlePrevSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
         lower: 16,
@@ -678,73 +693,48 @@ function _getCommonOpt() {
             'switcherPopupTimeout'
     );
 
-    optDict.MouseControl = _optionsItem(
-            _makeTitle(_('Mouse control')),
+    optDict.SystemIntegration = _optionsItem(
+            _makeTitle(_('System Integration')),
+            null,
+            null
     );
 
-    optDict.PrimaryBackground = _optionsItem(
-            _('Primary Click on switcher Background'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button on the switcher pop-up background'),
+    optDict.SuperKeyMode = _optionsItem(
+            _('System Super Key Action'),
+            _("Allows to open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
             _newComboBox(),
-            'switcherPopupPrimClickIn',
-            actionList
+            'superKeyMode',
+               [[_('Default'),          1],
+                [_('App Switcher'),     2],
+                [_('Window Switcher'),  3]]
     );
 
-    optDict.SecondaryBackground = _optionsItem(
-            _('Secondary Click on switcher Background'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button on the switcher pop-up background'),
-            _newComboBox(),
-            'switcherPopupSecClickIn',
-            actionList
+    const enableSuperSwitch = _newGtkSwitch();
+    optDict.EnableSuper = _optionsItem(
+            _('Enable Super as Hot Key (Experimental)'),
+            _('Enabling this option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in the animations and video during opening an closing the switcher popup, but only in case the switcher was opened by the Super key, this does not affect the usual Alt/Super+Tab experince.'),
+            enableSuperSwitch,
+            'enableSuper'
     );
 
-    optDict.MiddleBackground = _optionsItem(
-            _('Middle Click on switcher Background'),
-            _('Action to be triggered by a click of the middle mouse button on the switcher pop-up background'),
-            _newComboBox(),
-            'switcherPopupMidClickIn',
-            actionList
+    const superDoublePressSwitch = _newComboBox();
+    optDict.SuperDoublePress = _optionsItem(
+            _('Double Super Key Press (needs previous option enabled)'),
+            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action.'),
+            superDoublePressSwitch,
+            'superDoublePressAction',
+               [[_('Default'), 1],
+                [_('Toggle Switcher Mode'), 2],
+                [_('Open Activities Overview'), 3],
+                [_('Open App Grid Overview'), 4],
+                [_('Activate Previous Window'), 5]
+            ]
     );
 
-    optDict.ScrollBackground = _optionsItem(
-            _('Scroll over switcher Background'),
-            _('Action to be triggered by scrolling over the switcher pop-up, but not over the switcher item'),
-            _newComboBox(),
-            'switcherPopupScrollIn',
-            actionList
-    );
-
-    optDict.PrimaryOutside = _optionsItem(
-            _('Primary Click Outside switcher'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button outside the switcher pop-up'),
-            _newComboBox(),
-            'switcherPopupPrimClickOut',
-            actionList
-    );
-
-    optDict.SecondaryOutside = _optionsItem(
-            _('Secondary Click Outside switcher'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button outside the switcher pop-up'),
-            _newComboBox(),
-            'switcherPopupSecClickOut',
-            actionList
-    );
-
-    optDict.MiddleOutside = _optionsItem(
-            _('Middle Click Outside switcher'),
-            _('Action to be triggered by a click of the middle mouse button outside the switcher pop-up'),
-            _newComboBox(),
-            'switcherPopupMidClickOut',
-            actionList
-    );
-
-    optDict.ScrollOutside = _optionsItem(
-            _('Scroll Outside switcher'),
-            _('Action to be triggered by scrolling outside of the switcher pop-up'),
-            _newComboBox(),
-            'switcherPopupScrollOut',
-            actionList
-    );
+    superDoublePressSwitch.set_sensitive(gOptions.get('enableSuper'));
+    enableSuperSwitch.connect('notify::active', (widget) => {
+        superDoublePressSwitch.set_sensitive(widget.active);
+    });
 
     return optDict;
 }
@@ -896,45 +886,6 @@ function _getWindowsOpt() {
             'winSwitcherPopupIconSize'
     );
 
-    optDict.MouseControl =_optionsItem(
-            _makeTitle(_('Mouse control')),
-    );
-
-    optDict.ScrollItem =_optionsItem(
-            _('Scroll Over Item'),
-            _('Action to be triggered by scrolling over any switcher item (window icon)'),
-            _newComboBox(),
-            'winSwitcherPopupScrollItem',
-            actionList
-    );
-
-    let winActionList = [...actionList];
-    /*winActionList.splice(6,1);
-    winActionList.splice(1,1);*/
-    optDict.PrimaryItem =_optionsItem(
-            _('Primary Click on Item'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (window icon)'),
-            _newComboBox(),
-            'winSwitcherPopupPrimClickItem',
-            winActionList
-    );
-
-    optDict.SecondaryItem =_optionsItem(
-            _('Secondary Click on Item'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (window icon)'),
-            _newComboBox(),
-            'winSwitcherPopupSecClickItem',
-            winActionList
-    );
-
-    optDict.MiddleItem =_optionsItem(
-            _('Middle Click on Item'),
-            _('Action to be triggered by a click of the middle mouse button on any switcher item (window icon)'),
-            _newComboBox(),
-            'winSwitcherPopupMidClickItem',
-            winActionList
-    );
-
     return optDict;
 }
 // //////////////////////////////////////////////////////////////////////
@@ -1029,8 +980,6 @@ function _getAppsOpt() {
             _makeTitle(_('Appearance')),
     );
 
-    let appActionList = [...actionList];
-
     let popupAppIconSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
         lower: 16,
@@ -1045,44 +994,6 @@ function _getAppsOpt() {
             'appSwitcherPopupIconSize'
     );
 
-    optDict.MouseControl = _optionsItem(
-            _makeTitle(_('Mouse control')),
-    );
-
-    optDict.ScrollItem = _optionsItem(
-            _('Scroll Over Item'),
-            _('Action to be triggered by scrolling over any switcher item (window icon)'),
-            _newComboBox(),
-            'appSwitcherPopupScrollItem',
-            appActionList
-    );
-
-    // appActionList.splice(6,1);
-    // appActionList.splice(1,1);
-    optDict.PrimaryItem = _optionsItem(
-            _('Primary Click on Item'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (app icon)'),
-            _newComboBox(),
-            'appSwitcherPopupPrimClickItem',
-            appActionList
-    );
-
-    optDict.SecondaryItem = _optionsItem(
-            _('Secondary Click on Item'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (app icon)'),
-            _newComboBox(),
-            'appSwitcherPopupSecClickItem',
-            appActionList
-    );
-
-    optDict.MiddleItem = _optionsItem(
-            _('Middle Click on Item'),
-            _('Action to be triggered by a click of the middle mouse button on any switcher item (app icon)'),
-            _newComboBox(),
-            'appSwitcherPopupMidClickItem',
-            appActionList
-    );
-
     return optDict;
 }
 
@@ -1091,50 +1002,7 @@ function _getAppsOpt() {
 function _getMiscOpt() {
     const optDict = {};
 
-    optDict.SystemIntegration = _optionsItem(
-            _makeTitle(_('System Integration')),
-            null,
-            null
-    );
-
-    optDict.SuperKeyMode = _optionsItem(
-            _('System Super Key Action'),
-            _("Allows to open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
-            _newComboBox(),
-            'superKeyMode',
-               [[_('Default'),          1],
-                [_('App Switcher'),     2],
-                [_('Window Switcher'),  3]]
-    );
-
-    const enableSuperSwitch = _newGtkSwitch();
-    optDict.EnableSuper = _optionsItem(
-            _('Enable Super as Hot Key (Experimental)'),
-            _('Enabling this option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in the animations and video during opening an closing the switcher popup, but only in case the switcher was opened by the Super key, this does not affect the usual Alt/Super+Tab experince.'),
-            enableSuperSwitch,
-            'enableSuper'
-    );
-
-    const superDoublePressSwitch = _newComboBox();
-    optDict.SuperDoublePress = _optionsItem(
-            _('Double Super Key Press (needs previous option enabled)'),
-            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action.'),
-            superDoublePressSwitch,
-            'superDoublePressAction',
-               [[_('Default'), 1],
-                [_('Toggle Switcher Mode'), 2],
-                [_('Open Activities Overview'), 3],
-                [_('Open App Grid Overview'), 4],
-                [_('Activate Previous Window'), 5]
-            ]
-    );
-
-    superDoublePressSwitch.set_sensitive(gOptions.get('enableSuper'));
-    enableSuperSwitch.connect('notify::active', (widget) => {
-        superDoublePressSwitch.set_sensitive(widget.active);
-    });
-
-    optDict.WorkspaceSwitcher = _optionsItem(
+    /*optDict.WorkspaceSwitcher = _optionsItem(
             _makeTitle(_('Workspace Switcher')),
     );
 
@@ -1157,7 +1025,7 @@ function _getMiscOpt() {
             _('While switching a workspace'),
             _newGtkSwitch(),
             'wsSwitchPopup'
-    );
+    );*/
 
 
     optDict.Windows = _optionsItem(
@@ -1238,6 +1106,165 @@ function _getMiscOpt() {
             _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before pop-up hides.'),
             _newGtkSwitch(),
             'switcherPopupActivateOnHide'
+    );
+
+    return optDict;
+}
+
+function _getMouseOpt() {
+    const optDict = {};
+
+    optDict.Common = _optionsItem(
+            _makeTitle(_('Common')),
+    );
+
+    optDict.PrimaryBackground = _optionsItem(
+            _('Primary Click on switcher Background'),
+            _('Action to be triggered by a click of the primary (usualy left) mouse button on the switcher pop-up background'),
+            _newComboBox(),
+            'switcherPopupPrimClickIn',
+            actionList
+    );
+
+    optDict.SecondaryBackground = _optionsItem(
+            _('Secondary Click on switcher Background'),
+            _('Action to be triggered by a click of the secondary (usualy right) mouse button on the switcher pop-up background'),
+            _newComboBox(),
+            'switcherPopupSecClickIn',
+            actionList
+    );
+
+    optDict.MiddleBackground = _optionsItem(
+            _('Middle Click on switcher Background'),
+            _('Action to be triggered by a click of the middle mouse button on the switcher pop-up background'),
+            _newComboBox(),
+            'switcherPopupMidClickIn',
+            actionList
+    );
+
+    optDict.ScrollBackground = _optionsItem(
+            _('Scroll over switcher Background'),
+            _('Action to be triggered by scrolling over the switcher pop-up, but not over the switcher item'),
+            _newComboBox(),
+            'switcherPopupScrollIn',
+            actionList
+    );
+
+    optDict.PrimaryOutside = _optionsItem(
+            _('Primary Click Outside switcher'),
+            _('Action to be triggered by a click of the primary (usualy left) mouse button outside the switcher pop-up'),
+            _newComboBox(),
+            'switcherPopupPrimClickOut',
+            actionList
+    );
+
+    optDict.SecondaryOutside = _optionsItem(
+            _('Secondary Click Outside switcher'),
+            _('Action to be triggered by a click of the secondary (usualy right) mouse button outside the switcher pop-up'),
+            _newComboBox(),
+            'switcherPopupSecClickOut',
+            actionList
+    );
+
+    optDict.MiddleOutside = _optionsItem(
+            _('Middle Click Outside switcher'),
+            _('Action to be triggered by a click of the middle mouse button outside the switcher pop-up'),
+            _newComboBox(),
+            'switcherPopupMidClickOut',
+            actionList
+    );
+
+    optDict.ScrollOutside = _optionsItem(
+            _('Scroll Outside switcher'),
+            _('Action to be triggered by scrolling outside of the switcher pop-up'),
+            _newComboBox(),
+            'switcherPopupScrollOut',
+            actionList
+    );
+
+    //////////////////////////////////////////////////////////////////////////////////
+
+    optDict.WindowSwitcher =_optionsItem(
+            _makeTitle(_('Window Switcher')),
+    );
+
+    optDict.ScrollWinItem =_optionsItem(
+            _('Scroll Over Item'),
+            _('Action to be triggered by scrolling over any switcher item (window icon)'),
+            _newComboBox(),
+            'winSwitcherPopupScrollItem',
+            actionList
+    );
+
+    let winActionList = [...actionList];
+    /*winActionList.splice(6,1);
+    winActionList.splice(1,1);*/
+    optDict.PrimaryWinItem =_optionsItem(
+            _('Primary Click on Item'),
+            _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (window icon)'),
+            _newComboBox(),
+            'winSwitcherPopupPrimClickItem',
+            winActionList
+    );
+
+    optDict.SecondaryWinItem =_optionsItem(
+            _('Secondary Click on Item'),
+            _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (window icon)'),
+            _newComboBox(),
+            'winSwitcherPopupSecClickItem',
+            winActionList
+    );
+
+    optDict.MiddleWinItem =_optionsItem(
+            _('Middle Click on Item'),
+            _('Action to be triggered by a click of the middle mouse button on any switcher item (window icon)'),
+            _newComboBox(),
+            'winSwitcherPopupMidClickItem',
+            winActionList
+    );
+
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    const  appActionList = [...actionList];
+    /*actionList.splice(6,1);
+    actionList.splice(1,1);*/
+
+    optDict.AppSwitcher = _optionsItem(
+            _makeTitle(_('App Switcher')),
+    );
+
+    optDict.ScrollAppItem = _optionsItem(
+            _('Scroll Over Item'),
+            _('Action to be triggered by scrolling over any switcher item (window icon)'),
+            _newComboBox(),
+            'appSwitcherPopupScrollItem',
+            appActionList
+    );
+
+    // appActionList.splice(6,1);
+    // appActionList.splice(1,1);
+    optDict.PrimaryAppItem = _optionsItem(
+            _('Primary Click on Item'),
+            _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (app icon)'),
+            _newComboBox(),
+            'appSwitcherPopupPrimClickItem',
+            appActionList
+    );
+
+    optDict.SecondaryAppItem = _optionsItem(
+            _('Secondary Click on Item'),
+            _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (app icon)'),
+            _newComboBox(),
+            'appSwitcherPopupSecClickItem',
+            appActionList
+    );
+
+    optDict.MiddleAppItem = _optionsItem(
+            _('Middle Click on Item'),
+            _('Action to be triggered by a click of the middle mouse button on any switcher item (app icon)'),
+            _newComboBox(),
+            'appSwitcherPopupMidClickItem',
+            appActionList
     );
 
     return optDict;
@@ -1510,7 +1537,7 @@ Thumbnail controls:\n\
             _('Move Switcher to Adjacent Monitor'),
             '',
             _newGtkEntry(),
-            _('Ctrl + Left/Right/Up/Down')
+            _('Shift + Left/Right/Up/Down')
         )
     );
 
@@ -1523,10 +1550,10 @@ Thumbnail controls:\n\
     );
 
     optionList.push(_optionsItem(
-            _('Move Window/App to Current Workspace/Monitor'),
+            _('Move Window/App to Adjacent Workspace'),
             _('Moves the selected window or windows of selected application to the current workspace and monitor.'),
             _newGtkEntry(),
-            _('Ctrl + Down')
+            _('Ctrl + UP/Down')
         )
     );
 
