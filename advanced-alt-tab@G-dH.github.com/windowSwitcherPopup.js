@@ -6,9 +6,8 @@ const Meta            = imports.gi.Meta;
 const Main            = imports.ui.main;
 const AltTab          = imports.ui.altTab;
 const SwitcherPopup   = imports.ui.switcherPopup;
-const AppDisplay = imports.ui.appDisplay;
+const AppDisplay      = imports.ui.appDisplay;
 const PopupMenu       = imports.ui.popupMenu;
-const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
@@ -163,7 +162,7 @@ function _getWindows(workspace, modals = false) {
     return windows.map(w => {
             return w.is_attached_dialog() && !modals ? w.get_transient_for() : w;
     // ... and filter out skip-taskbar windows and duplicates
-    // ... (if modal windows (attached_dialogs) hanen't been removed in map function, leave them in the list)
+    // ... (if modal windows (attached_dialogs) haven't been removed in map function, leave them in the list)
     }).filter((w, i, a) => (!w.skip_taskbar && a.indexOf(w) == i) || w.is_attached_dialog());
 }
 
@@ -193,7 +192,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SHIFT_AZ_HOTKEYS      = options.get('switcherPopupShiftHotkeys');
         this.STATUS                = options.get('switcherPopupStatus');
         this.PREVIEW_SELECTED      = options.get('switcherPopupPreviewSelected');
-        this.SHOW_WS_POPUP         = options.get('wsSwitchPopup');
+        //this.SHOW_WS_POPUP         = options.get('wsSwitchPopup');
         this.SEARCH_ALL            = options.get('winSwitcherPopupSearchAll');
         this.OVERLAY_TITLE         = options.get('switcherPopupTooltipTitle');
         this.SEARCH_DEFAULT        = options.get('switcherPopupStartSearch');
@@ -811,10 +810,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._closeButton.opacity = 255;
         }
 
-        if (!item._frontConnection) {
+        /*if (!item._frontConnection) {
             item._frontConnection = item._front.connect('button-press-event', this._onWindowItemAppClicked.bind(this));
             this._iconsConnections.push(item._frontConnection);
-        }
+        }*/
     }
 
     _shadeIn() {
@@ -929,9 +928,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _activateWindow(metaWin) {
         const wsSwitched = global.workspaceManager.get_active_workspace_index() !== metaWin.get_workspace().index();
         Main.activateWindow(this._getSelected());
-        if (wsSwitched && this.SHOW_WS_POPUP) {
-            this._showWsSwitcherPopup();
-        }
+        //if (wsSwitched && this.SHOW_WS_POPUP) {
+            this._getActions().showWsSwitcherPopup();
+        //}
     }
 
     _connectIcons() {
@@ -1554,7 +1553,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         } else if (keysym == Clutter.KEY_Up || keysym == Clutter.KEY_Page_Up || options.get('hotkeyUp').includes(keyString)) {
             if (_ctrlPressed() && !_shiftPressed()) {
-                //this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
+                this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.UP)
             } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SWITCH_WS) {
@@ -1568,8 +1567,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         } else if (keysym == Clutter.KEY_Down || keysym == Clutter.KEY_Page_Down || options.get('hotkeyDown').includes(keyString)) {
             if (_ctrlPressed() && !_shiftPressed()) {
-                //this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
-                this._moveToCurrentWS();
+                this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
             } else if (_ctrlPressed() && _shiftPressed()) {
                 this._moveWinToNewAdjacentWs(Clutter.ScrollDirection.DOWN);
             } else if (!_ctrlPressed() && !_shiftPressed() && this.UP_DOWN_ACTION === UpDownAction.SWITCH_WS) {
@@ -1902,10 +1900,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (global.workspace_manager.get_active_workspace() !== selected.get_workspace()) {
             Main.wm.actionMoveWorkspace(selected.get_workspace());
-            //this._showWsIndex();
-            if (this.SHOW_WS_POPUP) {
-                this._showWsSwitcherPopup();
-            }
+            //if (this.SHOW_WS_POPUP) {
+                this._getActions().showWsSwitcherPopup();
+            //}
         }
     }
 
@@ -2025,32 +2022,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._updateSwitcher();
         //this._showWsIndex();
-        if (this.SHOW_WS_POPUP) {
-            this._showWsSwitcherPopup();
-        }
-    }
-
-    _showWsSwitcherPopup(direction, wsIndex) {
-        if (!wsIndex) {
-            wsIndex = global.workspace_manager.get_active_workspace_index();
-        }
-
-        if (!Main.overview.visible) {
-            const vertical = global.workspaceManager.layout_rows === -1;
-            if (Main.wm._workspaceSwitcherPopup == null) {
-                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-                Main.wm._workspaceSwitcherPopup.reactive = false;
-                Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
-                    Main.wm._workspaceSwitcherPopup = null;
-                });
-            }
-
-            let motion = direction === Meta.MotionDirection.DOWN
-                ? (vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT)
-                : (vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT);
-
-            Main.wm._workspaceSwitcherPopup.display(motion, wsIndex);
-        }
+        //if (this.SHOW_WS_POPUP) {
+            this._getActions().showWsSwitcherPopup();
+        //}
     }
 
     _showOverlaySearchLabel(text) {
@@ -2213,9 +2187,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         //this._showWsIndex();
-        if (this.SHOW_WS_POPUP) {
-            this._showWsSwitcherPopup();
-        }
+        //if (this.SHOW_WS_POPUP) {
+            this._getActions().showWsSwitcherPopup();
+        //}
     }
 
     _switchMonitor(direction) {
@@ -2252,22 +2226,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         let wsIndex = global.workspace_manager.get_active_workspace_index();
-        /*let doNotInsertNewWs = false;
-        // don't make unnecessary workspace
-        if ((wsIndex === 0 && direction === Clutter.ScrollDirection.UP) ||
-            (wsIndex === (global.workspace_manager.get_n_workspaces() - 2) && direction === Clutter.ScrollDirection.DOWN)
-        ) {
-            let selectedWindows = selected.cachedWindows ? selected.cachedWindows : [selected];
-            if (this._onlySelectedOnCurrentWs(selectedWindows))
-                doNotInsertNewWs = true;
-        }*/
-        //if (!doNotInsertNewWs) {
-            wsIndex = wsIndex + (direction === Clutter.ScrollDirection.UP ? 0 : 1);
-            Main.wm.insertWorkspace(wsIndex);
-            this._moveWinToAdjacentWs(direction, selected);
-        /*} else {
-            this._moveToCurrentWS();
-        }*/
+        wsIndex = wsIndex + (direction === Clutter.ScrollDirection.UP ? 0 : 1);
+        Main.wm.insertWorkspace(wsIndex);
+        this._moveWinToAdjacentWs(direction, selected);
     }
 
     _moveWinToAdjacentWs(direction, select = null) {
@@ -2294,6 +2255,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return;
         }
 
+        direction = direction === Clutter.ScrollDirection.UP
+                    ? Meta.MotionDirection.UP
+                    : Meta.MotionDirection.DOWN;
         let ws = global.workspace_manager.get_workspace_by_index(wsIndex);
         if (this._showingApps) {
             this._getActions().switchWorkspace(direction, true);
@@ -2303,9 +2267,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._updateSwitcher();
         }
 
-        //this._showWsIndex();
-        if (this.SHOW_WS_POPUP)
-            this._showWsSwitcherPopup();
+        //if (this.SHOW_WS_POPUP)
+            this._getActions().showWsSwitcherPopup(direction, wsIndex);
         this._doNotUpdateOnNewWindow = false;
     }
 
@@ -2322,15 +2285,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._showWindow();
         this._updateSwitcher();
         //this._showWsIndex();
-        //this._showWsSwitcherPopup();
+        //this._getActions().showWsSwitcherPopup();
     }
 
     _reorderWorkspace(direction = 0) {
         this._getActions().reorderWorkspace(direction);
         //this._showWsIndex();
-        if (this.SHOW_WS_POPUP) {
-            this._showWsSwitcherPopup();
-        }
+        //if (this.SHOW_WS_POPUP) {
+            this._getActions().showWsSwitcherPopup();
+        //}
     }
 
     _toggleMaximizeOnCurrentMonitor() {
@@ -2469,18 +2432,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(0));
         this.show();
         //this._showWsIndex();
-        if (this.SHOW_WS_POPUP) {
-            this._showWsSwitcherPopup();
-        }
+        //if (this.SHOW_WS_POPUP) {
+            this._getActions().showWsSwitcherPopup();
+        //}
     }
 
     _switchToLastWS() {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(global.workspace_manager.n_workspaces - 1));
         this.show();
         //this._showWsIndex();
-        if (this.SHOW_WS_POPUP) {
-            this._showWsSwitcherPopup();
-        }
+        //if (this.SHOW_WS_POPUP) {
+            this._getActions().showWsSwitcherPopup();
+        //}
     }
 
     _toggleWinAbove() {
@@ -2753,7 +2716,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 //let name = appInfo.get_name() || '';
                 let dispName = appInfo.get_display_name() || '';
                 let gname = appInfo.get_generic_name() || '';
-                let exec = appInfo.get_executable() || '';
+                //let exec = appInfo.get_executable() || '';
+                let exec = appInfo.get_commandline() || '';
                 let description = appInfo.get_description() || '';
                 let categories = appInfo.get_string('Categories') || '';
                 let keywords = appInfo.get_string('Keywords') || '';
@@ -3040,20 +3004,28 @@ class AppIcon extends AppDisplay.AppIcon {
         super._init(app);
         this._switcherParams = switcherParams;
 
-        this.titleLabel = new St.Label({
-            text: app.get_name(),
-            style_class: 'workspace-index'
-        });
+        const appInfo = app.get_app_info();
+        let appName = app.get_name();
 
-        if (this._switcherParams.addAppDetails && app.get_app_info()) {
-            const appInfo = app.get_app_info();
-            const genericName = appInfo.get_generic_name();
-            const description = appInfo.get_description();
+        if (this._switcherParams.addAppDetails && appInfo) {
+            if (appInfo.get_commandline() && appInfo.get_commandline().includes('snapd')) {
+                appName += ' (Snap)';
+            } else if (appInfo.get_commandline() && appInfo.get_commandline().includes('flatpak')) {
+                appName += ' (Flatpak)';
+            }
+            const genericName = appInfo.get_generic_name() || '';
+            const description = appInfo.get_description() || '';
             this._appDetails = {
                 generic_name : genericName,
                 description: description
             };
         }
+
+        this.titleLabel = new St.Label({
+            text: appName,
+            style_class: 'workspace-index'
+        });
+
         // remove original app icon style
         this.style_class = '';
 

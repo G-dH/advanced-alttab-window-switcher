@@ -2,12 +2,15 @@
 
 const { GObject, St, Meta, Shell } = imports.gi;
 
-const Main           = imports.ui.main;
+const Main                   = imports.ui.main;
+const ExtensionUtils         = imports.misc.extensionUtils;
+const Me                     = ExtensionUtils.getCurrentExtension();
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me             = ExtensionUtils.getCurrentExtension();
-const Settings       = Me.imports.settings;
-const WinTmb         = Me.imports.winTmb;
+const Settings               = Me.imports.settings;
+const WinTmb                 = Me.imports.winTmb;
+const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
+
+const shellVersion = Settings.shellVersion;
 
 const ws_indicator_mode = {
     'DISABLE': 0,
@@ -288,6 +291,32 @@ var Actions = class {
             }
         }
         Main.wm.actionMoveWorkspace(ws);*/
+    }
+
+    showWsSwitcherPopup(direction, wsIndex) {
+        if (!wsIndex) {
+            wsIndex = global.workspace_manager.get_active_workspace_index();
+        }
+
+        if (!Main.overview.visible) {
+            const vertical = global.workspaceManager.layout_rows === -1;
+            if (Main.wm._workspaceSwitcherPopup == null) {
+                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
+                Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
+                    Main.wm._workspaceSwitcherPopup = null;
+                });
+            }
+
+            let motion = direction === Meta.MotionDirection.DOWN
+                ? (vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT)
+                : (vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT);
+
+            if (shellVersion >= 42) {
+                Main.wm._workspaceSwitcherPopup.display(wsIndex);
+            } else {
+                Main.wm._workspaceSwitcherPopup.display(wsIndex, wsIndex);
+            }
+        }
     }
 
     // directions -1/+1
