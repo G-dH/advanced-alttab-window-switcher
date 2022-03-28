@@ -1,6 +1,6 @@
 'use strict';
 
-const { Gtk, GLib, GObject } = imports.gi;
+const { Gtk, GLib, Gio, GObject } = imports.gi;
 // libadwaita is available starting with GNOME Shell 42.
 let Adw = null;
 try {
@@ -51,28 +51,22 @@ function init() {
 function fillPreferencesWindow(window) {
     window.add(getAdwPage(_getCommonOptionList(), {
         title: _('Common'),
-        icon_name: 'preferences-system-symbolic',
-    }));
+        icon_name: 'preferences-system-symbolic' }));
     window.add(getAdwPage(_getWindowOptionList(), {
         title: _('Window Switcher'),
-        icon_name: 'focus-windows-symbolic',
-    }));
+        icon_name: 'focus-windows-symbolic' }));
     window.add(getAdwPage(_getAppOptionList(), {
         title: _('App Switcher'),
-        icon_name: 'view-app-grid-symbolic',
-    }));
+        icon_name: 'view-app-grid-symbolic' }));
     window.add(getAdwPage(_getHotkeysOptionList(), {
         title: _('Hotkeys'),
-        icon_name: 'input-keyboard-symbolic',
-    }));
+        icon_name: 'input-keyboard-symbolic' }));
     window.add(getAdwPage(_getMouseOptionList(), {
         title: _('Mouse'),
-        icon_name: 'input-mouse-symbolic',
-    }));
+        icon_name: 'input-mouse-symbolic' }));
     window.add(getAdwPage(_getMiscOptionList(), {
         title: _('Misc'),
-        icon_name: 'preferences-other-symbolic',
-    }));
+        icon_name: 'preferences-other-symbolic' }));
 
     window.set_search_enabled(true);
 
@@ -81,30 +75,22 @@ function fillPreferencesWindow(window) {
 
 function buildPrefsWidget() {
     const prefsWidget = new Gtk.Box({
-        orientation: Gtk.Orientation.VERTICAL,
+        orientation: Gtk.Orientation.VERTICAL
     });
     const stack = new Gtk.Stack({
         hexpand: true
     });
-    const margin = 16;
     const stackSwitcher = new Gtk.StackSwitcher({
         halign: Gtk.Align.CENTER,
-        hexpand: true,
-        margin_top: margin,
-        margin_bottom: shellVersion < 42 ? 6 : margin,
+        hexpand: true
     });
     if (shellVersion < 40) stackSwitcher.homogeneous = true;
     const context = stackSwitcher.get_style_context();
     context.add_class('caption');
-    /*stack.connect('notify::visible-child', () => {
-        stack.get_visible_child().buildPage();
-    });*/
+
     stackSwitcher.set_stack(stack);
     stack.set_transition_duration(300);
     stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT);
-    /*const prefsWidget = new Gtk.Notebook({
-        tab_pos: Gtk.PositionType.TOP,
-    });*/
 
     const pageProperties = {
         hscrollbar_policy: Gtk.PolicyType.NEVER,
@@ -113,30 +99,26 @@ function buildPrefsWidget() {
         hexpand: true,
         visible: true
     };
-    const commonOptionsPage = getLegacyPage(_getCommonOptionList(), pageProperties);
-    const windowOptionsPage = getLegacyPage(_getWindowOptionList(), pageProperties);
-    const appOptionsPage    = getLegacyPage(_getAppOptionList(), pageProperties);
-    const miscOptionsPage   = getLegacyPage(_getMiscOptionList(), pageProperties);
-    const mouseOptionsPage  = getLegacyPage(_getMouseOptionList(), pageProperties);
-    const hotkeysOptionPage = getLegacyPage(_getHotkeysOptionList(), pageProperties);
 
-    stack.add_named(commonOptionsPage, 'common');
-    stack.add_named(windowOptionsPage, 'win-switcher');
-    stack.add_named(appOptionsPage, 'app-switcher');
-    stack.add_named(mouseOptionsPage, 'mouse');
-    stack.add_named(hotkeysOptionPage, 'hotkeys');
-    stack.add_named(miscOptionsPage, 'misc');
+    stack.add_named(getLegacyPage(_getCommonOptionList(), pageProperties), 'common');
+    stack.add_named(getLegacyPage(_getWindowOptionList(), pageProperties), 'win-switcher');
+    stack.add_named(getLegacyPage(_getAppOptionList(), pageProperties), 'app-switcher');
+    stack.add_named(getLegacyPage(_getHotkeysOptionList(), pageProperties), 'hotkeys');
+    stack.add_named(getLegacyPage(_getMouseOptionList(), pageProperties), 'mouse');
+    stack.add_named(getLegacyPage(_getMiscOptionList(), pageProperties), 'misc');
 
-    const pagesBtns = [];
-    pagesBtns.push([new Gtk.Label({ label: _('Common'), visible: true}), Gtk.Image.new_from_icon_name('preferences-system-symbolic', Gtk.IconSize.BUTTON)]);
-    pagesBtns.push([new Gtk.Label({ label: _('Window Switcher'), visible: true}), Gtk.Image.new_from_icon_name('focus-windows-symbolic', Gtk.IconSize.BUTTON)]);
-    pagesBtns.push([new Gtk.Label({ label: _('App Switcher'), visible: true}), Gtk.Image.new_from_icon_name('view-app-grid-symbolic', Gtk.IconSize.BUTTON)]);
-    pagesBtns.push([new Gtk.Label({ label: _('Hotkeys'), visible: true}), Gtk.Image.new_from_icon_name('input-keyboard-symbolic', Gtk.IconSize.BUTTON)]);
-    pagesBtns.push([new Gtk.Label({ label: _('Mouse'), visible: true}), Gtk.Image.new_from_icon_name('input-mouse-symbolic', Gtk.IconSize.BUTTON)]);
-    pagesBtns.push([new Gtk.Label({ label: _('Misc'), visible: true}), Gtk.Image.new_from_icon_name('preferences-other-symbolic', Gtk.IconSize.BUTTON)]);
+    const newImage = Gtk.Image.new_from_icon_name;
+    const pagesBtns = [
+        [new Gtk.Label({ label: _('Common')}), shellVersion >= 40 ? newImage('preferences-system-symbolic') : newImage('preferences-system-symbolic', Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: _('Window Switcher')}), shellVersion >= 40 ? newImage('focus-windows-symbolic') : newImage('focus-windows-symbolic', Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: _('App Switcher')}), shellVersion >= 40 ? newImage('view-app-grid-symbolic') : newImage('view-app-grid-symbolic', Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: _('Hotkeys')}), shellVersion >= 40 ? newImage('input-keyboard-symbolic') : newImage('input-keyboard-symbolic', Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: _('Mouse')}), shellVersion >= 40 ? newImage('input-mouse-symbolic') : newImage('input-mouse-symbolic', Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: _('Misc')}), shellVersion >= 40 ? newImage('preferences-other-symbolic') : newImage('preferences-other-symbolic', Gtk.IconSize.BUTTON)]
+    ];
 
     let stBtn = stackSwitcher.get_first_child ? stackSwitcher.get_first_child() : null;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < pagesBtns.length; i++) {
         const box = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 6, visible: true});
         const icon = pagesBtns[i][1];
         icon.margin_start = 30;
@@ -152,27 +134,37 @@ function buildPrefsWidget() {
             stBtn = stBtn.get_next_sibling();
         }
     }
+
     stack.show_all && stack.show_all();
     stackSwitcher.show_all && stackSwitcher.show_all();
 
-    prefsWidget[prefsWidget.add ? 'add' : 'append'](stackSwitcher);
     prefsWidget[prefsWidget.add ? 'add' : 'append'](stack);
-    prefsWidget.connect('realize', _onRealize);
+    prefsWidget.connect('realize', (widget) => {
+        const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
+        const width = 900;
+        const height = 800;
+        window.set_size_request(width, height);
+        const headerbar = window.get_titlebar();
+        if (shellVersion >= 40) {
+            headerbar.title_widget = stackSwitcher;
+        } else {
+            headerbar.custom_title = stackSwitcher;
+        }
+
+        GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            100,
+            () => {
+                window.set_size_request(-1, -1);
+            }
+        );
+    });
     prefsWidget.show_all && prefsWidget.show_all();
 
     return prefsWidget;
 }
 
-function _onRealize(widget) {
-    const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
-    const width = 800;
-    const height = 700;
-    window.set_size_request(width, height);
-}
-
 function _getCommonOptionList() {
-    // options item format:
-    // [text, tooltip, widget, settings-variable, options (f.e. combo list)]
     const opt = _getCommonOpt();
 
     const optionList = [
@@ -249,10 +241,6 @@ function _getMiscOptionList() {
     const opt = _getMiscOpt();
 
     const optionList = [
-        /*opt.WorkspaceSwitcher,
-            opt.Wraparound,
-            opt.IgnoreLast,
-            opt.ShowWsPopup,*/
         opt.Windows,
             opt.AlwaysActivateFocused,
         opt.Thumbnails,
@@ -376,16 +364,20 @@ function getLegacyPage(optionList, pageProperties) {
         if (!widget) {
             const lbl = new Gtk.Label({
                 xalign: 0,
-                margin_bottom: 4,
+                margin_bottom: 4
             });
+
             lbl.set_markup(option);
             mainBox[mainBox.add ? 'add' : 'append'](lbl);
+
             frame = new Gtk.Frame({
-                margin_bottom: 16,
+                margin_bottom: 16
             });
+
             frameBox = new Gtk.ListBox({
-                selection_mode: null,
+                selection_mode: null
             });
+
             mainBox[mainBox.add ? 'add' : 'append'](frame);
             frame[frame.add ? 'add' : 'set_child'](frameBox);
             continue;
@@ -398,11 +390,11 @@ function getLegacyPage(optionList, pageProperties) {
             margin_end: 8,
             margin_top: 8,
             margin_bottom: 8,
-            hexpand: true,
+            hexpand: true
         })
-        /*for (let i of item) {
-            box[box.add ? 'add' : 'append'](i);*/
+
         grid.attach(option, 0, 0, 5, 1);
+
         if (widget) {
             grid.attach(widget, 5, 0, 2, 1);
         }
@@ -506,13 +498,19 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
     item.push(label);
     item.push(widget);
 
+    let settings = gOptions._gsettings;
+    let key;
+
+    if (variable && gOptions.options[variable]) {
+        const opt = gOptions.options[variable];
+        key = opt[1];
+    }
+
     if (widget && widget._is_switch) {
-        widget.active = gOptions.get(variable);
-        widget.connect('notify::active', () => {
-            gOptions.set(variable, widget.active);
-        });
+        settings.bind(key, widget, 'active', Gio.SettingsBindFlags.DEFAULT);
+
     } else if (widget && widget._is_spinbutton) {
-        widget.value = gOptions.get(variable);
+        settings.bind(key, widget.adjustment, 'value', Gio.SettingsBindFlags.GET);
         widget.timeout_id = null;
         widget.connect('value-changed', () => {
             widget.update();
@@ -548,6 +546,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
         });
     } else if (widget && widget._is_entry) {
         if (variable.startsWith('hotkey')) {
+            settings.bind(key, widget, 'text', Gio.SettingsBindFlags.GET);
             widget.connect('changed', (entry) => {
                 if (entry._doNotEdit) return;
 
@@ -567,7 +566,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
                 entry._doNotEdit = false;
                 gOptions.set(variable, txt);
             });
-            widget.set_text(gOptions.get(variable));
+
             widget.set_icon_from_icon_name(Gtk.EntryIconPosition.SECONDARY, 'edit-clear-symbolic');
             widget.set_icon_activatable(Gtk.EntryIconPosition.SECONDARY, true);
             widget.connect('icon-press', (e) => {
@@ -586,10 +585,6 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
 
     return item;
 }
-
-/* function _makeSmall(label) {
-    return `<small>${label}</small>`;
-} */
 
 function _makeTitle(label) {
     return `<b>${label}</b>`;
@@ -1056,32 +1051,6 @@ function _getAppsOpt() {
 function _getMiscOpt() {
     const optDict = {};
 
-    /*optDict.WorkspaceSwitcher = _optionsItem(
-            _makeTitle(_('Workspace Switcher')),
-    );
-
-    optDict.Wraparound = _optionsItem(
-            _('Wraparound'),
-            _('Whether the switcher should continue from the last workspace to the first one and vice versa.'),
-            _newGtkSwitch(),
-            'wsSwitchWrap'
-    );
-
-    optDict.IgnoreLast = _optionsItem(
-            _('Ignore Last (empty) Workspace'),
-            _("If dynamic workspaces are enabled (default for GNOME), there is always one empty workspace at the end of the list. The switcher can ignore this workspace like it's not there."),
-            _newGtkSwitch(),
-            'wsSwitchIgnoreLast'
-    );
-
-    optDict.ShowWsPopup = _optionsItem(
-            _('Show Workspace Pop-up'),
-            _('While switching a workspace'),
-            _newGtkSwitch(),
-            'wsSwitchPopup'
-    );*/
-
-
     optDict.Windows = _optionsItem(
             _makeTitle(_('Window Manager')),
             null,
@@ -1519,7 +1488,15 @@ Thumbnail controls:\n\
             _('Toggle Switcher Mode'),
             _('Switch between Apps and Windows Modes.'),
             _newGtkEntry(),
-            _('Ctrl + `/~, Ctrl + Super')
+            _('Ctrl + `/~, Shift + Super')
+        )
+    );
+
+    optionList.push(_optionsItem(
+            _('Switch Filter Mode'),
+            _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
+            _newGtkEntry(),
+            _('Ctrl + `/~, Shift + Super')
         )
     );
 
@@ -1605,9 +1582,9 @@ Thumbnail controls:\n\
 
     optionList.push(_optionsItem(
             _('Move Window/App to Adjacent Workspace'),
-            _('Moves the selected window or windows of selected application to the current workspace and monitor.'),
+            _('Moves the selected window or windows of selected application to the adjacent workspace and monitor.'),
             _newGtkEntry(),
-            _('Ctrl + UP/Down')
+            _('Ctrl + UP/Left/Down/Right')
         )
     );
 
