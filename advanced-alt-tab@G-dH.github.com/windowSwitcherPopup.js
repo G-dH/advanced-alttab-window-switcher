@@ -887,50 +887,51 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
         this._doNotShowWin = true;
         this._doNotUpdateOnNewWindow = true;
+        const selected = this._getSelected();
         if (this._showingApps) {
             if (_ctrlPressed()) {
                 // this can cause problems when a shortcut with Ctrl key is used to trigger the popup
                 // so allow this only when it's not the case
                 if (!_ctrlPressed(this._modifierMask)) {
-                    this._getSelected().open_new_window(global.get_current_time());
+                    selected.open_new_window(global.get_current_time());
                 }
-            } else if (this._getSelected().cachedWindows[0]) {
+            } else if (selected.cachedWindows[0]) {
                 if (this.APP_RAISE_FIRST_ONLY) {
-                    Main.activateWindow(this._getSelected().cachedWindows[0]);
+                    this._activateWindow(selected.cachedWindows[0]);
                 } else {
                     // following not only activates the app recent window, but also rise all other windows of the app above other windows
                     // but if item is activated without key/button press (ACTIVATE_ON_HIDE), only the first window is raised, so we need to raise the windows anyway
-                    //this._getSelected().activate_window(this._getSelected().cachedWindows[0], global.get_current_time());
+                    //selected.activate_window(selected.cachedWindows[0], global.get_current_time());
 
-                    const wins = this._getSelected().cachedWindows;
+                    const wins = selected.cachedWindows;
                     for (let i = wins.length - 1; i >= 0; i--) {
                         wins[i].raise();
                     }
 
-                    this._getSelected().activate();
+                    this._activateWindow(selected.cachedWindows[0]);
                 }
             } else {
-                if (this._getSelected().get_n_windows() === 0) {
+                if (selected.get_n_windows() === 0) {
                     // app has no windows - probably not running
-                    this._getSelected().activate();
+                    selected.activate();
                 } else {
                     // in this case app is running but no window match the current filter mode
-                    this._getSelected().open_new_window(global.get_current_time());
+                    selected.open_new_window(global.get_current_time());
                 }
             }
         } else {
-            this._activateWindow(this._getSelected());
-            //Main.activateWindow(this._getSelected());
+            this._activateWindow(selected);
+            //Main.activateWindow(selected);
         }
         super._finish();
     }
 
     _activateWindow(metaWin) {
         const wsSwitched = global.workspaceManager.get_active_workspace_index() !== metaWin.get_workspace().index();
-        Main.activateWindow(this._getSelected());
-        //if (wsSwitched && this.SHOW_WS_POPUP) {
+        Main.activateWindow(metaWin);
+        if (wsSwitched) { //&& this.SHOW_WS_POPUP) {
             this._getActions().showWsSwitcherPopup();
-        //}
+        }
     }
 
     _connectIcons() {
