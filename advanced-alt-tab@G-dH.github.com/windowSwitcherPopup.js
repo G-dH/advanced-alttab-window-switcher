@@ -1447,7 +1447,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._toggleSingleAppMode();
         } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
             // if overlay-key (usually Super_L) is pressed within the timeout aftetr AATWS was triggered - double press
-            if (_ctrlPressed() || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.OVERVIEW)) {
+            if ((_ctrlPressed() && _shiftPressed()) || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.OVERVIEW)) {
                 this.fadeAndDestroy();
                 Main.overview.toggle();
                 if (this._searchEntryNotEmpty) {
@@ -1526,6 +1526,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         else if (keysym == Clutter.KEY_Left || options.get('hotkeyLeft').includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed()) {
                 this._moveFavotites(-1);
+            } else if (_ctrlPressed() && !_shiftPressed()) {
+                    this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
             } else if (!_shiftPressed()) {
                 this._select(this._previous(true));
             } else {
@@ -1534,8 +1536,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else if (keysym == Clutter.KEY_Right || options.get('hotkeyRight').includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed()) {
                 this._moveFavotites(+1);
-            }
-            if (!_shiftPressed()) {
+            } else if (_ctrlPressed() && !_shiftPressed()) {
+                this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
+            } else if (!_shiftPressed()) {
                 this._select(this._next(true));
             } else {
                 this._switchMonitor(Meta.DisplayDirection.RIGHT);
