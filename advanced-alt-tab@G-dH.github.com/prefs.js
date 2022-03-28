@@ -12,6 +12,8 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
 
+const shellVersion   = Settings.shellVersion;
+
 let   gOptions;
 
 // gettext
@@ -78,15 +80,38 @@ function fillPreferencesWindow(window) {
 }
 
 function buildPrefsWidget() {
-    const prefsWidget = new Gtk.Notebook({
-        tab_pos: Gtk.PositionType.TOP,
+    const prefsWidget = new Gtk.Box({
+        orientation: Gtk.Orientation.VERTICAL,
     });
+    const stack = new Gtk.Stack({
+        hexpand: true
+    });
+    const margin = 16;
+    const stackSwitcher = new Gtk.StackSwitcher({
+        halign: Gtk.Align.CENTER,
+        hexpand: true,
+        margin_top: margin,
+        margin_bottom: shellVersion < 42 ? 6 : margin,
+    });
+    if (shellVersion < 40) stackSwitcher.homogeneous = true;
+    const context = stackSwitcher.get_style_context();
+    context.add_class('caption');
+    /*stack.connect('notify::visible-child', () => {
+        stack.get_visible_child().buildPage();
+    });*/
+    stackSwitcher.set_stack(stack);
+    stack.set_transition_duration(300);
+    stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT);
+    /*const prefsWidget = new Gtk.Notebook({
+        tab_pos: Gtk.PositionType.TOP,
+    });*/
 
     const pageProperties = {
         hscrollbar_policy: Gtk.PolicyType.NEVER,
         vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
         vexpand: true,
         hexpand: true,
+        visible: true
     };
     const commonOptionsPage = getLegacyPage(_getCommonOptionList(), pageProperties);
     const windowOptionsPage = getLegacyPage(_getWindowOptionList(), pageProperties);
@@ -95,14 +120,43 @@ function buildPrefsWidget() {
     const mouseOptionsPage  = getLegacyPage(_getMouseOptionList(), pageProperties);
     const hotkeysOptionPage = getLegacyPage(_getHotkeysOptionList(), pageProperties);
 
+    stack.add_named(commonOptionsPage, 'common');
+    stack.add_named(windowOptionsPage, 'win-switcher');
+    stack.add_named(appOptionsPage, 'app-switcher');
+    stack.add_named(mouseOptionsPage, 'mouse');
+    stack.add_named(hotkeysOptionPage, 'hotkeys');
+    stack.add_named(miscOptionsPage, 'misc');
 
-    prefsWidget.append_page(commonOptionsPage, new Gtk.Label({ label: _('Common') }));
-    prefsWidget.append_page(windowOptionsPage, new Gtk.Label({ label: _('Window Switcher') }));
-    prefsWidget.append_page(appOptionsPage, new Gtk.Label({ label: _('App Switcher') }));
-    prefsWidget.append_page(mouseOptionsPage, new Gtk.Label({ label: _('Mouse') }));
-    prefsWidget.append_page(hotkeysOptionPage, new Gtk.Label({ label: _('Hotkeys') }))
-    prefsWidget.append_page(miscOptionsPage, new Gtk.Label({ label: _('Misc') }));
+    const pagesBtns = [];
+    pagesBtns.push([new Gtk.Label({ label: _('Common'), visible: true}), Gtk.Image.new_from_icon_name('preferences-system-symbolic', Gtk.IconSize.BUTTON)]);
+    pagesBtns.push([new Gtk.Label({ label: _('Window Switcher'), visible: true}), Gtk.Image.new_from_icon_name('focus-windows-symbolic', Gtk.IconSize.BUTTON)]);
+    pagesBtns.push([new Gtk.Label({ label: _('App Switcher'), visible: true}), Gtk.Image.new_from_icon_name('view-app-grid-symbolic', Gtk.IconSize.BUTTON)]);
+    pagesBtns.push([new Gtk.Label({ label: _('Hotkeys'), visible: true}), Gtk.Image.new_from_icon_name('input-keyboard-symbolic', Gtk.IconSize.BUTTON)]);
+    pagesBtns.push([new Gtk.Label({ label: _('Mouse'), visible: true}), Gtk.Image.new_from_icon_name('input-mouse-symbolic', Gtk.IconSize.BUTTON)]);
+    pagesBtns.push([new Gtk.Label({ label: _('Misc'), visible: true}), Gtk.Image.new_from_icon_name('preferences-other-symbolic', Gtk.IconSize.BUTTON)]);
 
+    let stBtn = stackSwitcher.get_first_child ? stackSwitcher.get_first_child() : null;
+    for (let i = 0; i < 6; i++) {
+        const box = new Gtk.Box({orientation: Gtk.Orientation.VERTICAL, spacing: 6, visible: true});
+        const icon = pagesBtns[i][1];
+        icon.margin_start = 30;
+        icon.margin_end = 30;
+        box[box.add ? 'add' : 'append'](icon);
+        box[box.add ? 'add' : 'append'](pagesBtns[i][0]);
+        if (stackSwitcher.get_children) {
+            stBtn = stackSwitcher.get_children()[i];
+            stBtn.add(box);
+        } else {
+            stBtn.set_child(box);
+            stBtn.visible = true;
+            stBtn = stBtn.get_next_sibling();
+        }
+    }
+    stack.show_all && stack.show_all();
+    stackSwitcher.show_all && stackSwitcher.show_all();
+
+    prefsWidget[prefsWidget.add ? 'add' : 'append'](stackSwitcher);
+    prefsWidget[prefsWidget.add ? 'add' : 'append'](stack);
     prefsWidget.connect('realize', _onRealize);
     prefsWidget.show_all && prefsWidget.show_all();
 
