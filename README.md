@@ -140,4 +140,6 @@ If you like my work and want to keep me motivated, give me some feedback. You ca
 ![Extension configuration window](screenshot2.png)
 ![Extension configuration window](screenshot3.png)
 ![Extension configuration window](screenshot4.png)
+![Extension configuration window](screenshot5.png)
+![Extension configuration window](screenshot6.png)
  
