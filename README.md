@@ -38,10 +38,10 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 |`H/L, Left/Right arrows`|  - Window selection|
 |`J/K, Up/Down, PgUp/Down`| - Workspace selection|
 |`Ctrl+[PgUp/Down]`|        - Reorder the current workspace - changes the workspace index -1/+1.|
-|`Shift + arrow keys`|      - Move the switcher popup to the adjacent monitor in corresponding direction.|
+|`Shift+Arrow keys`|      - Move the switcher popup to the adjacent monitor in corresponding direction.|
 |`Ctrl+Tab`|                - Move the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.|
 |`Space, KP_0/KP_Ins`|      - Toggle `Shows selected window` `Preview` mode on/off.|
-|`Q`|                       - Switch the window `Filter` mode - `ALL / WS / MONITOR` (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).|
+|`Q, Ctrl+Super`|                       - Switch the window `Filter` mode - `ALL / WS / MONITOR` (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).|
 |`;/~ (the key above Tab)`| - In the Window mode - sort windows by application, each subsequent key press selects the first window of the next app.<br>-In the Application mode - iterate over windows of the selected application, Tab switches back to apps.|
 |`G`|                       - Toggle `Sort windows by workspace`, if `Filter` mode is set to `ALL`.|
 |`1/+/!`|                   - Toggle `Single App` mode - shows only windows of the selected application.|
@@ -52,17 +52,17 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 |`C`|                       - Close all windows in the list that belong to the same application as the selected window.|
 |`A`|                       - Toggle window `Always on Top` and also switch to window workspace and rise the window.<br>- The `Above` state is indicated by the front icon at the top instead of the bottom.|
 |`S`|                       - Toggle selected window `Always on Visible Workspace`. Ths state is indicated by the 'pin' icon at the top. Note, that this flag have all windows located on other than the primary monitor, when the GNOME Shell's option `Workspaces on Primary Display Only` is active.|
-|`X, Ctrl+Down`|             - Move selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
+|`X`|             - Move selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
 |`M`|                       - Toggle full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.|
 |`N, Ctrl+Enter`|           - Open new window of selected application, if the application soupports it.|
 |`F`|                       - Move the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.|
-|`Ctrl+;/~, Ctrl+Super`|    - Toggle between Windows and Applications modes.|
+|`Ctrl+;/~, Shift+Super`|    - Toggle between Windows and Applications modes.|
 |`T`|                       - Create a thumbnail preview of the selected window and place it at the bottom right of the current monitor. You can remove the lastly created thumbnail using this hotkey while holding the `Ctrl` key pressed, or remove all created thumbnails while holding `Ctrl` and `Shift` keys pressed.|
 |`P`|                       - Open preferences window for this extension.|
+|`Ctrl+Up/Down/Left/Right`| - Move selected window/app to the adjacent workspace in front of or behind the current workspace.|
 |`Ctrl+Shift+Up/Down`|      - Move selected window/app to the newly created workspace in front of or behind the current workspace.|
 |`Ctrl+Shift+Left/Right`|   - In App mode with Favorites change the position of the selected favorite application in the Favorite apps list.|
-|`Shift+Super`|             - Toggle Activities Overview.|
-|`Ctrl+Shift+Super`|        - Toggle App Grid view|
+|`Ctrl+Shift+Super`|        - Toggle Activities Overview|
 
 ### Type to Search
 
@@ -112,7 +112,6 @@ You can install this extension in several ways.
 The easiest way to install AATWS: go to [extensions.gnome.org](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/) and toggle the switch. This installation also gives you automatic updates in the future.
 
 ### Installing from the latest Github release
-*Sorry, first I need to update the release, I'll do it with next verion.*
 
 Download the latest release archive using following command:
 
