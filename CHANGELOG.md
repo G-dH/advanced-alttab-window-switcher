@@ -1,6 +1,6 @@
 ## Changelog
 
-### v13 (not yet released)
+### v14 (13 rejected due to formal issues)
 **Added:**
 - Each window preview in the switcher list reveals the `Close Window` button on mouse hover to easily close the window.
 - Option `Up/Down Keys Action` allows to choose what action will be assigned to the arrow keys Up and Down - `Nothing`, `Switch Workspace`, `Toggle Single App Mode` or `Down:Single App, Up:Switcher Mode`.
