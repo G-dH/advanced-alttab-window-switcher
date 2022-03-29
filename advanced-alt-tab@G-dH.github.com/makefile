@@ -64,7 +64,7 @@ $(ZIP_NAME): $(ZIP_CONTENT)
 	 fi
 
 # Compiles the gschemas.compiled file from the gschema.xml file.
-schemas/gschemas.compiled: schemas/org.gnome.shell.extensions.$(NAME).gschema.xml
+schemas/gschemas.compiled: schemas/org.gnome.shell.extensions.$(NAME)-window-switcher.gschema.xml
 	@echo "Compiling schemas..."
 	@glib-compile-schemas schemas
 
