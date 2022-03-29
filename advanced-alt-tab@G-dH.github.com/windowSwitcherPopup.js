@@ -261,7 +261,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._overlayDelayId,
             this._recentSwitchTimeoutId,
             this._newWindowConnectorTimeoutId,
-            this._updateTimeoutId
+            this._updateTimeoutId,
+            this._overlayKeyInitTimeout
         ];
         timeouts.forEach(timeoutId => {
             if (timeoutId) GLib.source_remove(timeoutId);
