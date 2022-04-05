@@ -1,7 +1,5 @@
 'use strict';
 
-const { GLib, Gio } = imports.gi;
-
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
@@ -40,7 +38,7 @@ var Actions = {
     PREFS:            99,
 };
 
-var MscOptions = class MscOptions {
+var Options = class Options {
     constructor() {
         this._gsettings = ExtensionUtils.getSettings(_schema);
         this._connectionIds = [];
@@ -70,6 +68,7 @@ var MscOptions = class MscOptions {
             switcherPopupSecClickOut: ['int', 'switcher-popup-sec-click-out'],
             switcherPopupMidClickOut: ['int', 'switcher-popup-mid-click-out'],
             switcherPopupStatus: ['boolean', 'switcher-popup-status'],
+            switcherPopupSyncFilter: ['boolean', 'switcher-popup-sync-filter'],
             singleAppPreviewSize: ['int', 'win-switcher-single-prev-size'],
             winSwitcherPopupFilter: ['int', 'win-switcher-popup-filter'],
             winSwitcherPopupSorting: ['int', 'win-switcher-popup-sorting'],

@@ -29,7 +29,7 @@ function _getWindowApp(metaWindow) {
 
 var Actions = class {
     constructor() {
-        this._gOptions = new Settings.MscOptions();
+        this._gOptions = new Settings.Options();
         this.WIN_SKIP_MINIMIZED     = this._gOptions.get('winSkipMinimized');
     }
 

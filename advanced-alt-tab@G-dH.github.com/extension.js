@@ -50,7 +50,7 @@ function enable() {
                 actions.resumeThumbnailsIfExist();
                 actions = undefined;
             }
-            _options = new Settings.MscOptions();
+            _options = new Settings.Options();
             WindowSwitcherPopup.options = _options;
             _options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
             _origAltTabWSP = AltTab.WindowSwitcherPopup;

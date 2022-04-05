@@ -45,7 +45,7 @@ const actionList = [
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    gOptions = new Settings.MscOptions();
+    gOptions = new Settings.Options();
 }
 
 function fillPreferencesWindow(window) {
@@ -60,7 +60,7 @@ function fillPreferencesWindow(window) {
         icon_name: 'view-app-grid-symbolic' }));
     window.add(getAdwPage(_getHotkeysOptionList(), {
         title: _('Hotkeys'),
-        icon_name: 'input-keyboard-symbolic' }));
+        icon_name: 'preferences-desktop-shortcuts-symbolic' }));
     window.add(getAdwPage(_getMouseOptionList(), {
         title: _('Mouse'),
         icon_name: 'input-mouse-symbolic' }));
@@ -173,6 +173,7 @@ function _getCommonOptionList() {
             opt.DefaultMonitor,
             opt.ShowImediately,
             opt.SearchModeDefault,
+            opt.SyncFilter,
             opt.UpDownArrowAction,
             opt.HotkesRequireShift,
             opt.WraparoundSelector,
@@ -363,11 +364,14 @@ function getLegacyPage(optionList, pageProperties) {
 
         if (!widget) {
             const lbl = new Gtk.Label({
+                label: option,
                 xalign: 0,
                 margin_bottom: 4
             });
 
-            lbl.set_markup(option);
+            const context = lbl.get_style_context();
+            context.add_class('heading');
+
             mainBox[mainBox.add ? 'add' : 'append'](lbl);
 
             frame = new Gtk.Frame({
@@ -586,10 +590,6 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
     return item;
 }
 
-function _makeTitle(label) {
-    return `<b>${label}</b>`;
-}
-
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
@@ -597,7 +597,7 @@ function _getCommonOpt() {
     const optDict = {};
 
     optDict.Behavior = _optionsItem(
-            _makeTitle(_('Behavior')),
+            _('Behavior'),
     );
 
     optDict.Position = _optionsItem(
@@ -617,6 +617,13 @@ function _getCommonOpt() {
             'switcherPopupMonitor',
                [[_('Current Monitor'), 1],
                 [_('Primary Monitor'), 2]]
+    );
+
+    optDict.SyncFilter =_optionsItem(
+        _('Synchronize Filter Mode'),
+        _('Window and App switchers will share filter mode, meaning that switching the switcher mode will not set the filter mode to the respective default.'),
+        _newGtkSwitch(),
+        'switcherPopupSyncFilter'
     );
 
     optDict.ShowImediately = _optionsItem(
@@ -649,7 +656,7 @@ function _getCommonOpt() {
 
     optDict.HotkesRequireShift = _optionsItem(
             _('Action Hotkeys Require Shift'),
-            _('A-Z action hotkeys, except for navigation and filter switching, will require you to hold down the Shift key.'),
+            _('Single-key action hotkeys, except for navigation and filter switching hotkeys, will require you to hold down the Shift key.'),
             _newGtkSwitch(),
             'switcherPopupShiftHotkeys'
     );
@@ -669,7 +676,7 @@ function _getCommonOpt() {
     );
 
     optDict.Content = _optionsItem(
-            _makeTitle(_('Content')),
+            _('Content'),
     );
 
     optDict.OverlayTitle = _optionsItem(
@@ -711,7 +718,7 @@ function _getCommonOpt() {
     );
 
     optDict.Appearance = _optionsItem(
-            _makeTitle(_('Appearance')),
+            _('Appearance'),
     );
 
     let singlePrevSizeAdjustment = new Gtk.Adjustment({
@@ -743,7 +750,7 @@ function _getCommonOpt() {
     );
 
     optDict.SystemIntegration = _optionsItem(
-            _makeTitle(_('System Integration')),
+            _('System Integration'),
             null,
             null
     );
@@ -796,7 +803,7 @@ function _getWindowsOpt() {
     const optDict = {};
 
     optDict.Behavior =_optionsItem(
-            _makeTitle(_('Behavior')),
+            _('Behavior'),
     );
 
     optDict.DefaultFilter =_optionsItem(
@@ -883,7 +890,7 @@ function _getWindowsOpt() {
     );
 
     optDict.Content =_optionsItem(
-            _makeTitle(_('Content')),
+            _('Content'),
     );
 
     optDict.ShowWindowTitle =_optionsItem(
@@ -904,7 +911,7 @@ function _getWindowsOpt() {
     );
 
     optDict.Appearance =_optionsItem(
-            _makeTitle(_('Appearance')),
+            _('Appearance'),
     );
 
     const popupSizeAdjustment = new Gtk.Adjustment({
@@ -946,7 +953,7 @@ function _getAppsOpt() {
     const optDict = {};
 
     optDict.Behavior = _optionsItem(
-            _makeTitle(_('Behavior')),
+            _('Behavior'),
     );
 
     optDict.DefaultFilter = _optionsItem(
@@ -1001,7 +1008,7 @@ function _getAppsOpt() {
     );
 
     optDict.Content =_optionsItem(
-            _makeTitle(_('Content')),
+            _('Content'),
     );
 
     optDict.ShowAppTitle =_optionsItem(
@@ -1026,7 +1033,7 @@ function _getAppsOpt() {
        );
 
     optDict.Appearance = _optionsItem(
-            _makeTitle(_('Appearance')),
+            _('Appearance'),
     );
 
     let popupAppIconSizeAdjustment = new Gtk.Adjustment({
@@ -1052,7 +1059,7 @@ function _getMiscOpt() {
     const optDict = {};
 
     optDict.Windows = _optionsItem(
-            _makeTitle(_('Window Manager')),
+            _('Window Manager'),
             null,
             null
     );
@@ -1065,7 +1072,7 @@ function _getMiscOpt() {
     );
 
     optDict.Thumbnails = _optionsItem(
-            _makeTitle(_('DND Window Thumbnails')),
+            _('DND Window Thumbnails'),
             null,
             null
     );
@@ -1086,7 +1093,7 @@ function _getMiscOpt() {
     );
 
     optDict.ExternalTrigger = _optionsItem(
-            _makeTitle(_('Options for External Mouse Trigger')),
+            _('Options for External Mouse Trigger'),
     );
 
     optDict.MousePointerPosition = _optionsItem(
@@ -1138,7 +1145,7 @@ function _getMouseOpt() {
     const optDict = {};
 
     optDict.Common = _optionsItem(
-            _makeTitle(_('Common')),
+            _('Common'),
     );
 
     optDict.PrimaryBackground = _optionsItem(
@@ -1208,7 +1215,7 @@ function _getMouseOpt() {
     //////////////////////////////////////////////////////////////////////////////////
 
     optDict.WindowSwitcher =_optionsItem(
-            _makeTitle(_('Window Switcher')),
+            _('Window Switcher'),
     );
 
     optDict.ScrollWinItem =_optionsItem(
@@ -1253,7 +1260,7 @@ function _getMouseOpt() {
     actionList.splice(1,1);*/
 
     optDict.AppSwitcher = _optionsItem(
-            _makeTitle(_('App Switcher')),
+            _('App Switcher'),
     );
 
     optDict.ScrollAppItem = _optionsItem(
@@ -1299,7 +1306,7 @@ function _getHotkeysOptionList() {
     // [text, tooltip, widget, settings-variable, options for combo]
 
     optionList.push(_optionsItem(
-            _makeTitle(_('Hotkeys configuration (you can assign up to 2 characters (keys) to each action)')),
+            _('Custom hotkeys (you can assign up to 2 characters (keys) to each action)'),
             "You can enter up to two hotkeys for each action, the second one is primarily dedicated to include non [a-zA-Z] keys with Shift pressed.\n\
 Delete hotkey to disable the action.\n\
 All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is turned on."
@@ -1316,7 +1323,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionList.push(_optionsItem(
             _('Toggle Search Mode On/Off'),
-            _("You can enter multiple patterns separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, comment, categories, keywords, and app executables, so you can find most of editor apps by typing an 'edit', games by typing 'game' and so on."),
+            _("In the search mode you can enter multiple patterns separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, description, categories, keywords, and app executables, so you can find most of editor apps by typing 'edit', games by typing 'game' and so on. You can even search for sections in the GNOME Settings app."),
             _newGtkEntry(),
             'hotkeySearch'
         )
@@ -1478,7 +1485,7 @@ Thumbnail controls:\n\
     // Fixed Hotkeys ///////////////////////////////////////////////
     // instead of settings variables include strings with predefined hotkeys
     optionList.push(_optionsItem(
-            _makeTitle(_('Fixed Hotkeys')),
+            _('Fixed Hotkeys'),
             '',
             null,
         )

@@ -1,6 +1,6 @@
 'use strict';
 
-const {GObject, GLib, St, Shell, Gdk} = imports.gi;
+const { GObject, GLib, St, Shell, Gdk } = imports.gi;
 const Clutter         = imports.gi.Clutter;
 const Meta            = imports.gi.Meta;
 const Main            = imports.ui.main;
@@ -177,7 +177,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = '';
-
+        // options var is set from extension.js when the extension is enabled
         this.KEYBOARD_TRIGGERED    = true;  // popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
         this.SUPER_DOUBLE_PRESS_ACT = options.get('superDoublePressAction'); // 1 - dafault, 2, Overview, 3 - App Grid, 4 - Activate Previous Window
         this.POSITION_POINTER      = options.get('switcherPopupPointer'); // place popup at pointer position
@@ -198,6 +198,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SEARCH_DEFAULT        = options.get('switcherPopupStartSearch');
         this.TOOLTIP_SCALE         = options.get('switcherPopupTooltipLabelScale');
         this.HOVER_SELECT          = options.get('switcherPopupHoverSelect');
+        this.SYNC_FILTER           = options.get('switcherPopupSyncFilter');
 
         this.SHOW_APPS             = false;
 
@@ -484,8 +485,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        // set filter for both switchers to the value of the currently activated switcher
-        if (this._firstRun) {
+        // set filter for both switchers to the value of the currently activated switcher if requested
+        if (this._firstRun && this.SYNC_FILTER) {
             if (this._switcherMode === SwitcherMode.APPS) {
                 this.WIN_FILTER_MODE = this.APP_FILTER_MODE;
             }
@@ -2004,7 +2005,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let filterMode = this._showingApps
             ? this.APP_FILTER_MODE
             : this.WIN_FILTER_MODE;
-        // if active ws has all windows on one monitor, ignore the monitor filter mode to avoid 'nothing happen' when switching between modes
+        // if active ws has all windows on one monitor, ignore the monitor filter mode to avoid 'nothing happens' when switching between modes
         let m = (Main.layoutManager.monitors.length > 1) && !this._allWSWindowsSameMonitor() ? 3 : 2;
         filterMode -= 1;
 
@@ -2012,8 +2013,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             filterMode = m;
         }
 
-        this.APP_FILTER_MODE = filterMode;
-        this.WIN_FILTER_MODE = filterMode;
+        if (this._switcherMode === SwitcherMode.WINDOWS) {
+            this.WIN_FILTER_MODE = filterMode;
+            if (this.SYNC_FILTER)
+                this.APP_FILTER_MODE = filterMode;
+        } else {
+            this.APP_FILTER_MODE = filterMode;
+            if (this.SYNC_FILTER)
+                this.WIN_FILTER_MODE = filterMode;
+        }
 
         this.show();
     }
