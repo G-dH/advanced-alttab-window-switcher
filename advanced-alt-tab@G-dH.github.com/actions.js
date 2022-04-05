@@ -30,7 +30,8 @@ function _getWindowApp(metaWindow) {
 var Actions = class {
     constructor() {
         this._gOptions = new Settings.Options();
-        this.WIN_SKIP_MINIMIZED     = this._gOptions.get('winSkipMinimized');
+        this.WIN_SKIP_MINIMIZED = this._gOptions.get('winSkipMinimized');
+        this.WS_SHOW_POPUP = this._gOptions.get('wsShowSwitcherPopup');
     }
 
     clean() {
@@ -294,6 +295,8 @@ var Actions = class {
     }
 
     showWsSwitcherPopup(direction, wsIndex) {
+        if (!this.WS_SHOW_POPUP)
+            return;
         if (!wsIndex) {
             wsIndex = global.workspace_manager.get_active_workspace_index();
         }

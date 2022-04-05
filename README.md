@@ -56,13 +56,14 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 |`M`|                       - Toggle full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.|
 |`N, Ctrl+Enter`|           - Open new window of selected application, if the application soupports it.|
 |`F`|                       - Move the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.|
-|`Ctrl+;/~, Shift+Super`|    - Toggle between Windows and Applications modes.|
+|`Ctrl+;/~`|    - Toggle between Windows and Applications modes.|
 |`T`|                       - Create a thumbnail preview of the selected window and place it at the bottom right of the current monitor. You can remove the lastly created thumbnail using this hotkey while holding the `Ctrl` key pressed, or remove all created thumbnails while holding `Ctrl` and `Shift` keys pressed.|
 |`P`|                       - Open preferences window for this extension.|
 |`Ctrl+Up/Down/Left/Right`| - Move selected window/app to the adjacent workspace in front of or behind the current workspace.|
 |`Ctrl+Shift+Up/Down`|      - Move selected window/app to the newly created workspace in front of or behind the current workspace.|
 |`Ctrl+Shift+Left/Right`|   - In App mode with Favorites change the position of the selected favorite application in the Favorite apps list.|
-|`Ctrl+Shift+Super`|        - Toggle Activities Overview|
+|`Shift+Super`|             - Toggle Activities Overview|
+|`Ctrl+Shift+Super`|        - Toggle App Grid Overview|
 
 ### Type to Search
 

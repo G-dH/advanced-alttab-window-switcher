@@ -313,6 +313,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
+    _itemRemovedHandler(n) {
+        if (this._items.length > 0) {
+            let newIndex;
+
+            if (n < this._selectedIndex)
+                newIndex = this._selectedIndex - 1;
+            else if (n === this._selectedIndex)
+                newIndex = Math.min(n, this._items.length - 1);
+            else if (n > this._selectedIndex)
+                return; // No need to select something new in this case
+
+            this._select(newIndex);
+        } else {
+            // if switcher is empty, try to repopulate it.
+            this._switcherDestroyedOnLastWinClosed = true;
+            this.show();
+        }
+    }
+
     vfunc_allocate(box, flags) {
         let monitor = this._getMonitorByIndex(this._monitorIndex);
         shellVersion >= 40  ?   this.set_allocation(box)
@@ -522,7 +541,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         let switcherList = this._getSwitcherList();
 
-        if (switcherList.length === 0) {
+        if (!switcherList.length && this._searchEntryNotEmpty()) {
             // no results -> back to the last successful pattern
             this._searchEntry = this._searchEntry.slice(0, -1);
             this._tempFilterMode = null;
@@ -586,6 +605,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _getSwitcherList() {
         let switcherList;
 
+        if (this._singleApp && this._switcherDestroyedOnLastWinClosed) {
+            if (this._searchEntryNotEmpty()) {
+                this._searchEntry = '';
+            } else {
+                this._singleApp = null;
+                this._switcherDestroyedOnLastWinClosed = false;
+                if (this._switcherMode === SwitcherMode.APPS) {
+                    this.SHOW_APPS = true;
+                }
+            }
+        }
+
         if (this.SHOW_APPS) {
             switcherList = this._getAppList(this._searchEntry);
             if (!switcherList.length && this.APP_FILTER_MODE > 1) {
@@ -620,7 +651,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        // if no windows/apps match the searched pattern and the searching apps is allowed, try to find some apps instead
+        // if no windows/apps match the searched pattern and searching apps is allowed, try to find some apps instead
         if (switcherList.length === 0 && this.SEARCH_APPS === true && this._searchEntryNotEmpty()) {
             switcherList = this._getAppList(this._searchEntry);
             this._initialSelectionMode = SelectMode.FIRST;
@@ -955,7 +986,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let id;
 
         if (winToApp) {
-            id = _getWindowApp(this._items[0].window);
+            if (this._items[0] && this._items[0].window)
+                id = _getWindowApp(this._items[0].window);
         } else {
             id = this._getSelected();
         }
@@ -1449,10 +1481,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._toggleSingleAppMode();
         } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
             // if overlay-key (usually Super_L) is pressed within the timeout aftetr AATWS was triggered - double press
-            if ((_ctrlPressed() && _shiftPressed()) || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.OVERVIEW)) {
+            if ((!_ctrlPressed() && _shiftPressed()) || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.OVERVIEW)) {
                 this.fadeAndDestroy();
                 Main.overview.toggle();
-                if (this._searchEntryNotEmpty) {
+                if (this._searchEntryNotEmpty()) {
                     if (Main.overview.viewSelector) {
                         Main.overview.viewSelector._entry.set_text(this._searchEntry);
                         Main.overview.viewSelector._entry.grab_key_focus();
@@ -1460,7 +1492,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         Main.overview._overview.controls._searchController._entry.set_text(this._searchEntry);
                     }
                 }
-            } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.APP_GRID) {
+            } else if ((_ctrlPressed() && _shiftPressed()) || (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.APP_GRID)) {
                 this.fadeAndDestroy();
                 this._getActions().toggleAppGrid();
             } else if (this._overlayKeyInitTimeout && this.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.PREV_WIN) {
@@ -1475,8 +1507,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._toggleSwitcherMode();
             } else if (_ctrlPressed()) {
                 this._switchFilterMode();
-            } else if (_shiftPressed()) {
-                this._toggleSwitcherMode();
+            /*} else if (_shiftPressed()) {
+                this._toggleSwitcherMode();*/
             } else {
                 this.fadeAndDestroy();
                 //this._toggleSwitcherMode();

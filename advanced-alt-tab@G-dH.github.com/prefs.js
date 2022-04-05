@@ -244,6 +244,8 @@ function _getMiscOptionList() {
     const optionList = [
         opt.Windows,
             opt.AlwaysActivateFocused,
+        opt.Workspace,
+            opt.ShowWsSwitcherPopup,
         opt.Thumbnails,
             opt.ThumbnailScale,
         opt.ExternalTrigger,
@@ -1071,6 +1073,19 @@ function _getMiscOpt() {
             'wmAlwaysActivateFocused'
     );
 
+    optDict.Workspace = _optionsItem(
+            _('Workspace Manager'),
+            null,
+            null
+    );
+
+    optDict.ShowWsSwitcherPopup = _optionsItem(
+            _('Show Workspace Switcher Pop-up'),
+            _('While switching workspaces.'),
+            _newGtkSwitch(),
+            'wsShowSwitcherPopup'
+    );
+
     optDict.Thumbnails = _optionsItem(
             _('DND Window Thumbnails'),
             null,
@@ -1495,7 +1510,7 @@ Thumbnail controls:\n\
             _('Toggle Switcher Mode'),
             _('Switch between Apps and Windows Modes.'),
             _newGtkEntry(),
-            _('Ctrl + `/~, Shift + Super')
+            _('Ctrl + `/~')
         )
     );
 
@@ -1503,7 +1518,7 @@ Thumbnail controls:\n\
             _('Switch Filter Mode'),
             _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
             _newGtkEntry(),
-            _('Ctrl + `/~, Shift + Super')
+            _('Ctrl + Super')
         )
     );
 

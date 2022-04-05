@@ -111,6 +111,7 @@ var Options = class Options {
             switcherPopupPointerTimeout: ['int', 'switcher-popup-pointer-timeout'],
             switcherPopupActivateOnHide: ['boolean', 'switcher-popup-activate-on-hide'],
             wmAlwaysActivateFocused: ['boolean', 'wm-always-activate-focused'],
+            wsShowSwitcherPopup: ['boolean', 'ws-switch-popup'],
             winThumbnailScale: ['int', 'win-thumbnail-scale'],
             hotkeySwitchFilter: ['string', 'hotkey-switch-filter'],
             hotkeySingleApp: ['string', 'hotkey-single-app'],
