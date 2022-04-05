@@ -60,7 +60,7 @@ function fillPreferencesWindow(window) {
         icon_name: 'view-app-grid-symbolic' }));
     window.add(getAdwPage(_getHotkeysOptionList(), {
         title: _('Hotkeys'),
-        icon_name: 'preferences-desktop-shortcuts-symbolic' }));
+        icon_name: 'input-keyboard-symbolic' }));
     window.add(getAdwPage(_getMouseOptionList(), {
         title: _('Mouse'),
         icon_name: 'input-mouse-symbolic' }));
