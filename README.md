@@ -108,11 +108,11 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 
 You can install this extension in several ways.
 
-### Installing from extensions.gnome.org
+### Install from extensions.gnome.org
 
 The easiest way to install AATWS: go to [extensions.gnome.org](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/) and toggle the switch. This installation also gives you automatic updates in the future.
 
-### Installing from the latest Github release
+### Install from the latest Github release
 
 Download the latest release archive using following command:
 
@@ -122,9 +122,21 @@ Install the extension (`--force` switch needs to be used only if some version of
 
     gnome-extensions install --force advanced-alttab-window-switcher@G-dH.github.com.zip
 
-Then restart GNOME Shell (`ALt` + `F2`, `r`, `Enter`, or Log Out/Log In if you use Wayland). Now you should see the new extension in *Extensions* (or *GNOME Tweak Tool* on older systems) application (reopen the app too if needed to load new data), where you can enable it and access its Preferences. 
+### Install the latest development version
+The most recent version in the repository is the one I'm currently running on my own systems, problems may occure, but usually nothing serious.
+Run following commands in the terminal (`git` needs to installed, navigate to the directory you want to download the source):
 
-You can also enable the extension from the command line:
+    git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
+    cd advanced-alttab-window-switcher/advanced-alt-tab@G-dH.github.com/
+    make install
+
+## Enable installed extension
+
+After installation you need to enable the extension. Only direct installation from extension.gnome.org loads the code and enables the extension immediately.
+
+- First restart GNOME Shell (`ALt` + `F2`, `r`, `Enter`, or Log Out/Log In if you use Wayland)
+- Now you should see the new extension in *Extensions* (or *GNOME Tweak Tool* on older systems) application (reopen the app if needed to load new data), where you can enable it and access its Preferences/Settings.
+- You can also enable the extension from the command line:
 
     gnome-extensions enable advanced-alt-tab@G-dH.github.com
 
