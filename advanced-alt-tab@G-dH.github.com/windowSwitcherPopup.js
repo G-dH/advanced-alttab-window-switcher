@@ -516,14 +516,19 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (binding == 'switch-group') {
             this._switchGroupInit = true;
-            let id = null;
+            let id, name;
             //let metaWin = global.display.get_tab_list(Meta.WindowType.NORMAL, null)[0];
             const metaWin = AltTab.getWindows(null)[0];
-            if (metaWin)
-                id = _getWindowApp(metaWin).get_id();
+            if (metaWin) {
+                const app = _getWindowApp(metaWin);
+                id = app.get_id();
+                name = app.get_name();
+            }
             if (id) {
-                this._singleApp = id;
+                this._singleApp = [id, name];
                 this.SHOW_APPS = false;
+            } else {
+                this._singleApp = null;
             }
         }
 
@@ -1225,7 +1230,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (apps.length === 0) return;
 
-        let currentIndex = apps.indexOf(this._singleApp);
+        let currentIndex = apps.indexOf(this._singleApp[0]);
         if (currentIndex < 0) return;
 
         let targetIndex;
@@ -1823,7 +1828,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._doNotReactOnScroll = false;
             return;
         }
-        direction = direction === Clutter.ScrollDirection.UP ? Meta.MotionDirection.UP : Meta.MotionDirection.DOWN;
 
         this._resetNoModsTimeout();
 
@@ -1954,11 +1958,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._showingApps) {
                 if (!selected.cachedWindows.length) return;
 
-                this._singleApp = selected.get_id();
+                this._singleApp = [selected.get_id(), selected.get_name()];
                 this.SHOW_APPS = false;
                 // this._showingApps = false;
             } else {
-                this._singleApp = _getWindowApp(selected).get_id();
+                let id, name;
+                const app = _getWindowApp(selected);
+                if (app) {
+                    id = app.get_id();
+                    name = app.get_name();
+                    this._singleApp = [id, name];
+                }
             }
         } else {
             this._singleApp = null;
@@ -2531,6 +2541,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switchFilterMode();
                 break;
             case Action.SWITCH_WS:
+                direction = direction === Clutter.ScrollDirection.UP ? Meta.MotionDirection.UP : Meta.MotionDirection.DOWN;
                 this._switchWorkspace(direction);
                 break;
             case Action.SHOW:
@@ -2656,8 +2667,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switchNextApp = false;
             }
 
-            let tracker = Shell.WindowTracker.get_default();
-            winList = winList.filter(w => tracker.get_window_app(w).get_id() === this._singleApp);
+            const tracker = Shell.WindowTracker.get_default();
+            const id = this._singleApp[0];
+            const name = this._singleApp[1];
+
+            // some apps (like VirtualBox) may create multiple windows with different app ids, but with the same name
+            winList = winList.filter(w => tracker.get_window_app(w).get_id() === id || tracker.get_window_app(w).get_name() === name);
         }
 
         if (pattern) {
@@ -2751,7 +2766,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         } else {
             this._initialSelectionMode = SelectMode.FIRST;
-            let appInfoList = Shell.AppSystem.get_default().get_installed().filter(appInfo => {
+            let appInfoList = Shell.AppSystem.get_default().get_installed();
+
+            appInfoList = appInfoList.filter(appInfo => {
                 try {
                     appInfo.get_id(); // catch invalid file encodings
                 } catch (e) {
@@ -2759,17 +2776,26 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 }
 
                 //let name = appInfo.get_name() || '';
-                let dispName = appInfo.get_display_name() || '';
-                let gname = appInfo.get_generic_name() || '';
-                //let exec = appInfo.get_executable() || '';
-                let exec = appInfo.get_commandline() || '';
-                let description = appInfo.get_description() || '';
-                let categories = appInfo.get_string('Categories') || '';
-                let keywords = appInfo.get_string('Keywords') || '';
-                // show only launchers that should be visible in this DE and invisible launchers of Gnome Settings items
-                return (appInfo.should_show() || (exec.includes('gnome-control-center', 0))) && this._match(
-                    `${dispName} ${gname} ${exec} ${description} ${categories} ${keywords}`,
-                    pattern);
+                let string = '';
+                let shouldShow = false;
+                if (appInfo.get_display_name) {
+                    let exec = appInfo.get_commandline() || '';
+
+                    // show only launchers that should be visible in this DE and invisible launchers of Gnome Settings items
+                    shouldShow = appInfo.should_show() || (exec.includes('gnome-control-center', 0));
+
+                    if (shouldShow) {
+                        let dispName = appInfo.get_display_name() || '';
+                        let gName = appInfo.get_generic_name() || '';
+                        //let exec = appInfo.get_executable() || '';
+                        let description = appInfo.get_description() || '';
+                        let categories = appInfo.get_string('Categories') || '';
+                        let keywords = appInfo.get_string('Keywords') || '';
+                        string = `${dispName} ${gName} ${exec} ${description} ${categories} ${keywords}`;
+                    }
+                }
+
+                return shouldShow && this._match(string, pattern);
             });
 
             for (let i = 0; i < appInfoList.length; i++) {
