@@ -1,23 +1,21 @@
 'use strict';
 
 const { Gtk, GLib, Gio, GObject } = imports.gi;
-// libadwaita is available starting with GNOME Shell 42.
-let Adw = null;
-try {
-  Adw = imports.gi.Adw;
-} catch (e) {
-}
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.settings;
 
-const shellVersion   = Settings.shellVersion;
-
-let   gOptions;
-
 // gettext
 const _  = Settings._;
+
+const shellVersion   = Settings.shellVersion;
+
+// libadwaita is available starting with GNOME Shell 42.
+const Adw = null;
+if (shellVersion >= 42) Adw = imports.gi.Adw;
+
+let   gOptions;
 
 const Actions = Settings.Actions;
 
@@ -43,6 +41,28 @@ const actionList = [
     [_('Open Preferences'),                Actions.PREFS],
 ];
 
+// conversion of Gtk3 / Gtk4 widgets add methods
+const append = shellVersion < 40 ? 'add' : 'append';
+const set_child = shellVersion < 40 ? 'add' : 'set_child';
+
+const COMMON_TITLE = _('Common');
+const COMMON_ICON = 'preferences-system-symbolic';
+const WIN_TITLE = _('Window Switcher');
+const WIN_ICON = 'focus-windows-symbolic';
+const APP_TITLE = _('App Switcher');
+const APP_ICON = 'view-app-grid-symbolic';
+const HOTKEYS_TITLE = _('Hotkeys');
+const HOTKEYS_ICON = 'input-keyboard-symbolic';
+const MOUSE_TITLE = _('Mouse');
+const MOUSE_ICON = 'input-mouse-symbolic';
+const MISC_TITLE = _('Misc');
+const MISC_ICON = 'preferences-other-symbolic';
+
+function _newImageFromIconName(name, size = null) {
+    const args = shellVersion >= 40 ? [name] : [name, size];
+    return Gtk.Image.new_from_icon_name(...args);
+}
+
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
     gOptions = new Settings.Options();
@@ -50,23 +70,23 @@ function init() {
 
 function fillPreferencesWindow(window) {
     window.add(getAdwPage(_getCommonOptionList(), {
-        title: _('Common'),
-        icon_name: 'preferences-system-symbolic' }));
+        title: COMMON_TITLE,
+        icon_name: COMMON_ICON }));
     window.add(getAdwPage(_getWindowOptionList(), {
-        title: _('Window Switcher'),
-        icon_name: 'focus-windows-symbolic' }));
+        title: WIN_TITLE,
+        icon_name: WIN_ICON }));
     window.add(getAdwPage(_getAppOptionList(), {
-        title: _('App Switcher'),
-        icon_name: 'view-app-grid-symbolic' }));
+        title: APP_TITLE,
+        icon_name: APP_ICON }));
     window.add(getAdwPage(_getHotkeysOptionList(), {
-        title: _('Hotkeys'),
-        icon_name: 'input-keyboard-symbolic' }));
+        title: HOTKEYS_TITLE,
+        icon_name: HOTKEYS_ICON }));
     window.add(getAdwPage(_getMouseOptionList(), {
-        title: _('Mouse'),
-        icon_name: 'input-mouse-symbolic' }));
+        title: MOUSE_TITLE,
+        icon_name: MOUSE_ICON }));
     window.add(getAdwPage(_getMiscOptionList(), {
-        title: _('Misc'),
-        icon_name: 'preferences-other-symbolic' }));
+        title: MISC_TITLE,
+        icon_name: MISC_ICON }));
 
     window.set_search_enabled(true);
 
@@ -109,12 +129,12 @@ function buildPrefsWidget() {
 
     const newImage = Gtk.Image.new_from_icon_name;
     const pagesBtns = [
-        [new Gtk.Label({ label: _('Common')}), shellVersion >= 40 ? newImage('preferences-system-symbolic') : newImage('preferences-system-symbolic', Gtk.IconSize.BUTTON)],
-        [new Gtk.Label({ label: _('Window Switcher')}), shellVersion >= 40 ? newImage('focus-windows-symbolic') : newImage('focus-windows-symbolic', Gtk.IconSize.BUTTON)],
-        [new Gtk.Label({ label: _('App Switcher')}), shellVersion >= 40 ? newImage('view-app-grid-symbolic') : newImage('view-app-grid-symbolic', Gtk.IconSize.BUTTON)],
-        [new Gtk.Label({ label: _('Hotkeys')}), shellVersion >= 40 ? newImage('input-keyboard-symbolic') : newImage('input-keyboard-symbolic', Gtk.IconSize.BUTTON)],
-        [new Gtk.Label({ label: _('Mouse')}), shellVersion >= 40 ? newImage('input-mouse-symbolic') : newImage('input-mouse-symbolic', Gtk.IconSize.BUTTON)],
-        [new Gtk.Label({ label: _('Misc')}), shellVersion >= 40 ? newImage('preferences-other-symbolic') : newImage('preferences-other-symbolic', Gtk.IconSize.BUTTON)]
+        [new Gtk.Label({ label: COMMON_TITLE}), _newImageFromIconName(COMMON_ICON, Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: WIN_TITLE}), _newImageFromIconName(WIN_ICON, Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: APP_TITLE}), _newImageFromIconName(APP_ICON, Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: HOTKEYS_TITLE}), _newImageFromIconName(HOTKEYS_ICON, Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: MOUSE_TITLE}), _newImageFromIconName(MOUSE_ICON, Gtk.IconSize.BUTTON)],
+        [new Gtk.Label({ label: MISC_TITLE}), _newImageFromIconName(MISC_ICON, Gtk.IconSize.BUTTON)]
     ];
 
     let stBtn = stackSwitcher.get_first_child ? stackSwitcher.get_first_child() : null;
@@ -123,8 +143,8 @@ function buildPrefsWidget() {
         const icon = pagesBtns[i][1];
         icon.margin_start = 30;
         icon.margin_end = 30;
-        box[box.add ? 'add' : 'append'](icon);
-        box[box.add ? 'add' : 'append'](pagesBtns[i][0]);
+        box[append](icon);
+        box[append](pagesBtns[i][0]);
         if (stackSwitcher.get_children) {
             stBtn = stackSwitcher.get_children()[i];
             stBtn.add(box);
@@ -138,7 +158,7 @@ function buildPrefsWidget() {
     stack.show_all && stack.show_all();
     stackSwitcher.show_all && stackSwitcher.show_all();
 
-    prefsWidget[prefsWidget.add ? 'add' : 'append'](stack);
+    prefsWidget[append](stack);
     prefsWidget.connect('realize', (widget) => {
         const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
         const width = 900;
@@ -329,7 +349,7 @@ function getAdwPage(optionList, pageProperties = {}) {
             hexpand: true,
         })
         /*for (let i of item) {
-            box[box.add ? 'add' : 'append'](i);*/
+            box[append](i);*/
         grid.attach(option, 0, 0, 1, 1);
         if (widget) {
             grid.attach(widget, 1, 0, 1, 1);
@@ -374,7 +394,7 @@ function getLegacyPage(optionList, pageProperties) {
             const context = lbl.get_style_context();
             context.add_class('heading');
 
-            mainBox[mainBox.add ? 'add' : 'append'](lbl);
+            mainBox[append](lbl);
 
             frame = new Gtk.Frame({
                 margin_bottom: 16
@@ -384,8 +404,8 @@ function getLegacyPage(optionList, pageProperties) {
                 selection_mode: null
             });
 
-            mainBox[mainBox.add ? 'add' : 'append'](frame);
-            frame[frame.add ? 'add' : 'set_child'](frameBox);
+            mainBox[append](frame);
+            frame[set_child](frameBox);
             continue;
         }
 
@@ -404,9 +424,9 @@ function getLegacyPage(optionList, pageProperties) {
         if (widget) {
             grid.attach(widget, 5, 0, 2, 1);
         }
-        frameBox[frameBox.add ? 'add' : 'append'](grid);
+        frameBox[append](grid);
     }
-    page[page.add ? 'add' : 'set_child'](mainBox);
+    page[set_child](mainBox);
 
     return page;
 }
@@ -482,7 +502,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
             halign: Gtk.Align.START,
         });
         option.set_text(text);
-        label[label.add ? 'add' : 'append'](option);
+        label[append](option);
 
         if (tooltip) {
             const caption = new Gtk.Label({
@@ -495,7 +515,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
             context.add_class('dim-label');
             context.add_class('caption');
             caption.set_text(tooltip);
-            label[label.add ? 'add' : 'append'](caption);
+            label[append](caption);
         }
         label._title = text;
     } else {
@@ -516,24 +536,7 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
         settings.bind(key, widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 
     } else if (widget && widget._is_spinbutton) {
-        settings.bind(key, widget.adjustment, 'value', Gio.SettingsBindFlags.GET);
-        widget.timeout_id = null;
-        widget.connect('value-changed', () => {
-            widget.update();
-            if (widget.timeout_id) {
-                GLib.Source.remove(widget.timeout_id);
-            }
-
-            widget.timeout_id = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                500,
-                () => {
-                    gOptions.set(variable, widget.value);
-                    widget.timeout_id = null;
-                    return 0;
-                }
-            );
-        });
+        settings.bind(key, widget.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
     } else if (widget && widget._is_combo_box) {
         let model = widget.get_model();
         for (const [label, value] of options) {
