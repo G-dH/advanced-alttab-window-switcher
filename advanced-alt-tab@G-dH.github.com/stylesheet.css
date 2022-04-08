@@ -1,7 +1,7 @@
-.workspace-index, .running-counter, .workspace-index-highlight, .hot-key-number{
+.workspace-index, .running-counter, .workspace-index-highlight, .hot-key-number {
   text-align: center;
   font-weight: normal;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   padding: 1px;
   padding-left: 3px;
   padding-right: 3px;
@@ -12,8 +12,11 @@
 }
 
 .running-counter {
-  /*margin-bottom: 0px;*/
   border-color: rgb(68, 68, 68);
+}
+
+.window-state-indicators {
+  margin: 2px;
 }
 
 .workspace-index-highlight {

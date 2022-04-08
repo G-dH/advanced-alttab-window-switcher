@@ -192,7 +192,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SHIFT_AZ_HOTKEYS      = options.get('switcherPopupShiftHotkeys');
         this.STATUS                = options.get('switcherPopupStatus');
         this.PREVIEW_SELECTED      = options.get('switcherPopupPreviewSelected');
-        //this.SHOW_WS_POPUP         = options.get('wsSwitchPopup');
         this.SEARCH_ALL            = options.get('winSwitcherPopupSearchAll');
         this.OVERLAY_TITLE         = options.get('switcherPopupTooltipTitle');
         this.SEARCH_DEFAULT        = options.get('switcherPopupStartSearch');
@@ -1942,9 +1941,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (global.workspace_manager.get_active_workspace() !== selected.get_workspace()) {
             Main.wm.actionMoveWorkspace(selected.get_workspace());
-            //if (this.SHOW_WS_POPUP) {
-                this._getActions().showWsSwitcherPopup();
-            //}
+            this._getActions().showWsSwitcherPopup();
         }
     }
 
@@ -2076,10 +2073,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._updateSwitcher();
-        //this._showWsIndex();
-        //if (this.SHOW_WS_POPUP) {
-            this._getActions().showWsSwitcherPopup();
-        //}
+        this._getActions().showWsSwitcherPopup();
     }
 
     _showOverlaySearchLabel(text) {
@@ -2241,10 +2235,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._doNotShowWin = false;
         }
 
-        //this._showWsIndex();
-        //if (this.SHOW_WS_POPUP) {
             this._getActions().showWsSwitcherPopup();
-        //}
     }
 
     _switchMonitor(direction) {
@@ -2322,8 +2313,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._updateSwitcher();
         }
 
-        //if (this.SHOW_WS_POPUP)
-            this._getActions().showWsSwitcherPopup(direction, wsIndex);
+        this._getActions().showWsSwitcherPopup(direction, wsIndex);
         this._doNotUpdateOnNewWindow = false;
     }
 
@@ -2339,16 +2329,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._showWindow();
         this._updateSwitcher();
-        //this._showWsIndex();
         //this._getActions().showWsSwitcherPopup();
     }
 
     _reorderWorkspace(direction = 0) {
         this._getActions().reorderWorkspace(direction);
-        //this._showWsIndex();
-        //if (this.SHOW_WS_POPUP) {
             this._getActions().showWsSwitcherPopup();
-        //}
     }
 
     _toggleMaximizeOnCurrentMonitor() {
@@ -2486,19 +2472,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _switchToFirstWS() {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(0));
         this.show();
-        //this._showWsIndex();
-        //if (this.SHOW_WS_POPUP) {
-            this._getActions().showWsSwitcherPopup();
-        //}
+        this._getActions().showWsSwitcherPopup();
     }
 
     _switchToLastWS() {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(global.workspace_manager.n_workspaces - 1));
         this.show();
-        //this._showWsIndex();
-        //if (this.SHOW_WS_POPUP) {
             this._getActions().showWsSwitcherPopup();
-        //}
     }
 
     _toggleWinAbove() {
@@ -3013,12 +2993,13 @@ class WindowIcon extends St.BoxLayout {
         // will be used to connect on icon signals (switcherList.icons[n]._front)
         this._front = front;
 
-        if (this._switcherParams.wsIndexes) {
-            this._icon.add_child(this._createWsIcon(window.get_workspace().index() + 1));
+        let indicatorBox = this._getIndicatorBox();
+        if (indicatorBox) {
+            this._icon.add_child(indicatorBox);
         }
 
-        if (this.window.is_on_all_workspaces()) {
-            this._icon.add_child(this._createStickyIcon());
+        if (this._switcherParams.wsIndexes) {
+            this._icon.add_child(this._createWsIcon(window.get_workspace().index() + 1));
         }
 
         this._icon.set_size(size * scaleFactor, size * scaleFactor);
@@ -3026,9 +3007,6 @@ class WindowIcon extends St.BoxLayout {
 
     _alignFront(icon, isWindow = true) {
         icon.x_align = icon.y_align = Clutter.ActorAlign.END;
-        if (isWindow && this.window.is_above()) {
-            icon.y_align = Clutter.ActorAlign.START;
-        }
     }
 
     _createAppIcon(app, size) {
@@ -3055,15 +3033,49 @@ class WindowIcon extends St.BoxLayout {
         return label;
     }
 
-    _createStickyIcon() {
-        let icon = new St.Icon({
+    _getIndicatorBox() {
+        let indicatorBox = null;
+        if (this.window.is_above() || this.window.is_on_all_workspaces()) {
+            indicatorBox = new St.BoxLayout({
+            vertical: false,
             style_class: 'workspace-index',
-            icon_name: 'view-pin-symbolic',
-            icon_size: 16,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.START,
+        });
+            if (this.window.is_above()) {
+                indicatorBox.add_child(this._createAboveIcon());
+            }
+            if (this.window.is_on_all_workspaces()) {
+                indicatorBox.add_child(this._createStickyIcon());
+            }
+        }
+
+        return indicatorBox;
+    }
+    _createAboveIcon() {
+        let icon = new St.Icon({
+            style_class: 'window-state-indicators',
+            icon_name: 'go-top-symbolic',
+            icon_size: 16,
+            /*x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.START,
+            y_align: Clutter.ActorAlign.START,*/
+        });
+        return icon;
+    }
+
+    _createStickyIcon() {
+        let icon = new St.Icon({
+            style_class: 'window-state-indicators',
+            icon_name: 'view-pin-symbolic',
+            icon_size: 16,
+            /*x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.START,*/
         });
         return icon;
     }
@@ -3125,11 +3137,11 @@ class AppIcon extends AppDisplay.AppIcon {
                 this._iconContainer.add_child(runninIndicator);
             }
         } else if (count) {
-            const dotStyle = 'border: 1px; border-color: ghostwhite;';
+            const dotStyle = 'border: 1px; border-color: #232323;';
             if (this._switcherParams.showAppTitles) {
                 this._dot.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em; ${dotStyle}`);
             } else {
-                this._dot.set_style(dotStyle);
+                this._dot.set_style(`margin-bottom: 0px; ${dotStyle}`);
             }
         } else {
             this._iconContainer.remove_child(this._dot);
