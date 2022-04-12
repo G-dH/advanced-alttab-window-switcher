@@ -1,5 +1,21 @@
 ## Changelog
 
+### v15 (not relesed yet)
+**Added:**
+- Option `Synchronize Filter Mode` allows to keep the current window flter mode when switcheng between Window and App modes of the switcher, which was the default behavior until now. If disabled, the switcher will change the window filter mode to the respective default each time the switcher mode is changed.
+- Returned requested option `Show Workspace Switcher Pop-up`.
+- Option `Monitor with current window` aded to `Default Monitor` menu.
+
+**Other changes:**
+- Single app mode now includes windows whose parent applications do not match the ID but have the same name. It helps to, for example, isolate all windows of Virtual Box machines, preferences windows spawned by the Extensions app and other.
+- Always On Top state of the window is now indicated by the icon instead of elevated front (app) icon.
+- Action on hotkey `Shift+Super` changed back to Toggle Activities overview.
+- Updated style of running app dot ndicator.
+- Preferences window code refactored.
+
+**Fixed:**
+- Scroll to select item doesn't work
+
 ### v14 (13 rejected due to formal issues)
 **Added:**
 - Each window preview in the switcher list reveals the `Close Window` button on mouse hover to easily close the window.
