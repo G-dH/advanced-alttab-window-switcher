@@ -170,7 +170,6 @@ function _getWindows(workspace, modals = false) {
 var   WindowSwitcherPopup = GObject.registerClass(
 class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _init() {
-        this.t = new Date();
         super._init();
         this._actions              = null;
         // Global options
@@ -200,7 +199,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SYNC_FILTER           = options.get('switcherPopupSyncFilter');
 
         this.SHOW_APPS             = false;
-
         // Window switcher
         this.WIN_FILTER_MODE       = options.get('winSwitcherPopupFilter');
         this.GROUP_MODE            = options.get('winSwitcherPopupOrder');
@@ -215,7 +213,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.WINDOW_PREVIEW_SIZE   = options.get('winSwitcherPopupPreviewSize');
         this.APP_ICON_SIZE         = options.get('winSwitcherPopupIconSize');
         this.WS_INDEXES            = options.get('winSwitcherPopupWsIndexes');
-
         // App switcher
         this.APP_FILTER_MODE       = options.get('appSwitcherPopupFilter');
         this.APP_SORTING_MODE      = options.get('appSwitcherPopupSorting');
@@ -229,9 +226,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SEARCH_PREF_RUNNING   = options.get('appSwitcherPopupSearchPrefRunning');
 
         // Runtime variables
-        this._monitorIndex         = options.get('switcherPopupMonitor') === 1 // 1: current, 2: primary
-                                        ? global.display.get_current_monitor()
-                                        : global.display.get_primary_monitor();
+        switch (options.get('switcherPopupMonitor')) {
+        case 1: this._monitorIndex = global.display.get_primary_monitor();
+            break;
+        case 2: this._monitorIndex = this._getCurrentMonitorIndex();
+            break;
+        case 3: this._monitorIndex = global.display.get_current_monitor();
+            break;
+        default: this._monitorIndex = global.display.get_primary_monitor();
+        }
+
         if (this.SEARCH_DEFAULT) {
             this._searchEntry = '';
         } else {
@@ -251,6 +255,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         global.advancedWindowSwitcher = this;
         this.connect('destroy', this._onDestroyThis.bind(this));
+    }
+
+    _getCurrentMonitorIndex() {
+        const ws = global.workspaceManager.get_active_workspace();
+        let windows = AltTab.getWindows(ws);
+        const monIndex = windows.length > 0 ? windows[0].get_monitor()
+                                            : global.display.get_current_monitor();
+        return monIndex;
     }
 
     _onDestroyThis() {

@@ -12,7 +12,7 @@ const _  = Settings._;
 const shellVersion   = Settings.shellVersion;
 
 // libadwaita is available starting with GNOME Shell 42.
-const Adw = null;
+let Adw = null;
 if (shellVersion >= 42) Adw = imports.gi.Adw;
 
 let   gOptions;
@@ -173,7 +173,7 @@ function buildPrefsWidget() {
 
         GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
-            100,
+            200,
             () => {
                 window.set_size_request(-1, -1);
             }
@@ -617,11 +617,12 @@ function _getCommonOpt() {
 
     optDict.DefaultMonitor = _optionsItem(
             _('Default Monitor'),
-            _('Monitor on which the switcher pop-up should appear. The Current one is where the mouse pointer is currently located.'),
+            _('Monitor on which the switcher pop-up should appear.'),
             _newComboBox(),
             'switcherPopupMonitor',
-               [[_('Current Monitor'), 1],
-                [_('Primary Monitor'), 2]]
+               [[_('Primary Monitor'), 1],
+                [_('Monitor with current window'), 2],
+                [_('Monitor with mouse pointer'), 3]],
     );
 
     optDict.SyncFilter =_optionsItem(
@@ -668,14 +669,14 @@ function _getCommonOpt() {
 
     optDict.WraparoundSelector = _optionsItem(
             _('Wraparound Selector'),
-            _('Whether the selection should continue from the last item to the first one and vice versa.'),
+            _('Selection will continue from the last item to the first one and vice versa.'),
             _newGtkSwitch(),
             'switcherPopupWrap'
     );
 
     optDict.HoverSelectsItem = _optionsItem(
             _('Hover Selects Item'),
-            _('Whether hovering the mouse pointer over a switcher item selects the item.'),
+            _('Hovering the mouse pointer over a switcher item selects the item.'),
             _newGtkSwitch(),
             'switcherPopupHoverSelect'
     );
@@ -717,7 +718,7 @@ function _getCommonOpt() {
 
     optDict.ShowStatus = _optionsItem(
             _('Show Status'),
-            _('Whether the label indicating filter, grouping and sorting modes should be displayed at the bottom left of the pop-up.'),
+            _('Show a label indicating filter, grouping and sorting modes should be displayed at the bottom left of the pop-up.'),
             _newGtkSwitch(),
             'switcherPopupStatus'
     );
@@ -900,7 +901,7 @@ function _getWindowsOpt() {
 
     optDict.ShowWindowTitle =_optionsItem(
             _('Show Window Titles'),
-            _('Whether window titles should be displayed under each window item in the list.'),
+            _('Window titles will be displayed under each window item in the list.'),
             _newComboBox(),
             'winSwitcherPopupTitles',
                [[_('Enabled'), 1],
@@ -993,7 +994,7 @@ function _getAppsOpt() {
 
     optDict.SearchPrefRunning =_optionsItem(
         _('Prioritize Running Apps'),
-        _('Whether the search engine should prioritize running applications.'),
+        _('Search engine will prioritize running applications.'),
         _newGtkSwitch(),
         'appSwitcherPopupSearchPrefRunning'
 );
