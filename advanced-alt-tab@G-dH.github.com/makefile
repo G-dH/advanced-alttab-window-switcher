@@ -8,7 +8,7 @@ ZIP_NAME := $(NAME)@$(DOMAIN).zip
 # Some of the recipes below depend on some of these files.
 JS_FILES       = $(shell find -type f -and \( -name "*.js" \))
 UI_FILES       = $(shell find -type f -and \( -name "*.ui" \))
-RESOURCE_FILES = $(shell find resources -mindepth 2 -type f)
+#RESOURCE_FILES = $(shell find resources -mindepth 2 -type f)
 LOCALES_PO     = $(wildcard po/*.po)
 LOCALES_MO     = $(patsubst po/%.po,locale/%/LC_MESSAGES/$(NAME).mo,$(LOCALES_PO))
 
@@ -16,8 +16,10 @@ LOCALES_MO     = $(patsubst po/%.po,locale/%/LC_MESSAGES/$(NAME).mo,$(LOCALES_PO
 ZIP_CONTENT = $(JS_FILES) $(LOCALES_MO) \
               schemas/gschemas.compiled metadata.json stylesheet.css ../LICENSE
 
-# These five recipes can be invoked by the user.
-.PHONY: zip install uninstall pot clean
+# These six recipes can be invoked by the user.
+.PHONY: all zip install uninstall pot clean
+
+all: $(ZIP_CONTENT)
 
 # The zip recipes only bundles the extension without installing it.
 zip: $(ZIP_NAME)
@@ -36,7 +38,7 @@ pot: $(JS_FILES) $(UI_FILES)
 	@echo "Generating '$(NAME).pot'..."
 	@xgettext --from-code=UTF-8 \
 	          --add-comments=Translators \
-	          --copyright-holder="Simon Schneegans" \
+	          --copyright-holder="GdH" \
 	          --package-name="$(NAME)" \
 	          --output=po/$(NAME).pot \
 	          $(JS_FILES) $(UI_FILES)
