@@ -591,7 +591,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 labelTitle: !this.OVERLAY_TITLE > 1 && this.WINDOW_TITLES === 2, // 2: Disabled
                 singleApp: this._singleApp,
                 markMinimized: this.MARK_MINIMIZED,
-                addAppDetails: this._searchEntryNotEmpty()
+                addAppDetails: this._searchEntryNotEmpty(),
+                includeFavorites: this.INCLUDE_FAVORITES,
+                searchActive: this._searchEntryNotEmpty()
             }
 
             this._switcherList = new WindowSwitcher(switcherList, switcherParams);
@@ -3148,7 +3150,7 @@ class AppIcon extends AppDisplay.AppIcon {
                 }
                 this._iconContainer.add_child(runninIndicator);
             }
-        } else if (count) {
+        } else if (count && (this._switcherParams.includeFavorites || this._switcherParams.searchActive)) {
             const dotStyle = 'border: 1px; border-color: #232323;';
             if (this._switcherParams.showAppTitles) {
                 this._dot.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em; ${dotStyle}`);
