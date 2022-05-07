@@ -2531,7 +2531,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _openPrefsWindow() {
-        Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
+        this._getActions().openPrefsWindow();
     }
 
     ////////////////////////////////////////////////////////////////////////

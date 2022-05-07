@@ -349,4 +349,29 @@ var Actions = class {
             'thumbnailsOnScreen': global.stage.windowThumbnails.length,
         }));
     }
+
+    openPrefsWindow() {
+        // if prefs window already exist, move it to the current WS and activate it
+        const win = this._getOpenPrefsWindow();
+        if (win) {
+            this.moveWindowToCurrentWs(win);
+            win.activate(global.get_current_time());
+            return;
+        }
+        try {
+            Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
+        } catch (e) {
+            log(e);
+        }
+    }
+
+    _getOpenPrefsWindow() {
+        const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
+        for (let win of windows) {
+            if (win.get_title().includes(Me.metadata.name) && _getWindowApp(win).get_name() === 'Extensions') {
+                return win;
+            }
+        }
+        return null;
+    }
 };
