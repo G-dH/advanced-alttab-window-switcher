@@ -675,7 +675,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._initialSelectionMode = SelectMode.FIRST;
         }
 
-        if (!switcherList.length && !AltTab.getWindows(null).length) {
+        if (!switcherList.length && !AltTab.getWindows(null).length && !this._searchEntryNotEmpty()) {
             this._switcherMode = SwitcherMode.APPS;
             this.INCLUDE_FAVORITES = true;
             this.SHOW_APPS = true;
@@ -2097,7 +2097,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         const icon = new St.Icon({
-            icon_name: 'edit-find-symbolic',
+            icon_name: 'edit-find-symbolic'
         });
 
         this._overlaySearchLabel = this._customOverlayLabel('search-text', 'search-text', false); // name, css, vertcal box
