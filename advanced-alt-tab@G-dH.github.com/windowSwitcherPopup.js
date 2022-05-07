@@ -392,8 +392,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._items.length === 1 && this._switcherList) {
             this._select(0);
+            return;
+        }
 
-        } else if (backward) {
+        if (!this._showingApps && this.WIN_SORTING_MODE === SortingMode.MRU && this.GROUP_MODE === GroupMode.WORKSPACES) {
+            const activeWs = global.workspace_manager.get_active_workspace();
+            for (let i = 0; i < this._items.length; i++) {
+                if (this._items[i].window.get_workspace() == activeWs) {
+                    let index = i;
+                    if (this._initialSelectionMode === SelectMode.SECOND && index + 1 < this._items.length) {
+                        index = i + 1;
+                    }
+                    this._select(index);
+                    return;
+                }
+            }
+        }
+
+        if (backward) {
             if (this._initialSelectionMode === SelectMode.SECOND) {
                 if (this._shouldReverse()) {
                     this._select(1);
