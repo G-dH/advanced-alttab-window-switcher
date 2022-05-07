@@ -1364,7 +1364,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return this._searchEntry !== null && this._searchEntry !== '';
     }
 
+    // sometimes mouse hover don't select item and click/scroll on the item would actvate another (previously selected) item
+    _selectClickedItem(item) {
+        for (let i = 0; i < this._switcherList._items.length; i++) {
+            if (item == this._switcherList._items[i]) {
+                this._select(i);
+                return;
+            }
+        }
+    }
+
     _onItemBtnPressEvent(actor, event) {
+        this._selectClickedItem(actor);
         const btn = event.get_button();
         let action;
 
@@ -1394,6 +1405,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _onItemScrollEvent(actor, event) {
+        this._selectClickedItem(actor);
         let direction = event.get_scroll_direction();
         if (direction === Clutter.ScrollDirection.SMOOTH) {
             return;
