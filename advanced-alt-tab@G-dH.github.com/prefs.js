@@ -1045,17 +1045,17 @@ function _getAppsOpt() {
             'appSwitcherPopupWinCounter'
        );
 
-    const HideWinCounterForSingleWindowSwitch = _newGtkSwitch(); 
+    const hideWinCounterForSingleWindowSwitch = _newGtkSwitch(); 
     optDict.HideWinCounterForSingleWindow =_optionsItem(
         _('Hide Window Counter For Single-Window Apps'),
         _('Hides the number of windows of an app if there is just a single window open for that app.'),
-        HideWinCounterForSingleWindowSwitch,
+        hideWinCounterForSingleWindowSwitch,
         'appSwitcherPopupHideWinCounterForSingleWindow'
     );
 
-    HideWinCounterForSingleWindowSwitch.set_sensitive(gOptions.get('appSwitcherPopupWinCounter'));
+    hideWinCounterForSingleWindowSwitch.set_sensitive(gOptions.get('appSwitcherPopupWinCounter'));
     showWinCounterSwitch.connect('notify::active', (widget) => {
-        HideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
+        hideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
     });
 
     optDict.Appearance = _optionsItem(
