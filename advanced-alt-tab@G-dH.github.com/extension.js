@@ -64,6 +64,7 @@ function enable() {
 
             if(_options.get('wmAlwaysActivateFocused')) {
                 _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', ()=>{
+                    if (Main.overview._shown) return;
                     let win = global.display.get_focus_window();
                     if (win) {
                         Main.activateWindow(win);
