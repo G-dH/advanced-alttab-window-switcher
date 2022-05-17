@@ -188,6 +188,9 @@
     <key name='app-switcher-popup-win-counter' type='b'>
       <default>true</default>
     </key>
+    <key name='app-switcher-popup-hide-win-counter-for-single-window' type='b'>
+      <default>false</default>
+    </key>
     <key name='app-switcher-popup-titles' type='b'>
       <default>true</default>
     </key>
