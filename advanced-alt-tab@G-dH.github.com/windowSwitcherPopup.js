@@ -222,6 +222,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.INCLUDE_FAVORITES     = options.get('appSwitcherPopupFavoriteApps');
         this.SHOW_APP_TITLES       = options.get('appSwitcherPopupTitles');
         this.SHOW_WIN_COUNTER      = options.get('appSwitcherPopupWinCounter');
+        this.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW = options.get('appSwitcherPopupHideWinCounterForSingleWindow');
         this.APP_MODE_ICON_SIZE    = options.get('appSwitcherPopupIconSize');
         this.SEARCH_PREF_RUNNING   = options.get('appSwitcherPopupSearchPrefRunning');
 
@@ -606,6 +607,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 showWinTitles: showWinTitles,
                 showAppTitles: this.SHOW_APP_TITLES,
                 showWinCounter: this.SHOW_WIN_COUNTER,
+                hideWinCounterForSingleWindow: this.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW,
                 winPrevSize: this._singleApp ? this.SINGLE_APP_PREVIEW_SIZE : this.WINDOW_PREVIEW_SIZE,
                 appIconSize: this.APP_ICON_SIZE,
                 appModeIconSize: this.APP_MODE_ICON_SIZE,
@@ -3180,7 +3182,7 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         const count = app.cachedWindows.length;
-        if (this._switcherParams.showWinCounter) {
+        if (this._shouldShowWinCounter(count)) {
             this._iconContainer.remove_child(this._dot);
             if (count) {
                 const runninIndicator = this._createRunningIndicator(count);
@@ -3203,6 +3205,14 @@ class AppIcon extends AppDisplay.AppIcon {
 
         if (this._switcherParams.hotKeys && iconIndex < 12) {
             this._iconContainer.add_child(_createHotKeyNumIcon(iconIndex));
+        }
+    }
+
+    _shouldShowWinCounter(count) {
+        if (this._switcherParams.hideWinCounterForSingleWindow && count === 1) {
+            return false;
+        } else {
+            return this._switcherParams.showWinCounter;
         }
     }
 

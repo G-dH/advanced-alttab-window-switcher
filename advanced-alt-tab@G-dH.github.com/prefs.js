@@ -257,6 +257,7 @@ function _getAppOptionList() {
         opt.Appearance,
             opt.ShowAppTitle,
             opt.ShowWinCounter,
+            opt.HideWinCounterForSingleWindow,
             opt.AppIconSize,
     ];
 
@@ -1036,12 +1037,26 @@ function _getAppsOpt() {
             'appSwitcherPopupFavoriteApps'
     );
 
+    const showWinCounterSwitch = _newGtkSwitch();
     optDict.ShowWinCounter =_optionsItem(
             _('Show Window Counter'),
             _('Replaces the default dot indicating running applications by the number of open windows.'),
-            _newGtkSwitch(),
+            showWinCounterSwitch,
             'appSwitcherPopupWinCounter'
        );
+
+    const hideWinCounterForSingleWindowSwitch = _newGtkSwitch(); 
+    optDict.HideWinCounterForSingleWindow =_optionsItem(
+        _('Hide Window Counter For Single-Window Apps'),
+        _('Hides the number of windows of an app if there is just a single window open for that app.'),
+        hideWinCounterForSingleWindowSwitch,
+        'appSwitcherPopupHideWinCounterForSingleWindow'
+    );
+
+    hideWinCounterForSingleWindowSwitch.set_sensitive(gOptions.get('appSwitcherPopupWinCounter'));
+    showWinCounterSwitch.connect('notify::active', (widget) => {
+        hideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
+    });
 
     optDict.Appearance = _optionsItem(
             _('Appearance'),

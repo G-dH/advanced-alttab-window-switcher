@@ -116,6 +116,7 @@ var Options = class Options {
             appSwitcherPopupFavMru: ['boolean', 'app-switcher-popup-fav-mru'],
             appSwitcherPopupFavoriteApps: ['boolean', 'app-switcher-popup-fav-apps'],
             appSwitcherPopupWinCounter: ['boolean', 'app-switcher-popup-win-counter'],
+            appSwitcherPopupHideWinCounterForSingleWindow: ['boolean', 'app-switcher-popup-hide-win-counter-for-single-window'],
             appSwitcherPopupTitles: ['boolean', 'app-switcher-popup-titles'],
             appSwitcherPopupScrollItem: ['int', 'app-switcher-popup-scroll-item'],
             appSwitcherPopupPrimClickItem: ['int', 'app-switcher-popup-prim-click-item'],
