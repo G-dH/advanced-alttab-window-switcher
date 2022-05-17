@@ -317,11 +317,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.destroyOverlayLabel(this._overlaySearchLabel);
             this._overlaySearchLabel = null;
         }
-
-        if (this._wsOverlay) {
-            this.destroyOverlayLabel(this._wsOverlay);
-            this._wsOverlay = null;
-        }
     }
 
     _itemRemovedHandler(n) {
@@ -1368,7 +1363,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _selectClickedItem(item) {
         for (let i = 0; i < this._switcherList._items.length; i++) {
             if (item == this._switcherList._items[i]) {
-                this._select(i);
+                this._selectedIndex = i;
                 return;
             }
         }
@@ -1405,10 +1400,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _onItemScrollEvent(actor, event) {
-        this._selectClickedItem(actor);
+        // if scroll is not changing selection, select item under mouse pointer just for case it's when hover select missed the event
+        if (options.get('appSwitcherPopupScrollItem') !== Action.SELECT_ITEM) {
+            this._selectClickedItem(actor);
+        }
         let direction = event.get_scroll_direction();
         if (direction === Clutter.ScrollDirection.SMOOTH) {
-            return;
+            return Clutter.EVENT_STOP;
         }
 
         if (this._showingApps) {
@@ -2160,6 +2158,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _showOverlayTitle() {
+        if (this._overlayTitle) {
+            this.destroyOverlayLabel(this._overlayTitle);
+        }
         let selected = this._items[this._selectedIndex];
         let title;
         let details = '';
@@ -2186,10 +2187,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     details += `${selected._appDetails.description}`;
                 }
             }
-        }
-
-        if (this._overlayTitle) {
-            this.destroyOverlayLabel(this._overlayTitle);
         }
 
         this._overlayTitle = this._customOverlayLabel('item-title', 'title-name'); // name, css style
@@ -2266,6 +2263,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         overlayLabel.destroy();
         if (this._overlayDelayId) {
             GLib.source_remove(this._overlayDelayId);
+            this._overlayDelayId = 0;
         }
     }
 
@@ -2629,6 +2627,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             default:
                 return Clutter.EVENT_PROPAGATE;
         }
+        return Clutter.EVENT_STOP;
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
