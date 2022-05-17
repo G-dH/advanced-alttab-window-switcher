@@ -188,5 +188,8 @@ var Options = class Options {
 
     destroy() {
         this._connectionIds.forEach(id => this._gsettings.disconnect(id));
+        if (this._writeTimeoutId)
+            GLib.Source.remove(this._writeTimeoutId);
+            this._writeTimeoutId = 0;
     }
 };
