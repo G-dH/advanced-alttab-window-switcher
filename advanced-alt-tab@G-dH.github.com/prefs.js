@@ -13,7 +13,7 @@ const shellVersion   = Settings.shellVersion;
 
 // libadwaita is available starting with GNOME Shell 42.
 let Adw = null;
-if (shellVersion >= 42) Adw = imports.gi.Adw;
+try { Adw = imports.gi.Adw; } catch (e) {}
 
 let   gOptions;
 
@@ -90,6 +90,13 @@ function fillPreferencesWindow(window) {
 
     window.set_search_enabled(true);
 
+    window.connect('close-request', () => {
+        gOptions.destroy();
+        gOptions = null;
+    });
+
+    window.set_default_size(800, 800);
+
     return window;
 }
 
@@ -127,7 +134,6 @@ function buildPrefsWidget() {
     stack.add_named(getLegacyPage(_getMouseOptionList(), pageProperties), 'mouse');
     stack.add_named(getLegacyPage(_getMiscOptionList(), pageProperties), 'misc');
 
-    const newImage = Gtk.Image.new_from_icon_name;
     const pagesBtns = [
         [new Gtk.Label({ label: COMMON_TITLE}), _newImageFromIconName(COMMON_ICON, Gtk.IconSize.BUTTON)],
         [new Gtk.Label({ label: WIN_TITLE}), _newImageFromIconName(WIN_ICON, Gtk.IconSize.BUTTON)],
@@ -161,9 +167,9 @@ function buildPrefsWidget() {
     prefsWidget[append](stack);
     prefsWidget.connect('realize', (widget) => {
         const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
-        const width = 900;
+        const width = 800;
         const height = 800;
-        window.set_size_request(width, height);
+        window.set_default_size(width, height);
         const headerbar = window.get_titlebar();
         if (shellVersion >= 40) {
             headerbar.title_widget = stackSwitcher;
@@ -171,14 +177,13 @@ function buildPrefsWidget() {
             headerbar.custom_title = stackSwitcher;
         }
 
-        GLib.timeout_add(
-            GLib.PRIORITY_DEFAULT,
-            200,
-            () => {
-                window.set_size_request(-1, -1);
-            }
-        );
+        const signal = Gtk.get_major_version() === 3 ? 'destroy' : 'close-request';
+        window.connect(signal, () => {
+            gOptions.destroy();
+            gOptions = null;
+        });
     });
+
     prefsWidget.show_all && prefsWidget.show_all();
 
     return prefsWidget;
@@ -621,7 +626,7 @@ function _getCommonOpt() {
             _newComboBox(),
             'switcherPopupMonitor',
                [[_('Primary Monitor'), 1],
-                [_('Monitor with current window'), 2],
+                [_('Monitor with focused window'), 2],
                 [_('Monitor with mouse pointer'), 3]],
     );
 
@@ -774,7 +779,7 @@ function _getCommonOpt() {
     const enableSuperSwitch = _newGtkSwitch();
     optDict.EnableSuper = _optionsItem(
             _('Enable Super as Hot Key (Experimental)'),
-            _('Enabling this option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in the animations and video during opening an closing the switcher popup, but only in case the switcher was opened by the Super key, this does not affect the usual Alt/Super+Tab experince.'),
+            _('This option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in animations and video during opening an closing the switcher popup, but only in case the switcher was opened using the Super key, this does not affect the usual Alt/Super+Tab experince.'),
             enableSuperSwitch,
             'enableSuper'
     );
