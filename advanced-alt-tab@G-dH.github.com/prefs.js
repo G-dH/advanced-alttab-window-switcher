@@ -692,12 +692,12 @@ function _getCommonOpt() {
     );
 
     optDict.OverlayTitle = _optionsItem(
-            _('Tooltip Title'),
-            _('The whole title of selected item will be displayed as a tooltip label above (or below if needed) the item.'),
+            _('Title Captions'),
+            _('The whole title of selected item will be displayed as a caption above (or below if needed) the switcher pop-up.'),
             _newComboBox(),
             'switcherPopupTooltipTitle',
             [[_('Disable'), 1],
-             [_('Show Above Item'), 2],
+             [_('Show Above/Below Item'), 2],
              [_('Show Centered'), 3]]
     );
 
