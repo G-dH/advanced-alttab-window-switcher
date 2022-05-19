@@ -192,7 +192,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.STATUS                = options.get('switcherPopupStatus');
         this.PREVIEW_SELECTED      = options.get('switcherPopupPreviewSelected');
         this.SEARCH_ALL            = options.get('winSwitcherPopupSearchAll');
-        this.OVERLAY_TITLE         = options.get('switcherPopupTooltipTitle');
+        this.ITEM_CAPTIONS         = options.get('switcherPopupTooltipTitle');
         this.SEARCH_DEFAULT        = options.get('switcherPopupStartSearch');
         this.TOOLTIP_SCALE         = options.get('switcherPopupTooltipLabelScale');
         this.HOVER_SELECT          = options.get('switcherPopupHoverSelect');
@@ -604,6 +604,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             let showWinTitles = this.WINDOW_TITLES === 1 || (this.WINDOW_TITLES === 3 && this._singleApp);
             let switcherParams = {
+                showItemTitle: this._showingApps ? this.SHOW_APP_TITLES : showWinTitles,
                 showWinTitles: showWinTitles,
                 showAppTitles: this.SHOW_APP_TITLES,
                 showWinCounter: this.SHOW_WIN_COUNTER,
@@ -614,7 +615,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 wsIndexes: this.WS_INDEXES,
                 hotKeys: this.HOT_KEYS && this.KEYBOARD_TRIGGERED,
                 status: this.STATUS,
-                labelTitle: !this.OVERLAY_TITLE > 1 && this.WINDOW_TITLES === 2, // 2: Disabled
+                //itemCaptions: !this.ITEM_CAPTIONS > 1 && this.WINDOW_TITLES === 2, // 2: Disabled
                 singleApp: this._singleApp,
                 markMinimized: this.MARK_MINIMIZED,
                 addAppDetails: this._searchEntryNotEmpty(),
@@ -630,9 +631,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switcherList._itemEntered = function() {}
             }
 
-            if (this.OVERLAY_TITLE > 1) {
+            /*if (this.ITEM_CAPTIONS > 1) {
                 this._switcherList._label.hide();
-            }
+            }*/
 
             this._items = this._switcherList.icons;
             this._connectIcons();
@@ -726,6 +727,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList.connect('item-entered', this._itemEntered.bind(this));
         this._switcherList.connect('item-removed', this._itemRemoved.bind(this));
 
+        // Need to force an allocation so we can figure out whether we
+        // need to scroll when selecting
         this.visible = true;
         this.opacity = 0;
         this.get_allocation_box();
@@ -1160,7 +1163,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else {
             this._selectedIndex = index;
             this._switcherList.highlight(index);
-            if (this.OVERLAY_TITLE > 1) {
+            if (this.ITEM_CAPTIONS > 1) {
                 this._showOverlayTitle();
             }
         }
@@ -2213,7 +2216,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let index = this._selectedIndex;
         // get item position on the screen and calculate center position of the label
         let actor, xPos;
-        if (this.OVERLAY_TITLE === 2) {
+        if (this.ITEM_CAPTIONS === 2) {
             actor = this._items[index];
         } else {
             actor = this._switcherList;
@@ -3252,19 +3255,10 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             style_class: 'status-label',
         });
 
-        if (this._switcherParams.status) {
-            this.add_child(this._statusLabel);
+        this.add_child(this._statusLabel);
+        if (!this._switcherParams.status) {
+            this._statusLabel.hide();
         }
-
-        this._label = new St.Label({
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-
-        this.add_child(this._label);
-
-        // this line belongs to the original code but this.windows was unused...
-        //this.windows = items;
 
         this.icons = [];
 
@@ -3316,11 +3310,10 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         let [minHeight, natHeight] = super.vfunc_get_preferred_height(forWidth);
 
         let spacing = this.get_theme_node().get_padding(St.Side.BOTTOM);
-        let [labelMin, labelNat] = this._label.get_preferred_height(-1);
+        let [labelMin, labelNat] = this._statusLabel.get_preferred_height(-1);
 
         let multiplier = 0;
         multiplier += this._switcherParams.status ? 1 : 0;
-        multiplier += this._switcherParams.labelTitle ? 1 : 0;
         minHeight += multiplier * labelMin + spacing;
         natHeight += multiplier * labelNat + spacing;
 
@@ -3330,11 +3323,10 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
     vfunc_allocate(box, flags) {
         let themeNode = this.get_theme_node();
         let contentBox = themeNode.get_content_box(box);
-        const spacing = themeNode.get_padding(St.Side.BOTTOM) - (this._switcherParams.labelTitle ? 4 : 0); // -4 to move label 2px up
-        const labelHeight = this._switcherParams.labelTitle ? this._label.height : 0;
-        const labelHeightStatus = this._switcherParams.status ? this._statusLabel.height : 0;
+        const spacing = themeNode.get_padding(St.Side.BOTTOM); // -4 to move label 2px up
+        const statusLabelHeight = this._switcherParams.status ? this._statusLabel.height : spacing;
         const totalLabelHeight =
-            labelHeightStatus + labelHeight + spacing;
+            statusLabelHeight;
 
         box.y2 -= totalLabelHeight;
         shellVersion >= 40  ? super.vfunc_allocate(box)
@@ -3350,21 +3342,16 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         const childBox = new Clutter.ActorBox();
         childBox.x1 = contentBox.x1;
         childBox.x2 = contentBox.x2;
-        childBox.y2 = contentBox.y2 - labelHeightStatus + spacing;
-        childBox.y1 = childBox.y2 - labelHeight - labelHeightStatus;
-        if (this._switcherParams.labelTitle) {
-            shellVersion >= 40  ? this._label.allocate(childBox)
-                                : this._label.allocate(childBox, flags);
-        }
+        childBox.y2 = contentBox.y2 - statusLabelHeight + spacing;
+        childBox.y1 = childBox.y2 - statusLabelHeight;
+
         const childBoxStatus = new Clutter.ActorBox();
         childBoxStatus.x1 = contentBox.x1;
         childBoxStatus.x2 = contentBox.x2;
         childBoxStatus.y2 = contentBox.y2;
-        childBoxStatus.y1 = childBoxStatus.y2 - labelHeightStatus;
-        if (this._switcherParams.status) {
-            shellVersion >= 40  ? this._statusLabel.allocate(childBoxStatus)
+        childBoxStatus.y1 = childBoxStatus.y2 - statusLabelHeight;
+        shellVersion >= 40  ? this._statusLabel.allocate(childBoxStatus)
                                 : this._statusLabel.allocate(childBoxStatus, flags);
-        }
     }
 
     _onItemEnter(item) {
@@ -3377,7 +3364,6 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
 
     highlight(index, justOutline) {
         super.highlight(index, justOutline);
-        this._label.set_text(index == -1 ? '' : this.icons[index].titleLabel.text);
     }
 
     removeHighlight() {
