@@ -194,7 +194,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.SEARCH_ALL            = options.get('winSwitcherPopupSearchAll');
         this.ITEM_CAPTIONS         = options.get('switcherPopupTooltipTitle');
         this.SEARCH_DEFAULT        = options.get('switcherPopupStartSearch');
-        this.TOOLTIP_SCALE         = options.get('switcherPopupTooltipLabelScale');
+        this.CAPTIONS_SCALE        = options.get('switcherPopupTooltipLabelScale');
         this.HOVER_SELECT          = options.get('switcherPopupHoverSelect');
         this.SYNC_FILTER           = options.get('switcherPopupSyncFilter');
 
@@ -271,7 +271,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // this._initialDelayTimeoutId and this._noModsTimeoutId were already removed in super class
         let timeouts = [
             this._showWinImmediatelyTimeoutId,
-            this._overlayDelayId,
             this._recentSwitchTimeoutId,
             this._newWindowConnectorTimeoutId,
             this._updateTimeoutId,
@@ -284,7 +283,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._newWindowSignalId) {
             global.display.disconnect(this._newWindowSignalId);
         }
-        this._removeOverlays();
+        this._removeCaptions();
 
         if (this._actions) {
             this._actions.clean();
@@ -308,15 +307,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
-    _removeOverlays() {
-        if (this._overlayTitle) {
-            this.destroyOverlayLabel(this._overlayTitle);
-            this._overlayTitle = null;
+    _removeCaptions() {
+        if (this._itemCaption) {
+            this._itemCaption.destroy();
+            this._itemCaption = null;
         }
 
-        if (this._overlaySearchLabel) {
-            this.destroyOverlayLabel(this._overlaySearchLabel);
-            this._overlaySearchLabel = null;
+        if (this._searchCaption) {
+            this._searchCaption.destroy();
+            this._searchCaption = null;
         }
     }
 
@@ -341,8 +340,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     vfunc_allocate(box, flags) {
         let monitor = this._getMonitorByIndex(this._monitorIndex);
-        shellVersion >= 40  ?   this.set_allocation(box)
-                            :   this.set_allocation(box, flags);
+        // no flags in GS 40+
+        const useFlags = flags != undefined;
+        useFlags    ? this.set_allocation(box, flags)
+                    : this.set_allocation(box);
         let childBox = new Clutter.ActorBox();
         // Allocate the switcherList
         // We select a size based on an icon size that does not overflow the screen
@@ -378,8 +379,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         childBox.x2 = Math.min(monitor.x + monitor.width, childBox.x1 + childNaturalWidth);
         childBox.y2 = childBox.y1 + childNaturalHeight;
-        shellVersion >= 40  ?   this._switcherList.allocate(childBox)
-                            :   this._switcherList.allocate(childBox, flags);
+        useFlags    ? this._switcherList.allocate(childBox, flags)
+                    : this._switcherList.allocate(childBox);
     }
 
     _initialSelection(backward, binding) {
@@ -524,7 +525,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     show(backward, binding, mask) {
         // remove overlay labels if exist
-        this._removeOverlays();
+        this._removeCaptions();
 
         if (!this._pushModal()) {
             return false;
@@ -733,20 +734,27 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.opacity = 0;
         this.get_allocation_box();
 
-        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS
         let themeNode = this._switcherList.get_theme_node();
         let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
-        let border = themeNode.get_border_width(St.Side.BOTTOM);
+
+        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS
         if (!this._firstRun && !this.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
+            let border = themeNode.get_border_width(St.Side.BOTTOM);
+
             let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
             fm = this._tempFilterMode ? this._tempFilterMode : fm;
+
+            const red = 'rgb(96, 48, 48)';
+            const green = 'rgb(53, 80, 48)';
+            const orange = 'rgb(96, 80, 48)';
+
             if (fm === FilterMode.MONITOR) {
                 // top and bottom border colors cover all sides
-                this._switcherList.set_style(`border-top-color: rgb(96, 48, 48); border-bottom-color: rgb(96, 48, 48); padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
+                this._switcherList.set_style(`border-top-color: ${red}; border-bottom-color: ${red}; padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
             } else if (fm === FilterMode.WORKSPACE) {
-                this._switcherList.set_style(`border-top-color: rgb(96, 80, 48); border-bottom-color: rgb(96, 80, 48); padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
+                this._switcherList.set_style(`border-top-color: ${orange}; border-bottom-color: ${orange}; padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
             } else if (fm === FilterMode.ALL) {
-                this._switcherList.set_style(`border-top-color: rgb(53, 80, 48); border-bottom-color: rgb(53, 80, 48); padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
+                this._switcherList.set_style(`border-top-color: ${green}; border-bottom-color: ${green}; padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
             }
         } else  {
             this._switcherList.set_style(`padding-bottom: ${padding}px`);
@@ -777,8 +785,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._setSwitcherStatus();
         // avoid showing overlay label before the switcher popup
-        if (this._firstRun && this._overlayTitle) {
-            this._overlayTitle.opacity = 0;
+        if (this._firstRun && this._itemCaption) {
+            this._itemCaption.opacity = 0;
         }
 
         // We delay showing the popup so that fast Alt+Tab users aren't
@@ -802,8 +810,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 () => {
                     if (!this._doNotShowImmediately) {
                         if (this.KEYBOARD_TRIGGERED) {
-                            if (this._overlayTitle)
-                                this._overlayTitle.opacity = 255;
+                            if (this._itemCaption)
+                                this._itemCaption.opacity = 255;
                             this.opacity = 255;
                         } else {
                             this._shadeIn();
@@ -828,7 +836,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         Main.osdWindowManager.hideAll();
 
         if (this._searchEntry === '' && !this.SEARCH_DEFAULT) {
-            this._showOverlaySearchLabel('Type to search...');
+            this._showSearchCaption('Type to search...');
         }
 
         if (this._overlayKeyTriggered && options.get('enableSuper')) {
@@ -899,8 +907,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _shadeIn() {
         let height = this._switcherList.height;
         this.opacity = 255;
-        if (this._overlayTitle) {
-            this._overlayTitle.opacity = 0;
+        if (this._itemCaption) {
+            this._itemCaption.opacity = 0;
         }
 
         this._switcherList.height = 0;
@@ -909,16 +917,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             duration: 70,
             mode: Clutter.AnimationMode.LINEAR,
             onComplete: () => {
-                if (this._overlayTitle) {
-                    this._overlayTitle.opacity = 255;
+                if (this._itemCaption) {
+                    this._itemCaption.opacity = 255;
                 }
             },
         });
     }
 
     _shadeOut() {
-        if (this._overlayTitle) {
-            this._overlayTitle.opacity = 0;
+        if (this._itemCaption) {
+            this._itemCaption.opacity = 0;
         }
         // realease the input before the animation so the user can interact with the rest of the desktop
         this._popModal();
@@ -938,8 +946,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             log(`${Me.metadata.name}: Error: incorrect pop`)
         }
 
-        if (this._overlayTitle) {
-            this._removeOverlays();
+        if (this._itemCaption) {
+            this._removeCaptions();
         }
 
         if (this.opacity > 0) {
@@ -1072,10 +1080,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         );
 
         if (this._searchEntryNotEmpty()) {
-            this._showOverlaySearchLabel(this._searchEntry);
-        } else if (this._searchEntry === '' && this._overlaySearchLabel) {
-            this.destroyOverlayLabel(this._overlaySearchLabel);
-            this._overlaySearchLabel = null;
+            this._showSearchCaption(this._searchEntry);
+        } else if (this._searchEntry === '' && this._searchCaption) {
+            this._searchCaption.destroy();
+            this._searchCaption = null;
         }
     }
 
@@ -2134,37 +2142,33 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._getActions().showWsSwitcherPopup();
     }
 
-    _showOverlaySearchLabel(text) {
+    _showSearchCaption(text) {
         const margin = 10;
-        if (this._overlaySearchLabel) {
-            this.destroyOverlayLabel(this._overlaySearchLabel);
+        if (this._searchCaption) {
+            this._searchCaption.destroy();
         }
 
-        const icon = new St.Icon({
-            icon_name: 'edit-find-symbolic'
-        });
-
-        this._overlaySearchLabel = this._customOverlayLabel('search-text', 'search-text', false); // name, css, vertcal box
-        this._overlaySearchLabel.add_child(icon);
-        this._overlaySearchLabel.set_child_at_index(icon, 0);
-        this._overlaySearchLabel._label.text = ` ${text}`;
-
-        const fontSize = this.TOOLTIP_SCALE * 2 / 100;
-        this._overlaySearchLabel.set_style(`font-size: ${fontSize}em; border-radius: 12px; padding: 6px`);
-
-        Main.layoutManager.addChrome(this._overlaySearchLabel);
-
-        const offset = this._overlayTitle
-            ? this._overlayTitle.height + margin
-            : margin;
+        const offset = this._itemCaption
+        ? this._itemCaption.height + margin
+        : margin;
 
         const xPosition = 0;
-        this._setOverlayLabelPosition(this._overlaySearchLabel, xPosition, offset, this._switcherList);
+
+        const fontSize = this.CAPTIONS_SCALE * 2 / 100;
+        this._searchCaption = new CaptionLabel({
+            name: 'search-label',
+            text: text,
+            fontSize: fontSize,
+            parent: this._switcherList,
+            xPosition: xPosition,
+            yOffset: offset,
+            monitorIndex: this._monitorIndex
+        });
     }
 
     _showOverlayTitle() {
-        if (this._overlayTitle) {
-            this.destroyOverlayLabel(this._overlayTitle);
+        if (this._itemCaption) {
+            this._itemCaption.destroy();
         }
         let selected = this._items[this._selectedIndex];
         let title;
@@ -2178,7 +2182,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             //}
         } else {
             title = selected.titleLabel.get_text();
-            // if serching apps add more info to the app name
+            // if serching apps add more info to the caption
             if (selected._appDetails) {
                 if (selected._appDetails.generic_name && !this._match(title, selected._appDetails.generic_name)) {
                     details += `${selected._appDetails.generic_name}`;
@@ -2194,25 +2198,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        this._overlayTitle = this._customOverlayLabel('item-title', 'title-name'); // name, css style
-        this._overlayTitle._label.text = title;
-        const fontSize = this.TOOLTIP_SCALE / 100;
-        this._overlayTitle._label.set_style(`font-size: ${fontSize}em;`);
-        this._overlayTitle.set_style(`border-radius: 12px`);
-
-        if (details) {
-            const descriptionLbl = new St.Label({
-                style_class: 'title-description',
-                text: details
-            });
-            const descSize = this.TOOLTIP_SCALE * 0.7 / 100;
-            descriptionLbl.set_style(`font-size: ${descSize}em;`);
-
-            this._overlayTitle.add_child(descriptionLbl);
-        }
-
-        Main.layoutManager.addChrome(this._overlayTitle);
-
         let index = this._selectedIndex;
         // get item position on the screen and calculate center position of the label
         let actor, xPos;
@@ -2225,51 +2210,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         [xPos] = actor.get_transformed_position();
         xPos = Math.floor(xPos + actor.width / 2);
 
-        this._setOverlayLabelPosition(this._overlayTitle, xPos, 0, this._switcherList);
-    }
+        const fontSize = this.CAPTIONS_SCALE / 100;
 
-    _setOverlayLabelPosition(overlayLabel, xPos = 0, yOffset = 0, parent = null) {
-        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
-        let margin = 5;
-        overlayLabel.width = Math.min(overlayLabel.width, geometry.width);
-        // win/app titles should be always placed centered to the switcher popup
-        let overlayCenter = xPos ? xPos : parent.allocation.x1 + parent.width / 2;
-        // the +/-1 px compensates padding
-        let x = Math.floor(Math.max(Math.min(overlayCenter - (overlayLabel.width / 2), geometry.x + geometry.width - overlayLabel.width - 1), geometry.x + 1));
-        let y = parent.allocation.y1 - overlayLabel.height - yOffset - margin;
-        if (y < geometry.y)
-            y = parent.allocation.y1 + parent.height + yOffset + margin;
-
-        [overlayLabel.x, overlayLabel.y] = [x, y];
-    }
-
-    _customOverlayLabel(name, style_class, vertical = true) {
-        const box = new St.BoxLayout({
-            vertical: vertical,
-            //style_class: 'tooltip-box',
-            style_class: 'dash-label',
+        this._itemCaption = new CaptionLabel({
+            name: 'item-label',
+            text: title,
+            description: details,
+            fontSize: fontSize,
+            parent: this._switcherList,
+            xPosition: xPos,
+            yOffset: 0,
+            monitorIndex: this._monitorIndex
         });
-
-        const label = new St.Label({
-            name: name,
-            reactive: false,
-            style_class: style_class,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
-        box.add_child(label);
-        box._label = label;
-
-        return box;
-    }
-
-    destroyOverlayLabel(overlayLabel) {
-        Main.layoutManager.removeChrome(overlayLabel);
-        overlayLabel.destroy();
-        if (this._overlayDelayId) {
-            GLib.source_remove(this._overlayDelayId);
-            this._overlayDelayId = 0;
-        }
     }
 
     // Actions
@@ -2455,7 +2407,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             [_(`Close ${nWindows} Windows`), this._closeAppWindows],
         ];
 
-        if (shellVersion < 41)
+        if (shellVersion < 41) // this item was added in 41
             popupItems.push([_('Quit'), this._closeWinQuitApp]);
 
         let appIcon = this._items[this._selectedIndex];
@@ -2945,6 +2897,100 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 });
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var CaptionLabel = GObject.registerClass(
+class CaptionLabel extends St.BoxLayout {
+    _init(params) {
+        const SEARCH = params.name === 'search-label';
+        this._xPosition = params.xPosition;
+        this._yOffset = params.yOffset;
+        this._parent = params.parent;
+        this._monitorIndex = params.monitorIndex;
+
+        super._init({
+            style_class: 'dash-label',
+            vertical: !SEARCH, // horizontal orientation for search label, vertical for title caption
+            style: `font-size: ${params.fontSize}em; border-radius: 12px; padding: 6px`,
+        });
+
+        this._label = new St.Label({
+            name: params.name,
+            text: params.text,
+            reactive: false,
+            style_class: /*SEARCH ? 'search-label' :*/ 'caption-label',
+            y_align: Clutter.ActorAlign.CENTER
+        });
+
+        if (SEARCH)
+            this.addSearchIcon();
+
+        this.add_child(this._label);
+        if (params.description)
+            this.addDetails(params.description);
+
+        this.addToChrome();
+        this.setPosition();
+    }
+
+    addToChrome() {
+        Main.layoutManager.addChrome(this);
+    }
+
+    setPosition() {
+        const xPos = this._xPosition;
+        const parent = this._parent;
+        const yOffset = this._yOffset;
+
+        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
+        let margin = 5;
+
+        this.width = Math.min(this.width, geometry.width);
+
+        // win/app titles should be always placed centered to the switcher popup
+        let captionCenter = xPos ? xPos : parent.allocation.x1 + parent.width / 2;
+
+        // the +/-1 px compensates padding
+        let x = Math.floor(Math.max(Math.min(captionCenter - (this.width / 2), geometry.x + geometry.width - this.width - 1), geometry.x + 1));
+        let y = parent.allocation.y1 - this.height - yOffset - margin;
+
+        if (y < geometry.y)
+            y = parent.allocation.y1 + parent.height + yOffset + margin;
+
+        [this.x, this.y] = [x, y];
+    }
+
+    setText(text) {
+        this._label.text = text;
+    }
+
+    addDetails(details) {
+        if (!this._descriptionLabel) {
+            this._descriptionLabel = new St.Label({
+                style_class: 'title-description',
+                style: `font-size: 0.7em;` // font size is relative to parent style
+            });
+        }
+
+        this._descriptionLabel.text = details;
+        this.add_child(this._descriptionLabel);
+    }
+
+    addSearchIcon() {
+        const icon = new St.Icon({
+            icon_name: 'edit-find-symbolic',
+            style_class: 'search-icon'
+        });
+        this.add_child(icon);
+    }
+
+    destroy() {
+        Main.layoutManager.removeChrome(this);
+        super.destroy();
+    }
+});
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
     _init(item, iconIndex, switcherParams) {
@@ -3321,6 +3367,8 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
     }
 
     vfunc_allocate(box, flags) {
+        // no flags in GS 40+
+        const useFlags = flags !== undefined;
         let themeNode = this.get_theme_node();
         let contentBox = themeNode.get_content_box(box);
         const spacing = themeNode.get_padding(St.Side.BOTTOM); // -4 to move label 2px up
@@ -3329,15 +3377,15 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             statusLabelHeight;
 
         box.y2 -= totalLabelHeight;
-        shellVersion >= 40  ? super.vfunc_allocate(box)
-                            : super.vfunc_allocate(box, flags);
+        useFlags    ? super.vfunc_allocate(box, flags)
+                    : super.vfunc_allocate(box);
 
         // Hooking up the parent vfunc will call this.set_allocation() with
         // the height without the label height, so call it again with the
         // correct size here.
         box.y2 += totalLabelHeight;
-        shellVersion >= 40  ? this.set_allocation(box)
-                            : this.set_allocation(box, flags);
+        useFlags    ? this.set_allocation(box, flags)
+                    : this.set_allocation(box);
 
         const childBox = new Clutter.ActorBox();
         childBox.x1 = contentBox.x1;
@@ -3350,8 +3398,8 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         childBoxStatus.x2 = contentBox.x2;
         childBoxStatus.y2 = contentBox.y2;
         childBoxStatus.y1 = childBoxStatus.y2 - statusLabelHeight;
-        shellVersion >= 40  ? this._statusLabel.allocate(childBoxStatus)
-                                : this._statusLabel.allocate(childBoxStatus, flags);
+        useFlags    ? this._statusLabel.allocate(childBoxStatus, flags)
+                    : this._statusLabel.allocate(childBoxStatus);
     }
 
     _onItemEnter(item) {

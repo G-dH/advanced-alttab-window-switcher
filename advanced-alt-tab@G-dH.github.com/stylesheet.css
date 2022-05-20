@@ -23,15 +23,22 @@
   border-color: grey;
 }
 
-.title-label {
-  padding-left: 0.3em;
-  padding-right: 0.3em;
+.search-icon, .search-label {
+  padding-left: 0.2em;
+}
+
+.search-label {
+  padding-right: 0.2em;
+}
+
+.caption-label {
+  padding-left: 0.2em;
+  padding-right: 0.2em;
 }
 
 .title-description {
   padding-left: 0.3em;
   padding-right: 0.3em;
-  font-size: 1em;
 }
 
 .hot-key-number {
