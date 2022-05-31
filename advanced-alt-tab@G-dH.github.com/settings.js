@@ -154,11 +154,28 @@ var Options = class Options {
             hotkeyUp: ['string', 'hotkey-up'],
             hotkeyRight: ['string', 'hotkey-right'],
         };
+        this.cachedOptions = {};
+        this.connect('changed', this._updateCachedSettings.bind(this));
     }
 
-    get(option) {
-        const [format, key] = this.options[option];
-        return this._gsettings.get_value(key).deep_unpack();
+    _updateCachedSettings(settings, key) {
+        Object.keys(this.options).forEach(v => this.get(v, true));
+    }
+
+    get(option, updateCache = false) {
+        if (updateCache || this.cachedOptions[option] === undefined) {
+            const [format, key, settings] = this.options[option];
+            let gSettings;
+            if (settings !== undefined) {
+                gSettings = settings();
+            } else {
+                gSettings = this._gsettings;
+            }
+
+            this.cachedOptions[option] = gSettings.get_value(key).deep_unpack();
+        }
+
+        return this.cachedOptions[option];
     }
 
     set(option, value) {
