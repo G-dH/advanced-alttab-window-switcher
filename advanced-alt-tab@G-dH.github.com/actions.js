@@ -254,44 +254,6 @@ var Actions = class {
         direction = this._translateDirectionToHorizontal(direction);
         const targetWs = global.workspaceManager.get_active_workspace().get_neighbor(direction);
         Main.wm.actionMoveWorkspace(targetWs);
-        /*if (!noIndicator)
-            this._showWsSwitcherPopup(direction, targetWs.index());
-
-        /*let n_workspaces = global.workspaceManager.n_workspaces;
-        let lastWsIndex =  n_workspaces - (this.WS_IGNORE_LAST ? 2 : 1);
-        let motion;
-
-        let activeWs  = global.workspaceManager.get_active_workspace();
-        let activeIdx = activeWs.index();
-        let targetIdx = global.workspaceManager.getNeighbor
-            ? (activeIdx + (direction ? 1 : lastWsIndex)) % (lastWsIndex + 1)
-            : activeIdx + (direction ? 1 : -1);
-        if (targetIdx < 0 || targetIdx > lastWsIndex)
-            targetIdx = activeIdx;
-
-        let ws = global.workspaceManager.get_workspace_by_index(targetIdx);
-
-        const showIndicator = !noIndicator && this.WS_INDICATOR_MODE > 0;
-
-        // show default workspace indicator popup
-        if (showIndicator && this.WS_INDICATOR_MODE === ws_indicator_mode.DEFAULT) {
-            const vertical = global.workspaceManager.layout_rows === -1;
-            if (Main.wm._workspaceSwitcherPopup == null) {
-                Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
-                Main.wm._workspaceSwitcherPopup.reactive = false;
-                Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
-                    Main.wm._workspaceSwitcherPopup = null;
-                });
-            }
-
-            // Do not show wokspaceSwitcher in overview
-            if (!Main.overview.visible) {
-                let motion = direction ? vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT
-                    : vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT;
-                Main.wm._workspaceSwitcherPopup.display(motion, ws.index());
-            }
-        }
-        Main.wm.actionMoveWorkspace(ws);*/
     }
 
     showWsSwitcherPopup(direction, wsIndex) {
@@ -317,7 +279,7 @@ var Actions = class {
             if (shellVersion >= 42) {
                 Main.wm._workspaceSwitcherPopup.display(wsIndex);
             } else {
-                Main.wm._workspaceSwitcherPopup.display(wsIndex, wsIndex);
+                Main.wm._workspaceSwitcherPopup.display(motion, wsIndex);
             }
         }
     }
@@ -352,11 +314,15 @@ var Actions = class {
 
     openPrefsWindow() {
         // if prefs window already exist, move it to the current WS and activate it
-        const win = this._getOpenPrefsWindow();
-        if (win) {
-            this.moveWindowToCurrentWs(win);
-            win.activate(global.get_current_time());
-            return;
+        const { metaWin, isCHCE } = this._getOpenPrefsWindow();
+        if (metaWin) {
+            if (!isCHCE) {
+                metaWin.delete(global.get_current_time());
+            } else {
+                this.moveWindowToCurrentWs(metaWin);
+                metaWin.activate(global.get_current_time());
+                return;
+            }
         }
         try {
             Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
@@ -369,9 +335,11 @@ var Actions = class {
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         for (let win of windows) {
             if (win.get_title().includes(Me.metadata.name) && _getWindowApp(win).get_name() === 'Extensions') {
-                return win;
+                return { metaWin: win, isCHCE: true };
+            } else if (win.wm_class.includes('org.gnome.Shell.Extensions')) {
+                return { metaWin: win, isCHCE: false };
             }
         }
-        return null;
+        return { metaWin: null, isCHCE: null };
     }
 };
