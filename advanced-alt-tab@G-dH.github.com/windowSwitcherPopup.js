@@ -175,7 +175,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // Global options
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
-        this._keyBind              = '';
+        this._keyBind              = ''; // can be set by the external trigger which provides the keyboard shortcut
         // options var is set from extension.js when the extension is enabled
         this.KEYBOARD_TRIGGERED    = true;  // popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
         this.SUPER_DOUBLE_PRESS_ACT = options.get('superDoublePressAction'); // 1 - dafault, 2, Overview, 3 - App Grid, 4 - Activate Previous Window
@@ -225,7 +225,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW = options.get('appSwitcherPopupHideWinCounterForSingleWindow');
         this.APP_MODE_ICON_SIZE    = options.get('appSwitcherPopupIconSize');
         this.SEARCH_PREF_RUNNING   = options.get('appSwitcherPopupSearchPrefRunning');
-
         // Runtime variables
         switch (options.get('switcherPopupMonitor')) {
         case 1: this._monitorIndex = global.display.get_primary_monitor();
@@ -1588,6 +1587,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                    action == Meta.KeyBindingAction.SWITCH_WINDOWS_BACKWARD ||
                    action == Meta.KeyBindingAction.SWITCH_APPLICATIONS_BACKWARD ||
                    ((keysym === Clutter.KEY_Tab || keysym === Clutter.KEY_ISO_Left_Tab) && !_ctrlPressed()) ||
+                   // shortcut key that triggered the switcher
                    (this._keyBind &&
                         (keysym == Clutter[`KEY_${this._keyBind.toUpperCase()}`] ||
                          keysym == Clutter[`KEY_${this._keyBind.toLowerCase()}`]
@@ -2941,8 +2941,8 @@ class CaptionLabel extends St.BoxLayout {
         const parent = this._parent;
         const yOffset = this._yOffset;
 
-        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
-        let margin = 5;
+        const geometry = global.display.get_monitor_geometry(this._monitorIndex);
+        const margin = 5;
 
         this.width = Math.min(this.width, geometry.width);
 
@@ -3190,6 +3190,10 @@ var AppIcon = GObject.registerClass(
 class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams) {
         super._init(app);
+        // remove scroll connection created by my WSM extension
+        if (this._scrollConnectionID) {
+            this.disconnect(this._scrollConnectionID);
+        }
         this._switcherParams = switcherParams;
 
         const appInfo = app.get_app_info();
