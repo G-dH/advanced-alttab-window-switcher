@@ -206,9 +206,9 @@ function _getCommonOptionList() {
             opt.DelayShowingSwitcher,
         opt.Appearance,
             opt.OverlayTitle,
+            opt.TooltipLabelScale,
             opt.ShowDirectActivation,
             opt.ShowStatus,
-            opt.TooltipLabelScale,
             opt.SingleAppPreviewSize,
         opt.SystemIntegration,
             opt.SuperKeyMode,
@@ -692,7 +692,7 @@ function _getCommonOpt() {
     );
 
     optDict.OverlayTitle = _optionsItem(
-            _('Title Captions'),
+            _('Tooltip Titles'),
             _('The whole title of selected item will be displayed as a caption above (or below if needed) the switcher pop-up.'),
             _newComboBox(),
             'switcherPopupTooltipTitle',
@@ -709,8 +709,8 @@ function _getCommonOpt() {
     });
 
     optDict.TooltipLabelScale = _optionsItem(
-            _('Tooltip Label Scale (%)'),
-            _('Change font size for tooltip label.'),
+            _('Tooltip Title Scale (%)'),
+            _('Adjust font size for app/window titles.'),
             _newSpinButton(tooltipScaleAdjustment),
             'switcherPopupTooltipLabelScale'
     );
