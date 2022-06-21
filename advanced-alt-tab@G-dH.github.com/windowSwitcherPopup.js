@@ -550,7 +550,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        if (binding == 'switch-group') {
+        if (binding == 'switch-group' || binding == 'switch-group-backward') {
             this._switchGroupInit = true;
             let id, name;
             //let metaWin = global.display.get_tab_list(Meta.WindowType.NORMAL, null)[0];
@@ -1444,7 +1444,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // Note: pressing one of the below keys will destroy the popup only if
         // that key is not used by the active popup's keyboard shortcut
-        if (keysym === Clutter.KEY_Escape || keysym === Clutter.KEY_Tab)
+        if (/*keysym === Clutter.KEY_Escape ||*/ keysym === Clutter.KEY_Tab)
             this.fadeAndDestroy();
 
         // Allow to explicitly select the current item; this is particularly
@@ -1459,6 +1459,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     vfunc_key_release_event(keyEvent) {
+        const keysym = keyEvent.keyval;
+        if (keysym === Clutter.KEY_Escape)
+            this.fadeAndDestroy();
+
         // monitor release of possible shortcut modifier keys only
         if (!(keyEvent.keyval == 65513 || keyEvent.keyval == 65511 ||  // Alt and Alt while Shift pressed
               keyEvent.keyval == 65515 ||                             // Super
@@ -1596,12 +1600,49 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         {
             if (this._singleApp) {
                 this._toggleSingleAppMode();
-            }
-
-            else if (_shiftPressed()) {
+            } else if (_shiftPressed() ||
+                       action == Meta.KeyBindingAction.SWITCH_WINDOWS_BACKWARD ||
+                       action == Meta.KeyBindingAction.SWITCH_APPLICATIONS_BACKWARD
+            ) {
                 this._select(this._previous());
             } else {
                 this._select(this._next());
+            }
+        } // else if (keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) { // 96 is grave, 126 ascii tilde, 65112 dead_abovering. I didn't find Clutter constants.
+        else if (action == Meta.KeyBindingAction.SWITCH_GROUP || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD ||
+                 keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) {
+            if (_ctrlPressed()) {
+                this._toggleSwitcherMode();
+            } else { // Ctrl not pressed
+                if (this._switcherMode === SwitcherMode.APPS) {
+                    if (this._showingApps) {
+                        if (this._getSelected().cachedWindows.length)
+                            this._toggleSingleAppMode();
+                    } else if (this._singleApp) {
+                        if (_shiftPressed() || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD) {
+                            this._select(this._previous());
+                        } else {
+                            this._select(this._next());
+                        }
+                    } else {
+                        this._toggleSwitcherMode();
+                    }
+                } else if (this._switcherMode === SwitcherMode.WINDOWS) {
+                    let index = this._selectedIndex > -1 ? this._selectedIndex : 0;
+
+                    if (this._singleApp) {
+                        if (_shiftPressed()) {
+                            this._select(this._previous());
+                        } else {
+                            this._select(this._next());
+                        }
+                    } else if (this.GROUP_MODE !== GroupMode.APPS) {
+                        this.GROUP_MODE = GroupMode.APPS;
+                        this.show();
+                    } else {
+                        this._selectNextApp(index);
+                    }
+                }
             }
         } else if ((keysym == Clutter.KEY_Tab || keysym === Clutter.KEY_ISO_Left_Tab) && _ctrlPressed()) {
             let mod = Main.layoutManager.monitors.length;
@@ -1702,44 +1743,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         //} else if (keysym === Clutter.KEY_plus || keysym === Clutter.KEY_1 || keysym === Clutter.KEY_exclam) {
         } else if (options.get('hotkeySingleApp').includes(keyString)) {
             this._toggleSingleAppMode();
-        }
-
-        // else if (keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) { // 96 is grave, 126 ascii tilde, 65112 dead_abovering. I didn't find Clutter constants.
-        else if (action == Meta.KeyBindingAction.SWITCH_GROUP || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD ||
-                 keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) {
-            if (_ctrlPressed()) {
-                this._toggleSwitcherMode();
-            } else { // Ctrl not pressed
-                if (this._switcherMode === SwitcherMode.APPS) {
-                    if (this._showingApps) {
-                        if (this._getSelected().cachedWindows.length)
-                            this._toggleSingleAppMode();
-                    } else if (this._singleApp) {
-                        if (_shiftPressed()) {
-                            this._select(this._previous());
-                        } else {
-                            this._select(this._next());
-                        }
-                    } else {
-                        this._toggleSwitcherMode();
-                    }
-                } else if (this._switcherMode === SwitcherMode.WINDOWS) {
-                    let index = this._selectedIndex > -1 ? this._selectedIndex : 0;
-
-                    if (this._singleApp) {
-                        if (_shiftPressed()) {
-                            this._select(this._previous());
-                        } else {
-                            this._select(this._next());
-                        }
-                    } else if (this.GROUP_MODE !== GroupMode.APPS) {
-                        this.GROUP_MODE = GroupMode.APPS;
-                        this.show();
-                    } else {
-                        this._selectNextApp(index);
-                    }
-                }
-            }
         }
 
         // toggle sort by workspaces
