@@ -1,3 +1,12 @@
+/**
+ * AATWS - Advanced Alt-Tab Window Switcher
+ * Prefs
+ *
+ * @author     GdH <G-dH@github.com>
+ * @copyright  2021-2022
+ * @license    GPL-3.0
+ */
+
 'use strict';
 
 const { Gtk, GLib, Gio, GObject } = imports.gi;
@@ -254,6 +263,7 @@ function _getAppOptionList() {
             opt.ResultsLimit,
             opt.SearchPrefRunning,
             opt.IncludeFavorites,
+            opt.IncludeShowAppsIcon,
         opt.Appearance,
             opt.ShowAppTitle,
             opt.ShowWinCounter,
@@ -1000,10 +1010,10 @@ function _getAppsOpt() {
     );
 
     optDict.SearchPrefRunning =_optionsItem(
-        _('Prioritize Running Apps'),
-        _('Search engine will prioritize running applications.'),
-        _newGtkSwitch(),
-        'appSwitcherPopupSearchPrefRunning'
+            _('Prioritize Running Apps'),
+            _('Search engine will prioritize running applications.'),
+            _newGtkSwitch(),
+            'appSwitcherPopupSearchPrefRunning'
     );
 
     let popupAppLimitAdjustment = new Gtk.Adjustment({
@@ -1033,9 +1043,16 @@ function _getAppsOpt() {
 
     optDict.IncludeFavorites = _optionsItem(
             _('Include Favorite Apps'),
-            _('List Dash favorite apps even when not runnig so you can use the switcher as a app launcher.'),
+            _('Include Dash favorite apps even when not runnig so you can use the switcher as a app launcher.'),
             _newGtkSwitch(),
             'appSwitcherPopupFavoriteApps'
+    );
+
+    optDict.IncludeShowAppsIcon = _optionsItem(
+            _('Include Show Apps Icon'),
+            _('Include button to access overview with application grid.'),
+            _newGtkSwitch(),
+            'appSwitcherPopupIncludeShowAppsIcon'
     );
 
     const showWinCounterSwitch = _newGtkSwitch();

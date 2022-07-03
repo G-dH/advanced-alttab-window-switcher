@@ -1,18 +1,12 @@
-/* Copyright 2021-2022 GdH <https://github.com/G-dH>
+/**
+ * AATWS - Advanced Alt-Tab Window Switcher
+ * Extension
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * @author     GdH <G-dH@github.com>
+ * @copyright  2021-2022
+ * @license    GPL-3.0
  */
+
 'use strict';
 
 const { GObject, GLib, Gio }    = imports.gi;

@@ -137,6 +137,9 @@
     <key name='app-switcher-popup-switch-to-single-on-activate' type='b'>
       <default>true</default>
     </key>
+    <key name='app-switcher-popup-include-show-apps-icon' type='b'>
+      <default>true</default>
+    </key>
     <key name='switcher-popup-timeout' type='i'>
       <default>100</default>
     </key>

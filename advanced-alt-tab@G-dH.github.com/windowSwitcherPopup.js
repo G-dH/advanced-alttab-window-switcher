@@ -1,3 +1,12 @@
+/**
+ * AATWS - Advanced Alt-Tab Window Switcher
+ * WindowSwitcherPopup
+ *
+ * @author     GdH <G-dH@github.com>
+ * @copyright  2021-2022
+ * @license    GPL-3.0
+ */
+
 'use strict';
 
 const { GObject, GLib, St, Shell, Gdk } = imports.gi;
@@ -7,6 +16,7 @@ const Main            = imports.ui.main;
 const AltTab          = imports.ui.altTab;
 const SwitcherPopup   = imports.ui.switcherPopup;
 const AppDisplay      = imports.ui.appDisplay;
+const Dash            = imports.ui.dash;
 const PopupMenu       = imports.ui.popupMenu;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
@@ -225,6 +235,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW = options.get('appSwitcherPopupHideWinCounterForSingleWindow');
         this.APP_MODE_ICON_SIZE    = options.get('appSwitcherPopupIconSize');
         this.SEARCH_PREF_RUNNING   = options.get('appSwitcherPopupSearchPrefRunning');
+        this.INCLUDE_SHOW_APPS_ICON= options.get('appSwitcherPopupIncludeShowAppsIcon');
+
         // Runtime variables
         switch (options.get('switcherPopupMonitor')) {
         case 1: this._monitorIndex = global.display.get_primary_monitor();
@@ -611,6 +623,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 winPrevSize: this._singleApp ? this.SINGLE_APP_PREVIEW_SIZE : this.WINDOW_PREVIEW_SIZE,
                 appIconSize: this.APP_ICON_SIZE,
                 appModeIconSize: this.APP_MODE_ICON_SIZE,
+                includeShowAppsIcon: this.INCLUDE_SHOW_APPS_ICON,
                 wsIndexes: this.WS_INDEXES,
                 hotKeys: this.HOT_KEYS && this.KEYBOARD_TRIGGERED,
                 status: this.STATUS,
@@ -619,7 +632,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 markMinimized: this.MARK_MINIMIZED,
                 addAppDetails: this._searchEntryNotEmpty(),
                 includeFavorites: this.INCLUDE_FAVORITES,
-                searchActive: this._searchEntryNotEmpty()
+                searchActive: this._searchEntryNotEmpty(),
+                //actions: this._getActions()
             }
 
             this._switcherList = new WindowSwitcher(switcherList, switcherParams);
@@ -898,13 +912,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _shadeIn() {
         let height = this._switcherList.height;
         this.opacity = 255;
+        this._switcherList.opacity = 0;
         if (this._itemCaption) {
             this._itemCaption.opacity = 0;
         }
 
-        this._switcherList.height = 0;
+        //this._switcherList.height = 0;
         this._switcherList.ease({
-            height,
+            //height,
+            opacity: 255,
             duration: 70,
             mode: Clutter.AnimationMode.LINEAR,
             onComplete: () => {
@@ -922,7 +938,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // realease the input before the animation so the user can interact with the rest of the desktop
         this._popModal();
         this._switcherList.ease({
-            height: 0,
+            //height: 0,
+            opacity: 0,
             duration: 100,
             mode: Clutter.AnimationMode.LINEAR,
             onComplete: () => this.destroy(),
@@ -967,7 +984,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._doNotShowWin = true;
         this._doNotUpdateOnNewWindow = true;
         const selected = this._getSelected();
-        if (this._showingApps) {
+        if (this._showingApps && selected) {
             if (_ctrlPressed()) {
                 // this can cause problems when a shortcut with Ctrl key is used to trigger the popup
                 // so allow this only when it's not the case
@@ -1002,9 +1019,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     selected.open_new_window(global.get_current_time());
                 }
             }
-        } else {
+        } else if (selected) {
             this._activateWindow(selected);
             //Main.activateWindow(selected);
+        } else {
+            this._getActions().toggleAppGrid();
         }
         super._finish();
     }
@@ -1019,8 +1038,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _connectIcons() {
         this._iconsConnections = [];
-        this._switcherList._items.forEach(icon => this._iconsConnections.push(icon.connect('button-press-event', this._onItemBtnPressEvent.bind(this))));
-        this._switcherList._items.forEach(icon => this._iconsConnections.push(icon.connect('scroll-event', this._onItemScrollEvent.bind(this))));
+        this._switcherList._items.forEach(switcherButton => {
+            this._iconsConnections.push(switcherButton.connect('button-press-event', this._onItemBtnPressEvent.bind(this)));
+            this._iconsConnections.push(switcherButton.connect('scroll-event', this._onItemScrollEvent.bind(this)));
+            // connect ShowAppsIcon
+            if (switcherButton.get_child().toggleButton) {
+                switcherButton.get_child().toggleButton.connect('notify::checked', () => this._getActions().toggleAppGrid());
+            }
+        });
     }
 
     _onWindowItemAppClicked (actor, event) {
@@ -1096,7 +1121,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         }
 
                         if (this._showingApps) {
-                            if (this._getSelected().cachedWindows.length) {
+                            if (this._getSelected() && this._getSelected().cachedWindows.length) {
                                 this._finish();
                             } else {
                                 if (this.ACTIVATE_ON_HIDE) {
@@ -1140,6 +1165,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             pt = 'app';
         }
         for (let i = 0; i < this._items.length; i++) {
+            if (this._items[i]._is_showAppsIcon)
+                continue;
             if (this._items[i][pt].get_id() === id) {
                 return i;
             }
@@ -1330,6 +1357,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _getItemIndexByID(id) {
         for (let i = 0; i < this._items.length; i++) {
             let pt  = this._items[i]._is_window ? 'window' : 'app';
+            if (!this._items[i][pt])
+                continue;
             let cid = this._items[i][pt].get_id();
 
             if (cid === id) return i;
@@ -1612,7 +1641,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             } else { // Ctrl not pressed
                 if (this._switcherMode === SwitcherMode.APPS) {
                     if (this._showingApps) {
-                        if (this._getSelected().cachedWindows.length)
+                        if (this._getSelected() && this._getSelected().cachedWindows.length)
                             this._toggleSingleAppMode();
                     } else if (this._singleApp) {
                         if (_shiftPressed() || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD) {
@@ -1905,7 +1934,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _moveFavotites(direction) {
-        if (!this._showingApps && this.INCLUDE_FAVORITES)
+        if ((!this._showingApps && this.INCLUDE_FAVORITES) || !this._getSelected())
             return;
 
         let app = this._getSelected().get_id();
@@ -2071,7 +2100,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             let id = 0;
             if (this._showingApps) {
-                if (this._getSelected().cachedWindows.length) {
+                if (this._getSelected() && this._getSelected().cachedWindows.length) {
                     id = this._getSelected().cachedWindows[0].get_id();
                 }
             } else {
@@ -2087,7 +2116,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             let id;
 
             if (this._showingApps) {
-                if (this._selectedIndex > -1 && this._getSelected().cachedWindows.length) {
+                if (this._selectedIndex > -1 && this._getSelected() && this._getSelected().cachedWindows.length) {
                     id = this._getSelected().cachedWindows[0].get_id();
                 }
             } else {
@@ -3258,6 +3287,8 @@ class AppIcon extends AppDisplay.AppIcon {
         if (this._switcherParams.hotKeys && iconIndex < 12) {
             this._iconContainer.add_child(_createHotKeyNumIcon(iconIndex));
         }
+
+        this._is_app = true;
     }
 
     _shouldShowWinCounter(count) {
@@ -3339,14 +3370,32 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             }
         }
 
+        if (this.icons[0]._is_app && this._switcherParams.includeShowAppsIcon) {
+            const showAppsIcon = this._getShowAppsIcon();
+            this.addItem(showAppsIcon, showAppsIcon.titleLabel);
+            this.icons.push(showAppsIcon);
+        }
         this.connect('destroy', this._onDestroy.bind(this));
+    }
+
+    _getShowAppsIcon() {
+        const showAppsIcon = new Dash.ShowAppsIcon();
+        showAppsIcon.icon.setIconSize(this._switcherParams.appModeIconSize);
+        showAppsIcon._is_showAppsIcon = true;
+        showAppsIcon.show(false);
+        showAppsIcon.style_class = '';
+        showAppsIcon.label.text = _('Show Applications');
+        showAppsIcon.titleLabel = showAppsIcon.label;
+        //showAppsIcon.icon.titleLabel = showAppsIcon.titleLabel;
+        //showAppsIcon.icon._toggleButton = showAppsIcon.toggleButton;
+        return showAppsIcon;
     }
 
     _onDestroy() {
         this.icons.forEach(icon => {
             if (icon._unmanagedSignalId) {
                 icon.window.disconnect(icon._unmanagedSignalId);
-            } else {
+            } else if (icon.app) {
                 icon.app.cachedWindows.forEach(w => {
                     if (w._unmanagedSignalId)
                         w.disconnect(w._unmanagedSignalId)

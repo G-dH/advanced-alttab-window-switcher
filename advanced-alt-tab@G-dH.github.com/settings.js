@@ -1,3 +1,12 @@
+/**
+ * AATWS - Advanced Alt-Tab Window Switcher
+ * Settings
+ *
+ * @author     GdH <G-dH@github.com>
+ * @copyright  2021-2022
+ * @license    GPL-3.0
+ */
+
 'use strict';
 
 const GLib = imports.gi.GLib;
@@ -119,6 +128,7 @@ var Options = class Options {
             appSwitcherPopupHideWinCounterForSingleWindow: ['boolean', 'app-switcher-popup-hide-win-counter-for-single-window'],
             appSwitcherPopupTitles: ['boolean', 'app-switcher-popup-titles'],
             appSwitcherPopupSwitchToSingleOnActivate: ['boolean', 'app-switcher-popup-switch-to-single-on-activate'],
+            appSwitcherPopupIncludeShowAppsIcon: ['boolean', 'app-switcher-popup-include-show-apps-icon'],
             appSwitcherPopupScrollItem: ['int', 'app-switcher-popup-scroll-item'],
             appSwitcherPopupPrimClickItem: ['int', 'app-switcher-popup-prim-click-item'],
             appSwitcherPopupSecClickItem: ['int', 'app-switcher-popup-sec-click-item'],

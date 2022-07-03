@@ -1,3 +1,12 @@
+/**
+ * AATWS - Advanced Alt-Tab Window Switcher
+ * Actions
+ *
+ * @author     GdH <G-dH@github.com>
+ * @copyright  2021-2022
+ * @license    GPL-3.0
+ */
+
 'use strict';
 
 const { GObject, St, Meta, Shell } = imports.gi;
