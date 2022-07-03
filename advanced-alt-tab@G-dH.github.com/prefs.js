@@ -276,6 +276,7 @@ function _getMiscOptionList() {
             opt.ThumbnailScale,
         opt.ExternalTrigger,
             opt.MousePointerPosition,
+            opt.SingleOnActivate,
             opt.AppStableOrder,
             opt.AutomaticallyReverseOrder,
             opt.PointerOutTimeout,
@@ -1003,7 +1004,7 @@ function _getAppsOpt() {
         _('Search engine will prioritize running applications.'),
         _newGtkSwitch(),
         'appSwitcherPopupSearchPrefRunning'
-);
+    );
 
     let popupAppLimitAdjustment = new Gtk.Adjustment({
         upper: 30,
@@ -1140,6 +1141,13 @@ function _getMiscOpt() {
             _('If variable KEYBOARD_TRIGGERED is set to false, then this option is reflected.'),
             _newGtkSwitch(),
             'switcherPopupPointer'
+    );
+
+    optDict.SingleOnActivate =_optionsItem(
+            _('Show App Windows Before Activation'),
+            _('If the clicked app has more than one window (for the current filter setting) and the button used for the click is set to Activate item, the switcher will not activate the recently used window of the app and switch to the Single App mode, so you can choose another window.'),
+            _newGtkSwitch(),
+            'appSwitcherPopupSwitchToSingleOnActivate'
     );
 
     optDict.AppStableOrder = _optionsItem(

@@ -270,7 +270,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // this._initialDelayTimeoutId and this._noModsTimeoutId were already removed in super class
         let timeouts = [
             this._showWinImmediatelyTimeoutId,
-            this._recentSwitchTimeoutId,
             this._newWindowConnectorTimeoutId,
             this._updateTimeoutId,
             this._overlayKeyInitTimeout
@@ -794,14 +793,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._firstRun) {
             // timeout in which click on the swhitcher background acts as 'activate' despite configuration
             // for quick switch to recent window when triggered using mouse and top/bottom popup position
-            this._recentSwitchTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                300,
-                () => {
-                    this._recentSwitchTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-                }
-            );
+            this._recentSwitchTime = Date.now() + 300;
 
             this._initialDelayTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
@@ -893,7 +885,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         });
 
-        if (!this._isPointerOut()) {
+        if (!this._isPointerOut() && item._closeButton) {
             item._closeButton.opacity = 255;
         }
 
@@ -982,6 +974,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (!_ctrlPressed(this._modifierMask)) {
                     selected.open_new_window(global.get_current_time());
                 }
+            } else if (!this.KEYBOARD_TRIGGERED && options.get('appSwitcherPopupSwitchToSingleOnActivate')
+                        && this._getSelected() && this._getSelected().cachedWindows && this._getSelected().cachedWindows[1]) {
+                this._toggleSingleAppMode();
+                return;
             } else if (selected.cachedWindows[0]) {
                 if (this.APP_RAISE_FIRST_ONLY) {
                     this._activateWindow(selected.cachedWindows[0]);
@@ -1861,7 +1857,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         switch (btn) {
             case Clutter.BUTTON_PRIMARY:
-                if (this._recentSwitchTimeoutId && !pointerOut) {
+                if ((this._recentSwitchTime - Date.now() > 0) && !pointerOut) {
                     action = Action.ACTIVATE;
                 } else {
                     action = pointerOut
@@ -2416,8 +2412,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let appIcon = this._items[this._selectedIndex];
         if (appIcon) {
             appIcon.popupMenu();
-            appIcon._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             if (nWindows && (!appIcon._menu._alreadyCompleted || shellVersion < 41)) {
+                appIcon._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
                 popupItems.forEach(i => {
                     let item = new PopupMenu.PopupMenuItem(i[0]);
                     appIcon._menu.addMenuItem(item);
@@ -2521,7 +2517,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _triggerAction(action, direction = 0) {
         // select recent window instead of the first one
-        if (this._recentSwitchTimeoutId && this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
+        if ((this._recentSwitchTime - Date.now() > 0) && this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
             this._select(this._next());
         }
 

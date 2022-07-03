@@ -118,6 +118,7 @@ var Options = class Options {
             appSwitcherPopupWinCounter: ['boolean', 'app-switcher-popup-win-counter'],
             appSwitcherPopupHideWinCounterForSingleWindow: ['boolean', 'app-switcher-popup-hide-win-counter-for-single-window'],
             appSwitcherPopupTitles: ['boolean', 'app-switcher-popup-titles'],
+            appSwitcherPopupSwitchToSingleOnActivate: ['boolean', 'app-switcher-popup-switch-to-single-on-activate'],
             appSwitcherPopupScrollItem: ['int', 'app-switcher-popup-scroll-item'],
             appSwitcherPopupPrimClickItem: ['int', 'app-switcher-popup-prim-click-item'],
             appSwitcherPopupSecClickItem: ['int', 'app-switcher-popup-sec-click-item'],

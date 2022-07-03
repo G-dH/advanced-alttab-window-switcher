@@ -73,6 +73,7 @@ function enable() {
             }
             _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
 
+            log(`${Me.metadata.name}: enabled`);
             enabled = true;
             _delayId = 0;
             return GLib.SOURCE_REMOVE;
@@ -112,6 +113,7 @@ function disable() {
     _restoreOverlayKeyHandler();
     WindowSwitcherPopup.options = null;
     _options = null;
+    log(`${Me.metadata.name}: disabled`);
 }
 
 function _removeThumbnails(hide = false) {

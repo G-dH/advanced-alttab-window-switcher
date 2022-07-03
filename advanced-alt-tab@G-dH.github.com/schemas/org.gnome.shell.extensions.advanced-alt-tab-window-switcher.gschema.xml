@@ -134,6 +134,9 @@
     <key name='app-switcher-popup-filter' type='i'>
       <default>1</default>
     </key>
+    <key name='app-switcher-popup-switch-to-single-on-activate' type='b'>
+      <default>true</default>
+    </key>
     <key name='switcher-popup-timeout' type='i'>
       <default>100</default>
     </key>
