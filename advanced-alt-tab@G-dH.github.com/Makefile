@@ -14,7 +14,7 @@ LOCALES_MO     = $(patsubst po/%.po,locale/%/LC_MESSAGES/$(NAME).mo,$(LOCALES_PO
 
 # These files will be included in the extension zip file.
 ZIP_CONTENT = $(JS_FILES) $(LOCALES_MO) \
-              schemas/gschemas.compiled metadata.json stylesheet.css ../LICENSE
+              schemas/* metadata.json stylesheet.css ../LICENSE
 
 # These six recipes can be invoked by the user.
 .PHONY: all zip install uninstall pot clean
