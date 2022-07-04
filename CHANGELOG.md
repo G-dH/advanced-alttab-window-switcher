@@ -1,4 +1,8 @@
 ## Changelog
+### v16
+**Added:**
+- App Switcher Option: `Include Show Apps Icon` - allows you to toggle Overview's App Grid from AATWS
+- App Switcher Option: `Show App Windows Before Activation` - if you click on icon with multiple windows, the switcher toggles to the single app mmode to show you the windows instead of activation of the most recently used window.
 
 ### v15
 **Added:**
