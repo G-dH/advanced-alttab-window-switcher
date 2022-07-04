@@ -3,6 +3,7 @@
 **Added:**
 - App Switcher Option: `Include Show Apps Icon` - allows you to toggle Overview's App Grid from AATWS
 - App Switcher Option: `Show App Windows Before Activation` - if you click on icon with multiple windows, the switcher toggles to the single app mmode to show you the windows instead of activation of the most recently used window.
+- External/Mouse trigger option: `Force App Switcher Include Favorites` - App switcher can include favorite apps only if triggered using a mouse (from Custom Hot Corners - Extended).
 
 ### v15
 **Added:**

@@ -93,10 +93,11 @@ You can remove the lastly created thumbnail using `Ctrl + T` or remove all thumb
     Primary cLick         - toggles scroll wheel function (resize / source)
     Scroll wheel          - resizes or switches a source window
     Ctrl + Scroll wheel   - switches source window or resizes
-    Secondary click       - removes the thumbnail
-    Middle click          - closes the source window
+    ~~Secondary click       - removes the thumbnail~~
+    Secondary click       - shows full-size window preview and toggles Show preview on hover functionality - hover shows preview / leave hides the preview
+    ~~Middle click          - closes the source window~~
     Shift + Scroll wheel  - changes thumbnail opacity
-    Ctrl + Primary button - toggles window preview to app icon
+    ~~Ctrl + Primary button - toggles window preview to app icon~~
 
 Known bugs: when the thumbnail is created above VirtualBox virtual machine window, the thumbnail becomes irresponsive.
 
