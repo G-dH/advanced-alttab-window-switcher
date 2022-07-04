@@ -561,6 +561,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
+        this.INCLUDE_FAVORITES = this.KEYBOARD_TRIGGERED ? this.INCLUDE_FAVORITES : options.get('switcherPopupExtAppFavorites');
+
         if (binding == 'switch-group' || binding == 'switch-group-backward') {
             this._switchGroupInit = true;
             let id, name;

@@ -139,6 +139,7 @@ var Options = class Options {
             wsSwitchIndicatorMode: ['int', 'ws-switch-indicator-mode'],
             wsShowSwitcherPopup: ['boolean', 'ws-switch-popup'],
             switcherPopupPointer: ['boolean', 'switcher-popup-pointer'],
+            switcherPopupExtAppFavorites: ['boolean', 'switcher-popup-ext-app-favorites'],
             switcherPopupExtAppStable: ['boolean', 'switcher-popup-ext-app-stable'],
             switcherPopupReverseAuto: ['boolean', 'switcher-popup-reverse-auto'],
             switcherPopupPointerTimeout: ['int', 'switcher-popup-pointer-timeout'],

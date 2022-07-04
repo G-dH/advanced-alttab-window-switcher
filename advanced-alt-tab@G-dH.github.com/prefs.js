@@ -288,6 +288,7 @@ function _getMiscOptionList() {
             opt.MousePointerPosition,
             opt.SingleOnActivate,
             opt.AppStableOrder,
+            opt.AppIncludeFavorites,
             opt.AutomaticallyReverseOrder,
             opt.PointerOutTimeout,
             opt.ActivateOnHide
@@ -1165,6 +1166,13 @@ function _getMiscOpt() {
             _('If the clicked app has more than one window (for the current filter setting) and the button used for the click is set to Activate item, the switcher will not activate the recently used window of the app and switch to the Single App mode, so you can choose another window.'),
             _newGtkSwitch(),
             'appSwitcherPopupSwitchToSingleOnActivate'
+    );
+
+    optDict.AppIncludeFavorites = _optionsItem(
+            _('Force App Switcher Include Favoreites'),
+            _('Include favorite apps to the App switcher despite the App switcher settings.'),
+            _newGtkSwitch(),
+            'switcherPopupExtAppFavorites'
     );
 
     optDict.AppStableOrder = _optionsItem(

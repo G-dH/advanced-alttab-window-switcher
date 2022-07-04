@@ -44,6 +44,9 @@
     <key name='switcher-popup-pointer' type='b'>
       <default>true</default>
     </key>
+    <key name='switcher-popup-ext-app-favorites' type='b'>
+      <default>true</default>
+    </key>
     <key name='switcher-popup-ext-app-stable' type='b'>
       <default>true</default>
     </key>
