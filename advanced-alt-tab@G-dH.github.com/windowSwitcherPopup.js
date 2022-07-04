@@ -615,6 +615,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             let showWinTitles = this.WINDOW_TITLES === 1 || (this.WINDOW_TITLES === 3 && this._singleApp);
             let switcherParams = {
+                showingApps: this._showingApps,
                 showItemTitle: this._showingApps ? this.SHOW_APP_TITLES : showWinTitles,
                 showWinTitles: showWinTitles,
                 showAppTitles: this.SHOW_APP_TITLES,
@@ -633,7 +634,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 addAppDetails: this._searchEntryNotEmpty(),
                 includeFavorites: this.INCLUDE_FAVORITES,
                 searchActive: this._searchEntryNotEmpty(),
-                //actions: this._getActions()
+                reverseOrder: this._shouldReverse()
             }
 
             this._switcherList = new WindowSwitcher(switcherList, switcherParams);
@@ -3342,6 +3343,15 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
 
         this.icons = [];
 
+        let showAppsIcon;
+        if (this._switcherParams.showingApps && this._switcherParams.includeShowAppsIcon) {
+            showAppsIcon = this._getShowAppsIcon();
+            if (this._switcherParams.reverseOrder) {
+                this.addItem(showAppsIcon, showAppsIcon.titleLabel);
+                this.icons.push(showAppsIcon);
+            }
+        }
+
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
             let icon;
@@ -3370,11 +3380,11 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             }
         }
 
-        if (this.icons[0]._is_app && this._switcherParams.includeShowAppsIcon) {
-            const showAppsIcon = this._getShowAppsIcon();
+        if (showAppsIcon && !this._switcherParams.reverseOrder) {
             this.addItem(showAppsIcon, showAppsIcon.titleLabel);
             this.icons.push(showAppsIcon);
         }
+
         this.connect('destroy', this._onDestroy.bind(this));
     }
 
@@ -3386,8 +3396,6 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         showAppsIcon.style_class = '';
         showAppsIcon.label.text = _('Show Applications');
         showAppsIcon.titleLabel = showAppsIcon.label;
-        //showAppsIcon.icon.titleLabel = showAppsIcon.titleLabel;
-        //showAppsIcon.icon._toggleButton = showAppsIcon.toggleButton;
         return showAppsIcon;
     }
 
