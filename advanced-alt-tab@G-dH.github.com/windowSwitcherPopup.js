@@ -958,19 +958,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (this._itemCaption) {
-            this._removeCaptions();
+            this._itemCaption.opacity = 0;
         }
-
         if (this.opacity > 0) {
             if (this.KEYBOARD_TRIGGERED) {
-                this._switcherList.ease({
-                    opacity: 0,
-                    height: 0,
-                    duration: 100,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    // mode: Clutter.AnimationMode.LINEAR,
-                    onComplete: () => this.destroy(),
-                });
+                this.destroy();
             } else {
                 this._shadeOut();
             }
@@ -2733,8 +2725,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _getAppList(pattern = '') {
-        let filterMode;
-        filterMode = this._tempFilterMode
+        let filterMode = this._tempFilterMode
             ? this._tempFilterMode
             : this.APP_FILTER_MODE;
 
@@ -2841,15 +2832,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             appList.splice(this.APP_SEARCH_LIMIT);
         }
 
-        let windowTracker = Shell.WindowTracker.get_default();
+        //let windowTracker = Shell.WindowTracker.get_default();
         this._tempFilterMode = filterMode;
         if ((filterMode === FilterMode.MONITOR || filterMode === FilterMode.WORKSPACE) && pattern === '') {
-            let currentWS = global.workspace_manager.get_active_workspace_index();
             this._tempFilterMode = this.APP_FILTER_MODE;
             appList = appList.filter(a => {
                 if (a.get_n_windows()) {
-                    a.cachedWindows = this._getCustomWindowList(pattern).filter(
-                        w => windowTracker.get_window_app(w) === a);
+                    a.cachedWindows = this._filterWindowsForWsMonitor(a.get_windows());
                 } else {
                     a.cachedWindows = [];
                 }
@@ -2861,8 +2850,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             appList.forEach(
                 a => {
                     if (a.get_n_windows()) {
-                        a.cachedWindows = this._getCustomWindowList(pattern).filter(
-                            w => windowTracker.get_window_app(w) === a);
+                        a.cachedWindows = this._filterWindowsForWsMonitor(a.get_windows());
                     } else {
                         a.cachedWindows = [];
                     }
@@ -2875,6 +2863,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         return appList;
+    }
+
+    _filterWindowsForWsMonitor(windows) {
+        const filterMode = this._tempFilterMode
+            ? this._tempFilterMode
+            : this.APP_FILTER_MODE;
+        const currentWS = global.workspace_manager.get_active_workspace_index();
+        const currentMon = global.display.get_current_monitor();
+
+        return windows.filter(
+            w => (filterMode === FilterMode.ALL || ((filterMode === FilterMode.WORKSPACE || filterMode === FilterMode.MONITOR) && w.get_workspace().index() === currentWS))
+        ).filter(w => (filterMode === FilterMode.ALL || filterMode === FilterMode.WORKSPACE) || (filterMode === FilterMode.MONITOR && w.get_monitor() === currentMon));
     }
 
     _match(string, pattern) {
@@ -2959,11 +2959,11 @@ class CaptionLabel extends St.BoxLayout {
         if (params.description)
             this.addDetails(params.description);
 
-        this.addToChrome();
+        this._addToChrome();
         this.setPosition();
     }
 
-    addToChrome() {
+    _addToChrome() {
         Main.layoutManager.addChrome(this);
     }
 
@@ -3408,7 +3408,7 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             } else if (icon.app) {
                 icon.app.cachedWindows.forEach(w => {
                     if (w._unmanagedSignalId)
-                        w.disconnect(w._unmanagedSignalId)
+                        w.disconnect(w._unmanagedSignalId);
                 });
             }
         });
