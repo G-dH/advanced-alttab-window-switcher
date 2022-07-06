@@ -28,7 +28,7 @@ class WindowThumbnail extends St.BoxLayout {
         this._customOpacity = 255;
         this._initTmbHeight = args.height;
         this._minimumHeight = Math.floor(5 / 100 * global.display.get_monitor_geometry(global.display.get_current_monitor()).height);
-        this._scrollTimeout = args.actionTimeout;
+        this._scrollTimeout = 100;
         this._positionOffset = args.thumbnailsOnScreen;
         this._reverseTmbWheelFunc = false;
         this._click_count = 1;
@@ -67,6 +67,7 @@ class WindowThumbnail extends St.BoxLayout {
         this._addScrollModeIcon();
 
         this.connect('enter-event', () => {
+            global.display.set_cursor(Meta.Cursor.POINTING_HAND);
             this._closeButton.opacity = CLOSE_BTN_OPACITY;
             this._scrollModeBin.opacity = SCROLL_ICON_OPACITY;
             if (this._hoverShowsPreview) {
@@ -76,6 +77,7 @@ class WindowThumbnail extends St.BoxLayout {
         });
 
         this.connect('leave-event', () => {
+            global.display.set_cursor(Meta.Cursor.DEFAULT);
             this._closeButton.opacity = 0;
             this._scrollModeBin.opacity = 0;
             if (this._winPreview) {
