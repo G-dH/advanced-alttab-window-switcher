@@ -1,4 +1,12 @@
 ## Changelog
+### v17 2022-07-06
+**Added:**
+- Hotkey to toggle `Include Favorite Apps` - select `Show Apps Icon` and press the key above Tab (group switcher shortcut).
+
+**Fixed:**
+- DND Window thumbnails - scroll action works only once; when source windo closes, thumbnail isn't destroyed completely.
+
+
 ### v16 2022-07-06
 **Added:**
 - App Switcher Option: `Include Show Apps Icon` - allows you to toggle Overview's App Grid from AATWS.
