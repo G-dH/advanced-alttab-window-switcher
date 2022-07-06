@@ -990,7 +990,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         && selected && selected.cachedWindows && selected.cachedWindows[1]) {
                 this._toggleSingleAppMode();
                 return;
-            } else if (selected.cachedWindows[0]) {
+            } else if (selected.cachedWindows && selected.cachedWindows[0]) {
                 if (this.APP_RAISE_FIRST_ONLY) {
                     this._activateWindow(selected.cachedWindows[0]);
                 } else {
@@ -1005,7 +1005,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
                     this._activateWindow(selected.cachedWindows[0]);
                 }
-            } else {
+            } else if (selected && selected.get_n_windows) {
                 if (selected.get_n_windows() === 0) {
                     // app has no windows - probably not running
                     selected.activate();
@@ -1013,13 +1013,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     // in this case app is running but no window match the current filter mode
                     selected.open_new_window(global.get_current_time());
                 }
+            } else if (selected && selected._is_showAppsIcon) {
+                    this._getActions().toggleAppGrid();
             }
         } else if (selected) {
             this._activateWindow(selected);
             //Main.activateWindow(selected);
-        } else {
-            this._getActions().toggleAppGrid();
         }
+
         super._finish();
     }
 
@@ -1669,7 +1670,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     } else {
                         this._selectNextApp(index);
                     }
-                } 
+                }
             }
         } else if ((keysym == Clutter.KEY_Tab || keysym === Clutter.KEY_ISO_Left_Tab) && _ctrlPressed()) {
             let mod = Main.layoutManager.monitors.length;
@@ -2048,12 +2049,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         let winToApp = false;
         if (!this._singleApp || switchOn) {
-            if (this._showingApps) {
-                if (!selected.cachedWindows.length) return;
+            if (this._showingApps && selected.cachedWindows) {
+                if (!selected.cachedWindows.length)
+                    return;
 
                 this._singleApp = [selected.get_id(), selected.get_name()];
                 this.SHOW_APPS = false;
-                // this._showingApps = false;
             } else {
                 let id, name;
                 const app = _getWindowApp(selected);
@@ -2428,7 +2429,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _openAppIconMenu() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon)
+            return;
 
         let nWindows = selected.cachedWindows.length;
         let popupItems = [
