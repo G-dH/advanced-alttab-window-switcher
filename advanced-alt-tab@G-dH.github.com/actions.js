@@ -315,7 +315,7 @@ var Actions = class {
 
         let monitorHeight = get_current_monitor_geometry().height;
         let scale = this._gOptions.get('winThumbnailScale');
-        global.stage.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this, {
+        global.stage.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, global.stage, {
             'height': Math.floor(scale / 100 * monitorHeight),
             'thumbnailsOnScreen': global.stage.windowThumbnails.length,
         }));
