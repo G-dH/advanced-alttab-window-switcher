@@ -18,13 +18,14 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 - Optional default window grouping settings: *None / Current workspace first / Applications / Workspaces*.
 - **Filter, sorting and grouping modes can be switched on the fly** when needed using hotkeys.
 - The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files) and GNOME Settings. You can search applications not only by names, but also by their description, keywords, category and name of executable.
+- App switcher can include Show Apps Button to acces overview applications grid.
 - Built-in **workspace switcher** with `Wraparound` and `Ingore Last (empty) Workspace` options allows you to navigate between workspaces using the Up/Down arrow keys.
 - Separately **adjustable sizes** of window preview and app icon combo (the larger one is used as the base and the smaller one as the front icon), single application window list icons and application list icons.
-- windows can be rised immediately as they are selected in the switcher list, otherwise you can do so by pressing a dedicated hotkey.
+- windows can be previewed or raised immediately as they are selected in the switcher list, otherwise you can do so by pressing a dedicated hotkey.
 - With multimonitor setup **you can move the switcher popup to any connected monitor on the fly** using hotkeys. You can also choose whether the switcher should appear always on the primary monitor or the one with mouse pointer.
 - Optional workspace index on each window item so you can see to which workspace the window belongs.
 - Direct window activation using `F`unction keys with optional `F<n>` key indicator on each item in the switcher.
-- Super key can be set to open App or Window switcher instead of the default Activities overview.
+- Super key (or more accurately `Window Action Key` which can be reassigned in *GNOME Tweaks* or *D-conf editor*) can be set to open App or Window switcher instead of the default Activities overview.
 - Bult-in window and app controls, see Hotkeys paragraph below.
 
 ### Hotkeys
@@ -93,11 +94,12 @@ You can remove the lastly created thumbnail using `Ctrl + T` or remove all thumb
     Primary cLick         - toggles scroll wheel function (resize / source)
     Scroll wheel          - resizes or switches a source window
     Ctrl + Scroll wheel   - switches source window or resizes
-    ~~Secondary click       - removes the thumbnail~~
     Secondary click       - shows full-size window preview and toggles Show preview on hover functionality - hover shows preview / leave hides the preview
-    ~~Middle click          - closes the source window~~
     Shift + Scroll wheel  - changes thumbnail opacity
-    ~~Ctrl + Primary button - toggles window preview to app icon~~
+
+    NO LONGER AVAILABLE: Secondary click       - removes the thumbnail
+    NO LONGER AVAILABLE: Middle click          - closes the source window
+    NO LONGER AVAILABLE: Ctrl + Primary button - toggles window preview to app icon
 
 Known bugs: when the thumbnail is created above VirtualBox virtual machine window, the thumbnail becomes irresponsive.
 

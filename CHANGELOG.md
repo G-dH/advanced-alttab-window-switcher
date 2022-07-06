@@ -1,9 +1,15 @@
 ## Changelog
-### v16
+### v16 2022-07-06
 **Added:**
-- App Switcher Option: `Include Show Apps Icon` - allows you to toggle Overview's App Grid from AATWS
+- App Switcher Option: `Include Show Apps Icon` - allows you to toggle Overview's App Grid from AATWS.
 - App Switcher Option: `Show App Windows Before Activation` - if you click on icon with multiple windows, the switcher toggles to the single app mmode to show you the windows instead of activation of the most recently used window.
 - External/Mouse trigger option: `Force App Switcher Include Favorites` - App switcher can include favorite apps only if triggered using a mouse (from Custom Hot Corners - Extended).
+- Updated DND Window Thumbnail with overlay close button and scroll function indicator and also full-sized window preview on hover.
+
+**Fixed:**
+- backward navigation don't work for some keayboard shortcuts.
+- Closing AATWS using Esc key sends Esc release event to the focused window which may react to it. Now AATWS closes on release of the Esc key instead of press to avoid this issue.
+
 
 ### v15
 **Added:**
