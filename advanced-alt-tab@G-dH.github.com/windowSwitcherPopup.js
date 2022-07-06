@@ -987,7 +987,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     selected.open_new_window(global.get_current_time());
                 }
             } else if (!this.KEYBOARD_TRIGGERED && options.get('appSwitcherPopupSwitchToSingleOnActivate')
-                        && this._getSelected() && this._getSelected().cachedWindows && this._getSelected().cachedWindows[1]) {
+                        && selected && selected.cachedWindows && selected.cachedWindows[1]) {
                 this._toggleSingleAppMode();
                 return;
             } else if (selected.cachedWindows[0]) {
@@ -1116,7 +1116,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         }
 
                         if (this._showingApps) {
-                            if (this._getSelected() && this._getSelected().cachedWindows.length) {
+                            const selected = this._getSelected();
+                            if (selected && selected.cachedWindows && selected.cachedWindows.length) {
                                 this._finish();
                             } else {
                                 if (this.ACTIVATE_ON_HIDE) {
@@ -1341,8 +1342,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             let it = this._items[this._selectedIndex];
             if (it && it._is_window) {
                 selected = this._items[this._selectedIndex].window;
-            } else if (it) {
+            } else if (it && it._is_app) {
                 selected = this._items[this._selectedIndex].app;
+            } else if (it && it._is_showAppsIcon) {
+                selected = this._items[this._selectedIndex];
             }
         }
 
@@ -1631,12 +1634,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } // else if (keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) { // 96 is grave, 126 ascii tilde, 65112 dead_abovering. I didn't find Clutter constants.
         else if (action == Meta.KeyBindingAction.SWITCH_GROUP || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD ||
                  keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) {
+            const selected = this._getSelected();
             if (_ctrlPressed()) {
                 this._toggleSwitcherMode();
             } else { // Ctrl not pressed
                 if (this._switcherMode === SwitcherMode.APPS) {
-                    if (this._showingApps) {
-                        if (this._getSelected() && this._getSelected().cachedWindows.length)
+                    if (this._showingApps && selected.cachedWindows) {
+                        if (selected && selected.cachedWindows.length)
                             this._toggleSingleAppMode();
                     } else if (this._singleApp) {
                         if (_shiftPressed() || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD) {
@@ -1644,6 +1648,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         } else {
                             this._select(this._next());
                         }
+                    } else if (selected && selected._is_showAppsIcon) {
+                        this.INCLUDE_FAVORITES = !this.INCLUDE_FAVORITES;
+                        this.show();
                     } else {
                         this._toggleSwitcherMode();
                     }
@@ -1662,7 +1669,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     } else {
                         this._selectNextApp(index);
                     }
-                }
+                } 
             }
         } else if ((keysym == Clutter.KEY_Tab || keysym === Clutter.KEY_ISO_Left_Tab) && _ctrlPressed()) {
             let mod = Main.layoutManager.monitors.length;
@@ -2088,6 +2095,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleSwitcherMode() {
+        const selected = this._getSelected();
         if (this._switcherMode === SwitcherMode.APPS) {
             this._switcherMode = SwitcherMode.WINDOWS;
             this.SHOW_APPS = false;
@@ -2095,8 +2103,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             let id = 0;
             if (this._showingApps) {
-                if (this._getSelected() && this._getSelected().cachedWindows.length) {
-                    id = this._getSelected().cachedWindows[0].get_id();
+                if (selected && selected.cachedWindows && selected.cachedWindows.length) {
+                    id = selected.cachedWindows[0].get_id();
                 }
             } else {
                 id = _getWindowApp(this._items[0].window).get_id();
@@ -2111,8 +2119,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             let id;
 
             if (this._showingApps) {
-                if (this._selectedIndex > -1 && this._getSelected() && this._getSelected().cachedWindows.length) {
-                    id = this._getSelected().cachedWindows[0].get_id();
+                if (this._selectedIndex > -1 && selected && selected.cachedWindows && selected.cachedWindows.length) {
+                    id = selected.cachedWindows[0].get_id();
                 }
             } else {
                 if (this._selectedIndex > -1) {
