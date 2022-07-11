@@ -1177,8 +1177,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (item.window) {
             return item.window.get_id();
-        } else {
+        } else if (item._is_app) {
             return item.app.get_id();
+        } else if (item._is_showAppsIcon) {
+            return '_is_showAppsIcon';
         }
     }
 
@@ -1355,9 +1357,19 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _getItemIndexByID(id) {
         for (let i = 0; i < this._items.length; i++) {
-            let pt  = this._items[i]._is_window ? 'window' : 'app';
+            let pt;
+            pt  = this._items[i]._is_window ? 'window' : pt;
+            pt  = this._items[i]._is_app ? 'app' : pt;
+            pt  = this._items[i]._is_showAppsIcon ? '_is_showAppsIcon' : pt;
+
             if (!this._items[i][pt])
                 continue;
+            
+            // ShowAppsIcon
+            if (pt === id) {
+                return i;
+            }
+
             let cid = this._items[i][pt].get_id();
 
             if (cid === id) return i;
@@ -1468,7 +1480,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // Note: pressing one of the below keys will destroy the popup only if
         // that key is not used by the active popup's keyboard shortcut
-        if (/*keysym === Clutter.KEY_Escape ||*/ keysym === Clutter.KEY_Tab)
+        if (keysym === Clutter.KEY_Escape || keysym === Clutter.KEY_Tab)
             this.fadeAndDestroy();
 
         // Allow to explicitly select the current item; this is particularly
@@ -1483,10 +1495,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     vfunc_key_release_event(keyEvent) {
-        const keysym = keyEvent.keyval;
-        if (keysym === Clutter.KEY_Escape)
-            this.fadeAndDestroy();
-
         // monitor release of possible shortcut modifier keys only
         if (!(keyEvent.keyval == 65513 || keyEvent.keyval == 65511 ||  // Alt and Alt while Shift pressed
               keyEvent.keyval == 65515 ||                             // Super
@@ -1980,7 +1988,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _showPreview(toggle = false) {
         let selected = this._getSelected();
-        if (!selected) {
+        if (!selected || selected._is_showAppsIcon) {
             return;
         }
 
@@ -2016,7 +2024,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return;
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         let appId = 0;
 
@@ -2045,7 +2053,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _toggleSingleAppMode(switchOn = false) {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         let winToApp = false;
         if (!this._singleApp || switchOn) {
@@ -2309,7 +2317,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             selected = this._getSelected();
         }
 
-        if (!selected || (selected.cachedWindows && !selected.cachedWindows.length)) {
+        if (!selected || selected._is_showAppsIcon || (selected.cachedWindows && !selected.cachedWindows.length)) {
             return;
         }
 
@@ -2324,7 +2332,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!selected) {
             selected = this._getSelected();
         }
-        if (!selected || (selected.cachedWindows && !selected.cachedWindows.length)) {
+        if (!selected || selected._is_showAppsIcon || (selected.cachedWindows && !selected.cachedWindows.length)) {
             return;
         }
 
@@ -2362,7 +2370,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _moveToCurrentWS() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         let winList = selected.cachedWindows ? selected.cachedWindows : [selected];
         winList.forEach(win => {
@@ -2414,7 +2422,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _createWinThumbnail() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         if (selected && selected.get_windows) {
             if (selected.cachedWindows)
@@ -2463,7 +2471,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _closeWinQuitApp() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         if (this._showingApps) {
             selected.request_quit();
@@ -2480,7 +2488,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _closeAppWindows() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         this._getActions().closeAppWindows(selected, this._items);
     }
@@ -2488,7 +2496,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _killApp() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         if (this._showingApps) {
             if (selected.cachedWindows.length > 0) {
@@ -2502,7 +2510,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _openNewWindow() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         if (this._showingApps) {
             selected.open_new_window(global.get_current_time());
@@ -2527,7 +2535,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _toggleWinAbove() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         this._getActions().toggleAboveWindow(selected);
         Main.wm.actionMoveWorkspace(selected.get_workspace());
@@ -2537,7 +2545,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _toggleWinSticky() {
         let selected = this._getSelected();
 
-        if (!selected) return;
+        if (!selected || selected._is_showAppsIcon) return;
 
         this._getActions().toggleStickyWindow(selected);
         this._updateSwitcher();
