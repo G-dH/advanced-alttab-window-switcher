@@ -1174,14 +1174,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _getSelectedID() {
         let item = this._items[this._selectedIndex > -1 ? this._selectedIndex : 0];
-
-        if (item.window) {
-            return item.window.get_id();
-        } else if (item._is_app) {
-            return item.app.get_id();
-        } else if (item._is_showAppsIcon) {
-            return '_is_showAppsIcon';
-        }
+        return item._id;
     }
 
     _select(index) {
@@ -1344,11 +1337,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._selectedIndex > -1) {
             let it = this._items[this._selectedIndex];
             if (it && it._is_window) {
-                selected = this._items[this._selectedIndex].window;
+                selected = it.window;
             } else if (it && it._is_app) {
-                selected = this._items[this._selectedIndex].app;
+                selected = it.app;
             } else if (it && it._is_showAppsIcon) {
-                selected = this._items[this._selectedIndex];
+                selected = it;
             }
         }
 
@@ -1357,24 +1350,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _getItemIndexByID(id) {
         for (let i = 0; i < this._items.length; i++) {
-            let pt;
-            pt  = this._items[i]._is_window ? 'window' : pt;
-            pt  = this._items[i]._is_app ? 'app' : pt;
-            pt  = this._items[i]._is_showAppsIcon ? '_is_showAppsIcon' : pt;
-
-            if (!this._items[i][pt])
-                continue;
-            
-            // ShowAppsIcon
-            if (pt === id) {
+            if (this._items[i]._id === id)
                 return i;
-            }
-
-            let cid = this._items[i][pt].get_id();
-
-            if (cid === id) return i;
         }
-
         return 0;
     }
 
@@ -3051,6 +3029,7 @@ class WindowIcon extends St.BoxLayout {
         });
         this._switcherParams = switcherParams;
         this._icon = new St.Widget({layout_manager: new Clutter.BinLayout()});
+        this._id = metaWin.get_id();
 
         this.add_child(this._icon);
         this._icon.destroy_all_children();
@@ -3267,6 +3246,8 @@ class AppIcon extends AppDisplay.AppIcon {
             style_class: 'workspace-index'
         });
 
+        this._id = app.get_id();
+
         // remove original app icon style
         this.style_class = '';
 
@@ -3382,7 +3363,8 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
                 icon.connect('menu-state-changed',
                     (o, open) => {
                         _cancelTimeout = open;
-                    });
+                    }
+                );
             }
 
             this.addItem(icon, icon.titleLabel);
@@ -3391,7 +3373,7 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             // the icon could be an app, not only a window
             if (icon._is_window) {
                 icon._unmanagedSignalId = icon.window.connect('unmanaged', this._removeWindow.bind(this));
-            } else {
+            } else if (icon._is_app) {
                 if (icon.app.cachedWindows.length > 0) {
                     icon.app.cachedWindows.forEach(w =>
                         w._unmanagedSignalId = w.connect('unmanaged', this._removeWindow.bind(this))
@@ -3412,6 +3394,7 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         const showAppsIcon = new Dash.ShowAppsIcon();
         showAppsIcon.icon.setIconSize(this._switcherParams.appModeIconSize);
         showAppsIcon._is_showAppsIcon = true;
+        showAppsIcon._id = 'show-apps-icon';
         showAppsIcon.show(false);
         showAppsIcon.style_class = '';
         showAppsIcon.label.text = _('Show Applications');

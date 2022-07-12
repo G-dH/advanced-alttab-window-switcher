@@ -61,9 +61,10 @@ var Options = class Options {
 
             this._writeTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                300,
+                100,
                 () => {
                     this._gsettings.apply();
+                    this._updateCachedSettings();
                     this._writeTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
                 }
@@ -167,7 +168,6 @@ var Options = class Options {
             hotkeyRight: ['string', 'hotkey-right'],
         };
         this.cachedOptions = {};
-        this.connect('changed', this._updateCachedSettings.bind(this));
     }
 
     _updateCachedSettings(settings, key) {

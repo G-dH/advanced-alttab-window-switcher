@@ -125,7 +125,7 @@ function _removeThumbnails(hide = false) {
 }
 
 function _updateAlwaysActivateFocusedConnection() {
-    if (_options.get('wmAlwaysActivateFocused') && !_wmFocusToActiveHandlerId) {
+    if (_options.get('wmAlwaysActivateFocused', true) && !_wmFocusToActiveHandlerId) {
         _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', ()=>{
             let win = global.display.get_focus_window();
             if (win) Main.activateWindow(win);
@@ -140,7 +140,7 @@ function _updateOverlayKeyHandler() {
     // Block original overlay key handler
     _restoreOverlayKeyHandler();
 
-    if (_options.get('superKeyMode') === 1) {
+    if (_options.get('superKeyMode', true) === 1) {
         return;
     }
 
