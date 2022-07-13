@@ -2444,6 +2444,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             let menuItems = appIcon._menu._getMenuItems();
             menuItems[1].active = true;
         }
+
+        // remove items added by OFP extension
+        if (this._items[this._selectedIndex]._addedMenuItems) {
+            this._items[this._selectedIndex]._addedMenuItems.forEach(
+                item => item.destroy()
+            );
+            this._items[this._selectedIndex]._addedMenuItems = undefined;
+        }
     }
 
     _closeWinQuitApp() {
