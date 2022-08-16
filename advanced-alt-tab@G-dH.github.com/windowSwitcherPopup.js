@@ -622,6 +622,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 showWinTitles: showWinTitles,
                 showAppTitles: this.SHOW_APP_TITLES,
                 showWinCounter: this.SHOW_WIN_COUNTER,
+                includeModals: this.INCLUDE_MODALS,
                 hideWinCounterForSingleWindow: this.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW,
                 winPrevSize: this._singleApp ? this.SINGLE_APP_PREVIEW_SIZE : this.WINDOW_PREVIEW_SIZE,
                 appIconSize: this.APP_ICON_SIZE,
@@ -3272,7 +3273,7 @@ class AppIcon extends AppDisplay.AppIcon {
             }
         }
 
-        const count = app.cachedWindows.length;
+        const count = app.cachedWindows.filter(w => !w.skip_taskbar || (this._switcherParams.includeModals && w.is_attached_dialog())).length;
         if (this._shouldShowWinCounter(count)) {
             this._iconContainer.remove_child(this._dot);
             if (count) {
