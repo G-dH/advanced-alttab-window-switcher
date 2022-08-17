@@ -641,8 +641,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
 
             this._switcherList = new WindowSwitcher(switcherList, switcherParams);
-            // reduce gaps between switcher items
-            this._switcherList._list.set_style('spacing: 2px');
+
+            //this._switcherList._scrollView.enable_mouse_scrolling = true;
+            this._switcherList._rightArrow.reactive = true;
+            this._switcherList._rightArrow.connect('motion-event', ()=> this._selectedIndex < (this._items.length - 1) && this._select(this._next(true)));
+            this._switcherList._leftArrow.reactive = true;
+            this._switcherList._leftArrow.connect('motion-event', ()=> this._selectedIndex > 0 && this._select(this._previous(true)));
 
             if (!this.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
                 this._switcherList._itemEntered = function() {}
@@ -710,6 +714,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     }
                     break;
                 }
+                this._filterSwitched = true;
             }
         }
 
@@ -750,31 +755,36 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.opacity = 0;
         this.get_allocation_box();
 
-        let themeNode = this._switcherList.get_theme_node();
-        let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
-
         // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS
-        if (!this._firstRun && !this.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
-            let border = themeNode.get_border_width(St.Side.BOTTOM);
-
+        if (/*!this._firstRun*/this._filterSwitched && !this.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
             let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
             fm = this._tempFilterMode ? this._tempFilterMode : fm;
 
-            const red = 'rgb(96, 48, 48)';
-            const green = 'rgb(53, 80, 48)';
-            const orange = 'rgb(96, 80, 48)';
-
-            if (fm === FilterMode.MONITOR) {
-                // top and bottom border colors cover all sides
-                this._switcherList.set_style(`border-top-color: ${red}; border-bottom-color: ${red}; padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
+            if (fm === FilterMode.MONITOR || (fm === FilterMode.WORKSPACE && (Main.layoutManager.monitors.length < 2))) {
+                this._switcherList.add_style_class_name('switcher-list-monitor');
             } else if (fm === FilterMode.WORKSPACE) {
-                this._switcherList.set_style(`border-top-color: ${orange}; border-bottom-color: ${orange}; padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
+                this._switcherList.add_style_class_name('switcher-list-workspace');
             } else if (fm === FilterMode.ALL) {
-                this._switcherList.set_style(`border-top-color: ${green}; border-bottom-color: ${green}; padding-bottom: ${padding}px ${!border ? '; border-width: 1px' : ''}`);
+                this._switcherList.add_style_class_name('switcher-list-all');
             }
-        } else  {
-            this._switcherList.set_style(`padding-bottom: ${padding}px`);
         }
+
+
+        if (options.colorTheme) {
+            let theme = options.colorTheme == Settings.ColorTheme.DARK ? '-dark' : '-light';
+            this._switcherList.add_style_class_name(`switcher-list${theme}`);
+        }
+
+        let themeNode = this._switcherList.get_theme_node();
+        let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
+        //let bgCol = themeNode.get_background_color();
+        //bgCol.alpha = 230;
+        // remove padding for label
+        //this._switcherList.set_style(`padding-bottom: ${padding}px; background-color: rgba(${bgCol.red}, ${bgCol.green}, ${bgCol.blue}, 0.92)`);
+        this._switcherList.set_style(`padding-bottom: ${padding}px;`);
+
+        // reduce gaps between switcher items
+        this._switcherList._list.set_style('spacing: 2px;');
 
         this._initialSelection(backward, binding);
 
@@ -2146,7 +2156,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this.SYNC_FILTER)
                 this.WIN_FILTER_MODE = filterMode;
         }
-
+        this._filterSwitched = true;
         this.show();
     }
 
@@ -2943,22 +2953,30 @@ class CaptionLabel extends St.BoxLayout {
         this._parent = params.parent;
         this._monitorIndex = params.monitorIndex;
 
+        let styleClass = 'dash-label';
+        if (options.colorTheme == Settings.ColorTheme.LIGHT) {
+            styleClass = 'caption-label-light';
+        } else if (options.colorTheme == Settings.ColorTheme.DARK) {
+            styleClass = 'caption-label-dark';
+        }
+
         super._init({
-            style_class: 'dash-label',
+            style_class: styleClass,
             vertical: !SEARCH, // horizontal orientation for search label, vertical for title caption
-            style: `font-size: ${params.fontSize}em; border-radius: 12px; padding: 6px`,
+            style: `font-size: ${params.fontSize}em;` // border-radius: 12px; padding: 6px; background-color: rgba(0, 0, 0, ${bgOpacity});`,
         });
 
         this._label = new St.Label({
             name: params.name,
             text: params.text,
             reactive: false,
-            style_class: /*SEARCH ? 'search-label' :*/ 'caption-label',
             y_align: Clutter.ActorAlign.CENTER
         });
 
-        if (SEARCH)
+        if (SEARCH) {
             this.addSearchIcon();
+            this._label.add_style_class_name('search-label');
+        }
 
         this.add_child(this._label);
         if (params.description)
@@ -3014,7 +3032,7 @@ class CaptionLabel extends St.BoxLayout {
     addSearchIcon() {
         const icon = new St.Icon({
             icon_name: 'edit-find-symbolic',
-            style_class: 'search-icon'
+            style_class: `search-icon`
         });
         this.add_child(icon);
     }
@@ -3082,12 +3100,20 @@ class WindowIcon extends St.BoxLayout {
         this._is_window = true;
         this.window = window;
 
+        let styleClass = '';
+        if (options.colorTheme == Settings.ColorTheme.DARK) {
+            styleClass = 'title-label-dark';
+        } else if (options.colorTheme == Settings.ColorTheme.LIGHT) {
+            styleClass = 'title-label-light';
+        }
+
         this.titleLabel = new St.Label({
             text: window.get_title(),
+            style_class: styleClass,
             x_align: Clutter.ActorAlign.CENTER,
         });
 
-        this.titleLabel.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
+        //this.titleLabel.add(`font-size: ${LABEL_FONT_SIZE}em;`);
 
         let tracker = Shell.WindowTracker.get_default();
         this.app = tracker.get_window_app(window);
@@ -3252,7 +3278,6 @@ class AppIcon extends AppDisplay.AppIcon {
 
         this.titleLabel = new St.Label({
             text: appName,
-            style_class: 'workspace-index'
         });
 
         this._id = app.get_id();
@@ -3262,9 +3287,14 @@ class AppIcon extends AppDisplay.AppIcon {
 
         if (this._switcherParams.showAppTitles) {
             if (this.icon.label) {
-                // replace original label that wraps words on hover on GS 40+ and I'm unable to locate the style
+                //this.icon.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
+                // set label truncate method
+                this.icon.label.clutterText.set({
+                    line_wrap: false,
+                    ellipsize: 3, //Pango.EllipsizeMode.END,
+                });
+                // workaround that disconnects icon.label _updateMultiline()
                 this.icon.label = this.titleLabel;
-                this.icon.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
                 this.icon.label.show();
             }
         } else {
@@ -3280,17 +3310,14 @@ class AppIcon extends AppDisplay.AppIcon {
                 const runninIndicator = this._createRunningIndicator(count);
                 // move the counter above app title
                 if (this._switcherParams.showAppTitles) {
-                    runninIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em;`);
+                    runninIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
                 }
                 this._iconContainer.add_child(runninIndicator);
             }
         } else if (count && (this._switcherParams.includeFavorites || this._switcherParams.searchActive)) {
-            const dotStyle = 'border: 1px; border-color: #232323;';
-            if (this._switcherParams.showAppTitles) {
-                this._dot.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.3}em; ${dotStyle}`);
-            } else {
-                this._dot.set_style(`margin-bottom: 0px; ${dotStyle}`);
-            }
+            //const dotStyle = 'border: 1px; border-color: #232323;';
+            this._dot.set_style(`margin-bottom: 0px;`);
+            this.icon.set_style('margin-bottom: 4px;');
         } else {
             this._iconContainer.remove_child(this._dot);
         }
@@ -3300,6 +3327,12 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         this._is_app = true;
+
+        // set dark font color when light theme is used, to make symbolic icons visible
+        if (options.colorTheme == Settings.ColorTheme.LIGHT)
+            this.add_style_class_name('title-label-light');
+        else
+            this.add_style_class_name('title-label-dark');
     }
 
     _shouldShowWinCounter(count) {
@@ -3405,10 +3438,16 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         showAppsIcon._is_showAppsIcon = true;
         showAppsIcon._id = 'show-apps-icon';
         showAppsIcon.show(false);
-        showAppsIcon.style_class = '';
+        showAppsIcon.toggleButton.style_class = '';
         showAppsIcon.label.text = _('Show Applications');
         showAppsIcon.titleLabel = showAppsIcon.label;
+        if (options.colorTheme == Settings.ColorTheme.LIGHT)
+            showAppsIcon.add_style_class_name('title-label-light');
+        else
+            showAppsIcon.add_style_class_name('title-label-dark');
+            //showAppsIcon.set_style('color: rgb(25, 25, 25);');
         return showAppsIcon;
+
     }
 
     _onDestroy() {
@@ -3483,13 +3522,25 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
     }
 
     highlight(index, justOutline) {
+        if (options.colorTheme > 0 && this._items[this._highlighted]) {
+            this._items[this._highlighted].remove_style_class_name('selected-light');
+            this._items[this._highlighted].remove_style_class_name('selected-dark');
+        }
+
         super.highlight(index, justOutline);
+
+        if (!justOutline && options.colorTheme == Settings.ColorTheme.DARK && this._items[index]) {
+            this._items[index].add_style_class_name('selected-dark');
+        } else if (!justOutline && options.colorTheme == Settings.ColorTheme.LIGHT && this._items[index]) {
+            this._items[index].add_style_class_name('selected-light');
+        }
     }
 
     removeHighlight() {
         if (this._items[this._highlighted]) {
             this._items[this._highlighted].remove_style_pseudo_class('outlined');
             this._items[this._highlighted].remove_style_pseudo_class('selected');
+            this._items[this._highlighted].remove_style_class_name('selected');
         }
     }
 

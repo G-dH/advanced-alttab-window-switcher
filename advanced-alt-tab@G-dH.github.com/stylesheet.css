@@ -23,17 +23,32 @@
   border-color: grey;
 }
 
-.search-icon, .search-label {
+.search-icon {
   padding-left: 0.2em;
 }
 
-.search-label {
-  padding-right: 0.2em;
-}
-
-.caption-label {
+.search-label, .search-label, .caption-label-dark, .caption-label-light {
   padding-left: 0.2em;
   padding-right: 0.2em;
+  text-align: center;
+}
+
+.caption-label-dark, .caption-label-light {
+  border-radius: 12px;
+  padding: 6px;
+  border: solid 1px;
+}
+
+.switcher-list-dark, .caption-label-dark, .search-label-dark, .title-label-dark {
+  background-color: rgba(20, 20, 20, 0.95);
+  border-color: rgba(63, 63, 63, 0.8);
+  color: rgb(220, 220, 220);
+}
+
+.switcher-list-light, .caption-label-light, .search-label-light, .title-label-light {
+  background-color: rgba(240, 240, 240, 0.95);
+  border-color: rgba(150, 150, 150, 0.8);
+  color: rgb(25, 25, 25);
 }
 
 .title-description {
@@ -43,10 +58,43 @@
 
 .hot-key-number {
   font-size: 1em;
-  background-color: rgba(46, 52, 53, 0.7);
+  background-color: rgba(46, 52, 63, 0.7);
 }
 
 .status-label {
   color: #888;
   font-size: 0.8em;
+}
+
+.title-label-dark, .title-label-light, .title-label {
+  font-size: 0.9em;
+  background-color: rgba(0, 0, 0, 0.0);
+}
+
+.switcher-list, .switcher-list-dark, .switcher-list-light, .switcher-list-all, .switcher-list-workspace, .switcher-list-monitor {
+  border-width: 1px;
+}
+
+.switcher-list-all {
+  border-color: rgba(0, 160, 0, 0.8);
+}
+
+.switcher-list-workspace {
+  border-color: rgba(160, 130, 0, 0.8);
+}
+
+.switcher-list-monitor {
+  border-color: rgba(160, 0, 0, 0.8);
+}
+
+.aatws-running-dot {
+  margin: 6px;
+}
+
+.selected-dark {
+  background-color: rgba(70, 70, 70, 1.0);
+}
+
+.selected-light {
+  background-color: rgba(200, 200, 200, 1.0);
 }

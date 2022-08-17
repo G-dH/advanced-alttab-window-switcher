@@ -214,6 +214,7 @@ function _getCommonOptionList() {
             opt.HoverSelectsItem,
             opt.DelayShowingSwitcher,
         opt.Appearance,
+            opt.Theme,
             opt.OverlayTitle,
             opt.TooltipLabelScale,
             opt.ShowDirectActivation,
@@ -773,6 +774,19 @@ function _getCommonOpt() {
             'switcherPopupTimeout'
     );
 
+    optDict.Theme = _optionsItem(
+        _('Color Theme'),
+        _('"Default" is given by the current Shell theme, "Follow System Color Scheme" switches between AATWS Dark/Light styles depending on the current GNOME color scheme (available in GNOME 42 and higher)'),
+        _newComboBox(),
+        'switcherPopupTheme',
+           [[_('Default'),                    0],
+            [_('AATWS Dark'),                 1],
+            [_('AATWS Light'),                2],
+            [_('Follow System Color Scheme'), 3]]
+    );
+
+    // ----------------------------------------------
+
     optDict.SystemIntegration = _optionsItem(
             _('System Integration'),
             null,
@@ -1064,7 +1078,7 @@ function _getAppsOpt() {
             'appSwitcherPopupWinCounter'
        );
 
-    const hideWinCounterForSingleWindowSwitch = _newGtkSwitch(); 
+    const hideWinCounterForSingleWindowSwitch = _newGtkSwitch();
     optDict.HideWinCounterForSingleWindow =_optionsItem(
         _('Hide Window Counter For Single-Window Apps'),
         _('Hides the number of windows of an app if there is just a single window open for that app.'),
@@ -1169,7 +1183,7 @@ function _getMiscOpt() {
     );
 
     optDict.AppIncludeFavorites = _optionsItem(
-            _('Force App Switcher Include Favoreites'),
+            _('Force App Switcher Include Favorites'),
             _('Include favorite apps to the App switcher despite the App switcher settings.'),
             _newGtkSwitch(),
             'switcherPopupExtAppFavorites'

@@ -56,6 +56,9 @@
     <key name='switcher-popup-tooltip-label-scale' type='i'>
       <default>150</default>
     </key>
+    <key name='switcher-popup-theme' type='i'>
+      <default>1</default>
+    </key>
     <key name='win-switcher-popup-titles' type='i'>
       <default>1</default>
     </key>

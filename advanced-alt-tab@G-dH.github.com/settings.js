@@ -49,6 +49,12 @@ var Actions = {
     PREFS:            99,
 };
 
+var ColorTheme = {
+    DEFAULT: 0,
+    DARK : 1,
+    LIGHT: 2
+}
+
 var Options = class Options {
     constructor() {
         this._gsettings = ExtensionUtils.getSettings(_schema);
@@ -99,6 +105,7 @@ var Options = class Options {
             switcherPopupMidClickOut: ['int', 'switcher-popup-mid-click-out'],
             switcherPopupStatus: ['boolean', 'switcher-popup-status'],
             switcherPopupSyncFilter: ['boolean', 'switcher-popup-sync-filter'],
+            switcherPopupTheme: ['int', 'switcher-popup-theme'],
             singleAppPreviewSize: ['int', 'win-switcher-single-prev-size'],
             winSwitcherPopupFilter: ['int', 'win-switcher-popup-filter'],
             winSwitcherPopupSorting: ['int', 'win-switcher-popup-sorting'],
@@ -168,10 +175,25 @@ var Options = class Options {
             hotkeyRight: ['string', 'hotkey-right'],
         };
         this.cachedOptions = {};
+
+        this._intSettings = ExtensionUtils.getSettings('org.gnome.desktop.interface');
+        this._updateColorScheme();
+        this._intSettingsSigId = this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this));
+    }
+
+    _updateColorScheme(settings, key) {
+        const darkScheme = shellVersion >= 42 ? this._intSettings.get_string('color-scheme') === 'prefer-dark' : this._intSettings.get_string('gtk-theme').endsWith('-dark');
+        let colorTheme = this.get('switcherPopupTheme');
+        if (colorTheme === 3) {
+            colorTheme = darkScheme ? ColorTheme.DARK : ColorTheme.LIGHT;
+        }
+
+        this.colorTheme = colorTheme;
     }
 
     _updateCachedSettings(settings, key) {
         Object.keys(this.options).forEach(v => this.get(v, true));
+        this._updateColorScheme();
     }
 
     get(option, updateCache = false) {
@@ -221,5 +243,8 @@ var Options = class Options {
         if (this._writeTimeoutId)
             GLib.Source.remove(this._writeTimeoutId);
             this._writeTimeoutId = 0;
+
+        this._intSettings.disconnect(this._intSettingsSigId);
+        this._intSettings = null;
     }
 };
