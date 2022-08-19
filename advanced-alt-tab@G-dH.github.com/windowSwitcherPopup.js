@@ -2849,7 +2849,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         //let windowTracker = Shell.WindowTracker.get_default();
         this._tempFilterMode = filterMode;
-        if ((filterMode === FilterMode.MONITOR || filterMode === FilterMode.WORKSPACE) && pattern === '') {
+        if (/*(filterMode === FilterMode.MONITOR || filterMode === FilterMode.WORKSPACE) &&*/ pattern === '') {
             this._tempFilterMode = this.APP_FILTER_MODE;
             appList = appList.filter(a => {
                 if (a.get_n_windows()) {
@@ -2889,7 +2889,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         return windows.filter(
             w => (filterMode === FilterMode.ALL || ((filterMode === FilterMode.WORKSPACE || filterMode === FilterMode.MONITOR) && w.get_workspace().index() === currentWS))
-        ).filter(w => (filterMode === FilterMode.ALL || filterMode === FilterMode.WORKSPACE) || (filterMode === FilterMode.MONITOR && w.get_monitor() === currentMon));
+        ).filter(w => (filterMode === FilterMode.ALL || filterMode === FilterMode.WORKSPACE) || (filterMode === FilterMode.MONITOR && w.get_monitor() === currentMon)
+        ).filter(w => !w.skip_taskbar || (this.INCLUDE_MODALS && w.is_attached_dialog()));
     }
 
     _match(string, pattern) {
@@ -3267,12 +3268,18 @@ class AppIcon extends AppDisplay.AppIcon {
                 appName += ' (Snap)';
             } else if (appInfo.get_commandline() && appInfo.get_commandline().includes('flatpak')) {
                 appName += ' (Flatpak)';
+            } else if (appInfo.get_commandline() && appInfo.get_commandline().toLowerCase().includes('.appimage')) {
+                appName += ' (AppImage)';
             }
             const genericName = appInfo.get_generic_name() || '';
             const description = appInfo.get_description() || '';
             this._appDetails = {
                 generic_name : genericName,
                 description: description
+            };
+        } else if (app.cachedWindows.length) {
+            this._appDetails = {
+                generic_name : app.cachedWindows[0].get_title() || '',
             };
         }
 
@@ -3303,7 +3310,7 @@ class AppIcon extends AppDisplay.AppIcon {
             }
         }
 
-        const count = app.cachedWindows.filter(w => !w.skip_taskbar || (this._switcherParams.includeModals && w.is_attached_dialog())).length;
+        const count = app.cachedWindows.length;
         if (this._shouldShowWinCounter(count)) {
             this._iconContainer.remove_child(this._dot);
             if (count) {
