@@ -66,6 +66,8 @@ const MOUSE_TITLE = _('Mouse');
 const MOUSE_ICON = 'input-mouse-symbolic';
 const MISC_TITLE = _('Misc');
 const MISC_ICON = 'preferences-other-symbolic';
+const ABOUT_TITLE = _('About');
+const ABOUT_ICON = 'preferences-system-details-symbolic';
 
 function _newImageFromIconName(name, size = null) {
     const args = shellVersion >= 40 ? [name] : [name, size];
@@ -96,6 +98,10 @@ function fillPreferencesWindow(window) {
     window.add(getAdwPage(_getMiscOptionList(), {
         title: MISC_TITLE,
         icon_name: MISC_ICON }));
+    window.add(getAboutPage({
+        title: ABOUT_TITLE,
+        icon_name: ABOUT_ICON
+    }));
 
     window.set_search_enabled(true);
 
@@ -1723,4 +1729,119 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
     );
 
     return optionList;
+}
+
+//----------------------------------------------------------
+
+function getAboutPage(pageProperties) {
+    const page = new Adw.PreferencesPage(pageProperties);
+
+    const aboutGroup = new Adw.PreferencesGroup({
+        title: Me.metadata.name,
+        hexpand: true,
+    });
+
+    const linksGroup = new Adw.PreferencesGroup({
+        title: _('Links'),
+        hexpand: true,
+    });
+
+    page.add(aboutGroup);
+    page.add(linksGroup);
+
+
+    aboutGroup.add(_newAdwLabelRow({
+        title: _('Version'),
+        subtitle: _(''),
+        label: Me.metadata.version.toString()
+    }));
+
+    aboutGroup.add(_newResetRow({
+        title: _('Reset all options'),
+        subtitle: _('Set all options to default values.'),
+    }));
+
+
+    linksGroup.add(_newAdwLinkRow({
+        title: _('Homepage'),
+        subtitle: _('Source code and more info about this extension'),
+        uri: 'https://github.com/G-dH/advanced-alttab-window-switcher'
+    }));
+
+    linksGroup.add(_newAdwLinkRow({
+        title: _('Gome Extensions'),
+        subtitle: _('Rate and comment the extension on GNOME Extensions site.'),
+        uri: 'https://extensions.gnome.org/extension/4412',
+    }));
+
+    linksGroup.add(_newAdwLinkRow({
+        title: _('Report a bug or suggest new feature'),
+        subtitle: _(''),
+        uri: 'https://github.com/G-dH/advanced-alttab-window-switcher/issues',
+    }));
+
+    linksGroup.add(_newAdwLinkRow({
+        title: _('Buy Me a Coffee'),
+        subtitle: _('If you like this extension, you can help me with coffee expenses.'),
+        uri: 'https://buymeacoffee.com/georgdh'
+    }));
+
+    return page;
+}
+
+function _newAdwLabelRow(params) {
+    const label = new Gtk.Label({
+        label: params.label,
+    });
+
+    const actionRow = new Adw.ActionRow({
+        title: params.title,
+        subtitle: params.subtitle,
+    });
+
+    actionRow.add_suffix(label);
+
+    return actionRow;
+}
+
+function _newAdwLinkRow(params) {
+    const linkBtn = new Gtk.LinkButton({
+        uri: params.uri,
+        halign: Gtk.Align.END,
+        valign: Gtk.Align.CENTER,
+    });
+
+    const actionRow = new Adw.ActionRow({
+        title: params.title,
+        subtitle: params.subtitle,
+        activatable_widget: linkBtn
+    });
+
+    actionRow.add_suffix(linkBtn);
+
+    return actionRow;
+}
+
+function _newResetRow(params) {
+    const btn = new Gtk.Button({
+        icon_name: 'view-refresh-symbolic',
+        vexpand: false,
+        hexpand: false,
+        halign: Gtk.Align.END,
+        valign: Gtk.Align.CENTER,
+    });
+    btn.connect('clicked', () => {
+        Object.keys(gOptions.options).forEach(key => {
+            gOptions.set(key, gOptions.getDefault(key));
+        });
+    });
+
+    const actionRow = new Adw.ActionRow({
+        title: params.title,
+        subtitle: params.subtitle,
+    });
+
+    actionRow.add_suffix(btn);
+
+    return actionRow;
 }
