@@ -770,17 +770,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
 
-        if (options.colorTheme) {
-            let theme = options.colorTheme == Settings.ColorTheme.DARK ? '-dark' : '-light';
-            this._switcherList.add_style_class_name(`switcher-list${theme}`);
+        if (options.colorStyle.STYLE) {
+            this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
         }
 
         let themeNode = this._switcherList.get_theme_node();
         let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
-        //let bgCol = themeNode.get_background_color();
-        //bgCol.alpha = 230;
-        // remove padding for label
-        //this._switcherList.set_style(`padding-bottom: ${padding}px; background-color: rgba(${bgCol.red}, ${bgCol.green}, ${bgCol.blue}, 0.92)`);
+
         this._switcherList.set_style(`padding-bottom: ${padding}px;`);
 
         // reduce gaps between switcher items
@@ -2954,15 +2950,8 @@ class CaptionLabel extends St.BoxLayout {
         this._parent = params.parent;
         this._monitorIndex = params.monitorIndex;
 
-        let styleClass = 'dash-label';
-        if (options.colorTheme == Settings.ColorTheme.LIGHT) {
-            styleClass = 'caption-label-light';
-        } else if (options.colorTheme == Settings.ColorTheme.DARK) {
-            styleClass = 'caption-label-dark';
-        }
-
         super._init({
-            style_class: styleClass,
+            style_class: options.colorStyle.CAPTION_LABEL,
             vertical: !SEARCH, // horizontal orientation for search label, vertical for title caption
             style: `font-size: ${params.fontSize}em;` // border-radius: 12px; padding: 6px; background-color: rgba(0, 0, 0, ${bgOpacity});`,
         });
@@ -3101,20 +3090,11 @@ class WindowIcon extends St.BoxLayout {
         this._is_window = true;
         this.window = window;
 
-        let styleClass = '';
-        if (options.colorTheme == Settings.ColorTheme.DARK) {
-            styleClass = 'title-label-dark';
-        } else if (options.colorTheme == Settings.ColorTheme.LIGHT) {
-            styleClass = 'title-label-light';
-        }
-
         this.titleLabel = new St.Label({
             text: window.get_title(),
-            style_class: styleClass,
+            style_class: options.colorStyle.TITLE_LABEL,
             x_align: Clutter.ActorAlign.CENTER,
         });
-
-        //this.titleLabel.add(`font-size: ${LABEL_FONT_SIZE}em;`);
 
         let tracker = Shell.WindowTracker.get_default();
         this.app = tracker.get_window_app(window);
@@ -3192,12 +3172,15 @@ class WindowIcon extends St.BoxLayout {
 
         let label = new St.Label({
             text: index.toString(),
-            style_class: currentWS + 1 === index ? 'workspace-index-highlight' : 'workspace-index',
+            style_class: options.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.END,
         });
+        if (currentWS + 1 === index) {
+            label.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HIGHLIGHTED);
+        }
 
         return label;
     }
@@ -3207,7 +3190,7 @@ class WindowIcon extends St.BoxLayout {
         if (this.window.is_above() || this.window.is_on_all_workspaces()) {
             indicatorBox = new St.BoxLayout({
             vertical: false,
-            style_class: 'workspace-index',
+            style_class: options.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
@@ -3335,11 +3318,7 @@ class AppIcon extends AppDisplay.AppIcon {
 
         this._is_app = true;
 
-        // set dark font color when light theme is used, to make symbolic icons visible
-        if (options.colorTheme == Settings.ColorTheme.LIGHT)
-            this.add_style_class_name('title-label-light');
-        else
-            this.add_style_class_name('title-label-dark');
+        this.add_style_class_name(options.colorStyle.TITLE_LABEL);
     }
 
     _shouldShowWinCounter(count) {
@@ -3358,7 +3337,7 @@ class AppIcon extends AppDisplay.AppIcon {
     _createRunningIndicator(num) {
         let label = new St.Label({
             text: `${num}`,
-            style_class: 'running-counter',
+            style_class: options.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
@@ -3448,11 +3427,7 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         showAppsIcon.toggleButton.style_class = '';
         showAppsIcon.label.text = _('Show Applications');
         showAppsIcon.titleLabel = showAppsIcon.label;
-        if (options.colorTheme == Settings.ColorTheme.LIGHT)
-            showAppsIcon.add_style_class_name('title-label-light');
-        else
-            showAppsIcon.add_style_class_name('title-label-dark');
-            //showAppsIcon.set_style('color: rgb(25, 25, 25);');
+        showAppsIcon.add_style_class_name(options.colorStyle.TITLE_LABEL);
         return showAppsIcon;
 
     }
@@ -3529,17 +3504,14 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
     }
 
     highlight(index, justOutline) {
-        if (options.colorTheme > 0 && this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_class_name('selected-light');
-            this._items[this._highlighted].remove_style_class_name('selected-dark');
+        if (options.colorStyle.STYLE && this._items[this._highlighted]) {
+            this._items[this._highlighted].remove_style_class_name(options.colorStyle.SELECTED);
         }
 
         super.highlight(index, justOutline);
 
-        if (!justOutline && options.colorTheme == Settings.ColorTheme.DARK && this._items[index]) {
-            this._items[index].add_style_class_name('selected-dark');
-        } else if (!justOutline && options.colorTheme == Settings.ColorTheme.LIGHT && this._items[index]) {
-            this._items[index].add_style_class_name('selected-light');
+        if (options.colorStyle.STYLE && this._items[index]) {
+            this._items[index].add_style_class_name(options.colorStyle.SELECTED);
         }
     }
 
@@ -3587,7 +3559,7 @@ function _createHotKeyNumIcon(index) {
     });
 
     let box = new St.BoxLayout({
-        style_class: 'hot-key-number',
+        style_class: options.colorStyle.INDICATOR_OVERLAY,
         vertical: true,
     });
 

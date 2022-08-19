@@ -1,4 +1,4 @@
-.workspace-index, .running-counter, .workspace-index-highlight, .hot-key-number {
+.indicator-overlay-dark, .indicator-overlay-light {
   text-align: center;
   font-weight: normal;
   margin-bottom: 2px;
@@ -7,8 +7,21 @@
   padding-right: 3px;
   border-width: 1px;
   border-radius: 0.2em;
-  background-color: rgba(46, 52, 53, 0.7);
-  color: #bebebe;
+  background-color: rgba(46, 52, 53, 0.85);
+  color: rgb(190, 190, 190);
+}
+
+.indicator-overlay-light{
+  background-color: rgba(206, 206, 206, 0.7);
+  color: rgb(40, 40, 40);
+}
+
+.indicator-overlay-highlight-dark {
+  border-color: grey;
+}
+
+.indicator-overlay-highlight-light {
+  border-color: grey;
 }
 
 .running-counter {
@@ -20,7 +33,7 @@
 }
 
 .workspace-index-highlight {
-  border-color: grey;
+  border-color: rgb(36, 36, 36);
 }
 
 .search-icon {
@@ -62,7 +75,7 @@
 }
 
 .status-label {
-  color: #888;
+  color: rgb(136, 136, 136);
   font-size: 0.8em;
 }
 

@@ -49,14 +49,40 @@ var Actions = {
     PREFS:            99,
 };
 
-var ColorTheme = {
-    DEFAULT: 0,
-    DARK : 1,
-    LIGHT: 2
+const ColorStyleDefault = {
+    STYLE: '',
+    SWITCHER_LIST : '',
+    CAPTION_LABEL : 'dash-label',
+    TITLE_LABEL: '',
+    SELECTED: '',
+    INDICATOR_OVERLAY: 'indicator-overlay-dark',
+    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark'
+}
+
+const ColorStyleDark = {
+    STYLE: '1',
+    SWITCHER_LIST : 'switcher-list-dark',
+    CAPTION_LABEL : 'caption-label-dark',
+    TITLE_LABEL: 'title-label-dark',
+    SELECTED: 'selected-dark',
+    INDICATOR_OVERLAY: 'indicator-overlay-dark',
+    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark'
+}
+
+const ColorStyleLight = {
+    STYLE: '2',
+    SWITCHER_LIST : 'switcher-list-light',
+    CAPTION_LABEL : 'caption-label-light',
+    TITLE_LABEL: 'title-label-light',
+    SELECTED: 'selected-light',
+    INDICATOR_OVERLAY: 'indicator-overlay-light',
+    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-light'
 }
 
 var Options = class Options {
     constructor() {
+        this.colorStyle = ColorStyleDefault;
+
         this._gsettings = ExtensionUtils.getSettings(_schema);
         // delay write to backend to avoid excessive disk writes when adjusting scales and spinbuttons
         this._writeTimeoutId = 0;
@@ -178,17 +204,31 @@ var Options = class Options {
 
         this._intSettings = ExtensionUtils.getSettings('org.gnome.desktop.interface');
         this._updateColorScheme();
-        this._intSettingsSigId = this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this));
+        this._intSettingsSigId = shellVersion >= 42
+                    ? this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
+                    : this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
     }
 
     _updateColorScheme(settings, key) {
         const darkScheme = shellVersion >= 42 ? this._intSettings.get_string('color-scheme') === 'prefer-dark' : this._intSettings.get_string('gtk-theme').endsWith('-dark');
-        let colorTheme = this.get('switcherPopupTheme');
-        if (colorTheme === 3) {
-            colorTheme = darkScheme ? ColorTheme.DARK : ColorTheme.LIGHT;
-        }
+        let colorStyle = this.get('switcherPopupTheme');
 
-        this.colorTheme = colorTheme;
+        switch (colorStyle) {
+        case 0:
+            this.colorStyle = ColorStyleDefault;
+            break;
+        case 1:
+            this.colorStyle = ColorStyleDark;
+            break;
+        case 2:
+            this.colorStyle = ColorStyleLight;
+            break;
+        case 3:
+            this.colorStyle = darkScheme ? ColorStyleDark : ColorStyleLight;
+            break;
+        default:
+            this.colorStyle = ColorStyleDefault;
+        }
     }
 
     _updateCachedSettings(settings, key) {
