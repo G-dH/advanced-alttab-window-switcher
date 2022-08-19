@@ -202,6 +202,8 @@ var Options = class Options {
         };
         this.cachedOptions = {};
 
+        this._setOptionConstants();
+
         this._intSettings = ExtensionUtils.getSettings('org.gnome.desktop.interface');
         this._updateColorScheme();
         this._intSettingsSigId = shellVersion >= 42
@@ -234,6 +236,7 @@ var Options = class Options {
     _updateCachedSettings(settings, key) {
         Object.keys(this.options).forEach(v => this.get(v, true));
         this._updateColorScheme();
+        this._setOptionConstants();
     }
 
     get(option, updateCache = false) {
@@ -286,5 +289,55 @@ var Options = class Options {
 
         this._intSettings.disconnect(this._intSettingsSigId);
         this._intSettings = null;
+    }
+
+    _setOptionConstants() {
+        this.SUPER_DOUBLE_PRESS_ACT = this.get('superDoublePressAction'); // 1 - dafault, 2, Overview, 3 - App Grid, 4 - Activate Previous Window
+        this.POSITION_POINTER      = this.get('switcherPopupPointer'); // place popup at pointer position
+        this.REVERSE_AUTO          = this.get('switcherPopupReverseAuto');  // reverse list in order to the first item be closer to the mouse pointer. only if !KEYBOARD_TRIGGERED
+        this.POPUP_POSITION        = this.get('switcherPopupPosition');
+        this.NO_MODS_TIMEOUT       = this.get('switcherPopupPointerTimeout');
+        this.INITIAL_DELAY         = this.get('switcherPopupTimeout');
+        this.WRAPAROUND            = this.get('switcherPopupWrap');
+        this.ACTIVATE_ON_HIDE      = this.get('switcherPopupActivateOnHide');
+        this.UP_DOWN_ACTION        = this.get('switcherPopupUpDownAction');
+        this.HOT_KEYS              = this.get('switcherPopupHotKeys');
+        this.SHIFT_AZ_HOTKEYS      = this.get('switcherPopupShiftHotkeys');
+        this.STATUS                = this.get('switcherPopupStatus');
+        this.PREVIEW_SELECTED      = this.get('switcherPopupPreviewSelected');
+        this.SEARCH_ALL            = this.get('winSwitcherPopupSearchAll');
+        this.ITEM_CAPTIONS         = this.get('switcherPopupTooltipTitle');
+        this.SEARCH_DEFAULT        = this.get('switcherPopupStartSearch');
+        this.CAPTIONS_SCALE        = this.get('switcherPopupTooltipLabelScale');
+        this.HOVER_SELECT          = this.get('switcherPopupHoverSelect');
+        this.SYNC_FILTER           = this.get('switcherPopupSyncFilter');
+
+        // Window switcher
+        this.WIN_FILTER_MODE       = this.get('winSwitcherPopupFilter');
+        this.GROUP_MODE            = this.get('winSwitcherPopupOrder');
+        this.WIN_SORTING_MODE      = this.get('winSwitcherPopupSorting');
+        this.MINIMIZED_LAST        = this.get('winMinimizedLast');
+        this.MARK_MINIMIZED        = this.get('winMarkMinimized');
+        this.SKIP_MINIMIZED        = this.get('winSkipMinimized');
+        this.INCLUDE_MODALS        = this.get('winIncludeModals');
+        this.SEARCH_APPS           = this.get('winSwitcherPopupSearchApps');
+        this.SINGLE_APP_PREVIEW_SIZE = this.get('singleAppPreviewSize');
+        this.WINDOW_TITLES         = this.get('winSwitcherPopupTitles');
+        this.WINDOW_PREVIEW_SIZE   = this.get('winSwitcherPopupPreviewSize');
+        this.APP_ICON_SIZE         = this.get('winSwitcherPopupIconSize');
+        this.WS_INDEXES            = this.get('winSwitcherPopupWsIndexes');
+        // App switcher
+        this.APP_FILTER_MODE       = this.get('appSwitcherPopupFilter');
+        this.APP_SORTING_MODE      = this.get('appSwitcherPopupSorting');
+        this.SORT_FAVORITES_BY_MRU = this.get('appSwitcherPopupFavMru');
+        this.APP_RAISE_FIRST_ONLY  = this.get('appSwitcherPopupRaiseFirstOnly');
+        this.APP_SEARCH_LIMIT      = this.get('appSwitcherPopupResultsLimit');
+        this.INCLUDE_FAVORITES     = this.get('appSwitcherPopupFavoriteApps');
+        this.SHOW_APP_TITLES       = this.get('appSwitcherPopupTitles');
+        this.SHOW_WIN_COUNTER      = this.get('appSwitcherPopupWinCounter');
+        this.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW = this.get('appSwitcherPopupHideWinCounterForSingleWindow');
+        this.APP_MODE_ICON_SIZE    = this.get('appSwitcherPopupIconSize');
+        this.SEARCH_PREF_RUNNING   = this.get('appSwitcherPopupSearchPrefRunning');
+        this.INCLUDE_SHOW_APPS_ICON= this.get('appSwitcherPopupIncludeShowAppsIcon');
     }
 };
