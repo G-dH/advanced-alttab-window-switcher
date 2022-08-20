@@ -458,7 +458,7 @@ function getLegacyPage(optionList, pageProperties) {
 
 ///////////////////////////////////////////////////////////////////
 
-function _newGtkSwitch() {
+function _newSwitch() {
     let sw = new Gtk.Switch({
         halign: Gtk.Align.END,
         valign: Gtk.Align.CENTER,
@@ -653,7 +653,7 @@ function _getCommonOpt() {
     optDict.SyncFilter =_optionsItem(
         _('Synchronize Filter Mode'),
         _('Window and App switchers will share filter mode, meaning that switching the switcher mode will not set the filter mode to the respective default.'),
-        _newGtkSwitch(),
+        _newSwitch(),
         'switcherPopupSyncFilter'
     );
 
@@ -670,7 +670,7 @@ function _getCommonOpt() {
     optDict.SearchModeDefault = _optionsItem(
             _('Search Mode as Default'),
             _('Type to search immediately after the switcher pop-up shows up. Hotkeys then can be used while holding down the Shift key.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupStartSearch'
     );
 
@@ -688,21 +688,21 @@ function _getCommonOpt() {
     optDict.HotkesRequireShift = _optionsItem(
             _('Action Hotkeys Require Shift'),
             _('Single-key action hotkeys, except for navigation and filter switching hotkeys, will require you to hold down the Shift key.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupShiftHotkeys'
     );
 
     optDict.WraparoundSelector = _optionsItem(
             _('Wraparound Selector'),
             _('Selection will continue from the last item to the first one and vice versa.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupWrap'
     );
 
     optDict.HoverSelectsItem = _optionsItem(
             _('Hover Selects Item'),
             _('Hovering the mouse pointer over a switcher item selects the item.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupHoverSelect'
     );
 
@@ -737,14 +737,14 @@ function _getCommonOpt() {
     optDict.ShowDirectActivation = _optionsItem(
             _('Show Hotkeys F1-F12 for Direct Activation'),
             _('The hotkeys will work independently on this option.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupHotKeys'
     );
 
     optDict.ShowStatus = _optionsItem(
             _('Show Status'),
             _('Show a label indicating filter, grouping and sorting modes should be displayed at the bottom left of the pop-up.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupStatus'
     );
 
@@ -809,7 +809,7 @@ function _getCommonOpt() {
                 [_('Window Switcher'),  3]]
     );
 
-    const enableSuperSwitch = _newGtkSwitch();
+    const enableSuperSwitch = _newSwitch();
     optDict.EnableSuper = _optionsItem(
             _('Enable Super as Hot Key (Experimental)'),
             _('This option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in animations and video during opening an closing the switcher popup, but only in case the switcher was opened using the Super key, this does not affect the usual Alt/Super+Tab experince.'),
@@ -887,11 +887,11 @@ function _getWindowsOpt() {
     optDict.DistinguishMinimized =_optionsItem(
             _('Distinguish Minimized Windows'),
             _('The front icon of minimized windows will be faded.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'winMarkMinimized'
     );
 
-    const skipMinimizedBtn = _newGtkSwitch();
+    const skipMinimizedBtn = _newSwitch();
     optDict.SkipMinimized =_optionsItem(
             _('Skip Minimized Windows'),
             _('This option actually affects App switcher too.'),
@@ -903,7 +903,7 @@ function _getWindowsOpt() {
         minimizedLastBtn.set_sensitive(!skipMinimizedBtn.active);
     });
 
-    const minimizedLastBtn = _newGtkSwitch();
+    const minimizedLastBtn = _newSwitch();
     minimizedLastBtn.set_sensitive(!gOptions.get('winSkipMinimized'));
     optDict.MinimizedLast =_optionsItem(
             _('Minimized Windows Last'),
@@ -915,21 +915,21 @@ function _getWindowsOpt() {
     optDict.IncludeModals =_optionsItem(
         _('Include Modal Windows'),
         _('Modal windows, such as dialogs, are usually attached to their parent windows and cannot be focused separately. The default behavior of the window switcher is to ignore modal windows and list only their parents.'),
-        _newGtkSwitch(),
+        _newSwitch(),
         'winIncludeModals'
     );
 
     optDict.SearchAllWindows =_optionsItem(
             _('Search All Windows'),
             _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'winSwitcherPopupSearchAll'
     );
 
     optDict.SearchApplications =_optionsItem(
             _('Search Applications'),
             _('Search installed applications to launch new when no window matches the entered pattern.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'winSwitcherPopupSearchApps'
     );
 
@@ -950,7 +950,7 @@ function _getWindowsOpt() {
     optDict.ShowWorkspaceIndex =_optionsItem(
             _('Show Workspace Index'),
             _('Place a label with corresponding workspace index over each window thumbnail.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'winSwitcherPopupWsIndexes'
     );
 
@@ -1026,14 +1026,14 @@ function _getAppsOpt() {
     optDict.RaiseFirstWinOnly =_optionsItem(
             _('Raise First Window Only'),
             _('If you activate a running app, only its most recently used window will be raised, instead of raising all app windows above windows of all other apps.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'appSwitcherPopupRaiseFirstOnly'
     );
 
     optDict.SearchPrefRunning =_optionsItem(
             _('Prioritize Running Apps'),
             _('Search engine will prioritize running applications.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'appSwitcherPopupSearchPrefRunning'
     );
 
@@ -1058,25 +1058,25 @@ function _getAppsOpt() {
     optDict.ShowAppTitle =_optionsItem(
             _('Show App Names'),
             _('Name of the application will be displayed under each app icon in the list.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'appSwitcherPopupTitles'
     );
 
     optDict.IncludeFavorites = _optionsItem(
             _('Include Favorite Apps'),
-            _('Include Dash favorite apps even when not runnig so you can use the switcher as a app launcher.'),
-            _newGtkSwitch(),
+            _('Include Dash favorite apps even when not runnig so you can use the switcher as an app launcher.'),
+            _newSwitch(),
             'appSwitcherPopupFavoriteApps'
     );
 
     optDict.IncludeShowAppsIcon = _optionsItem(
             _('Include Show Apps Icon'),
             _('Include button to access overview with application grid.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'appSwitcherPopupIncludeShowAppsIcon'
     );
 
-    const showWinCounterSwitch = _newGtkSwitch();
+    const showWinCounterSwitch = _newSwitch();
     optDict.ShowWinCounter =_optionsItem(
             _('Show Window Counter'),
             _('Replaces the default dot indicating running applications by the number of open windows.'),
@@ -1084,7 +1084,7 @@ function _getAppsOpt() {
             'appSwitcherPopupWinCounter'
        );
 
-    const hideWinCounterForSingleWindowSwitch = _newGtkSwitch();
+    const hideWinCounterForSingleWindowSwitch = _newSwitch();
     optDict.HideWinCounterForSingleWindow =_optionsItem(
         _('Hide Window Counter For Single-Window Apps'),
         _('Hides the number of windows of an app if there is just a single window open for that app.'),
@@ -1132,7 +1132,7 @@ function _getMiscOpt() {
     optDict.AlwaysActivateFocused = _optionsItem(
             _('Always Activate Focused Window'),
             _('This is a hack for the window manager, it should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interacts with the window.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'wmAlwaysActivateFocused'
     );
 
@@ -1145,7 +1145,7 @@ function _getMiscOpt() {
     optDict.ShowWsSwitcherPopup = _optionsItem(
             _('Show Workspace Switcher Pop-up'),
             _('While switching workspaces.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'wsShowSwitcherPopup'
     );
 
@@ -1177,35 +1177,40 @@ function _getMiscOpt() {
     optDict.MousePointerPosition = _optionsItem(
             _('Pop-up at Mouse Pointer Position (if triggered by mouse)'),
             _('If variable KEYBOARD_TRIGGERED is set to false, then this option is reflected.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupPointer'
     );
 
     optDict.SingleOnActivate =_optionsItem(
-            _('Show App Windows Before Activation'),
+            _('Show App Windows Instead of Direct Activation'),
             _('If the clicked app has more than one window (for the current filter setting) and the button used for the click is set to Activate item, the switcher will not activate the recently used window of the app and switch to the Single App mode, so you can choose another window.'),
-            _newGtkSwitch(),
-            'appSwitcherPopupSwitchToSingleOnActivate'
+            _newComboBox(),
+            'appSwitcherPopupShowWinsOnActivate',
+            [[_('Disable'), 0],
+             [_('Focused apps'), 1],
+             [_('Multi-window apps'), 2]]
     );
+
+    
 
     optDict.AppIncludeFavorites = _optionsItem(
             _('Force App Switcher Include Favorites'),
             _('Include favorite apps to the App switcher despite the App switcher settings.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupExtAppFavorites'
     );
 
     optDict.AppStableOrder = _optionsItem(
             _('Force App Switcher Stable Sequence'),
             _('When the app switcher is triggered using a mouse, the default app order can be overriden to behave more like a dock. Favorit apps (if included) keep the order they have in the Dash and other open apps the order as they were launched.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupExtAppStable'
     );
 
     optDict.AutomaticallyReverseOrder = _optionsItem(
             _('Automatically Reverse List Order'),
             _('List switcher items from right to left if this helps the mouse pointer be closer to the first item.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupReverseAuto'
     );
 
@@ -1226,7 +1231,7 @@ function _getMiscOpt() {
     optDict.ActivateOnHide = _optionsItem(
             _('Activate Selected Item on Hide'),
             _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before pop-up hides.'),
-            _newGtkSwitch(),
+            _newSwitch(),
             'switcherPopupActivateOnHide'
     );
 

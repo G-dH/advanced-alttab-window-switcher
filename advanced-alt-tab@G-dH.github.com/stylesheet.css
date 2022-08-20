@@ -3,17 +3,23 @@
   font-weight: normal;
   margin-bottom: 2px;
   padding: 1px;
-  padding-left: 3px;
-  padding-right: 3px;
+  padding-left: 10px;
+  padding-right: 10px;
   border-width: 1px;
-  border-radius: 0.2em;
+  border-radius: 4px;
+  border: 1px;
+}
+
+.indicator-overlay-dark{
   background-color: rgba(46, 52, 53, 0.85);
   color: rgb(190, 190, 190);
+  border-color: rgba(53, 53, 53, 0.8);
 }
 
 .indicator-overlay-light{
   background-color: rgba(206, 206, 206, 0.7);
   color: rgb(40, 40, 40);
+  border-color: rgba(235, 235, 235, 0.7);
 }
 
 .indicator-overlay-highlight-dark {
@@ -24,8 +30,20 @@
   border-color: grey;
 }
 
+.indicator-overlay-hover {
+  /*border-color: grey;*/
+  padding-bottom: 2px;
+}
+
 .running-counter {
-  border-color: rgb(68, 68, 68);
+  /*border-color: rgb(68, 68, 68);*/
+  margin-bottom: 7px;
+}
+
+.running-dot {
+  margin-bottom: 0px;
+  width: 1em;
+  height: 2px
 }
 
 .window-state-indicators {
@@ -59,7 +77,7 @@
 }
 
 .switcher-list-light, .caption-label-light, .search-label-light, .title-label-light {
-  background-color: rgba(240, 240, 240, 0.95);
+  background-color: rgba(245, 245, 245, 0.95);
   border-color: rgba(150, 150, 150, 0.8);
   color: rgb(25, 25, 25);
 }
@@ -109,5 +127,5 @@
 }
 
 .selected-light {
-  background-color: rgba(200, 200, 200, 1.0);
+  background-color: rgba(210, 210, 210, 1.0);
 }

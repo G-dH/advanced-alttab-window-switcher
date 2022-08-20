@@ -21,6 +21,7 @@ const PopupMenu       = imports.ui.popupMenu;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
+const WindowMenu      = Me.imports.windowMenu;
 const Settings        = Me.imports.settings;
 const ActionLib       = Me.imports.actions;
 
@@ -115,12 +116,15 @@ const Action = Settings.Actions;
 
 let _cancelTimeout = false;
 
-function _shiftPressed() {
-    return global.get_pointer()[2] & Clutter.ModifierType.SHIFT_MASK;
+function _shiftPressed(state) {
+    if (state === undefined) {
+        state = global.get_pointer()[2];
+    }
+    return state & Clutter.ModifierType.SHIFT_MASK;
 }
 
-function _ctrlPressed(state = 0) {
-    if (!state) {
+function _ctrlPressed(state) {
+    if (state === undefined) {
         state = global.get_pointer()[2];
     }
     return state & Clutter.ModifierType.CONTROL_MASK;
@@ -504,7 +508,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     show(backward, binding, mask) {
         // remove overlay labels if exist
-        this._removeCaptions();
+        //this._removeCaptions();
 
         if (!this._pushModal()) {
             return false;
@@ -581,6 +585,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
 
             if (this._switcherList) {
+                this.remove_child(this._switcherList);
                 this._switcherList.destroy();
             }
 
@@ -701,12 +706,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._alreadyShowed = true;
 
         this._haveModal = true;
-
         this.add_child(this._switcherList);
         this._switcherList.connect('item-activated', this._itemActivated.bind(this));
         this._switcherList.connect('item-entered', this._itemEntered.bind(this));
         this._switcherList.connect('item-removed', this._itemRemoved.bind(this));
-
         // Need to force an allocation so we can figure out whether we
         // need to scroll when selecting
         this.visible = true;
@@ -726,7 +729,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switcherList.add_style_class_name('switcher-list-all');
             }
         }
-
 
         if (options.colorStyle.STYLE) {
             this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
@@ -852,13 +854,82 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateMouseControls() {
+        // activate indicators only when mouse pointer is (probably) used to control the switcher
+        if (this._isPointerOut() && this.KEYBOARD_TRIGGERED) return;
+
         if (this._selectedIndex < 0) return;
+
         const item = this._items[this._selectedIndex];
 
-        if (!item.window) return;
-
-        if (!item._closeButton && !this._isPointerOut()) {
+        if (item.window && !item._closeButton && !this._isPointerOut()) {
             item._createCloseButton(item.window);
+        }
+
+        if (item._aboveIcon && !item._aboveIcon.reactive) {
+            item._aboveIcon.reactive = true;
+            item._aboveIcon.connect('button-press-event', this._toggleWinAbove.bind(this));
+        }
+
+        if (item._stickyIcon && !item._stickyIcon.reactive) {
+            item._stickyIcon.reactive = true;
+            item._stickyIcon.connect('button-press-event', this._toggleWinSticky.bind(this));
+        }
+
+        if (item._appIcon && !item._appIcon.reactive) {
+            item._appIcon.reactive = true;
+            item._appIcon.connect('button-press-event', (actor, event) => {
+                const button = event.get_button();
+                if (button == Clutter.BUTTON_PRIMARY) {
+                    this._toggleSingleAppMode();
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_MIDDLE) {
+                    this._openNewWindow();
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_SECONDARY) {
+                    this._openWindowMenu();
+                    return Clutter.EVENT_STOP;
+                }
+            });
+
+            item._appIcon.connect('enter-event', () => {
+                item._appIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+
+            });
+            item._appIcon.connect('leave-event', () => {
+                item._appIcon.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+            });
+        }
+
+        if (item._wsIndicator && !item._wsIndicator.reactive) {
+            item._wsIndicator.reactive = true;
+            item._wsIndicator.connect('button-press-event', (actor, event) => {
+                const button = event.get_button();
+                if (button == Clutter.BUTTON_PRIMARY) {
+                    const cws = global.workspaceManager.get_active_workspace();
+                    const ws = item.window.get_workspace();
+                    if (ws == cws) {
+                        Main.overview.toggle();
+                    } else {
+                        Main.wm.actionMoveWorkspace(ws);
+                    }
+                    /*this._filterSwitched = true;
+                    this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+                    this._updateSwitcher();*/
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_MIDDLE) {
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_SECONDARY) {
+
+                }
+            });
+
+            item._wsIndicator.connect('enter-event', () => {
+                item._wsIndicator.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+
+            });
+            item._wsIndicator.connect('leave-event', () => {
+                item._wsIndicator.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+            });
         }
 
         this._items.forEach((w) => {
@@ -875,10 +946,33 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._frontConnection = item._front.connect('button-press-event', this._onWindowItemAppClicked.bind(this));
             this._iconsConnections.push(item._frontConnection);
         }*/
+
+        if (item._winCounterIndicator && !item._winCounterIndicator.reactive) {
+            item._winCounterIndicator.reactive = true;
+            item._winCounterIndicator.connect('button-press-event', (actor, event) => {
+                const button = event.get_button();
+                if (button == Clutter.BUTTON_PRIMARY) {
+                    this._toggleSingleAppMode();
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_MIDDLE) {
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_SECONDARY) {
+
+                }
+            });
+
+            item._winCounterIndicator.connect('enter-event', () => {
+                item._winCounterIndicator.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+
+            });
+            item._winCounterIndicator.connect('leave-event', () => {
+                item._winCounterIndicator.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+            });
+        }
     }
 
     _shadeIn() {
-        let height = this._switcherList.height;
+        //let height = this._switcherList.height;
         this.opacity = 255;
         this._switcherList.opacity = 0;
         if (this._itemCaption) {
@@ -945,16 +1039,28 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._doNotUpdateOnNewWindow = true;
         const selected = this._getSelected();
         if (this._showingApps && selected) {
-            if (_ctrlPressed()) {
+            if (_ctrlPressed() && !_shiftPressed()) {
                 // this can cause problems when a shortcut with Ctrl key is used to trigger the popup
                 // so allow this only when it's not the case
                 if (!_ctrlPressed(this._modifierMask)) {
                     selected.open_new_window(global.get_current_time());
+                    this._updateSwitcher();
+                    return;
                 }
-            } else if (!this.KEYBOARD_TRIGGERED && options.get('appSwitcherPopupSwitchToSingleOnActivate')
-                        && selected && selected.cachedWindows && selected.cachedWindows[1]) {
-                this._toggleSingleAppMode();
-                return;
+            } else if(_shiftPressed() && !_ctrlPressed()) {
+                if (!_shiftPressed(this._modifierMask)) {
+                    this._moveToCurrentWS();
+                    this._updateSwitcher();
+                    return;
+                }
+            } else if (!this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
+                        selected && selected.cachedWindows &&
+                        (
+                            (selected.cachedWindows[1] && options.SHOW_WINS_ON_ACTIVATE == 2) ||
+                            (options.SHOW_WINS_ON_ACTIVATE == 1 && selected.cachedWindows[0] === global.display.get_tab_list(0, null)[0])
+                        )) {
+                    this._toggleSingleAppMode();
+                    return;
             } else if (selected.cachedWindows && selected.cachedWindows[0]) {
                 if (options.APP_RAISE_FIRST_ONLY) {
                     this._activateWindow(selected.cachedWindows[0]);
@@ -986,7 +1092,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             //Main.activateWindow(selected);
         }
 
-        super._finish();
+        // don't close the switcher if there is higher posibility that user wans to continue using it
+        //if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE)))
+            super._finish();
     }
 
     _activateWindow(metaWin) {
@@ -1823,6 +1931,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         else if (keysym === Clutter.KEY_Menu) {
             if (this._showingApps) {
                 this._openAppIconMenu();
+            } else {
+                this._openWindowMenu();
             }
         }
 
@@ -2377,6 +2487,28 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._getActions().makeThumbnailWindow(selected);
     }
 
+    _openWindowMenu() {
+        let selected = this._getSelected();
+
+        if (!selected || selected._is_showAppsIcon)
+            return;
+
+        const windowMenuManager = new WindowMenu.WindowMenuManager(this);
+        const item = this._items[this._selectedIndex];
+
+        const [x, y] = item.get_transformed_position();
+        const [width, height] = item.get_size();
+
+        const rect = {x, y, width, height};
+        _cancelTimeout = true;
+        windowMenuManager.showWindowMenuForWindow(selected, Meta.WindowMenuType.WM, rect);
+        windowMenuManager.menu.connect('destroy',
+            (o, open) => {
+                _cancelTimeout = false;
+            }
+        );
+    }
+
     _openAppIconMenu() {
         let selected = this._getSelected();
 
@@ -2543,6 +2675,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._toggleSwitcherMode();
                 break;
             case Action.ACTIVATE:
+                if (_shiftPressed() && !_ctrlPressed()) {
+                    this._moveToCurrentWS();
+                } else if (_ctrlPressed() && !_shiftPressed()) {
+                    this._openNewWindow();
+                }
                 this._finish();
                 break;
             case Action.THUMBNAIL:
@@ -2557,7 +2694,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this.fadeAndDestroy();
                 break;
             case Action.MENU:
-                this._openAppIconMenu();
+                if (this._showingApps)
+                    this._openAppIconMenu();
+                else
+                    this._openWindowMenu();
                 break;
             case Action.CLOSE_QUIT:
                 this._closeWinQuitApp();
@@ -2987,7 +3127,7 @@ class CaptionLabel extends St.BoxLayout {
 
     destroy() {
         Main.layoutManager.removeChrome(this);
-        super.destroy();
+        //super.destroy();
     }
 });
 
@@ -3077,6 +3217,8 @@ class WindowIcon extends St.BoxLayout {
         if (this.app) {
             icon = this._createAppIcon(this.app,
                 options.APP_ICON_SIZE);
+            this._appIcon = icon;
+            this._appIcon.reactive = false;
         }
 
         let base, front;
@@ -3106,7 +3248,8 @@ class WindowIcon extends St.BoxLayout {
         }
 
         if (options.WS_INDEXES) {
-            this._icon.add_child(this._createWsIcon(window.get_workspace().index() + 1));
+            this._wsIndicator = this._createWsIcon(window.get_workspace().index() + 1)
+            this._icon.add_child(this._wsIndicator);
         }
 
         this._icon.set_size(size * scaleFactor, size * scaleFactor);
@@ -3164,6 +3307,7 @@ class WindowIcon extends St.BoxLayout {
 
         return indicatorBox;
     }
+
     _createAboveIcon() {
         let icon = new St.Icon({
             style_class: 'window-state-indicators',
@@ -3174,6 +3318,7 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.START,*/
         });
+        this._aboveIcon = icon;
         return icon;
     }
 
@@ -3187,6 +3332,7 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.START,*/
         });
+        this._stickyIcon = icon;
         return icon;
     }
 });
@@ -3252,21 +3398,23 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         const count = app.cachedWindows.length;
-        if (this._shouldShowWinCounter(count)) {
-            this._iconContainer.remove_child(this._dot);
-            if (count) {
-                const runninIndicator = this._createRunningIndicator(count);
-                // move the counter above app title
-                if (options.SHOW_APP_TITLES) {
-                    runninIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
-                }
-                this._iconContainer.add_child(runninIndicator);
+        if ( count && this._shouldShowWinCounter(count)) {
+            const winCounterIndicator = this._createWinCounterIndicator(count);
+            winCounterIndicator.add_style_class_name('running-counter');
+            // move the counter above app title
+            if (options.SHOW_APP_TITLES) {
+                winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 2}em;`);
             }
-        } else if (count && (this._switcherParams.includeFavorites || this._switcherParams.searchActive)) {
-            //const dotStyle = 'border: 1px; border-color: #232323;';
-            this._dot.set_style(`margin-bottom: 0px;`);
-            this.icon.set_style('margin-bottom: 4px;');
+            this._iconContainer.add_child(winCounterIndicator);
+            this._winCounterIndicator = winCounterIndicator;
+        }
+
+        if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
+            this._dot.add_style_class_name('running-dot');
+            this.icon.set_style('margin-bottom: 6px;');
         } else {
+            if (this._winCounterIndicator)
+            this._winCounterIndicator.set_style(`margin-bottom: 1px;`);
             this._iconContainer.remove_child(this._dot);
         }
 
@@ -3292,7 +3440,7 @@ class AppIcon extends AppDisplay.AppIcon {
         return this.app.create_icon_texture(options.APP_MODE_ICON_SIZE);
     }
 
-    _createRunningIndicator(num) {
+    _createWinCounterIndicator(num) {
         let label = new St.Label({
             text: `${num}`,
             style_class: options.colorStyle.INDICATOR_OVERLAY,
@@ -3300,6 +3448,7 @@ class AppIcon extends AppDisplay.AppIcon {
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.END,
+            reactive: false
         });
 
         return label;

@@ -205,6 +205,7 @@ var Actions = class {
             }
         } else {
             let ws = win.get_workspace();
+            win._originalWS = ws;
             win.make_fullscreen();
             let nWindows = ws.list_windows().filter(
                 w =>
@@ -212,7 +213,6 @@ var Actions = class {
                     !w.is_on_all_workspaces()
                 ).length;
             if (nWindows > 1) {
-                win._originalWS = ws;
                 let newWsIndex = ws.index() + 1;
                 Main.wm.insertWorkspace(newWsIndex);
                 let newWs = global.workspace_manager.get_workspace_by_index(newWsIndex);

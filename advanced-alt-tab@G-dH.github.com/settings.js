@@ -56,7 +56,8 @@ const ColorStyleDefault = {
     TITLE_LABEL: '',
     SELECTED: '',
     INDICATOR_OVERLAY: 'indicator-overlay-dark',
-    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark'
+    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
+    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover'
 }
 
 const ColorStyleDark = {
@@ -66,7 +67,8 @@ const ColorStyleDark = {
     TITLE_LABEL: 'title-label-dark',
     SELECTED: 'selected-dark',
     INDICATOR_OVERLAY: 'indicator-overlay-dark',
-    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark'
+    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
+    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover'
 }
 
 const ColorStyleLight = {
@@ -76,7 +78,8 @@ const ColorStyleLight = {
     TITLE_LABEL: 'title-label-light',
     SELECTED: 'selected-light',
     INDICATOR_OVERLAY: 'indicator-overlay-light',
-    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-light'
+    INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-light',
+    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover'
 }
 
 var Options = class Options {
@@ -161,7 +164,8 @@ var Options = class Options {
             appSwitcherPopupWinCounter: ['boolean', 'app-switcher-popup-win-counter'],
             appSwitcherPopupHideWinCounterForSingleWindow: ['boolean', 'app-switcher-popup-hide-win-counter-for-single-window'],
             appSwitcherPopupTitles: ['boolean', 'app-switcher-popup-titles'],
-            appSwitcherPopupSwitchToSingleOnActivate: ['boolean', 'app-switcher-popup-switch-to-single-on-activate'],
+            //appSwitcherPopupSwitchToSingleOnActivate: ['boolean', 'app-switcher-popup-switch-to-single-on-activate'],
+            appSwitcherPopupShowWinsOnActivate: ['int', 'app-switcher-popup-show-wins-on-activate'],
             appSwitcherPopupIncludeShowAppsIcon: ['boolean', 'app-switcher-popup-include-show-apps-icon'],
             appSwitcherPopupScrollItem: ['int', 'app-switcher-popup-scroll-item'],
             appSwitcherPopupPrimClickItem: ['int', 'app-switcher-popup-prim-click-item'],
@@ -170,7 +174,6 @@ var Options = class Options {
             wsSwitchIgnoreLast: ['boolean', 'ws-switch-ignore-last'],
             wsSwitchWrap: ['boolean', 'ws-switch-wrap'],
             wsSwitchPopup: ['boolean', 'ws-switch-popup'],
-            wsSwitchIndicatorMode: ['int', 'ws-switch-indicator-mode'],
             wsShowSwitcherPopup: ['boolean', 'ws-switch-popup'],
             switcherPopupPointer: ['boolean', 'switcher-popup-pointer'],
             switcherPopupExtAppFavorites: ['boolean', 'switcher-popup-ext-app-favorites'],
@@ -339,5 +342,6 @@ var Options = class Options {
         this.APP_MODE_ICON_SIZE    = this.get('appSwitcherPopupIconSize');
         this.SEARCH_PREF_RUNNING   = this.get('appSwitcherPopupSearchPrefRunning');
         this.INCLUDE_SHOW_APPS_ICON= this.get('appSwitcherPopupIncludeShowAppsIcon');
+        this.SHOW_WINS_ON_ACTIVATE = this.get('appSwitcherPopupShowWinsOnActivate');
     }
 };
