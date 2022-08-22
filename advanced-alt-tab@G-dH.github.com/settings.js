@@ -57,7 +57,9 @@ const ColorStyleDefault = {
     SELECTED: '',
     INDICATOR_OVERLAY: 'indicator-overlay-dark',
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
-    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover'
+    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
+    INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
+    ARROW: ''
 }
 
 const ColorStyleDark = {
@@ -68,7 +70,9 @@ const ColorStyleDark = {
     SELECTED: 'selected-dark',
     INDICATOR_OVERLAY: 'indicator-overlay-dark',
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
-    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover'
+    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
+    INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
+    ARROW: 'arrow-dark'
 }
 
 const ColorStyleLight = {
@@ -79,7 +83,9 @@ const ColorStyleLight = {
     SELECTED: 'selected-light',
     INDICATOR_OVERLAY: 'indicator-overlay-light',
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-light',
-    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover'
+    INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
+    INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-light',
+    ARROW: 'arrow-light'
 }
 
 var Options = class Options {
@@ -135,6 +141,7 @@ var Options = class Options {
             switcherPopupStatus: ['boolean', 'switcher-popup-status'],
             switcherPopupSyncFilter: ['boolean', 'switcher-popup-sync-filter'],
             switcherPopupTheme: ['int', 'switcher-popup-theme'],
+            switcherPopupInteractiveIndicators: ['boolean', 'switcher-popup-interactive-indicators'],
             singleAppPreviewSize: ['int', 'win-switcher-single-prev-size'],
             winSwitcherPopupFilter: ['int', 'win-switcher-popup-filter'],
             winSwitcherPopupSorting: ['int', 'win-switcher-popup-sorting'],
@@ -314,6 +321,7 @@ var Options = class Options {
         this.CAPTIONS_SCALE        = this.get('switcherPopupTooltipLabelScale');
         this.HOVER_SELECT          = this.get('switcherPopupHoverSelect');
         this.SYNC_FILTER           = this.get('switcherPopupSyncFilter');
+        this.INTERACTIVE_INDICATORS = this.get('switcherPopupInteractiveIndicators');
 
         // Window switcher
         this.WIN_FILTER_MODE       = this.get('winSwitcherPopupFilter');

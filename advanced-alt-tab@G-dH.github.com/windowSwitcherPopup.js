@@ -116,6 +116,7 @@ const Action = Settings.Actions;
 
 let _cancelTimeout = false;
 
+
 function _shiftPressed(state) {
     if (state === undefined) {
         state = global.get_pointer()[2];
@@ -362,6 +363,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         childBox.x2 = Math.min(monitor.x + monitor.width, childBox.x1 + childNaturalWidth);
         childBox.y2 = childBox.y1 + childNaturalHeight;
+
         useFlags    ? this._switcherList.allocate(childBox, flags)
                     : this._switcherList.allocate(childBox);
     }
@@ -424,6 +426,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._items.length > 1) {
                 if (this._shouldReverse()) {
                     this._select(this._items.length - 2);
+                    this._select(this._items.length - 1);
                 } else {
                     this._select(1);
                 }
@@ -608,8 +611,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             //this._switcherList._scrollView.enable_mouse_scrolling = true;
             this._switcherList._rightArrow.reactive = true;
             this._switcherList._rightArrow.connect('motion-event', ()=> this._selectedIndex < (this._items.length - 1) && this._select(this._next(true)));
+            this._switcherList._rightArrow.add_style_class_name(options.colorStyle.ARROW);
             this._switcherList._leftArrow.reactive = true;
             this._switcherList._leftArrow.connect('motion-event', ()=> this._selectedIndex > 0 && this._select(this._previous(true)));
+            this._switcherList._leftArrow.add_style_class_name(options.colorStyle.ARROW);
 
             if (!options.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
                 this._switcherList._itemEntered = function() {}
@@ -855,24 +860,62 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _updateMouseControls() {
         // activate indicators only when mouse pointer is (probably) used to control the switcher
-        if (this._isPointerOut() && this.KEYBOARD_TRIGGERED) return;
-
-        if (this._selectedIndex < 0) return;
+        if (this._updateNeeded) {
+            this._items.forEach((w) => {
+                if (w._closeButton) {
+                    w._closeButton.opacity = 0;
+                }
+                if (w._aboveStickyIndicatorBox) {
+                    w._aboveStickyIndicatorBox.opacity = 0;
+                }
+            });
+        }
 
         const item = this._items[this._selectedIndex];
-
-        if (item.window && !item._closeButton && !this._isPointerOut()) {
-            item._createCloseButton(item.window);
+        if (item.window && !this._isPointerOut()) {
+            if (!item._closeButton)
+                item._createCloseButton(item.window);
+            item._closeButton.opacity = 255;
         }
+
+        this._updateNeeded = true;
+
+        if (!options.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0) return;
+
+        if (item.window && !item._aboveStickyIndicatorBox) {
+            item._aboveStickyIndicatorBox = item._getIndicatorBox();
+            item._icon.add_child(item._aboveStickyIndicatorBox);
+        }
+
+        if (item._aboveStickyIndicatorBox)
+            item._aboveStickyIndicatorBox.opacity = 255;
 
         if (item._aboveIcon && !item._aboveIcon.reactive) {
             item._aboveIcon.reactive = true;
+            item._aboveIcon.opacity = 255;
             item._aboveIcon.connect('button-press-event', this._toggleWinAbove.bind(this));
         }
 
         if (item._stickyIcon && !item._stickyIcon.reactive) {
             item._stickyIcon.reactive = true;
+            item._stickyIcon.opacity = 255;
             item._stickyIcon.connect('button-press-event', this._toggleWinSticky.bind(this));
+        }
+
+        if (item.window && !item._menuIcon) {
+            item._menuIcon = new St.Icon({
+                style_class: 'window-state-indicators',
+                icon_name: 'view-more-symbolic',
+                icon_size: 16,
+            });
+            item._menuIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
+            item._aboveStickyIndicatorBox.add_child(item._menuIcon);
+            item._menuIcon.reactive = true;
+            item._menuIcon.opacity = 255;
+            item._menuIcon.connect('button-press-event', () => {
+                this._openWindowMenu();
+                return Clutter.EVENT_STOP;
+            });
         }
 
         if (item._appIcon && !item._appIcon.reactive) {
@@ -886,7 +929,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._openNewWindow();
                     return Clutter.EVENT_STOP;
                 } else if (button == Clutter.BUTTON_SECONDARY) {
-                    this._openWindowMenu();
+                    this._toggleSwitcherMode();
                     return Clutter.EVENT_STOP;
                 }
             });
@@ -905,6 +948,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._wsIndicator.connect('button-press-event', (actor, event) => {
                 const button = event.get_button();
                 if (button == Clutter.BUTTON_PRIMARY) {
+                    if (this._getSelected().get_workspace().index() != global.workspaceManager.get_active_workspace_index());
+                        this._moveToCurrentWS();
+                } else if (button == Clutter.BUTTON_MIDDLE) {
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_SECONDARY) {
                     const cws = global.workspaceManager.get_active_workspace();
                     const ws = item.window.get_workspace();
                     if (ws == cws) {
@@ -916,30 +964,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
                     this._updateSwitcher();*/
                     return Clutter.EVENT_STOP;
-                } else if (button == Clutter.BUTTON_MIDDLE) {
-                    return Clutter.EVENT_STOP;
-                } else if (button == Clutter.BUTTON_SECONDARY) {
-
                 }
             });
 
             item._wsIndicator.connect('enter-event', () => {
-                item._wsIndicator.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
-
+                const ws = global.workspaceManager.get_active_workspace_index() + 1;
+                const winWs = item.window.get_workspace().index() + 1;
+                const monitor = item.window.get_monitor();
+                const currentMonitor = global.display.get_current_monitor();
+                const multiMonitor = global.display.get_n_monitors() - 1;
+                //if (ws != winWs) {
+                    item._wsIndicator.text = `${winWs}${multiMonitor ? '.' + monitor.toString() : ''} → ${ws}${multiMonitor ? '.' + currentMonitor.toString() : ''}`;
+                /*} else {
+                    item._wsIndicator.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+                }*/
             });
             item._wsIndicator.connect('leave-event', () => {
                 item._wsIndicator.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+                item._wsIndicator.text = (item.window.get_workspace().index() + 1).toString();
             });
-        }
-
-        this._items.forEach((w) => {
-            if (w._closeButton) {
-                w._closeButton.opacity = 0;
-            }
-        });
-
-        if (!this._isPointerOut() && item._closeButton) {
-            item._closeButton.opacity = 255;
         }
 
         /*if (!item._frontConnection) {
@@ -2262,6 +2305,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _showOverlayTitle() {
         if (this._itemCaption) {
             this._itemCaption.destroy();
+            this._itemCaption = null;
         }
         let selected = this._items[this._selectedIndex];
         let title;
@@ -2315,6 +2359,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             yOffset: 0,
             monitorIndex: this._monitorIndex
         });
+
+        this._itemCaption.connect('destroy', () => this._itemCaption = null);
     }
 
     // Actions
@@ -2621,7 +2667,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!selected || selected._is_showAppsIcon) return;
 
         this._getActions().toggleAboveWindow(selected);
-        Main.wm.actionMoveWorkspace(selected.get_workspace());
+        //Main.wm.actionMoveWorkspace(selected.get_workspace());
         this._updateSwitcher();
     }
 
@@ -2995,7 +3041,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // allows to use multiple exact paterns separated by space in arbitrary order
         for (let w of ps) {
-            if (!s.match(w)) {
+            if (!s.includes(w)) {
                 return false;
             }
         }
@@ -3072,6 +3118,7 @@ class CaptionLabel extends St.BoxLayout {
 
         this._addToChrome();
         this.setPosition();
+        //this.connect('destroy', this.destroy.bind(this));
     }
 
     _addToChrome() {
@@ -3242,9 +3289,8 @@ class WindowIcon extends St.BoxLayout {
         // will be used to connect on icon signals (switcherList.icons[n]._front)
         this._front = front;
 
-        let indicatorBox = this._getIndicatorBox();
-        if (indicatorBox) {
-            this._icon.add_child(indicatorBox);
+        if (this.window.is_above() || this.window.is_on_all_workspaces()) {
+            this._icon.add_child(this._getIndicatorBox());
         }
 
         if (options.WS_INDEXES) {
@@ -3272,7 +3318,7 @@ class WindowIcon extends St.BoxLayout {
         let currentWS = global.workspace_manager.get_active_workspace_index();
 
         let label = new St.Label({
-            text: index.toString(),
+            text: `${index}`,
             style_class: options.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
@@ -3287,23 +3333,20 @@ class WindowIcon extends St.BoxLayout {
     }
 
     _getIndicatorBox() {
-        let indicatorBox = null;
-        if (this.window.is_above() || this.window.is_on_all_workspaces()) {
-            indicatorBox = new St.BoxLayout({
+        const indicatorBox = new St.BoxLayout({
             vertical: false,
-            style_class: options.colorStyle.INDICATOR_OVERLAY,
+            //style_class: options.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
-            x_align: Clutter.ActorAlign.CENTER,
+            x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.START,
         });
-            if (this.window.is_above()) {
-                indicatorBox.add_child(this._createAboveIcon());
-            }
-            if (this.window.is_on_all_workspaces()) {
-                indicatorBox.add_child(this._createStickyIcon());
-            }
-        }
+        //if (this.window.is_above()) {
+            indicatorBox.add_child(this._createAboveIcon());
+        //}
+        //if (this.window.is_on_all_workspaces()) {
+            indicatorBox.add_child(this._createStickyIcon());
+        //}
 
         return indicatorBox;
     }
@@ -3318,6 +3361,11 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.START,*/
         });
+        icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
+        if (!this.window.is_above()) {
+            icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
+            icon.opacity = 0;
+        }
         this._aboveIcon = icon;
         return icon;
     }
@@ -3332,7 +3380,12 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.START,*/
         });
+        icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
         this._stickyIcon = icon;
+        if (!this.window.is_on_all_workspaces()) {
+            icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
+            icon.opacity = 0;
+        }
         return icon;
     }
 });
@@ -3571,7 +3624,7 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         const useFlags = flags !== undefined;
         let themeNode = this.get_theme_node();
         let contentBox = themeNode.get_content_box(box);
-        const spacing = themeNode.get_padding(St.Side.BOTTOM); // -4 to move label 2px up
+        const spacing = themeNode.get_padding(St.Side.BOTTOM);
         const statusLabelHeight = options.STATUS ? this._statusLabel.height : spacing;
         const totalLabelHeight =
             statusLabelHeight;
@@ -3590,16 +3643,10 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         const childBox = new Clutter.ActorBox();
         childBox.x1 = contentBox.x1;
         childBox.x2 = contentBox.x2;
-        childBox.y2 = contentBox.y2 - statusLabelHeight + spacing;
+        childBox.y2 = contentBox.y2;
         childBox.y1 = childBox.y2 - statusLabelHeight;
-
-        const childBoxStatus = new Clutter.ActorBox();
-        childBoxStatus.x1 = contentBox.x1;
-        childBoxStatus.x2 = contentBox.x2;
-        childBoxStatus.y2 = contentBox.y2;
-        childBoxStatus.y1 = childBoxStatus.y2 - statusLabelHeight;
-        useFlags    ? this._statusLabel.allocate(childBoxStatus, flags)
-                    : this._statusLabel.allocate(childBoxStatus);
+        useFlags    ? this._statusLabel.allocate(childBox, flags)
+                    : this._statusLabel.allocate(childBox);
     }
 
     _onItemEnter(item) {

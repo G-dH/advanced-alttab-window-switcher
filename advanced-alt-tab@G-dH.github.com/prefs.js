@@ -219,6 +219,7 @@ function _getCommonOptionList() {
             opt.WraparoundSelector,
             opt.HoverSelectsItem,
             opt.DelayShowingSwitcher,
+            opt.InteractiveIndicators,
         opt.Appearance,
             opt.Theme,
             opt.OverlayTitle,
@@ -704,6 +705,13 @@ function _getCommonOpt() {
             _('Hovering the mouse pointer over a switcher item selects the item.'),
             _newSwitch(),
             'switcherPopupHoverSelect'
+    );
+
+    optDict.InteractiveIndicators = _optionsItem(
+        _('Interactive Indicators'),
+        _('Indicator icons can response to mouse clicks by triggering specific actions. Workspace indicator moves window to the current workspace, app icon and window counter toggle single app mode, secondary click on window app icon opens window menu, "Always on top" and "Always on visible workspace" indicators show up on hover.'),
+        _newSwitch(),
+        'switcherPopupInteractiveIndicators'
     );
 
     optDict.Content = _optionsItem(

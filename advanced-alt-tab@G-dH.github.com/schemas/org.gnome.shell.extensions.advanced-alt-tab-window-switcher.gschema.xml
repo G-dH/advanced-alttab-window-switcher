@@ -82,6 +82,9 @@
     <key name='switcher-popup-theme' type='i'>
       <default>3</default>
     </key>
+    <key name='switcher-popup-interactive-indicators' type='b'>
+      <default>true</default>
+    </key>
     <key name='switcher-popup-hot-keys' type='b'>
       <default>false</default>
     </key>
