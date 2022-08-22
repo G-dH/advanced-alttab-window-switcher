@@ -12,6 +12,16 @@
       <default>1</default>
     </key>
 
+    <key name='hot-edge-position' type='i'>
+      <default>0</default>
+    </key>
+    <key name='hot-edge-monitor' type='i'>
+      <default>0</default>
+    </key>
+    <key name='hot-edge-mode' type='i'>
+      <default>0</default>
+    </key>
+
     <key name='win-switcher-popup-preview-size' type='i'>
       <default>128</default>
     </key>
@@ -62,7 +72,7 @@
       <default>2</default>
     </key>
     <key name='switcher-popup-sync-filter' type='b'>
-      <default>true</default>
+      <default>false</default>
     </key>
     <key name='switcher-popup-pointer' type='b'>
       <default>true</default>
@@ -104,10 +114,10 @@
       <default>6</default>
     </key>
     <key name='switcher-popup-prim-click-in' type='i'>
-      <default>4</default>
+      <default>5</default>
     </key>
     <key name='switcher-popup-sec-click-in' type='i'>
-      <default>5</default>
+      <default>4</default>
     </key>
     <key name='switcher-popup-mid-click-in' type='i'>
       <default>99</default>
@@ -116,10 +126,10 @@
       <default>13</default>
     </key>
     <key name='switcher-popup-sec-click-out' type='i'>
-      <default>11</default>
+      <default>13</default>
     </key>
     <key name='switcher-popup-mid-click-out' type='i'>
-      <default>12</default>
+      <default>13</default>
     </key>
     <key name='win-switcher-popup-scroll-item' type='i'>
       <default>6</default>

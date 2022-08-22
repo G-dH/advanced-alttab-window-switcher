@@ -59,6 +59,7 @@ const ColorStyleDefault = {
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
     INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
+    RUNNING_COUNTER_HOVER: 'running-counter-hover',
     ARROW: ''
 }
 
@@ -72,6 +73,7 @@ const ColorStyleDark = {
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
     INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
+    RUNNING_COUNTER_HOVER: 'running-counter-hover',
     ARROW: 'arrow-dark'
 }
 
@@ -85,6 +87,7 @@ const ColorStyleLight = {
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-light',
     INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-light',
+    RUNNING_COUNTER_HOVER: 'running-counter-hover',
     ARROW: 'arrow-light'
 }
 
@@ -118,6 +121,10 @@ var Options = class Options {
             superKeyMode: ['int', 'super-key-mode'],
             enableSuper: ['boolean', 'enable-super'],
             superDoublePressAction: ['int', 'super-double-press-action'],
+            hotEdgePosition: ['int', 'hot-edge-position'],
+            hotEdgeMode: ['int', 'hot-edge-mode'],
+            hotEdgeMonitor: ['int', 'hot-edge-monitor'],
+
             switcherPopupPosition: ['int', 'switcher-popup-position'],
             switcherPopupMonitor: ['int', 'switcher-popup-monitor'],
             switcherPopupShiftHotkeys: ['boolean', 'switcher-popup-shift-hotkeys'],

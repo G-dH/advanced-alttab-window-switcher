@@ -230,7 +230,10 @@ function _getCommonOptionList() {
         opt.SystemIntegration,
             opt.SuperKeyMode,
             opt.EnableSuper,
-            opt.SuperDoublePress
+            opt.SuperDoublePress,
+            opt.HotEdgePosition,
+            opt.HotEdgeMode,
+            opt.HotEdgeMonitor
     ];
 
     return optionList;
@@ -809,7 +812,7 @@ function _getCommonOpt() {
 
     optDict.SuperKeyMode = _optionsItem(
             _('System Super Key Action'),
-            _("Allows to open App switcher or Window switcher by pressing and releasing the Super key. Default mode doesn't change system behavior."),
+            _("Allows to open App switcher or Window switcher by pressing and releasing the Super key (default overlay-key, can be remapped in Gnome Tweaks). Default mode doesn't change system behavior."),
             _newComboBox(),
             'superKeyMode',
                [[_('Default'),          1],
@@ -843,6 +846,34 @@ function _getCommonOpt() {
     enableSuperSwitch.connect('notify::active', (widget) => {
         superDoublePressSwitch.set_sensitive(widget.active);
     });
+
+    optDict.HotEdgePosition = _optionsItem(
+        _('Hot Edge Position'),
+        _("Allows you to open App switcher or Window switcher by hitting an edge of the monitor with your mouse."),
+        _newComboBox(),
+        'hotEdgePosition',
+        [[_('Disabled'), 0],
+         [_('Top'),      1],
+         [_('Bottom'),   2]]
+    );
+
+    optDict.HotEdgeMode = _optionsItem(
+        _('Hot Key Action'),
+        _("Default mode for Hot Edge trigger."),
+        _newComboBox(),
+        'hotEdgeMode',
+        [[_('App Switcher'),     0],
+         [_('Window Switcher'),  1]]
+    );
+
+    optDict.HotEdgeMonitor = _optionsItem(
+        _('Hot Edge Monitor'),
+        _("You can only set the hot edge for the primary monitor or all monitors."),
+        _newComboBox(),
+        'hotEdgeMonitor',
+        [[_('Primary'), 0],
+         [_('All'),     1]]
+    );
 
     return optDict;
 }
@@ -1179,12 +1210,12 @@ function _getMiscOpt() {
     );
 
     optDict.ExternalTrigger = _optionsItem(
-            _('Options for External Mouse Trigger'),
+            _('Options for Mouse Trigger'),
     );
 
     optDict.MousePointerPosition = _optionsItem(
             _('Pop-up at Mouse Pointer Position (if triggered by mouse)'),
-            _('If variable KEYBOARD_TRIGGERED is set to false, then this option is reflected.'),
+            _('If popup was triggerd using the mouse, then this option is reflected.'),
             _newSwitch(),
             'switcherPopupPointer'
     );

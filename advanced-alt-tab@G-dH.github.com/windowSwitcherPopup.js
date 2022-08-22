@@ -196,6 +196,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.KEYBOARD_TRIGGERED    = true;  // popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
         this.PREVIEW_SELECTED      = options.get('switcherPopupPreviewSelected');
         this.SEARCH_DEFAULT        = options.get('switcherPopupStartSearch');
+        this.POSITION_POINTER      = options.POSITION_POINTER;
+        this.POPUP_POSITION        = options.POPUP_POSITION;
 
         // Window switcher
         this.WIN_FILTER_MODE       = options.get('winSwitcherPopupFilter');
@@ -342,7 +344,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             x = Math.max(x, monitor.x);
         }
 
-        if (options.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
+        if (this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
             if (x === undefined)
                 x = Math.min(this._pointer.x, monitor.x + monitor.width - childNaturalWidth);
             childBox.x1 = x;
@@ -354,9 +356,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 x = Math.max(monitor.x, monitor.x + Math.floor((monitor.width - childNaturalWidth) / 2));
             childBox.x1 = x;
             let offset = Math.floor((monitor.height - childNaturalHeight) / 2);
-            if (options.POPUP_POSITION === Position.TOP)
+            if (this.POPUP_POSITION === Position.TOP)
                 offset = 0;
-            if (options.POPUP_POSITION === Position.BOTTOM)
+            if (this.POPUP_POSITION === Position.BOTTOM)
                 offset = monitor.height - childNaturalHeight;
             childBox.y1 = monitor.y + offset;
         }
@@ -369,6 +371,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _initialSelection(backward, binding) {
+        if (this._itemCaption) {
+            this._itemCaption._destroy();
+        }
+
         if (this._searchEntryNotEmpty())
             this._initialSelectionMode = SelectMode.FIRST;
 
@@ -426,7 +432,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._items.length > 1) {
                 if (this._shouldReverse()) {
                     this._select(this._items.length - 2);
-                    this._select(this._items.length - 1);
+                    this._switcherList._scrollToRight(this._items.length - 1);
                 } else {
                     this._select(1);
                 }
@@ -439,8 +445,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         } else if (this._initialSelectionMode === SelectMode.NONE && this._shouldReverse()) {
             // if reversed and list longer than display, move to the last (reversed first) item
-            this._switcherList.highlight(this._items.length - 1);
-            this._switcherList.removeHighlight();
+            this._switcherList._scrollToRight(this._items.length - 1);
         }
     }
 
@@ -854,8 +859,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return;
         const item = this._items[n];
         // avoid unnecessary reentrancy, reenter only when close button needs to be displayed
-        if (!(this._selectedIndex === n && (item._closeButton && item._closeButton.opacity === 255)))
+        if (!(this._selectedIndex === n && (item._closeButton && item._closeButton.opacity === 255)) ||
+             (this._selectedIndex === n && !item._closeButton))
             this._itemEnteredHandler(n);
+            this._updateMouseControls();
     }
 
     _updateMouseControls() {
@@ -875,13 +882,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (item.window && !this._isPointerOut()) {
             if (!item._closeButton)
                 item._createCloseButton(item.window);
+                this._updateNeeded = true;
             item._closeButton.opacity = 255;
         }
 
-        this._updateNeeded = true;
 
         if (!options.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0) return;
-
         if (item.window && !item._aboveStickyIndicatorBox) {
             item._aboveStickyIndicatorBox = item._getIndicatorBox();
             item._icon.add_child(item._aboveStickyIndicatorBox);
@@ -973,14 +979,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 const monitor = item.window.get_monitor();
                 const currentMonitor = global.display.get_current_monitor();
                 const multiMonitor = global.display.get_n_monitors() - 1;
-                //if (ws != winWs) {
-                    item._wsIndicator.text = `${winWs}${multiMonitor ? '.' + monitor.toString() : ''} → ${ws}${multiMonitor ? '.' + currentMonitor.toString() : ''}`;
-                /*} else {
-                    item._wsIndicator.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
-                }*/
+                item._wsIndicator.text = `${winWs}${multiMonitor ? '.' + monitor.toString() : ''} → ${ws}${multiMonitor ? '.' + currentMonitor.toString() : ''}`;
+                item._wsIndicator.add_style_class_name('ws-indicator-hover');
             });
             item._wsIndicator.connect('leave-event', () => {
-                item._wsIndicator.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+                item._wsIndicator.remove_style_class_name('ws-indicator-hover');
                 item._wsIndicator.text = (item.window.get_workspace().index() + 1).toString();
             });
         }
@@ -1005,13 +1008,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             });
 
             item._winCounterIndicator.connect('enter-event', () => {
-                item._winCounterIndicator.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+                item._winCounterIndicator.add_style_class_name(options.colorStyle.RUNNING_COUNTER_HOVER);
 
             });
             item._winCounterIndicator.connect('leave-event', () => {
-                item._winCounterIndicator.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+                item._winCounterIndicator.remove_style_class_name(options.colorStyle.RUNNING_COUNTER_HOVER);
             });
         }
+
+        item._mouseControlsSet = true;
     }
 
     _shadeIn() {
@@ -1294,7 +1299,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _select(index) {
-        if (!this._switcherList) return;
+        if (!this._switcherList || index == this._switcherList._highlighted) return;
 
         if (this._initialSelectionMode === SelectMode.NONE) {
             this._initialSelectionMode = SelectMode.ACTIVE;
@@ -1336,7 +1341,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._resetNoModsTimeout();
-        this._updateMouseControls();
+        if (options.INTERACTIVE_INDICATORS) {
+            this._updateMouseControls();
+        }
     }
 
     _next(reversed = false) {
@@ -1993,7 +2000,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         switch (btn) {
             case Clutter.BUTTON_PRIMARY:
-                if ((this._recentSwitchTime - Date.now() > 0) && !pointerOut) {
+                //if ((this._recentSwitchTime - Date.now() > 0) && !pointerOut) {
+                if (false) {
                     action = Action.ACTIVATE;
                 } else {
                     action = pointerOut
@@ -2159,6 +2167,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
                 this._singleApp = [selected.get_id(), selected.get_name()];
                 this.SHOW_APPS = false;
+                if (!options.SYNC_FILTER) {
+                    this.WIN_FILTER_MODE = this.APP_FILTER_MODE;
+                }
             } else {
                 let id, name;
                 const app = _getWindowApp(selected);
@@ -2174,6 +2185,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._switcherMode === SwitcherMode.APPS) {
                 this.SHOW_APPS = true;
                 winToApp = true;
+            }
+
+            if (!options.SYNC_FILTER) {
+                this.WIN_FILTER_MODE = options.WIN_FILTER_MODE;
             }
         }
 
@@ -2281,7 +2296,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _showSearchCaption(text) {
         const margin = 10;
         if (this._searchCaption) {
-            this._searchCaption.destroy();
+            this._searchCaption._destroy();
         }
 
         const offset = this._itemCaption
@@ -2304,7 +2319,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _showOverlayTitle() {
         if (this._itemCaption) {
-            this._itemCaption.destroy();
+            this._itemCaption._destroy();
             this._itemCaption = null;
         }
         let selected = this._items[this._selectedIndex];
@@ -2360,7 +2375,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             monitorIndex: this._monitorIndex
         });
 
-        this._itemCaption.connect('destroy', () => this._itemCaption = null);
+        this._itemCaption.connect('destroy', (actor) => {
+            if (actor === this._itemCaption) {
+                this._itemCaption = null;
+            } else  {
+            }
+        });
     }
 
     // Actions
@@ -2688,9 +2708,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _triggerAction(action, direction = 0) {
         // select recent window instead of the first one
-        if ((this._recentSwitchTime - Date.now() > 0) && this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
+        /*if ((this._recentSwitchTime - Date.now() > 0) && this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
             this._select(this._next());
-        }
+        }*/
 
         switch (action) {
             case Action.SELECT_ITEM:
@@ -3118,7 +3138,6 @@ class CaptionLabel extends St.BoxLayout {
 
         this._addToChrome();
         this.setPosition();
-        //this.connect('destroy', this.destroy.bind(this));
     }
 
     _addToChrome() {
@@ -3172,9 +3191,9 @@ class CaptionLabel extends St.BoxLayout {
         this.add_child(icon);
     }
 
-    destroy() {
+    _destroy() {
         Main.layoutManager.removeChrome(this);
-        //super.destroy();
+        super.destroy();
     }
 });
 
@@ -3462,7 +3481,7 @@ class AppIcon extends AppDisplay.AppIcon {
             this._winCounterIndicator = winCounterIndicator;
         }
 
-        if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
+        if (count && (this._switcherParams.includeFavorites || this._switcherParams.searchActive)) {
             this._dot.add_style_class_name('running-dot');
             this.icon.set_style('margin-bottom: 6px;');
         } else {
@@ -3641,12 +3660,22 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
                     : this.set_allocation(box);
 
         const childBox = new Clutter.ActorBox();
-        childBox.x1 = contentBox.x1;
+        childBox.x1 = contentBox.x1 + 5;
         childBox.x2 = contentBox.x2;
         childBox.y2 = contentBox.y2;
         childBox.y1 = childBox.y2 - statusLabelHeight;
         useFlags    ? this._statusLabel.allocate(childBox, flags)
                     : this._statusLabel.allocate(childBox);
+    }
+
+    _onItemMotion(item) {
+        // Avoid reentrancy
+        const icon = this.icons[this._items.indexOf(item)];
+        if (item !== this._items[this._highlighted] || (options.INTERACTIVE_INDICATORS && !icon._mouseControlsSet)) {
+            this._itemEntered(this._items.indexOf(item));
+        }
+
+        return Clutter.EVENT_PROPAGATE;
     }
 
     _onItemEnter(item) {

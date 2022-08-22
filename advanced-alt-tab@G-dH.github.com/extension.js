@@ -9,10 +9,11 @@
 
 'use strict';
 
-const { GObject, GLib, Gio }    = imports.gi;
+const { GObject, GLib, Gio, Meta, Shell }    = imports.gi;
 
 const Main                 = imports.ui.main;
 const AltTab               = imports.ui.altTab;
+const Layout                 = imports.ui.layout;
 
 const ExtensionUtils       = imports.misc.extensionUtils;
 const Me                   = ExtensionUtils.getCurrentExtension();
@@ -28,6 +29,8 @@ let _origAltTabASP;
 let _originalOverlayKeyHandlerId = null;
 let _signalOverlayKey = null;
 let _wmFocusToActiveHandlerId = 0;
+let _pressureBarrier = null;
+let _horizontalBarrier = null;
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
@@ -46,7 +49,8 @@ function enable() {
             }
             _options = new Settings.Options();
             WindowSwitcherPopup.options = _options;
-            _options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
+            //_options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
+            _options.connect('changed', _updateSettings);
             _origAltTabWSP = AltTab.WindowSwitcherPopup;
             _origAltTabASP = AltTab.AppSwitcherPopup;
             AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
@@ -66,6 +70,8 @@ function enable() {
                 });
             }
             _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
+
+            _updateHotTrigger();
 
             log(`${Me.metadata.name}: enabled`);
             enabled = true;
@@ -106,6 +112,9 @@ function disable() {
     _origAltTabASP = null;
     _restoreOverlayKeyHandler();
     WindowSwitcherPopup.options = null;
+
+    _removePressureBarrier();
+
     _options = null;
     log(`${Me.metadata.name}: disabled`);
 }
@@ -134,6 +143,17 @@ function _updateAlwaysActivateFocusedConnection() {
         global.display.disconnect(_wmFocusToActiveHandlerId);
         _wmFocusToActiveHandlerId = 0;
     }
+}
+
+function _updateSettings(settings, key) {
+    if (key == 'super-key-mode') {
+        _updateOverlayKeyHandler();
+    }
+
+    if (key == 'hot-edge-position' || key == 'hot-edge-monitor') {
+        _updateHotTrigger();
+    }
+
 }
 
 function _updateOverlayKeyHandler() {
@@ -172,18 +192,84 @@ function _restoreOverlayKeyHandler() {
     }
 }
 
-function _toggleSwitcher() {
-    let altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
-    const appSwitcherMode = _options.get('superKeyMode') === 2;
-    altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
-    altTabPopup.SHOW_APPS = appSwitcherMode ? true : false;
-    altTabPopup.KEYBOARD_TRIGGERED = true;
-    altTabPopup.NO_MODS_TIMEOUT = 5000;
+function _toggleSwitcher(mouseTriggerred = false) {
+    const altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
+    if (mouseTriggerred) {
+        altTabPopup.KEYBOARD_TRIGGERED = false;
+        altTabPopup.POPUP_POSITION = _options.get('hotEdgePosition') == 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
+        const appSwitcherMode = _options.get('hotEdgeMode') == 0;
+        altTabPopup.SHOW_APPS = appSwitcherMode ? true : false;
+        altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
+    } else {
+        const appSwitcherMode = _options.get('superKeyMode') === 2;
+        altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
+        altTabPopup.SHOW_APPS = appSwitcherMode ? true : false;
+        altTabPopup._overlayKeyTriggered = true;
+    }
     altTabPopup._modifierMask = 0;
     altTabPopup.POSITION_POINTER = false;
-    altTabPopup._overlayKeyTriggered = true;
-    altTabPopup.connect('destroy', () => altTabPopup = null);
     altTabPopup.show();
+}
+
+function _updateHotTrigger() {
+    _removePressureBarrier();
+
+    const position = _options.get('hotEdgePosition', true);
+
+    if (!position) return;
+
+    
+        // Use code of parent class to remove old barriers but new barriers
+        // must be created here since the properties are construct only.
+        //super.setBarrierSize(0);
+        const geometry = global.display.get_monitor_geometry(global.display.get_primary_monitor());
+        const BD = Meta.BarrierDirection;
+            // for X11 session:
+            //  right vertical and bottom horizontal pointer barriers must be 1px further to match the screen edge
+            // ...because barriers are actually placed between pixels, along the top/left edge of the addressed pixels
+            // ...Wayland behave differently and addressed pixel means the one behind which pointer can't go
+            // but avoid barriers that are at the same position
+            // ...and block opposite directions. Neither with X nor with Wayland
+            // ...such barriers work.
+
+        const offset = 100;
+        const x1 = geometry.x + offset;
+        const x2 = geometry.x + geometry.width - offset;
+        let y = position == 1 ? geometry.y : geometry.y + geometry.height;
+        y -= Meta.is_wayland_compositor() ? 1 : 0;
+
+        _horizontalBarrier = new Meta.Barrier({
+            display: global.display,
+            x1,
+            x2,
+            y1: y,
+            y2: y,
+            directions: position == 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y
+        });
+
+        _pressureBarrier = new Layout.PressureBarrier(
+            100, // pressure treshold
+            Layout.HOT_CORNER_PRESSURE_TIMEOUT,
+            Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
+        );
+
+        _pressureBarrier.connect('trigger', _onPressureTriggered);
+        _pressureBarrier.addBarrier(_horizontalBarrier);
+}
+
+function _removePressureBarrier() {
+    if (_pressureBarrier) {
+        _pressureBarrier.removeBarrier(_horizontalBarrier);
+        _horizontalBarrier.destroy();
+        _horizontalBarrier = null;
+
+        _pressureBarrier.destroy();
+        _pressureBarrier = null;
+    }
+}
+
+function _onPressureTriggered (){
+    _toggleSwitcher(true);
 }
 
 function _extensionEnabled() {
