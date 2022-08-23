@@ -881,6 +881,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         const item = this._items[this._selectedIndex];
+        if (!item) return;
+
         if (item.window && !this._isPointerOut()) {
             if (!item._closeButton)
                 item._createCloseButton(item.window);

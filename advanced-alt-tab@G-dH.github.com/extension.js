@@ -29,8 +29,7 @@ let _origAltTabASP;
 let _originalOverlayKeyHandlerId = null;
 let _signalOverlayKey = null;
 let _wmFocusToActiveHandlerId = 0;
-let _pressureBarrier = null;
-let _horizontalBarrier = null;
+let _pressureBarriers = null;
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
@@ -200,6 +199,7 @@ function _toggleSwitcher(mouseTriggerred = false) {
         const appSwitcherMode = _options.get('hotEdgeMode') == 0;
         altTabPopup.SHOW_APPS = appSwitcherMode ? true : false;
         altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
+        altTabPopup._monitorIndex = global.display.get_current_monitor();
     } else {
         const appSwitcherMode = _options.get('superKeyMode') === 2;
         altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
@@ -218,11 +218,16 @@ function _updateHotTrigger() {
 
     if (!position) return;
 
-    
+    _pressureBarriers = [];
+    const primaryMonitor = global.display.get_primary_monitor();
+
+    for (let i = 0; i < Main.layoutManager.monitors.length; ++i) {
+        if (!_options.get('hotEdgeMonitor', true) && i != primaryMonitor)
+            continue;
         // Use code of parent class to remove old barriers but new barriers
         // must be created here since the properties are construct only.
         //super.setBarrierSize(0);
-        const geometry = global.display.get_monitor_geometry(global.display.get_primary_monitor());
+        const geometry = global.display.get_monitor_geometry(i);
         const BD = Meta.BarrierDirection;
             // for X11 session:
             //  right vertical and bottom horizontal pointer barriers must be 1px further to match the screen edge
@@ -238,7 +243,7 @@ function _updateHotTrigger() {
         let y = position == 1 ? geometry.y : geometry.y + geometry.height;
         y -= Meta.is_wayland_compositor() ? 1 : 0;
 
-        _horizontalBarrier = new Meta.Barrier({
+        const horizontalBarrier = new Meta.Barrier({
             display: global.display,
             x1,
             x2,
@@ -247,24 +252,28 @@ function _updateHotTrigger() {
             directions: position == 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y
         });
 
-        _pressureBarrier = new Layout.PressureBarrier(
+        const pressureBarrier = new Layout.PressureBarrier(
             100, // pressure treshold
             Layout.HOT_CORNER_PRESSURE_TIMEOUT,
             Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
         );
 
-        _pressureBarrier.connect('trigger', _onPressureTriggered);
-        _pressureBarrier.addBarrier(_horizontalBarrier);
+        pressureBarrier.connect('trigger', _onPressureTriggered);
+        pressureBarrier.addBarrier(horizontalBarrier);
+
+        _pressureBarriers.push([pressureBarrier, horizontalBarrier]);
+    }
 }
 
 function _removePressureBarrier() {
-    if (_pressureBarrier) {
-        _pressureBarrier.removeBarrier(_horizontalBarrier);
-        _horizontalBarrier.destroy();
-        _horizontalBarrier = null;
+    if (_pressureBarriers !== null) {
+        _pressureBarriers.forEach(barrier => {
+            barrier[0].removeBarrier(barrier[1]);
+            barrier[1].destroy();
+            barrier[0].destroy();
+        });
 
-        _pressureBarrier.destroy();
-        _pressureBarrier = null;
+        _pressureBarriers = null;
     }
 }
 
