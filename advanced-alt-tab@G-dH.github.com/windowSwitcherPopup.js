@@ -875,6 +875,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (w._aboveStickyIndicatorBox) {
                     w._aboveStickyIndicatorBox.opacity = 0;
                 }
+                if (w._hotkeyIndicator)
+                    w._hotkeyIndicator.opacity = 255;
             });
         }
 
@@ -893,8 +895,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._icon.add_child(item._aboveStickyIndicatorBox);
         }
 
-        if (item._aboveStickyIndicatorBox)
+        if (item._aboveStickyIndicatorBox) {
             item._aboveStickyIndicatorBox.opacity = 255;
+            if  (item._hotkeyIndicator)
+                item._hotkeyIndicator.opacity = 0;
+        }
+
 
         if (item._aboveIcon && !item._aboveIcon.reactive) {
             item._aboveIcon.reactive = true;
@@ -933,7 +939,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return Clutter.EVENT_STOP;
                 } else if (button == Clutter.BUTTON_MIDDLE) {
                     this._openNewWindow();
-                    return Clutter.EVENT_STOP;
+                    return Clutter.EVENT_PROPAGATE;
                 } else if (button == Clutter.BUTTON_SECONDARY) {
                     this._toggleSwitcherMode();
                     return Clutter.EVENT_STOP;
@@ -957,7 +963,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     if (this._getSelected().get_workspace().index() != global.workspaceManager.get_active_workspace_index());
                         this._moveToCurrentWS();
                 } else if (button == Clutter.BUTTON_MIDDLE) {
-                    return Clutter.EVENT_STOP;
+                    return Clutter.EVENT_PROPAGATE;
                 } else if (button == Clutter.BUTTON_SECONDARY) {
                     const cws = global.workspaceManager.get_active_workspace();
                     const ws = item.window.get_workspace();
@@ -1001,7 +1007,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._toggleSingleAppMode();
                     return Clutter.EVENT_STOP;
                 } else if (button == Clutter.BUTTON_MIDDLE) {
-                    return Clutter.EVENT_STOP;
+                    return Clutter.EVENT_PROPAGATE;
                 } else if (button == Clutter.BUTTON_SECONDARY) {
 
                 }
@@ -3220,7 +3226,8 @@ class WindowIcon extends St.BoxLayout {
         }
 
         if ( this._switcherParams.hotKeys && iconIndex < 12) {
-            this._icon.add_child(_createHotKeyNumIcon(iconIndex));
+            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex);
+            this._icon.add_child(this._hotkeyIndicator);
         }
 
         if (this.titleLabel && this._switcherParams.showWinTitles) {
@@ -3491,7 +3498,8 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         if (this._switcherParams.hotKeys && iconIndex < 12) {
-            this._iconContainer.add_child(_createHotKeyNumIcon(iconIndex));
+            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex);
+            this._iconContainer.add_child(this._hotkeyIndicator);
         }
 
         this._is_app = true;
