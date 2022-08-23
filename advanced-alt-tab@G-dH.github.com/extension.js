@@ -29,6 +29,8 @@ let _origAltTabASP;
 let _originalOverlayKeyHandlerId = null;
 let _signalOverlayKey = null;
 let _wmFocusToActiveHandlerId = 0;
+let _monitorsChangedSigId = 0;
+let _monitorsChangedDelayId = 0;
 let _pressureBarriers = null;
 
 function init() {
@@ -262,6 +264,22 @@ function _updateHotTrigger() {
         pressureBarrier.addBarrier(horizontalBarrier);
 
         _pressureBarriers.push([pressureBarrier, horizontalBarrier]);
+        if (!_monitorsChangedSigId)
+            _monitorsChangedSigId = Main.layoutManager.connect('monitors-changed', () => {
+                // avoid unnecessary executions, the singnal is being emmitted miltiple times
+                if (!_monitorsChangedDelayId) {
+                    _monitorsChangedDelayId = GLib.timeout_add_seconds(
+                        GLib.PRIORITY_DEFAULT,
+                        1,
+                        () => {
+                            _updateHotTrigger();
+                            _monitorsChangedDelayId = 0;
+                            return GLib.SOURCE_REMOVE;
+                        }
+                    );
+                }
+                return GLib.SOURCE_CONTINUE;
+            });
     }
 }
 
@@ -274,6 +292,15 @@ function _removePressureBarrier() {
         });
 
         _pressureBarriers = null;
+    }
+
+    if (_monitorsChangedSigId) {
+        Main.layoutManager.disconnect(_monitorsChangedSigId);
+        _monitorsChangedSigId = 0;
+    }
+    if (_monitorsChangedDelayId) {
+        GLib.source_remove(_monitorsChangedDelayId);
+        _monitorsChangedDelayId = 0;
     }
 }
 
