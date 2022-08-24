@@ -337,7 +337,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let [, childNaturalWidth] = this._switcherList.get_preferred_width(childNaturalHeight);
         let x;
 
-        if (this._switcherAppPos) {
+        if (this._switcherAppPos && !this._showingApps) {
             // if single app view was triggered from the app switcher, align the window switcher to selected app
             x = Math.max(this._switcherAppPos - childNaturalWidth / 2, monitor.x);
             x = Math.min(x, monitor.x + monitor.width - childNaturalWidth);
@@ -613,21 +613,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             this._switcherList = new WindowSwitcher(switcherList, switcherParams);
 
-            //this._switcherList._scrollView.enable_mouse_scrolling = true;
-            this._switcherList._rightArrow.reactive = true;
-            this._switcherList._rightArrow.connect('motion-event', ()=> this._selectedIndex < (this._items.length - 1) && this._select(this._next(true)));
-            this._switcherList._rightArrow.add_style_class_name(options.colorStyle.ARROW);
-            this._switcherList._leftArrow.reactive = true;
-            this._switcherList._leftArrow.connect('motion-event', ()=> this._selectedIndex > 0 && this._select(this._previous(true)));
-            this._switcherList._leftArrow.add_style_class_name(options.colorStyle.ARROW);
-
             if (!options.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
                 this._switcherList._itemEntered = function() {}
             }
-
-            /*if (this.ITEM_CAPTIONS > 1) {
-                this._switcherList._label.hide();
-            }*/
 
             this._items = this._switcherList.icons;
             this._connectIcons();
@@ -726,7 +714,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.opacity = 0;
         this.get_allocation_box();
 
-        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS
+        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS, green for ALL
         if (/*!this._firstRun*/this._filterSwitched && !options.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
             let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
             fm = this._tempFilterMode ? this._tempFilterMode : fm;
@@ -740,17 +728,34 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        if (options.colorStyle.STYLE) {
-            this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
+        this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
+
+        // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
+        if (this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
+            const activeWidth = 2;
+            this._switcherList.reactive = true;
+            this._switcherList.connect('motion-event', ()=> {
+                if (this._switcherList._scrollView.hscroll.adjustment.get_transition('value'))
+                    return;
+
+                const pointerX = global.get_pointer()[0];
+
+                if (this._switcherList._scrollableLeft && this._selectedIndex < (this._items.length - 1) && pointerX > (this._switcherList.allocation.x2 - activeWidth)) {
+                    this._select(this._next(true));
+                } else if (this._switcherList._scrollableRight && this._selectedIndex > 0 && pointerX < (this._switcherList.allocation.x1 + activeWidth)) {
+                    this._select(this._previous(true));
+                }
+            });
         }
+
+        this._switcherList._rightArrow.add_style_class_name(options.colorStyle.ARROW);
+        this._switcherList._leftArrow.add_style_class_name(options.colorStyle.ARROW);
 
         let themeNode = this._switcherList.get_theme_node();
         let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
 
-        this._switcherList.set_style(`padding-bottom: ${padding}px;`);
-
-        // reduce gaps between switcher items
-        this._switcherList._list.set_style('spacing: 2px;');
+        this.PANEL_HEIGHT = Main.panel.height;
+        this._switcherList.set_style(`margin-top: ${this.PANEL_HEIGHT + 4}px; padding-bottom: ${padding}px;`);
 
         this._initialSelection(backward, binding);
 
@@ -866,6 +871,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateMouseControls() {
+        if (!this.mouseActive)
+            return;
         // activate indicators only when mouse pointer is (probably) used to control the switcher
         if (this._updateNeeded) {
             this._items.forEach((w) => {
@@ -1490,12 +1497,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _isPointerOut() {
         let [x, y, mods] = global.get_pointer();
         let switcher = this._switcherList;
-        let margin = 15;
+        // margin expands the "inside" area around the popup to cover gaps between popup and edge of the monitor
+        const margin = 15;
+        const marginTop = this.PANEL_HEIGHT + 4;
 
         if (x < (switcher.allocation.x1 - margin) || x > (switcher.allocation.x1 + switcher.width + margin)) {
             return true;
         }
-        if (y < (switcher.allocation.y1 - margin) || y > (switcher.allocation.y1 + switcher.height + margin)) {
+        if (y < (switcher.allocation.y1 - marginTop) || y > (switcher.allocation.y1 + switcher.height + margin)) {
             return true;
         }
 
@@ -2302,7 +2311,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _showSearchCaption(text) {
-        const margin = 10;
+        const margin = 20;
         if (this._searchCaption) {
             this._searchCaption._destroy();
         }
@@ -2313,7 +2322,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         const xPosition = 0;
 
-        const fontSize = options.CAPTIONS_SCALE * 2 / 100;
+        const fontSize = options.CAPTIONS_SCALE * 2;
         this._searchCaption = new CaptionLabel({
             name: 'search-label',
             text: text,
@@ -2370,7 +2379,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         [xPos] = actor.get_transformed_position();
         xPos = Math.floor(xPos + actor.width / 2);
 
-        const fontSize = options.CAPTIONS_SCALE / 100;
+        const fontSize = options.CAPTIONS_SCALE;
 
         this._itemCaption = new CaptionLabel({
             name: 'item-label',
@@ -3158,7 +3167,7 @@ class CaptionLabel extends St.BoxLayout {
         const yOffset = this._yOffset;
 
         const geometry = global.display.get_monitor_geometry(this._monitorIndex);
-        const margin = 5;
+        const margin = 8;
 
         this.width = Math.min(this.width, geometry.width);
 
@@ -3170,7 +3179,7 @@ class CaptionLabel extends St.BoxLayout {
         let y = parent.allocation.y1 - this.height - yOffset - margin;
 
         if (y < geometry.y)
-            y = parent.allocation.y1 + parent.height + yOffset + margin;
+            y = parent.allocation.y2 + yOffset + margin;
 
         [this.x, this.y] = [x, y];
     }
@@ -3247,7 +3256,6 @@ class WindowIcon extends St.BoxLayout {
             y_expand: true,
             reactive: true
         });
-        closeButton.set_style('background-color: dimgrey; width: 1em; height: 1em; padding: 2px');
         closeButton.connect('button-press-event', () => { return Clutter.EVENT_STOP; });
         closeButton.connect('button-release-event', () => {
             metaWin.delete(global.get_current_time());
@@ -3505,8 +3513,6 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         this._is_app = true;
-
-        this.add_style_class_name(options.colorStyle.TITLE_LABEL);
     }
 
     _shouldShowWinCounter(count) {

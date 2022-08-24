@@ -89,6 +89,7 @@
 
 .arrow-light {
   color: rgb(69, 69, 69);
+  height: 4em;
 }
 
 .arrow-dark {
@@ -103,13 +104,26 @@
   padding-left: 0.2em;
   padding-right: 0.2em;
   text-align: center;
-  box-shadow: 0px 3px 10px rgba(0,0,0,0.1);
 }
 
 .caption-label-dark, .caption-label-light {
   border-radius: 12px;
   padding: 6px;
   border: solid 1px;
+  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dash-label {
+  border-radius: 10px;
+}
+
+.window-close {
+  background-color: dimgrey;
+  width: 1em;
+  height: 1em;
+  padding: 2px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border: 0px;
 }
 
 .switcher-list-dark, .caption-label-dark, .search-label-dark, .title-label-dark {
@@ -144,8 +158,15 @@
   background-color: rgba(0, 0, 0, 0.0);
 }
 
+/* space between switcher items */
+.switcher-list-item-container {
+  spacing: 2px;
+}
+
 .switcher-list, .switcher-list-dark, .switcher-list-light, .switcher-list-all, .switcher-list-workspace, .switcher-list-monitor {
   border-width: 1px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .switcher-list-all {
@@ -158,10 +179,6 @@
 
 .switcher-list-monitor {
   border-color: rgba(160, 0, 0, 0.8);
-}
-
-.aatws-running-dot {
-  margin: 6px;
 }
 
 .selected-dark {
