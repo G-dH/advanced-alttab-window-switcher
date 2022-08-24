@@ -568,13 +568,18 @@ function _optionsItem(text, tooltip, widget, variable, options = []) {
         settings.bind(key, widget.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
     } else if (widget && widget._is_combo_box) {
         let model = widget.get_model();
+        widget._comboMap = {};
         for (const [label, value] of options) {
             let iter;
             model.set(iter = model.append(), [0, 1], [label, value]);
             if (value === gOptions.get(variable)) {
                 widget.set_active_iter(iter);
             }
+            widget._comboMap[value] = iter;
         }
+        gOptions.connect(`changed::${key}`, () => {
+            widget.set_active_iter(widget._comboMap[gOptions.get(variable, true)]);
+        });
         widget.connect('changed', () => {
             const [success, iter] = widget.get_active_iter();
 
@@ -812,7 +817,7 @@ function _getCommonOpt() {
 
     optDict.SuperKeyMode = _optionsItem(
             _('System Super Key Action'),
-            _("Allows to open App switcher or Window switcher by pressing and releasing the Super key (default overlay-key, can be remapped in Gnome Tweaks). Default mode doesn't change system behavior."),
+            _("Open App switcher or Window switcher by pressing and releasing the Super key (default overlay-key, can be remapped in Gnome Tweaks). Default mode doesn't change system behavior."),
             _newComboBox(),
             'superKeyMode',
                [[_('Default'),          1],
@@ -849,7 +854,7 @@ function _getCommonOpt() {
 
     optDict.HotEdgePosition = _optionsItem(
         _('Hot Edge Position'),
-        _("Allows you to open App switcher or Window switcher by hitting an edge of the monitor with your mouse."),
+        _("Open App switcher or Window switcher by hitting an edge of the monitor with your mouse pointer."),
         _newComboBox(),
         'hotEdgePosition',
         [[_('Disabled'), 0],
@@ -859,7 +864,7 @@ function _getCommonOpt() {
 
     optDict.HotEdgeMode = _optionsItem(
         _('Hot Key Action'),
-        _("Default mode for Hot Edge trigger."),
+        _("Default switcher mode for Hot Edge trigger."),
         _newComboBox(),
         'hotEdgeMode',
         [[_('App Switcher'),     0],
@@ -868,7 +873,7 @@ function _getCommonOpt() {
 
     optDict.HotEdgeMonitor = _optionsItem(
         _('Hot Edge Monitor'),
-        _("You can only set the hot edge for the primary monitor or all monitors."),
+        _("Set the hot edge for the primary monitor only or all active monitors."),
         _newComboBox(),
         'hotEdgeMonitor',
         [[_('Primary'), 0],
@@ -891,7 +896,7 @@ function _getWindowsOpt() {
 
     optDict.DefaultFilter =_optionsItem(
             _('Default Filter'),
-            _('Which windows should appear in the list. Filter can also be changed on the fly using a hotkey.'),
+            _('Filter windows that should appear in the list. Filter can also be changed on the fly using a hotkey.'),
             _newComboBox(),
             'winSwitcherPopupFilter',
             [   [_('All'),               1],
@@ -901,7 +906,7 @@ function _getWindowsOpt() {
 
     optDict.DefaultSorting =_optionsItem(
             _('Default Sorting'),
-            _('What key should be used to sort the window list.'),
+            _('The order in which the list of windows should be sorted.'),
             _newComboBox(),
             'winSwitcherPopupSorting',
             [
@@ -913,7 +918,7 @@ function _getWindowsOpt() {
 
     optDict.DefaultGrouping =_optionsItem(
             _('Default Grouping'),
-            _('Group windows in the list by selected key.'),
+            _('Group windows in the list by the selected key.'),
             _newComboBox(),
             'winSwitcherPopupOrder',
             [   [_('None'),                  1],
@@ -925,7 +930,7 @@ function _getWindowsOpt() {
 
     optDict.DistinguishMinimized =_optionsItem(
             _('Distinguish Minimized Windows'),
-            _('The front icon of minimized windows will be faded.'),
+            _('The front icon of minimized window item will be faded.'),
             _newSwitch(),
             'winMarkMinimized'
     );
@@ -933,7 +938,7 @@ function _getWindowsOpt() {
     const skipMinimizedBtn = _newSwitch();
     optDict.SkipMinimized =_optionsItem(
             _('Skip Minimized Windows'),
-            _('This option actually affects App switcher too.'),
+            _('Removes minimized windows from the list. This option actually affects also App switcher.'),
             skipMinimizedBtn,
             'winSkipMinimized'
     );
@@ -953,21 +958,21 @@ function _getWindowsOpt() {
 
     optDict.IncludeModals =_optionsItem(
         _('Include Modal Windows'),
-        _('Modal windows, such as dialogs, are usually attached to their parent windows and cannot be focused separately. The default behavior of the window switcher is to ignore modal windows and list only their parents.'),
+        _('Modal windows, such as dialogs, are usually attached to their parent windows and cannot be individually focused. The default behavior of the window switcher is to ignore modal windows and list only their parents.'),
         _newSwitch(),
         'winIncludeModals'
     );
 
     optDict.SearchAllWindows =_optionsItem(
             _('Search All Windows'),
-            _('Automaticaly switch filter mode (if possible) when no search results for the currently selected filter mode.'),
+            _('Automatically switch filter mode (if possible) when no results are found for the currently selected filter mode.'),
             _newSwitch(),
             'winSwitcherPopupSearchAll'
     );
 
     optDict.SearchApplications =_optionsItem(
             _('Search Applications'),
-            _('Search installed applications to launch new when no window matches the entered pattern.'),
+            _('Search for installed applications in order to launch new ones when no window matches the specified pattern.'),
             _newSwitch(),
             'winSwitcherPopupSearchApps'
     );
@@ -978,7 +983,7 @@ function _getWindowsOpt() {
 
     optDict.ShowWindowTitle =_optionsItem(
             _('Show Window Titles'),
-            _('Window titles will be displayed under each window item in the list.'),
+            _('Window titles (ellipsized if needed) will be displayed under each window item in the switcher list.'),
             _newComboBox(),
             'winSwitcherPopupTitles',
                [[_('Enabled'), 1],
@@ -1041,7 +1046,7 @@ function _getAppsOpt() {
 
     optDict.DefaultFilter = _optionsItem(
             _('Default Filter'),
-            _('Which applications should appear in the list. Filter can also be changed on the fly using a hotkey.'),
+            _('Filter windows that should appear in the list. Filter can also be changed on the fly using a hotkey.'),
             _newComboBox(),
             'appSwitcherPopupFilter',
             [
@@ -1118,7 +1123,7 @@ function _getAppsOpt() {
     const showWinCounterSwitch = _newSwitch();
     optDict.ShowWinCounter =_optionsItem(
             _('Show Window Counter'),
-            _('Replaces the default dot indicating running applications by the number of open windows.'),
+            _('Adds a label with the number of windows openned by each app corresponding to the current filter mode.'),
             showWinCounterSwitch,
             'appSwitcherPopupWinCounter'
        );
@@ -1164,8 +1169,6 @@ function _getMiscOpt() {
 
     optDict.Windows = _optionsItem(
             _('Window Manager'),
-            null,
-            null
     );
 
     optDict.AlwaysActivateFocused = _optionsItem(
@@ -1177,8 +1180,6 @@ function _getMiscOpt() {
 
     optDict.Workspace = _optionsItem(
             _('Workspace Manager'),
-            null,
-            null
     );
 
     optDict.ShowWsSwitcherPopup = _optionsItem(
@@ -1190,8 +1191,6 @@ function _getMiscOpt() {
 
     optDict.Thumbnails = _optionsItem(
             _('DND Window Thumbnails'),
-            null,
-            null
     );
 
     let tmbScaleAdjustment = new Gtk.Adjustment({
