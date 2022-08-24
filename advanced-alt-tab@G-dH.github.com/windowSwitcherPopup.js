@@ -731,10 +731,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
 
         // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
-        if (this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
+        if (shellVersion >= 40 && this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
             const activeWidth = 2;
             this._switcherList.reactive = true;
-            this._switcherList.connect('motion-event', ()=> {
+            this._switcherList.connect('motion-event', () => {
                 if (this._switcherList._scrollView.hscroll.adjustment.get_transition('value'))
                     return;
 
