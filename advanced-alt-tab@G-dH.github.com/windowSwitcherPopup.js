@@ -732,7 +732,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
         if (shellVersion >= 40 && this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
-            const activeWidth = 2;
+            const activeWidth = 5;
             this._switcherList.reactive = true;
             this._switcherList.connect('motion-event', () => {
                 if (this._switcherList._scrollView.hscroll.adjustment.get_transition('value'))
@@ -891,14 +891,22 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!item) return;
 
         if (item.window && !this._isPointerOut()) {
-            if (!item._closeButton)
+            if (!item._closeButton) {
                 item._createCloseButton(item.window);
                 this._updateNeeded = true;
+                item._closeButton.connect('enter-event', () => {
+                    item._closeButton.add_style_class_name('window-close-hover');
+                });
+                item._closeButton.connect('leave-event', () => {
+                    item._closeButton.remove_style_class_name('window-close-hover');
+                });
+            }
             item._closeButton.opacity = 255;
         }
 
 
         if (!options.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0) return;
+
         if (item.window && !item._aboveStickyIndicatorBox) {
             item._aboveStickyIndicatorBox = item._getIndicatorBox();
             item._icon.add_child(item._aboveStickyIndicatorBox);
@@ -915,12 +923,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._aboveIcon.reactive = true;
             item._aboveIcon.opacity = 255;
             item._aboveIcon.connect('button-press-event', this._toggleWinAbove.bind(this));
+            item._aboveIcon.connect('enter-event', () => {
+                item._aboveIcon.add_style_class_name('window-state-indicators-hover');
+            });
+            item._aboveIcon.connect('leave-event', () => {
+                item._aboveIcon.remove_style_class_name('window-state-indicators-hover');
+            });
         }
 
         if (item._stickyIcon && !item._stickyIcon.reactive) {
             item._stickyIcon.reactive = true;
             item._stickyIcon.opacity = 255;
             item._stickyIcon.connect('button-press-event', this._toggleWinSticky.bind(this));
+            item._stickyIcon.connect('enter-event', () => {
+                item._stickyIcon.add_style_class_name('window-state-indicators-hover');;
+            });
+            item._stickyIcon.connect('leave-event', () => {
+                item._stickyIcon.remove_style_class_name('window-state-indicators-hover');
+            });
         }
 
         if (item.window && !item._menuIcon) {
@@ -928,6 +948,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 style_class: 'window-state-indicators',
                 icon_name: 'view-more-symbolic',
                 icon_size: 16,
+                y_expand: true,
+                y_align: Clutter.ActorAlign.START,
             });
             item._menuIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
             item._aboveStickyIndicatorBox.add_child(item._menuIcon);
@@ -936,6 +958,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._menuIcon.connect('button-press-event', () => {
                 this._openWindowMenu();
                 return Clutter.EVENT_STOP;
+            });
+            item._menuIcon.connect('enter-event', () => {
+                item._menuIcon.add_style_class_name('window-state-indicators-hover');;
+            });
+            item._menuIcon.connect('leave-event', () => {
+                item._menuIcon.remove_style_class_name('window-state-indicators-hover');
             });
         }
 
@@ -957,7 +985,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             item._appIcon.connect('enter-event', () => {
                 item._appIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
-
             });
             item._appIcon.connect('leave-event', () => {
                 item._appIcon.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
@@ -3159,6 +3186,7 @@ class CaptionLabel extends St.BoxLayout {
 
     _addToChrome() {
         Main.layoutManager.addChrome(this);
+        this.get_parent().set_child_above_sibling(this, null);
     }
 
     setPosition() {
@@ -3377,12 +3405,9 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.START,
         });
-        //if (this.window.is_above()) {
-            indicatorBox.add_child(this._createAboveIcon());
-        //}
-        //if (this.window.is_on_all_workspaces()) {
-            indicatorBox.add_child(this._createStickyIcon());
-        //}
+
+        indicatorBox.add_child(this._createAboveIcon());
+        indicatorBox.add_child(this._createStickyIcon());
 
         return indicatorBox;
     }
@@ -3392,10 +3417,11 @@ class WindowIcon extends St.BoxLayout {
             style_class: 'window-state-indicators',
             icon_name: 'go-top-symbolic',
             icon_size: 16,
-            /*x_expand: true,
             y_expand: true,
+            y_align: Clutter.ActorAlign.START,
+            /*x_expand: true,
             x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.START,*/
+            */
         });
         icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
         if (!this.window.is_above()) {
@@ -3411,10 +3437,11 @@ class WindowIcon extends St.BoxLayout {
             style_class: 'window-state-indicators',
             icon_name: 'view-pin-symbolic',
             icon_size: 16,
-            /*x_expand: true,
             y_expand: true,
+            y_align: Clutter.ActorAlign.START,
+            /*x_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.START,*/
+            */
         });
         icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
         this._stickyIcon = icon;

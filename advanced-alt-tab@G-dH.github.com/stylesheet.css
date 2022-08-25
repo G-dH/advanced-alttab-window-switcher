@@ -31,7 +31,6 @@
 }
 
 .indicator-overlay-hover {
-  /*border-color: grey;*/
   padding-bottom: 2px;
 }
 
@@ -83,6 +82,11 @@
   padding-right: 3px;
 }
 
+.window-state-indicators-hover {
+  margin-top: 0px;
+  padding-bottom: 3px;
+}
+
 .workspace-index-highlight {
   border-color: rgb(36, 36, 36);
 }
@@ -119,11 +123,16 @@
 
 .window-close {
   background-color: dimgrey;
-  width: 1em;
-  height: 1em;
+  width: 15px;
+  height: 15px;
   padding: 2px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   border: 0px;
+}
+
+.window-close-hover {
+  width: 18px;
+  height: 18px;
 }
 
 .switcher-list-dark, .caption-label-dark, .search-label-dark, .title-label-dark {
