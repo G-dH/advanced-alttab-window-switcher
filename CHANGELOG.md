@@ -1,4 +1,23 @@
 ## Changelog
+
+### v19 not yet released on EGO
+**Added**
+- Top and Bottom hot edge options allows to trigger AATWS popup using a mouse without Custom Hot Corners - Extended
+- Option `Interactive Indicators` with window menu allows more effective navigation using a mouse without the need to configure and remember actions on mouse buttons
+- Light and Dark color themes that can follow system wide Dark mode setting on GS 42+ and dark Gtk theme on older versions.
+- About page in Settings window with `Reset all options` button and links to the project sites.
+
+**Fixed**
+- Mouse pointer overshoot scrolling in GS40+. It's a GS 40+ regression.
+- App window counter includes `skip_taskbar` windows
+
+**Changed**
+- Default mouse buttons configuration
+
+### v18 2022-07-06
+**Fixed**
+- Show Apps icon cannot be activated
+
 ### v17 2022-07-06
 **Added:**
 - Hotkey to toggle `Include Favorite Apps` - select `Show Apps Icon` and press the key above Tab (group switcher shortcut).
