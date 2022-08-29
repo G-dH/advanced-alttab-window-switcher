@@ -3498,6 +3498,7 @@ class AppIcon extends AppDisplay.AppIcon {
 
         // remove original app icon style
         this.style_class = '';
+        this.set_style('color: grey;');
 
         if (options.SHOW_APP_TITLES) {
             if (this.icon.label) {
