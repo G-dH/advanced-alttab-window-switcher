@@ -3276,7 +3276,7 @@ class WindowIcon extends St.BoxLayout {
 
     _createCloseButton(metaWin) {
         const closeButton = new St.Icon({
-            style_class: 'window-close',
+            style_class: 'window-close-aatws',
             icon_name: 'window-close-symbolic',
             x_align: Clutter.ActorAlign.END,
             y_align: Clutter.ActorAlign.START,
@@ -3427,6 +3427,8 @@ class WindowIcon extends St.BoxLayout {
         if (!this.window.is_above()) {
             icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
+        } else {
+            icon.add_style_class_name('window-state-indicators-active');
         }
         this._aboveIcon = icon;
         return icon;
@@ -3448,6 +3450,8 @@ class WindowIcon extends St.BoxLayout {
         if (!this.window.is_on_all_workspaces()) {
             icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
+        } else {
+            icon.add_style_class_name('window-state-indicators-active');
         }
         return icon;
     }

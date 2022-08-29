@@ -207,13 +207,13 @@ function _getMiscOptionList() {
 
     const optionList = [
         opt.ExternalTrigger,
-            opt.MousePointerPosition,
             opt.SingleOnActivate,
             opt.AppStableOrder,
             opt.AppIncludeFavorites,
             opt.AutomaticallyReverseOrder,
             opt.PointerOutTimeout,
             opt.ActivateOnHide,
+            opt.MousePointerPosition,
         opt.WindowManager,
             opt.AlwaysActivateFocused,
         opt.Workspace,
@@ -806,13 +806,6 @@ function _getMiscOpt() {
             _('Mouse Triggered Switcher Options'),
     );
 
-    optDict.MousePointerPosition = itemFactory.getRowWidget(
-            _('Pop-up at Mouse Pointer Position'),
-            _('If the switcher was triggerd using a mouse, it will be placed at the position of the mouse pointer.'),
-            itemFactory.newSwitch(),
-            'switcherPopupPointer'
-    );
-
     optDict.SingleOnActivate = itemFactory.getRowWidget(
             _('Show App Windows Instead of Direct Activation'),
             _('If the clicked app has more than one window (for the current filter setting) and the button used for the click is set to Activate item, the switcher will not activate the recently used window of the app and switch to the Single App mode, so you can choose another window.'),
@@ -863,6 +856,13 @@ function _getMiscOpt() {
             _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before pop-up hides.'),
             itemFactory.newSwitch(),
             'switcherPopupActivateOnHide'
+    );
+
+    optDict.MousePointerPosition = itemFactory.getRowWidget(
+        _('Pop-up at Mouse Pointer Position'),
+        _('Only for external trigger like CHC-E extension. If the switcher was triggerd using a mouse, it will be placed at the position of the mouse pointer.'),
+        itemFactory.newSwitch(),
+        'switcherPopupPointer'
     );
 
     optDict.WindowManager = itemFactory.getRowWidget(
@@ -1674,6 +1674,9 @@ const ItemFactory = class ItemFactory {
             hexpand: true,
         });
 
+        const context = btn.get_style_context();
+        context.add_class('destructive-action');
+
         if (shellVersion >= 40) {
             btn.icon_name = 'view-refresh-symbolic';
         } else {
@@ -1681,9 +1684,10 @@ const ItemFactory = class ItemFactory {
         }
 
         btn.connect('clicked', () => {
-            Object.keys(gOptions.options).forEach(key => {
-                gOptions.set(key, gOptions.getDefault(key));
-            });
+            const settings = this._settings;
+            settings.list_keys().forEach(
+                key => settings.reset(key)
+            );
         });
         btn._activatable = false;
         return btn;

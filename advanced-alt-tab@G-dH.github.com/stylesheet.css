@@ -34,18 +34,18 @@
   padding-bottom: 2px;
 }
 
-.ws-indicator-hover {
-  font-size: 1.1em;
-  padding-top: 2px;
-  padding-bottom: 2px;
-}
-
 .indicator-overlay-inactive-dark {
   color: black;
 }
 
 .indicator-overlay-inactive-light {
   color: rgb(160, 160, 160);
+}
+
+.ws-indicator-hover {
+  font-size: 1.1em;
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
 .running-counter-dark {
@@ -59,7 +59,7 @@
 }
 
 .running-counter-hover {
-  font-size: 1.5em;
+  font-size: 1.3em;
   padding-top: 2px;
   padding-bottom: 4px;
   padding-left: 0.7em;
@@ -76,15 +76,19 @@
   height: 1.1em;
   width: 1.1em;
   margin: 2px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  padding-top: 2px;
+  padding-bottom: 2px;
   padding-left: 3px;
   padding-right: 3px;
 }
 
 .window-state-indicators-hover {
   margin-top: 0px;
-  padding-bottom: 3px;
+  padding-bottom: 4px;
+}
+
+.window-state-indicators-active {
+  color: rgb(255, 0, 0);
 }
 
 .workspace-index-highlight {
@@ -121,18 +125,20 @@
   border-radius: 10px;
 }
 
-.window-close {
+.window-close-aatws {
   background-color: dimgrey;
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   padding: 2px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   border: 0px;
+  border-radius: 35px;
 }
 
 .window-close-hover {
-  width: 18px;
-  height: 18px;
+  /*width: 18px;
+  height: 18px;*/
+  background-color: rgb(255, 0, 0);
 }
 
 .switcher-list-dark, .caption-label-dark, .search-label-dark, .title-label-dark {
@@ -169,7 +175,7 @@
 
 /* space between switcher items */
 .switcher-list-item-container {
-  spacing: 2px;
+  spacing: 0px;
 }
 
 .switcher-list, .switcher-list-dark, .switcher-list-light, .switcher-list-all, .switcher-list-workspace, .switcher-list-monitor {
