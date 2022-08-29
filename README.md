@@ -1,32 +1,36 @@
 # AATWS - Advanced Alt-Tab Window Switcher
-An extension for Gnome Shell that replaces following GNOME Shell's build-in functions: *Switch windows*, *Switch applications* and *Switch windows of an application*. Keyboard shortcuts for these functions can be set in GNOME Settings > Keyboard Shortcuts.
+An extension for GNOME Shell that replaces its following built-in switchers:
 
-*AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in type to search feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you dont exacty know its name. In combination with `Custom Hot Corners - Extended` extension, the `AATWS` can be also triggered (and controled) using a mouse and also serve as a dock.
+- **Switch windows**
+- **Switch applications**
+- **Switch windows of an application**
+
+**Keyboard shortcuts for these switchers can be set in *GNOME Settings > Keyboard Shortcuts*.**
+
+*AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in *type to search* feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you dont exacty know its name. AATWS also offers activation using a mouse by hitting a top or bottom hot edge and can serve as a app launcher and dock.
 
 ![Window Switcher Popup](screenshot.png)
 
 [<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
 
-## Main Features:
+## Features:
 
-- Supports GNOME Shell 3.36 - 42.
-- Replacement for both the **Window Switcher** and **Application Switcher** popups. Both modes can be also switched on the fly.
-- **Type to Search** mode which allows you to find any window or application.
-- Optional default filter settings : *All windows / Current workspace / Current monitor*, plus *Skip minimized* option.
-- Optional default sorting settings: *Most Recently Used* (MRU) */ Stable sequence / Stable sequence - current window first*.
-- Optional automatic filter switching in search mode - the switcher can be set to list windows from the current monitor but you can find windows from other monitors and workspaces by typing.
-- Optional default window grouping settings: *None / Current workspace first / Applications / Workspaces*.
-- **Filter, sorting and grouping modes can be switched on the fly** when needed using hotkeys.
-- The switcher can work also as an **aplication launcher with Favorite applications** and search all installed applications (all with properly installed `.desktop` files) and GNOME Settings. You can search applications not only by names, but also by their description, keywords, category and name of executable.
-- App switcher can include Show Apps Button to acces overview applications grid.
-- Built-in **workspace switcher** with `Wraparound` and `Ingore Last (empty) Workspace` options allows you to navigate between workspaces using the Up/Down arrow keys.
-- Separately **adjustable sizes** of window preview and app icon combo (the larger one is used as the base and the smaller one as the front icon), single application window list icons and application list icons.
-- windows can be previewed or raised immediately as they are selected in the switcher list, otherwise you can do so by pressing a dedicated hotkey.
-- With multimonitor setup **you can move the switcher popup to any connected monitor on the fly** using hotkeys. You can also choose whether the switcher should appear always on the primary monitor or the one with mouse pointer.
-- Optional workspace index on each window item so you can see to which workspace the window belongs.
-- Direct window activation using `F`unction keys with optional `F<n>` key indicator on each item in the switcher.
-- Super key (or more accurately `Window Action Key` which can be reassigned in *GNOME Tweaks* or *D-conf editor*) can be set to open App or Window switcher instead of the default Activities overview.
-- Bult-in window and app controls, see Hotkeys paragraph below.
+- Supports GNOME Shell 3.36 - 43.
+- Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*.
+- Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed.
+- Hotkeys allow to control switcher and windows, including relocations.
+- Workspace navigation.
+- Navigation between monitors.
+- Full-size window previews.
+- Size adjustments.
+- Can replace dash/dock
+- Application launcher, app switcher can include favorite apps and *Show Apps* icon.
+- Optional Super key activation.
+- Configurable overlay indicators, optionally interactive to help with mouse control.
+- Mouse control, including optional top or bottom hot edge for switcher activation.
+- Configurable mouse buttons and scroll wheel.
+- Supported by the *Custom Hot Corners - Extended* extension.
+
 
 ### Hotkeys
 
@@ -53,11 +57,11 @@ An extension for Gnome Shell that replaces following GNOME Shell's build-in func
 |`C`|                       - Close all windows in the list that belong to the same application as the selected window.|
 |`A`|                       - Toggle window `Always on Top` and also switch to window workspace and rise the window.<br>- The `Above` state is indicated by the front icon at the top instead of the bottom.|
 |`S`|                       - Toggle selected window `Always on Visible Workspace`. Ths state is indicated by the 'pin' icon at the top. Note, that this flag have all windows located on other than the primary monitor, when the GNOME Shell's option `Workspaces on Primary Display Only` is active.|
-|`X`|             - Move selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
+|`X, Shift+Enter`|        - Move selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
 |`M`|                       - Toggle full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.|
 |`N, Ctrl+Enter`|           - Open new window of selected application, if the application soupports it.|
 |`F`|                       - Move the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.|
-|`Ctrl+;/~`|    - Toggle between Windows and Applications modes.|
+|`Ctrl+;/~`|                - Toggle between Windows and Applications modes.|
 |`T`|                       - Create a thumbnail preview of the selected window and place it at the bottom right of the current monitor. You can remove the lastly created thumbnail using this hotkey while holding the `Ctrl` key pressed, or remove all created thumbnails while holding `Ctrl` and `Shift` keys pressed.|
 |`P`|                       - Open preferences window for this extension.|
 |`Ctrl+Up/Down/Left/Right`| - Move selected window/app to the adjacent workspace in front of or behind the current workspace.|
@@ -111,11 +115,11 @@ Known bugs: when the thumbnail is created above VirtualBox virtual machine windo
 
 You can install this extension in several ways.
 
-### Install from extensions.gnome.org
+### Installation from extensions.gnome.org
 
 The easiest way to install AATWS: go to [extensions.gnome.org](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/) and toggle the switch. This installation also gives you automatic updates in the future.
 
-### Install from the latest Github release
+### Installation from the latest Github release
 
 Download the latest release archive using following command:
 
@@ -125,7 +129,7 @@ Install the extension (`--force` switch needs to be used only if some version of
 
     gnome-extensions install --force advanced-alttab-window-switcher@G-dH.github.com.zip
 
-### Install the latest development version
+### Installation of the latest development version
 The most recent version in the repository is the one I'm currently running on my own systems, problems may occure, but usually nothing serious.
 Run following commands in the terminal (`git` needs to installed, navigate to the directory you want to download the source):
 
