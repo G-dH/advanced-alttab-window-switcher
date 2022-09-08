@@ -871,7 +871,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateMouseControls() {
-        log('_updateMouseControls');
         if (!this.mouseActive)
             return;
         // activate indicators only when mouse pointer is (probably) used to control the switcher
@@ -1347,7 +1346,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _select(index) {
-        if (!this._switcherList || index === this._selectedIndex) return;
+        if (!this._switcherList || index === this._highlighted) return;
 
         if (this._initialSelectionMode === SelectMode.NONE) {
             this._initialSelectionMode = SelectMode.ACTIVE;
@@ -3540,6 +3539,7 @@ class AppIcon extends AppDisplay.AppIcon {
 
         if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
             this._dot.add_style_class_name('running-dot');
+            this._dot.add_style_class_name(options.colorStyle.RUNNING_DOT_COLOR);
             this.icon.set_style('margin-bottom: 6px;');
             if (!count) {
                 this._dot.opacity = 0;
