@@ -404,7 +404,7 @@ function _getCommonOpt() {
 
     let singlePrevSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
-        lower: 16,
+        lower: 0,
         step_increment: 8,
         page_increment: 32,
     });
