@@ -240,8 +240,7 @@ var Options = class Options {
 
     _updateColorScheme(settings, key) {
         const gtkTheme = this._intSettings.get_string('gtk-theme');
-        const colorScheme = this._intSettings.get_string('color-scheme');
-        const darkScheme = shellVersion >= 42 ? colorScheme === 'prefer-dark' : gtkTheme.endsWith('-dark');
+        const darkScheme = shellVersion >= 42 ? this._intSettings.get_string('color-scheme') === 'prefer-dark' : gtkTheme.endsWith('-dark');
         let colorStyle = this.get('switcherPopupTheme');
 
         switch (colorStyle) {
