@@ -672,6 +672,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     if (this._searchEntry === null || this._searchEntry === '') {
                         this._initialSelectionMode = SelectMode.NONE;
                         this._selectedIndex = -1;
+
+                        this.WIN_FILTER_MODE = this._tempFilterMode;
                     }
                     break;
                 }
@@ -940,7 +942,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._stickyIcon.opacity = 255;
             item._stickyIcon.connect('button-press-event', this._toggleWinSticky.bind(this));
             item._stickyIcon.connect('enter-event', () => {
-                item._stickyIcon.add_style_class_name('window-state-indicators-hover');;
+                item._stickyIcon.add_style_class_name('window-state-indicators-hover');
             });
             item._stickyIcon.connect('leave-event', () => {
                 item._stickyIcon.remove_style_class_name('window-state-indicators-hover');
@@ -964,7 +966,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 return Clutter.EVENT_STOP;
             });
             item._menuIcon.connect('enter-event', () => {
-                item._menuIcon.add_style_class_name('window-state-indicators-hover');;
+                item._menuIcon.add_style_class_name('window-state-indicators-hover');
             });
             item._menuIcon.connect('leave-event', () => {
                 item._menuIcon.remove_style_class_name('window-state-indicators-hover');
@@ -1000,7 +1002,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._wsIndicator.connect('button-press-event', (actor, event) => {
                 const button = event.get_button();
                 if (button == Clutter.BUTTON_PRIMARY) {
-                    if (this._getSelected().get_workspace().index() != global.workspaceManager.get_active_workspace_index());
+                    if (this._getSelected().get_workspace().index() != global.workspaceManager.get_active_workspace_index())
                         this._moveToCurrentWS();
                 } else if (button == Clutter.BUTTON_MIDDLE) {
                     return Clutter.EVENT_PROPAGATE;
