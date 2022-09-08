@@ -93,10 +93,6 @@ function disable() {
     if (_delayId)
         GLib.source_remove(_delayId);
 
-    let actions;
-    if (global.stage.windowThumbnails) {
-        actions = new Actions.Actions();
-    }
     if (_extensionEnabled()) {
         const hide = true;
         _removeThumbnails(hide);

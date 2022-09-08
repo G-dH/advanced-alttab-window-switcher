@@ -55,11 +55,14 @@ const ColorStyleDefault = {
     CAPTION_LABEL : 'dash-label',
     TITLE_LABEL: '',
     SELECTED: '',
+    FOCUSED: 'focused-dark',
     INDICATOR_OVERLAY: 'indicator-overlay-dark',
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
     INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
+    RUNNING_COUNTER: 'running-counter-dark',
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
+    RUNNING_DOT_COLOR: '',
     ARROW: ''
 }
 
@@ -69,11 +72,14 @@ const ColorStyleDark = {
     CAPTION_LABEL : 'caption-label-dark',
     TITLE_LABEL: 'title-label-dark',
     SELECTED: 'selected-dark',
+    FOCUSED: 'focused-dark',
     INDICATOR_OVERLAY: 'indicator-overlay-dark',
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
     INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
+    RUNNING_COUNTER: 'running-counter-dark',
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
+    RUNNING_DOT_COLOR: '',
     ARROW: 'arrow-dark'
 }
 
@@ -83,11 +89,15 @@ const ColorStyleLight = {
     CAPTION_LABEL : 'caption-label-light',
     TITLE_LABEL: 'title-label-light',
     SELECTED: 'selected-light',
+    FOCUSED: 'focused-light',
     INDICATOR_OVERLAY: 'indicator-overlay-light',
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-light',
     INDICATOR_OVERLAY_HOVER: 'indicator-overlay-hover',
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-light',
+    RUNNING_COUNTER: 'running-counter-light',
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
+    RUNNING_DOT_COLOR: '',
+    RUNNING_DOT_ADWAITA: 'running-dot-color',
     ARROW: 'arrow-light'
 }
 
@@ -224,12 +234,14 @@ var Options = class Options {
         this._intSettings = ExtensionUtils.getSettings('org.gnome.desktop.interface');
         this._updateColorScheme();
         this._intSettingsSigId = shellVersion >= 42
-                    ? this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
-                    : this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
+                    ? this._intSettings && this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
+                    : this._intSettings && this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
     }
 
     _updateColorScheme(settings, key) {
-        const darkScheme = shellVersion >= 42 ? this._intSettings.get_string('color-scheme') === 'prefer-dark' : this._intSettings.get_string('gtk-theme').endsWith('-dark');
+        const gtkTheme = this._intSettings.get_string('gtk-theme');
+        const colorScheme = this._intSettings.get_string('color-scheme');
+        const darkScheme = shellVersion >= 42 ? colorScheme === 'prefer-dark' : gtkTheme.endsWith('-dark');
         let colorStyle = this.get('switcherPopupTheme');
 
         switch (colorStyle) {
@@ -248,6 +260,10 @@ var Options = class Options {
         default:
             this.colorStyle = ColorStyleDefault;
         }
+
+        ColorStyleLight.RUNNING_DOT_COLOR = this.colorStyle === ColorStyleLight && gtkTheme === 'Adwaita'
+                                            ? ColorStyleLight.RUNNING_DOT_ADWAITA
+                                            : '';
     }
 
     _updateCachedSettings(settings, key) {

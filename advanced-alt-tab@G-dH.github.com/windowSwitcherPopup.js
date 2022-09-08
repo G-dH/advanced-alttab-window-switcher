@@ -9,9 +9,8 @@
 
 'use strict';
 
-const { GObject, GLib, St, Shell, Gdk } = imports.gi;
-const Clutter         = imports.gi.Clutter;
-const Meta            = imports.gi.Meta;
+const { GObject, GLib, St, Shell, Gdk, Meta, Clutter } = imports.gi;
+
 const Main            = imports.ui.main;
 const AltTab          = imports.ui.altTab;
 const SwitcherPopup   = imports.ui.switcherPopup;
@@ -315,7 +314,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 newIndex = Math.min(n, this._items.length - 1);
             else if (n > this._selectedIndex)
                 return; // No need to select something new in this case
-
+            this._selectedIndex = -1;
             this._select(newIndex);
         } else {
             // if switcher is empty, try to repopulate it.
@@ -599,6 +598,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
             let showWinTitles = options.WINDOW_TITLES === 1 || (options.WINDOW_TITLES === 3 && this._singleApp);
             let switcherParams = {
+                mouseControl: !this.KEYBOARD_TRIGGERED,
                 showingApps: this._showingApps,
                 showItemTitle: this._showingApps ? options.SHOW_APP_TITLES : showWinTitles,
                 showWinTitles: showWinTitles,
@@ -740,9 +740,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
                 const pointerX = global.get_pointer()[0];
 
-                if (this._switcherList._scrollableLeft && this._selectedIndex < (this._items.length - 1) && pointerX > (this._switcherList.allocation.x2 - activeWidth)) {
+                if (this._switcherList._scrollableRight && this._selectedIndex < (this._items.length - 1) && pointerX > (this._switcherList.allocation.x2 - activeWidth)) {
                     this._select(this._next(true));
-                } else if (this._switcherList._scrollableRight && this._selectedIndex > 0 && pointerX < (this._switcherList.allocation.x1 + activeWidth)) {
+                } else if (this._switcherList._scrollableLeft && this._selectedIndex > 0 && pointerX < (this._switcherList.allocation.x1 + activeWidth)) {
                     this._select(this._previous(true));
                 }
             });
@@ -871,6 +871,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateMouseControls() {
+        log('_updateMouseControls');
         if (!this.mouseActive)
             return;
         // activate indicators only when mouse pointer is (probably) used to control the switcher
@@ -888,8 +889,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         const item = this._items[this._selectedIndex];
-        if (!item) return;
+        if (!item)
+            return;
 
+        // workaround - only the second call of _isPointerOut() returns correct answer
+        this._isPointerOut();
         if (item.window && !this._isPointerOut()) {
             if (!item._closeButton) {
                 item._createCloseButton(item.window);
@@ -905,7 +909,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
 
-        if (!options.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0) return;
+        if (!options.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0)
+            return;
 
         if (item.window && !item._aboveStickyIndicatorBox) {
             item._aboveStickyIndicatorBox = item._getIndicatorBox();
@@ -1022,7 +1027,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 const currentMonitor = global.display.get_current_monitor();
                 const multiMonitor = global.display.get_n_monitors() - 1;
                 item._wsIndicator.text = `${winWs}${multiMonitor ? '.' + monitor.toString() : ''} → ${ws}${multiMonitor ? '.' + currentMonitor.toString() : ''}`;
-                item._wsIndicator.add_style_class_name('ws-indicator-hover');
+                //item._wsIndicator.add_style_class_name('ws-indicator-hover');
             });
             item._wsIndicator.connect('leave-event', () => {
                 item._wsIndicator.remove_style_class_name('ws-indicator-hover');
@@ -1129,7 +1134,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._doNotUpdateOnNewWindow = true;
         const selected = this._getSelected();
         if (this._showingApps && selected) {
-            if (_ctrlPressed() && !_shiftPressed()) {
+            /*if (_ctrlPressed() && !_shiftPressed()) {
                 // this can cause problems when a shortcut with Ctrl key is used to trigger the popup
                 // so allow this only when it's not the case
                 if (!_ctrlPressed(this._modifierMask)) {
@@ -1143,7 +1148,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._updateSwitcher();
                     return;
                 }
-            } else if (!this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
+            } else*/ if ((!_shiftPressed() && !_ctrlPressed()) && !this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
                         selected && selected.cachedWindows &&
                         (
                             (selected.cachedWindows[1] && options.SHOW_WINS_ON_ACTIVATE == 2) ||
@@ -1230,6 +1235,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this.show();
         this._select(this._getItemIndexByID(id));
+        !options.PREVIEW_SELECTED && this._destroyWinPreview();
     }
 
     _delayedUpdate(delay) {
@@ -1341,7 +1347,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _select(index) {
-        if (!this._switcherList || index == this._switcherList._highlighted) return;
+        if (!this._switcherList || index === this._selectedIndex) return;
 
         if (this._initialSelectionMode === SelectMode.NONE) {
             this._initialSelectionMode = SelectMode.ACTIVE;
@@ -2668,7 +2674,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._showingApps) {
             selected.request_quit();
-        } else if (_ctrlPressed()) {
+        } else if (_ctrlPressed() && (this.KEYBOARD_TRIGGERED && !_ctrlPressed(this._modifierMask))) {
             _getWindowApp(selected).request_quit();
         } else {
             selected.delete(global.get_current_time());
@@ -2703,7 +2709,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _openNewWindow() {
         let selected = this._getSelected();
 
-        if (!selected || selected._is_showAppsIcon) return;
+        if (!selected || selected._is_showAppsIcon)
+            return;
 
         if (this._showingApps) {
             selected.open_new_window(global.get_current_time());
@@ -2789,8 +2796,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._moveToCurrentWS();
                 } else if (_ctrlPressed() && !_shiftPressed()) {
                     this._openNewWindow();
+                } else {
+                    this._finish();
                 }
-                this._finish();
                 break;
             case Action.THUMBNAIL:
                 this._createWinThumbnail();
@@ -3521,7 +3529,7 @@ class AppIcon extends AppDisplay.AppIcon {
         const count = app.cachedWindows.length;
         if ( count && this._shouldShowWinCounter(count)) {
             const winCounterIndicator = this._createWinCounterIndicator(count);
-            winCounterIndicator.add_style_class_name('running-counter');
+            //winCounterIndicator.add_style_class_name('running-counter');
             // move the counter above app title
             if (options.SHOW_APP_TITLES) {
                 winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 2}em;`);
@@ -3530,9 +3538,12 @@ class AppIcon extends AppDisplay.AppIcon {
             this._winCounterIndicator = winCounterIndicator;
         }
 
-        if (count && (this._switcherParams.includeFavorites || this._switcherParams.searchActive)) {
+        if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
             this._dot.add_style_class_name('running-dot');
             this.icon.set_style('margin-bottom: 6px;');
+            if (!count) {
+                this._dot.opacity = 0;
+            }
         } else {
             if (this._winCounterIndicator)
             this._winCounterIndicator.set_style(`margin-bottom: 1px;`);
@@ -3563,7 +3574,7 @@ class AppIcon extends AppDisplay.AppIcon {
     _createWinCounterIndicator(num) {
         let label = new St.Label({
             text: `${num}`,
-            style_class: options.colorStyle.INDICATOR_OVERLAY,
+            style_class: options.colorStyle.RUNNING_COUNTER,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
@@ -3613,8 +3624,14 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             let icon;
             if (item.get_title) {
                 icon = new WindowIcon(item, i, this._switcherParams);
+                if (switcherParams.mouseControl && item === global.display.get_tab_list(0, null)[0]) {
+                    icon._is_focused = true;
+                }
             } else {
                 icon = new AppIcon(item, i, this._switcherParams);
+                if (switcherParams.mouseControl && item.cachedWindows.length && (item.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) {
+                    icon._is_focused = true;
+                }
                 icon.connect('menu-state-changed',
                     (o, open) => {
                         _cancelTimeout = open;
@@ -3623,6 +3640,9 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             }
 
             this.addItem(icon, icon.titleLabel);
+            if (icon._is_focused) {
+                this._items[this._items.length - 1].add_style_class_name(options.colorStyle.FOCUSED);
+            }
             this.icons.push(icon);
 
             // the icon could be an app, not only a window
@@ -3656,7 +3676,6 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         showAppsIcon.titleLabel = showAppsIcon.label;
         showAppsIcon.add_style_class_name(options.colorStyle.TITLE_LABEL);
         return showAppsIcon;
-
     }
 
     _onDestroy() {
@@ -3734,24 +3753,34 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
         return Clutter.EVENT_PROPAGATE;
     }
 
-    highlight(index, justOutline) {
-        if (options.colorStyle.STYLE && this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_class_name(options.colorStyle.SELECTED);
-        }
-
-        super.highlight(index, justOutline);
-
-        if (options.colorStyle.STYLE && this._items[index]) {
-            this._items[index].add_style_class_name(options.colorStyle.SELECTED);
-        }
-    }
-
-    removeHighlight() {
+    highlight(index) {
         if (this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_pseudo_class('outlined');
             this._items[this._highlighted].remove_style_pseudo_class('selected');
-            this._items[this._highlighted].remove_style_class_name('selected');
+            if (options.colorStyle.STYLE)
+                this._items[this._highlighted].remove_style_class_name(options.colorStyle.SELECTED);
+            if (this.icons[this._highlighted]._is_focused)
+                this._items[this._highlighted].add_style_class_name(options.colorStyle.FOCUSED);
         }
+
+        if (this._items[index]) {
+            this._items[index].add_style_pseudo_class('selected');
+            if (options.colorStyle.STYLE) {
+                this._items[index].remove_style_class_name(options.colorStyle.FOCUSED);
+                this._items[index].add_style_class_name(options.colorStyle.SELECTED);
+            }
+        }
+
+        this._highlighted = index;
+
+        let adjustment = this._scrollView.hscroll.adjustment;
+        let [value] = adjustment.get_values();
+        let [absItemX] = this._items[index].get_transformed_position();
+        let [, posX,] = this.transform_stage_point(absItemX, 0);
+        let [containerWidth] = this.get_transformed_size();
+        if (posX + this._items[index].get_width() > containerWidth)
+            this._scrollToRight(index);
+        else if (this._items[index].allocation.x1 - value < 0)
+            this._scrollToLeft(index);
     }
 
     _removeWindow(window) {
@@ -3765,7 +3794,6 @@ class WindowSwitcher extends SwitcherPopup.SwitcherList {
             this.icons.splice(index, 1);
             this.removeItem(index);
         } else {
-            // if _showingApps
             this.emit('item-removed', -1);
         }
     }
