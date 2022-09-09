@@ -105,6 +105,8 @@ var Options = class Options {
     constructor() {
         this.colorStyle = ColorStyleDefault;
 
+        this.cancelTimeout = false; // state variable used by the switcher popup
+
         this._gsettings = ExtensionUtils.getSettings(_schema);
         // delay write to backend to avoid excessive disk writes when adjusting scales and spinbuttons
         this._writeTimeoutId = 0;

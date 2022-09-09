@@ -20,6 +20,12 @@ const PopupMenu       = imports.ui.popupMenu;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
+
+const SwitcherList    = Me.imports.switcherList.SwitcherList;
+const AppSwitcher     = Me.imports.switcherList.AppSwitcher;
+const AppIcon         = Me.imports.switcherItems.AppIcon;
+const WindowIcon      = Me.imports.switcherItems.WindowIcon;
+const CaptionLabel    = Me.imports.captionLabel.CaptionLabel;
 const WindowMenu      = Me.imports.windowMenu;
 const Settings        = Me.imports.settings;
 const ActionLib       = Me.imports.actions;
@@ -113,7 +119,7 @@ const LABEL_FONT_SIZE = 0.9;
 
 const Action = Settings.Actions;
 
-let _cancelTimeout = false;
+//let _cancelTimeout = false;
 
 
 function _shiftPressed(state) {
@@ -238,18 +244,308 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._firstRun             = true;
         this._favoritesMRU         = true;
         this._doNotReactOnScroll   = false;
-        _cancelTimeout             = false;
+        options.cancelTimeout             = false;
 
         global.advancedWindowSwitcher = this;
         this.connect('destroy', this._onDestroyThis.bind(this));
     }
 
-    _getCurrentMonitorIndex() {
-        const ws = global.workspaceManager.get_active_workspace();
-        let windows = AltTab.getWindows(ws);
-        const monIndex = windows.length > 0 ? windows[0].get_monitor()
-                                            : global.display.get_current_monitor();
-        return monIndex;
+    _pushModal() {
+        let result = true;
+        if (shellVersion >= 42) {
+            let grab = Main.pushModal(this);
+            // We expect at least a keyboard grab here
+            if ((grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
+                Main.popModal(grab);
+                result = false;
+            }
+            this._grab = grab;
+            this._haveModal = true;
+        } else {
+            if (!Main.pushModal(this)) {
+                if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
+                    result = false;
+                }
+            }
+        }
+        if (!result) {
+            let focusApp = global.display.get_focus_window();
+            if (focusApp) {
+                log(`[${Me.metadata.uuid}] ${focusApp.get_wm_class()} probably grabbed the inputs, exiting...`);
+            }
+        }
+
+        return result;
+    }
+
+    show(backward, binding, mask) {
+        // remove overlay labels if exist
+        //this._removeCaptions();
+
+        if (!this._pushModal()) {
+            return false;
+        };
+        // if only one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
+        if (Main.layoutManager.monitors.length < 2) {
+            if (this.WIN_FILTER_MODE === FilterMode.MONITOR) {
+                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+            }
+
+            if (this.APP_FILTER_MODE === FilterMode.MONITOR) {
+                this.APP_FILTER_MODE = FilterMode.WORKSPACE;
+            }
+        }
+
+        // set filter for both switchers to the value of the currently activated switcher if requested
+        if (this._firstRun && options.SYNC_FILTER) {
+            if (this._switcherMode === SwitcherMode.APPS) {
+                this.WIN_FILTER_MODE = this.APP_FILTER_MODE;
+            }
+            else {
+                this.APP_FILTER_MODE = this.WIN_FILTER_MODE;
+            }
+        }
+
+        this.INCLUDE_FAVORITES = this.KEYBOARD_TRIGGERED ? this.INCLUDE_FAVORITES : options.get('switcherPopupExtAppFavorites');
+
+        if (binding == 'switch-group' || binding == 'switch-group-backward') {
+            this._switchGroupInit = true;
+            let id, name;
+            //let metaWin = global.display.get_tab_list(Meta.WindowType.NORMAL, null)[0];
+            const metaWin = AltTab.getWindows(null)[0];
+            if (metaWin) {
+                const app = _getWindowApp(metaWin);
+                id = app.get_id();
+                name = app.get_name();
+            }
+            if (id) {
+                this._singleApp = [id, name];
+                this.SHOW_APPS = false;
+            } else {
+                this._singleApp = null;
+            }
+        }
+
+        this.showHotKeys = this.KEYBOARD_TRIGGERED;
+
+        if (this._pointer == undefined) {
+            this._pointer = [];
+            [this._pointer.x, this._pointer.y] = global.get_pointer();
+            this._haveModal = true;
+        }
+
+        if (this._tempFilterMode) {
+            this._tempFilterMode = null;
+        }
+
+        let switcherList = this._getSwitcherList();
+
+        if (!switcherList.length && this._searchEntryNotEmpty()) {
+            // no results -> back to the last successful pattern
+            this._searchEntry = this._searchEntry.slice(0, -1);
+            this._tempFilterMode = null;
+            switcherList = this._getSwitcherList();
+        }
+
+        if (switcherList.length > 0) {
+            if (this._shouldReverse()) {
+                switcherList.reverse();
+            }
+            // avoid immediate switch to recent window when Show Win Preview mode is active
+            if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN && !this._showingApps && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU) {
+                this._initialSelectionMode = SelectMode.FIRST;
+            }
+
+            if (this._switcherList) {
+                this.remove_child(this._switcherList);
+                this._switcherList.destroy();
+            }
+
+            let showWinTitles = options.WINDOW_TITLES === 1 || (options.WINDOW_TITLES === 3 && this._singleApp);
+            let switcherParams = {
+                mouseControl: !this.KEYBOARD_TRIGGERED,
+                showingApps: this._showingApps,
+                showItemTitle: this._showingApps ? options.SHOW_APP_TITLES : showWinTitles,
+                showWinTitles: showWinTitles,
+                winPrevSize: this._singleApp ? options.SINGLE_APP_PREVIEW_SIZE : options.WINDOW_PREVIEW_SIZE,
+                hotKeys: options.HOT_KEYS && this.KEYBOARD_TRIGGERED,
+                singleApp: this._singleApp,
+                addAppDetails: this._searchEntryNotEmpty(),
+                includeFavorites: this.INCLUDE_FAVORITES,
+                searchActive: this._searchEntryNotEmpty(),
+                reverseOrder: this._shouldReverse()
+            }
+
+            this._switcherList = new SwitcherList(switcherList, options, switcherParams);
+
+            if (!options.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
+                this._switcherList._itemEntered = function() {}
+            }
+
+            this._items = this._switcherList.icons;
+            this._connectIcons();
+            this._showPopup(backward, binding, mask);
+        } else {
+            return false;
+        }
+
+        this._tempFilterMode = null;
+        this._connectNewWindows();
+        return true;
+    }
+
+    // original show() function
+    _showPopup(backward, binding, mask) {
+        if (this._items.length == 0)
+            return false;
+
+        this._alreadyShowed = true;
+
+        this._haveModal = true;
+        this.add_child(this._switcherList);
+        this._switcherList.connect('item-activated', this._itemActivated.bind(this));
+        this._switcherList.connect('item-entered', this._itemEntered.bind(this));
+        this._switcherList.connect('item-removed', this._itemRemoved.bind(this));
+        // Need to force an allocation so we can figure out whether we
+        // need to scroll when selecting
+        this.visible = true;
+        this.opacity = 0;
+        this.get_allocation_box();
+
+        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS, green for ALL
+        if (/*!this._firstRun*/this._filterSwitched && !options.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
+            let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
+            fm = this._tempFilterMode ? this._tempFilterMode : fm;
+
+            if (fm === FilterMode.MONITOR || (fm === FilterMode.WORKSPACE && (Main.layoutManager.monitors.length < 2))) {
+                this._switcherList.add_style_class_name('switcher-list-monitor');
+            } else if (fm === FilterMode.WORKSPACE) {
+                this._switcherList.add_style_class_name('switcher-list-workspace');
+            } else if (fm === FilterMode.ALL) {
+                this._switcherList.add_style_class_name('switcher-list-all');
+            }
+        }
+
+        this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
+
+        // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
+        if (shellVersion >= 40 && this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
+            const activeWidth = 5;
+            this._switcherList.reactive = true;
+            this._switcherList.connect('motion-event', () => {
+                if (this._switcherList._scrollView.hscroll.adjustment.get_transition('value'))
+                    return;
+
+                const pointerX = global.get_pointer()[0];
+
+                if (this._switcherList._scrollableRight && this._selectedIndex < (this._items.length - 1) && pointerX > (this._switcherList.allocation.x2 - activeWidth)) {
+                    this._select(this._next(true));
+                } else if (this._switcherList._scrollableLeft && this._selectedIndex > 0 && pointerX < (this._switcherList.allocation.x1 + activeWidth)) {
+                    this._select(this._previous(true));
+                }
+            });
+        }
+
+        this._switcherList._rightArrow.add_style_class_name(options.colorStyle.ARROW);
+        this._switcherList._leftArrow.add_style_class_name(options.colorStyle.ARROW);
+
+        let themeNode = this._switcherList.get_theme_node();
+        let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
+
+        this.PANEL_HEIGHT = Main.panel.height;
+        this._switcherList.set_style(`margin-top: ${this.PANEL_HEIGHT + 4}px; padding-bottom: ${padding}px;`);
+
+        this._initialSelection(backward, binding);
+
+        // There's a race condition; if the user released Alt before
+        // we got the grab, then we won't be notified. (See
+        // https://bugzilla.gnome.org/show_bug.cgi?id=596695 for
+        // details.) So we check now. (Have to do this after updating
+        // selection.)
+        if (mask !== undefined) {
+            this._modifierMask = mask;
+        }
+
+        if (this._modifierMask) {
+            let mods = global.get_pointer()[2];
+            if (!(mods & this._modifierMask)) {
+                if (!this._firstRun) {
+                    this._finish(global.get_current_time());
+                    return true;
+                }
+            }
+        } else {
+            this._resetNoModsTimeout();
+        }
+
+        this._setSwitcherStatus();
+        // avoid showing overlay label before the switcher popup
+        if (this._firstRun && this._itemCaption) {
+            this._itemCaption.opacity = 0;
+        }
+
+        // We delay showing the popup so that fast Alt+Tab users aren't
+        // disturbed by the popup briefly flashing.
+        // but not when we're just overriding already shown content
+        if (this._firstRun) {
+            // timeout in which click on the swhitcher background acts as 'activate' despite configuration
+            // for quick switch to recent window when triggered using mouse and top/bottom popup position
+            this._recentSwitchTime = Date.now() + 300;
+
+            this._initialDelayTimeoutId = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) ? options.INITIAL_DELAY : 0,
+                () => {
+                    if (!this._doNotShowImmediately) {
+                        if (this.KEYBOARD_TRIGGERED) {
+                            if (this._itemCaption)
+                                this._itemCaption.opacity = 255;
+                            this.opacity = 255;
+                        } else {
+                            this._shadeIn();
+                        }
+                        Main.osdWindowManager.hideAll();
+                    }
+                    this._initialDelayTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+            );
+
+            GLib.Source.set_name_by_id(this._initialDelayTimeoutId, '[gnome-shell] Main.osdWindow.cancel');
+        } else {
+            this.opacity = 255;
+        }
+
+        if (this._initialSelectionMode === SelectMode.RECENT || this._initialSelectionMode === SelectMode.NONE) {
+            this._initialSelectionMode = SelectMode.ACTIVE;
+        }
+
+        this._resetNoModsTimeout();
+        Main.osdWindowManager.hideAll();
+
+        if (this._searchEntry === '' && !this.SEARCH_DEFAULT) {
+            this._showSearchCaption('Type to search...');
+        }
+
+        if (this._overlayKeyTriggered && options.get('enableSuper')) {
+            // do this only for the first run
+            this._overlayKeyTriggered = false;
+            const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
+            this._originalOverlayKey = _overlaySettings.get_string('overlay-key');
+            _overlaySettings.set_string('overlay-key', '');
+
+            this._overlayKeyInitTimeout = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                500,
+                () => {
+                    this._overlayKeyInitTimeout = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+            );
+        }
+
+        this._firstRun = false;
+        return true;
     }
 
     _onDestroyThis() {
@@ -304,6 +600,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
     }
 
+    _itemRemoved(switcher, n) {
+        // n is -1 when this._showingApps
+        if (n === -1) {
+            this._delayedUpdate(200);
+        } else {
+            this._itemRemovedHandler(n);
+        }
+    }
+
     _itemRemovedHandler(n) {
         if (this._items.length > 0) {
             let newIndex;
@@ -321,6 +626,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._switcherDestroyedOnLastWinClosed = true;
             this.show();
         }
+    }
+
+    _itemEntered(switcher, n) {
+        if (!this.mouseActive)
+            return;
+        const item = this._items[n];
+        // avoid unnecessary reentrancy, reenter only when close button needs to be displayed
+        if (!(this._selectedIndex === n && (item._closeButton && item._closeButton.opacity === 255)) ||
+             (this._selectedIndex === n && !item._closeButton))
+            this._itemEnteredHandler(n);
+            this._updateMouseControls();
     }
 
     vfunc_allocate(box, flags) {
@@ -485,150 +801,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         });
     }
 
-    _pushModal() {
-        let result = true;
-        if (shellVersion >= 42) {
-            let grab = Main.pushModal(this);
-            // We expect at least a keyboard grab here
-            if ((grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
-                Main.popModal(grab);
-                result = false;
-            }
-            this._grab = grab;
-            this._haveModal = true;
-        } else {
-            if (!Main.pushModal(this)) {
-                if (!Main.pushModal(this, {options: Meta.ModalOptions.POINTER_ALREADY_GRABBED})) {
-                    result = false;
-                }
-            }
-        }
-        if (!result) {
-            let focusApp = global.display.get_focus_window();
-            if (focusApp) {
-                log(`[${Me.metadata.uuid}] ${focusApp.get_wm_class()} probably grabbed the inputs, exiting...`);
-            }
-        }
-
-        return result;
-    }
-
-    show(backward, binding, mask) {
-        // remove overlay labels if exist
-        //this._removeCaptions();
-
-        if (!this._pushModal()) {
-            return false;
-        };
-        // if only one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
-        if (Main.layoutManager.monitors.length < 2) {
-            if (this.WIN_FILTER_MODE === FilterMode.MONITOR) {
-                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
-            }
-
-            if (this.APP_FILTER_MODE === FilterMode.MONITOR) {
-                this.APP_FILTER_MODE = FilterMode.WORKSPACE;
-            }
-        }
-
-        // set filter for both switchers to the value of the currently activated switcher if requested
-        if (this._firstRun && options.SYNC_FILTER) {
-            if (this._switcherMode === SwitcherMode.APPS) {
-                this.WIN_FILTER_MODE = this.APP_FILTER_MODE;
-            }
-            else {
-                this.APP_FILTER_MODE = this.WIN_FILTER_MODE;
-            }
-        }
-
-        this.INCLUDE_FAVORITES = this.KEYBOARD_TRIGGERED ? this.INCLUDE_FAVORITES : options.get('switcherPopupExtAppFavorites');
-
-        if (binding == 'switch-group' || binding == 'switch-group-backward') {
-            this._switchGroupInit = true;
-            let id, name;
-            //let metaWin = global.display.get_tab_list(Meta.WindowType.NORMAL, null)[0];
-            const metaWin = AltTab.getWindows(null)[0];
-            if (metaWin) {
-                const app = _getWindowApp(metaWin);
-                id = app.get_id();
-                name = app.get_name();
-            }
-            if (id) {
-                this._singleApp = [id, name];
-                this.SHOW_APPS = false;
-            } else {
-                this._singleApp = null;
-            }
-        }
-
-        this.showHotKeys = this.KEYBOARD_TRIGGERED;
-
-        if (this._pointer == undefined) {
-            this._pointer = [];
-            [this._pointer.x, this._pointer.y] = global.get_pointer();
-            this._haveModal = true;
-        }
-
-        if (this._tempFilterMode) {
-            this._tempFilterMode = null;
-        }
-
-        let switcherList = this._getSwitcherList();
-
-        if (!switcherList.length && this._searchEntryNotEmpty()) {
-            // no results -> back to the last successful pattern
-            this._searchEntry = this._searchEntry.slice(0, -1);
-            this._tempFilterMode = null;
-            switcherList = this._getSwitcherList();
-        }
-
-        if (switcherList.length > 0) {
-            if (this._shouldReverse()) {
-                switcherList.reverse();
-            }
-            // avoid immediate switch to recent window when Show Win Preview mode is active
-            if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN && !this._showingApps && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU) {
-                this._initialSelectionMode = SelectMode.FIRST;
-            }
-
-            if (this._switcherList) {
-                this.remove_child(this._switcherList);
-                this._switcherList.destroy();
-            }
-
-            let showWinTitles = options.WINDOW_TITLES === 1 || (options.WINDOW_TITLES === 3 && this._singleApp);
-            let switcherParams = {
-                mouseControl: !this.KEYBOARD_TRIGGERED,
-                showingApps: this._showingApps,
-                showItemTitle: this._showingApps ? options.SHOW_APP_TITLES : showWinTitles,
-                showWinTitles: showWinTitles,
-                winPrevSize: this._singleApp ? options.SINGLE_APP_PREVIEW_SIZE : options.WINDOW_PREVIEW_SIZE,
-                hotKeys: options.HOT_KEYS && this.KEYBOARD_TRIGGERED,
-                singleApp: this._singleApp,
-                addAppDetails: this._searchEntryNotEmpty(),
-                includeFavorites: this.INCLUDE_FAVORITES,
-                searchActive: this._searchEntryNotEmpty(),
-                reverseOrder: this._shouldReverse()
-            }
-
-            this._switcherList = new WindowSwitcher(switcherList, switcherParams);
-
-            if (!options.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
-                this._switcherList._itemEntered = function() {}
-            }
-
-            this._items = this._switcherList.icons;
-            this._connectIcons();
-            this.showOrig(backward, binding, mask);
-        } else {
-            return false;
-        }
-
-        this._tempFilterMode = null;
-        this._connectNewWindows();
-        return true;
-    }
-
     _getSwitcherList() {
         let switcherList;
 
@@ -698,375 +870,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         return switcherList;
     }
-
-    showOrig(backward, binding, mask) {
-        if (this._items.length == 0)
-            return false;
-
-        this._alreadyShowed = true;
-
-        this._haveModal = true;
-        this.add_child(this._switcherList);
-        this._switcherList.connect('item-activated', this._itemActivated.bind(this));
-        this._switcherList.connect('item-entered', this._itemEntered.bind(this));
-        this._switcherList.connect('item-removed', this._itemRemoved.bind(this));
-        // Need to force an allocation so we can figure out whether we
-        // need to scroll when selecting
-        this.visible = true;
-        this.opacity = 0;
-        this.get_allocation_box();
-
-        // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS, green for ALL
-        if (/*!this._firstRun*/this._filterSwitched && !options.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
-            let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
-            fm = this._tempFilterMode ? this._tempFilterMode : fm;
-
-            if (fm === FilterMode.MONITOR || (fm === FilterMode.WORKSPACE && (Main.layoutManager.monitors.length < 2))) {
-                this._switcherList.add_style_class_name('switcher-list-monitor');
-            } else if (fm === FilterMode.WORKSPACE) {
-                this._switcherList.add_style_class_name('switcher-list-workspace');
-            } else if (fm === FilterMode.ALL) {
-                this._switcherList.add_style_class_name('switcher-list-all');
-            }
-        }
-
-        this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
-
-        // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
-        if (shellVersion >= 40 && this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
-            const activeWidth = 5;
-            this._switcherList.reactive = true;
-            this._switcherList.connect('motion-event', () => {
-                if (this._switcherList._scrollView.hscroll.adjustment.get_transition('value'))
-                    return;
-
-                const pointerX = global.get_pointer()[0];
-
-                if (this._switcherList._scrollableRight && this._selectedIndex < (this._items.length - 1) && pointerX > (this._switcherList.allocation.x2 - activeWidth)) {
-                    this._select(this._next(true));
-                } else if (this._switcherList._scrollableLeft && this._selectedIndex > 0 && pointerX < (this._switcherList.allocation.x1 + activeWidth)) {
-                    this._select(this._previous(true));
-                }
-            });
-        }
-
-        this._switcherList._rightArrow.add_style_class_name(options.colorStyle.ARROW);
-        this._switcherList._leftArrow.add_style_class_name(options.colorStyle.ARROW);
-
-        let themeNode = this._switcherList.get_theme_node();
-        let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
-
-        this.PANEL_HEIGHT = Main.panel.height;
-        this._switcherList.set_style(`margin-top: ${this.PANEL_HEIGHT + 4}px; padding-bottom: ${padding}px;`);
-
-        this._initialSelection(backward, binding);
-
-        // There's a race condition; if the user released Alt before
-        // we got the grab, then we won't be notified. (See
-        // https://bugzilla.gnome.org/show_bug.cgi?id=596695 for
-        // details.) So we check now. (Have to do this after updating
-        // selection.)
-        if (mask !== undefined) {
-            this._modifierMask = mask;
-        }
-
-        if (this._modifierMask) {
-            let mods = global.get_pointer()[2];
-            if (!(mods & this._modifierMask)) {
-                if (!this._firstRun) {
-                    this._finish(global.get_current_time());
-                    return true;
-                }
-            }
-        } else {
-            this._resetNoModsTimeout();
-        }
-
-        this._setSwitcherStatus();
-        // avoid showing overlay label before the switcher popup
-        if (this._firstRun && this._itemCaption) {
-            this._itemCaption.opacity = 0;
-        }
-
-        // We delay showing the popup so that fast Alt+Tab users aren't
-        // disturbed by the popup briefly flashing.
-        // but not when we're just overriding already shown content
-        if (this._firstRun) {
-            // timeout in which click on the swhitcher background acts as 'activate' despite configuration
-            // for quick switch to recent window when triggered using mouse and top/bottom popup position
-            this._recentSwitchTime = Date.now() + 300;
-
-            this._initialDelayTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) ? options.INITIAL_DELAY : 0,
-                () => {
-                    if (!this._doNotShowImmediately) {
-                        if (this.KEYBOARD_TRIGGERED) {
-                            if (this._itemCaption)
-                                this._itemCaption.opacity = 255;
-                            this.opacity = 255;
-                        } else {
-                            this._shadeIn();
-                        }
-                        Main.osdWindowManager.hideAll();
-                    }
-                    this._initialDelayTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-                }
-            );
-
-            GLib.Source.set_name_by_id(this._initialDelayTimeoutId, '[gnome-shell] Main.osdWindow.cancel');
-        } else {
-            this.opacity = 255;
-        }
-
-        if (this._initialSelectionMode === SelectMode.RECENT || this._initialSelectionMode === SelectMode.NONE) {
-            this._initialSelectionMode = SelectMode.ACTIVE;
-        }
-
-        this._resetNoModsTimeout();
-        Main.osdWindowManager.hideAll();
-
-        if (this._searchEntry === '' && !this.SEARCH_DEFAULT) {
-            this._showSearchCaption('Type to search...');
-        }
-
-        if (this._overlayKeyTriggered && options.get('enableSuper')) {
-            // do this only for the first run
-            this._overlayKeyTriggered = false;
-            const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
-            this._originalOverlayKey = _overlaySettings.get_string('overlay-key');
-            _overlaySettings.set_string('overlay-key', '');
-
-            this._overlayKeyInitTimeout = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                500,
-                () => {
-                    this._overlayKeyInitTimeout = 0;
-                    return GLib.SOURCE_REMOVE;
-                }
-            );
-        }
-
-        this._firstRun = false;
-        return true;
-    }
-
-    _itemRemoved(switcher, n) {
-        // n is -1 when this._showingApps
-        if (n === -1) {
-            this._delayedUpdate(200);
-        } else {
-            this._itemRemovedHandler(n);
-        }
-    }
-
-    _itemEntered(switcher, n) {
-        if (!this.mouseActive)
-            return;
-        const item = this._items[n];
-        // avoid unnecessary reentrancy, reenter only when close button needs to be displayed
-        if (!(this._selectedIndex === n && (item._closeButton && item._closeButton.opacity === 255)) ||
-             (this._selectedIndex === n && !item._closeButton))
-            this._itemEnteredHandler(n);
-            this._updateMouseControls();
-    }
-
-    _updateMouseControls() {
-        if (!this.mouseActive)
-            return;
-        // activate indicators only when mouse pointer is (probably) used to control the switcher
-        if (this._updateNeeded) {
-            this._items.forEach((w) => {
-                if (w._closeButton) {
-                    w._closeButton.opacity = 0;
-                }
-                if (w._aboveStickyIndicatorBox) {
-                    w._aboveStickyIndicatorBox.opacity = 0;
-                }
-                if (w._hotkeyIndicator)
-                    w._hotkeyIndicator.opacity = 255;
-            });
-        }
-
-        const item = this._items[this._selectedIndex];
-        if (!item)
-            return;
-
-        // workaround - only the second call of _isPointerOut() returns correct answer
-        this._isPointerOut();
-        if (item.window && !this._isPointerOut()) {
-            if (!item._closeButton) {
-                item._createCloseButton(item.window);
-                this._updateNeeded = true;
-                item._closeButton.connect('enter-event', () => {
-                    item._closeButton.add_style_class_name('window-close-hover');
-                });
-                item._closeButton.connect('leave-event', () => {
-                    item._closeButton.remove_style_class_name('window-close-hover');
-                });
-            }
-            item._closeButton.opacity = 255;
-        }
-
-
-        if (!options.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0)
-            return;
-
-        if (item.window && !item._aboveStickyIndicatorBox) {
-            item._aboveStickyIndicatorBox = item._getIndicatorBox();
-            item._icon.add_child(item._aboveStickyIndicatorBox);
-        }
-
-        if (item._aboveStickyIndicatorBox) {
-            item._aboveStickyIndicatorBox.opacity = 255;
-            if  (item._hotkeyIndicator)
-                item._hotkeyIndicator.opacity = 0;
-        }
-
-
-        if (item._aboveIcon && !item._aboveIcon.reactive) {
-            item._aboveIcon.reactive = true;
-            item._aboveIcon.opacity = 255;
-            item._aboveIcon.connect('button-press-event', this._toggleWinAbove.bind(this));
-            item._aboveIcon.connect('enter-event', () => {
-                item._aboveIcon.add_style_class_name('window-state-indicators-hover');
-            });
-            item._aboveIcon.connect('leave-event', () => {
-                item._aboveIcon.remove_style_class_name('window-state-indicators-hover');
-            });
-        }
-
-        if (item._stickyIcon && !item._stickyIcon.reactive) {
-            item._stickyIcon.reactive = true;
-            item._stickyIcon.opacity = 255;
-            item._stickyIcon.connect('button-press-event', this._toggleWinSticky.bind(this));
-            item._stickyIcon.connect('enter-event', () => {
-                item._stickyIcon.add_style_class_name('window-state-indicators-hover');
-            });
-            item._stickyIcon.connect('leave-event', () => {
-                item._stickyIcon.remove_style_class_name('window-state-indicators-hover');
-            });
-        }
-
-        if (item.window && !item._menuIcon) {
-            item._menuIcon = new St.Icon({
-                style_class: 'window-state-indicators',
-                icon_name: 'view-more-symbolic',
-                icon_size: 16,
-                y_expand: true,
-                y_align: Clutter.ActorAlign.START,
-            });
-            item._menuIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
-            item._aboveStickyIndicatorBox.add_child(item._menuIcon);
-            item._menuIcon.reactive = true;
-            item._menuIcon.opacity = 255;
-            item._menuIcon.connect('button-press-event', () => {
-                this._openWindowMenu();
-                return Clutter.EVENT_STOP;
-            });
-            item._menuIcon.connect('enter-event', () => {
-                item._menuIcon.add_style_class_name('window-state-indicators-hover');
-            });
-            item._menuIcon.connect('leave-event', () => {
-                item._menuIcon.remove_style_class_name('window-state-indicators-hover');
-            });
-        }
-
-        if (item._appIcon && !item._appIcon.reactive) {
-            item._appIcon.reactive = true;
-            item._appIcon.connect('button-press-event', (actor, event) => {
-                const button = event.get_button();
-                if (button == Clutter.BUTTON_PRIMARY) {
-                    this._toggleSingleAppMode();
-                    return Clutter.EVENT_STOP;
-                } else if (button == Clutter.BUTTON_MIDDLE) {
-                    this._openNewWindow();
-                    return Clutter.EVENT_PROPAGATE;
-                } else if (button == Clutter.BUTTON_SECONDARY) {
-                    this._toggleSwitcherMode();
-                    return Clutter.EVENT_STOP;
-                }
-            });
-
-            item._appIcon.connect('enter-event', () => {
-                item._appIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
-            });
-            item._appIcon.connect('leave-event', () => {
-                item._appIcon.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
-            });
-        }
-
-        if (item._wsIndicator && !item._wsIndicator.reactive) {
-            item._wsIndicator.reactive = true;
-            item._wsIndicator.connect('button-press-event', (actor, event) => {
-                const button = event.get_button();
-                if (button == Clutter.BUTTON_PRIMARY) {
-                    if (this._getSelected().get_workspace().index() != global.workspaceManager.get_active_workspace_index())
-                        this._moveToCurrentWS();
-                } else if (button == Clutter.BUTTON_MIDDLE) {
-                    return Clutter.EVENT_PROPAGATE;
-                } else if (button == Clutter.BUTTON_SECONDARY) {
-                    const cws = global.workspaceManager.get_active_workspace();
-                    const ws = item.window.get_workspace();
-                    if (ws == cws) {
-                        Main.overview.toggle();
-                    } else {
-                        Main.wm.actionMoveWorkspace(ws);
-                    }
-                    /*this._filterSwitched = true;
-                    this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
-                    this._updateSwitcher();*/
-                    return Clutter.EVENT_STOP;
-                }
-            });
-
-            item._wsIndicator.connect('enter-event', () => {
-                const ws = global.workspaceManager.get_active_workspace_index() + 1;
-                const winWs = item.window.get_workspace().index() + 1;
-                const monitor = item.window.get_monitor();
-                const currentMonitor = global.display.get_current_monitor();
-                const multiMonitor = global.display.get_n_monitors() - 1;
-                item._wsIndicator.text = `${winWs}${multiMonitor ? '.' + monitor.toString() : ''} → ${ws}${multiMonitor ? '.' + currentMonitor.toString() : ''}`;
-                //item._wsIndicator.add_style_class_name('ws-indicator-hover');
-            });
-            item._wsIndicator.connect('leave-event', () => {
-                item._wsIndicator.remove_style_class_name('ws-indicator-hover');
-                item._wsIndicator.text = (item.window.get_workspace().index() + 1).toString();
-            });
-        }
-
-        /*if (!item._frontConnection) {
-            item._frontConnection = item._front.connect('button-press-event', this._onWindowItemAppClicked.bind(this));
-            this._iconsConnections.push(item._frontConnection);
-        }*/
-
-        if (item._winCounterIndicator && !item._winCounterIndicator.reactive) {
-            item._winCounterIndicator.reactive = true;
-            item._winCounterIndicator.connect('button-press-event', (actor, event) => {
-                const button = event.get_button();
-                if (button == Clutter.BUTTON_PRIMARY) {
-                    this._toggleSingleAppMode();
-                    return Clutter.EVENT_STOP;
-                } else if (button == Clutter.BUTTON_MIDDLE) {
-                    return Clutter.EVENT_PROPAGATE;
-                } else if (button == Clutter.BUTTON_SECONDARY) {
-
-                }
-            });
-
-            item._winCounterIndicator.connect('enter-event', () => {
-                item._winCounterIndicator.add_style_class_name(options.colorStyle.RUNNING_COUNTER_HOVER);
-
-            });
-            item._winCounterIndicator.connect('leave-event', () => {
-                item._winCounterIndicator.remove_style_class_name(options.colorStyle.RUNNING_COUNTER_HOVER);
-            });
-        }
-
-        item._mouseControlsSet = true;
-    }
-
+    
     _shadeIn() {
         //let height = this._switcherList.height;
         this.opacity = 255;
@@ -1135,21 +939,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._doNotUpdateOnNewWindow = true;
         const selected = this._getSelected();
         if (this._showingApps && selected) {
-            /*if (_ctrlPressed() && !_shiftPressed()) {
-                // this can cause problems when a shortcut with Ctrl key is used to trigger the popup
-                // so allow this only when it's not the case
-                if (!_ctrlPressed(this._modifierMask)) {
-                    selected.open_new_window(global.get_current_time());
-                    this._updateSwitcher();
-                    return;
-                }
-            } else if(_shiftPressed() && !_ctrlPressed()) {
-                if (!_shiftPressed(this._modifierMask)) {
-                    this._moveToCurrentWS();
-                    this._updateSwitcher();
-                    return;
-                }
-            } else*/ if ((!_shiftPressed() && !_ctrlPressed()) && !this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
+            if ((!_shiftPressed() && !_ctrlPressed()) && !this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
                         selected && selected.cachedWindows &&
                         (
                             (selected.cachedWindows[1] && options.SHOW_WINS_ON_ACTIVATE == 2) ||
@@ -1188,7 +978,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             //Main.activateWindow(selected);
         }
 
-        // don't close the switcher if there is higher posibility that user wans to continue using it
+        // don't close the switcher if there is higher posibility that user wants to continue using it
         //if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE)))
             super._finish();
     }
@@ -1280,7 +1070,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             GLib.PRIORITY_DEFAULT,
             options.NO_MODS_TIMEOUT,
             () => {
-                if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !_cancelTimeout) {
+                if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !options.cancelTimeout) {
                     if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
                         if (this._lastShowed) {
                             this._selectedIndex = this._lastShowed;
@@ -1545,6 +1335,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return false;
     }
 
+    _getCurrentMonitorIndex() {
+        const ws = global.workspaceManager.get_active_workspace();
+        let windows = AltTab.getWindows(ws);
+        const monIndex = windows.length > 0 ? windows[0].get_monitor()
+                                            : global.display.get_current_monitor();
+        return monIndex;
+    }
+
     _getMonitorByIndex(monitorIndex) {
         let monitors = Main.layoutManager.monitors;
         for (let monitor of monitors) {
@@ -1711,7 +1509,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             keysymName = keysymName.replace('KP_', '');
 
             // don't close the popup during typing, when not triggered by a keyboard
-            _cancelTimeout = true;
+            options.cancelTimeout = true;
 
             // delete last string when Backspace was pressed
             if (keysym === Clutter.KEY_BackSpace) {
@@ -2099,6 +1897,301 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return Clutter.EVENT_STOP;
     }
 
+    _showSearchCaption(text) {
+        const margin = 20;
+        if (this._searchCaption) {
+            this._searchCaption._destroy();
+        }
+
+        const offset = this._itemCaption
+        ? this._itemCaption.height + margin
+        : margin;
+
+        const xPosition = 0;
+
+        const fontSize = options.CAPTIONS_SCALE * 2;
+        this._searchCaption = new CaptionLabel({
+            name: 'search-label',
+            text: text,
+            fontSize: fontSize,
+            parent: this._switcherList,
+            xPosition: xPosition,
+            yOffset: offset,
+            monitorIndex: this._monitorIndex
+        }, options);
+    }
+
+    _showOverlayTitle() {
+        if (this._itemCaption) {
+            this._itemCaption._destroy();
+            this._itemCaption = null;
+        }
+        let selected = this._items[this._selectedIndex];
+        let title;
+        let details = '';
+
+        if (selected._is_window) {
+            title = selected.window.get_title();
+            //if (this._searchEntryNotEmpty()) {
+                const appName = selected.app.get_name();
+                details = appName == title ? null : appName;
+            //}
+        } else {
+            title = selected.titleLabel.get_text();
+            // if serching apps add more info to the caption
+            if (selected._appDetails) {
+                if (selected._appDetails.generic_name && !this._match(title, selected._appDetails.generic_name)) {
+                    details += `${selected._appDetails.generic_name}`;
+                }
+
+                if (selected._appDetails.description && !this._match(title, selected._appDetails.description)) {
+                    if (details) {
+                        details += '\n';
+                    }
+
+                    details += `${selected._appDetails.description}`;
+                }
+            }
+        }
+
+        let index = this._selectedIndex;
+        // get item position on the screen and calculate center position of the label
+        let actor, xPos;
+        if (options.ITEM_CAPTIONS === 2) {
+            actor = this._items[index];
+        } else {
+            actor = this._switcherList;
+        }
+
+        [xPos] = actor.get_transformed_position();
+        xPos = Math.floor(xPos + actor.width / 2);
+
+        const fontSize = options.CAPTIONS_SCALE;
+
+        this._itemCaption = new CaptionLabel({
+            name: 'item-label',
+            text: title,
+            description: details,
+            fontSize: fontSize,
+            parent: this._switcherList,
+            xPosition: xPos,
+            yOffset: 0,
+            monitorIndex: this._monitorIndex
+        }, options);
+
+        this._itemCaption.connect('destroy', (actor) => {
+            if (actor === this._itemCaption) {
+                this._itemCaption = null;
+            } else  {
+            }
+        });
+    }
+
+    _updateMouseControls() {
+        if (!this.mouseActive)
+            return;
+        // activate indicators only when mouse pointer is (probably) used to control the switcher
+        if (this._updateNeeded) {
+            this._items.forEach((w) => {
+                if (w._closeButton) {
+                    w._closeButton.opacity = 0;
+                }
+                if (w._aboveStickyIndicatorBox) {
+                    w._aboveStickyIndicatorBox.opacity = 0;
+                }
+                if (w._hotkeyIndicator)
+                    w._hotkeyIndicator.opacity = 255;
+            });
+        }
+
+        const item = this._items[this._selectedIndex];
+        if (!item)
+            return;
+
+        // workaround - only the second call of _isPointerOut() returns correct answer
+        this._isPointerOut();
+        if (item.window && !this._isPointerOut()) {
+            if (!item._closeButton) {
+                item._createCloseButton(item.window);
+                this._updateNeeded = true;
+                item._closeButton.connect('enter-event', () => {
+                    item._closeButton.add_style_class_name('window-close-hover');
+                });
+                item._closeButton.connect('leave-event', () => {
+                    item._closeButton.remove_style_class_name('window-close-hover');
+                });
+            }
+            item._closeButton.opacity = 255;
+        }
+
+
+        if (!options.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0)
+            return;
+
+        if (item.window && !item._aboveStickyIndicatorBox) {
+            item._aboveStickyIndicatorBox = item._getIndicatorBox();
+            item._icon.add_child(item._aboveStickyIndicatorBox);
+        }
+
+        if (item._aboveStickyIndicatorBox) {
+            item._aboveStickyIndicatorBox.opacity = 255;
+            if  (item._hotkeyIndicator)
+                item._hotkeyIndicator.opacity = 0;
+        }
+
+
+        if (item._aboveIcon && !item._aboveIcon.reactive) {
+            item._aboveIcon.reactive = true;
+            item._aboveIcon.opacity = 255;
+            item._aboveIcon.connect('button-press-event', this._toggleWinAbove.bind(this));
+            item._aboveIcon.connect('enter-event', () => {
+                item._aboveIcon.add_style_class_name('window-state-indicators-hover');
+            });
+            item._aboveIcon.connect('leave-event', () => {
+                item._aboveIcon.remove_style_class_name('window-state-indicators-hover');
+            });
+        }
+
+        if (item._stickyIcon && !item._stickyIcon.reactive) {
+            item._stickyIcon.reactive = true;
+            item._stickyIcon.opacity = 255;
+            item._stickyIcon.connect('button-press-event', this._toggleWinSticky.bind(this));
+            item._stickyIcon.connect('enter-event', () => {
+                item._stickyIcon.add_style_class_name('window-state-indicators-hover');
+            });
+            item._stickyIcon.connect('leave-event', () => {
+                item._stickyIcon.remove_style_class_name('window-state-indicators-hover');
+            });
+        }
+
+        if (item.window && !item._menuIcon) {
+            item._menuIcon = new St.Icon({
+                style_class: 'window-state-indicators',
+                icon_name: 'view-more-symbolic',
+                icon_size: 16,
+                y_expand: true,
+                y_align: Clutter.ActorAlign.START,
+            });
+            item._menuIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
+            item._aboveStickyIndicatorBox.add_child(item._menuIcon);
+            item._menuIcon.reactive = true;
+            item._menuIcon.opacity = 255;
+            item._menuIcon.connect('button-press-event', () => {
+                this._openWindowMenu();
+                return Clutter.EVENT_STOP;
+            });
+            item._menuIcon.connect('enter-event', () => {
+                item._menuIcon.add_style_class_name('window-state-indicators-hover');
+            });
+            item._menuIcon.connect('leave-event', () => {
+                item._menuIcon.remove_style_class_name('window-state-indicators-hover');
+            });
+        }
+
+        if (item._appIcon && !item._appIcon.reactive) {
+            item._appIcon.reactive = true;
+            item._appIcon.connect('button-press-event', (actor, event) => {
+                const button = event.get_button();
+                if (button == Clutter.BUTTON_PRIMARY) {
+                    this._toggleSingleAppMode();
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_MIDDLE) {
+                    this._openNewWindow();
+                    return Clutter.EVENT_PROPAGATE;
+                } else if (button == Clutter.BUTTON_SECONDARY) {
+                    this._toggleSwitcherMode();
+                    return Clutter.EVENT_STOP;
+                }
+            });
+
+            item._appIcon.connect('enter-event', () => {
+                item._appIcon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+            });
+            item._appIcon.connect('leave-event', () => {
+                item._appIcon.remove_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HOVER);
+            });
+        }
+
+        if (item._wsIndicator && !item._wsIndicator.reactive) {
+            item._wsIndicator.reactive = true;
+            item._wsIndicator.connect('button-press-event', (actor, event) => {
+                const button = event.get_button();
+                if (button == Clutter.BUTTON_PRIMARY) {
+                    if (this._getSelected().get_workspace().index() != global.workspaceManager.get_active_workspace_index())
+                        this._moveToCurrentWS();
+                } else if (button == Clutter.BUTTON_MIDDLE) {
+                    return Clutter.EVENT_PROPAGATE;
+                } else if (button == Clutter.BUTTON_SECONDARY) {
+                    const cws = global.workspaceManager.get_active_workspace();
+                    const ws = item.window.get_workspace();
+                    if (ws == cws) {
+                        Main.overview.toggle();
+                    } else {
+                        Main.wm.actionMoveWorkspace(ws);
+                    }
+                    /*this._filterSwitched = true;
+                    this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+                    this._updateSwitcher();*/
+                    return Clutter.EVENT_STOP;
+                }
+            });
+
+            item._wsIndicator.connect('enter-event', () => {
+                const ws = global.workspaceManager.get_active_workspace_index() + 1;
+                const winWs = item.window.get_workspace().index() + 1;
+                const monitor = item.window.get_monitor();
+                const currentMonitor = global.display.get_current_monitor();
+                const multiMonitor = global.display.get_n_monitors() - 1;
+                item._wsIndicator.text = `${winWs}${multiMonitor ? '.' + monitor.toString() : ''} → ${ws}${multiMonitor ? '.' + currentMonitor.toString() : ''}`;
+                //item._wsIndicator.add_style_class_name('ws-indicator-hover');
+            });
+            item._wsIndicator.connect('leave-event', () => {
+                item._wsIndicator.remove_style_class_name('ws-indicator-hover');
+                item._wsIndicator.text = (item.window.get_workspace().index() + 1).toString();
+            });
+        }
+
+        /*if (!item._frontConnection) {
+            item._frontConnection = item._front.connect('button-press-event', this._onWindowItemAppClicked.bind(this));
+            this._iconsConnections.push(item._frontConnection);
+        }*/
+
+        if (item._winCounterIndicator && !item._winCounterIndicator.reactive) {
+            item._winCounterIndicator.reactive = true;
+            item._winCounterIndicator.connect('button-press-event', (actor, event) => {
+                const button = event.get_button();
+                if (button == Clutter.BUTTON_PRIMARY) {
+                    this._toggleSingleAppMode();
+                    return Clutter.EVENT_STOP;
+                } else if (button == Clutter.BUTTON_MIDDLE) {
+                    return Clutter.EVENT_PROPAGATE;
+                } else if (button == Clutter.BUTTON_SECONDARY) {
+
+                }
+            });
+
+            item._winCounterIndicator.connect('enter-event', () => {
+                item._winCounterIndicator.add_style_class_name(options.colorStyle.RUNNING_COUNTER_HOVER);
+
+            });
+            item._winCounterIndicator.connect('leave-event', () => {
+                item._winCounterIndicator.remove_style_class_name(options.colorStyle.RUNNING_COUNTER_HOVER);
+            });
+        }
+
+        item._mouseControlsSet = true;
+    }
+
+    // Actions
+    //////////////////////////////////////////
+    _getActions() {
+        if (!this._actions) {
+            this._actions = new ActionLib.Actions();
+        }
+
+        return this._actions;
+    }
+
     _moveFavotites(direction) {
         if ((!this._showingApps && this.INCLUDE_FAVORITES) || !this._getSelected())
             return;
@@ -2254,11 +2347,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _toggleSearchMode() {
         if (this._searchEntry !== null) {
             this._searchEntry = null;
-            _cancelTimeout = false;
+            options.cancelTimeout = false;
         } else {
             this._searchEntry = '';
             this._modifierMask = 0;
-            _cancelTimeout = true;
+            options.cancelTimeout = true;
             this.SEARCH_DEFAULT = false;
         }
 
@@ -2342,106 +2435,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._updateSwitcher();
         this._getActions().showWsSwitcherPopup();
-    }
-
-    _showSearchCaption(text) {
-        const margin = 20;
-        if (this._searchCaption) {
-            this._searchCaption._destroy();
-        }
-
-        const offset = this._itemCaption
-        ? this._itemCaption.height + margin
-        : margin;
-
-        const xPosition = 0;
-
-        const fontSize = options.CAPTIONS_SCALE * 2;
-        this._searchCaption = new CaptionLabel({
-            name: 'search-label',
-            text: text,
-            fontSize: fontSize,
-            parent: this._switcherList,
-            xPosition: xPosition,
-            yOffset: offset,
-            monitorIndex: this._monitorIndex
-        });
-    }
-
-    _showOverlayTitle() {
-        if (this._itemCaption) {
-            this._itemCaption._destroy();
-            this._itemCaption = null;
-        }
-        let selected = this._items[this._selectedIndex];
-        let title;
-        let details = '';
-
-        if (selected._is_window) {
-            title = selected.window.get_title();
-            //if (this._searchEntryNotEmpty()) {
-                const appName = selected.app.get_name();
-                details = appName == title ? null : appName;
-            //}
-        } else {
-            title = selected.titleLabel.get_text();
-            // if serching apps add more info to the caption
-            if (selected._appDetails) {
-                if (selected._appDetails.generic_name && !this._match(title, selected._appDetails.generic_name)) {
-                    details += `${selected._appDetails.generic_name}`;
-                }
-
-                if (selected._appDetails.description && !this._match(title, selected._appDetails.description)) {
-                    if (details) {
-                        details += '\n';
-                    }
-
-                    details += `${selected._appDetails.description}`;
-                }
-            }
-        }
-
-        let index = this._selectedIndex;
-        // get item position on the screen and calculate center position of the label
-        let actor, xPos;
-        if (options.ITEM_CAPTIONS === 2) {
-            actor = this._items[index];
-        } else {
-            actor = this._switcherList;
-        }
-
-        [xPos] = actor.get_transformed_position();
-        xPos = Math.floor(xPos + actor.width / 2);
-
-        const fontSize = options.CAPTIONS_SCALE;
-
-        this._itemCaption = new CaptionLabel({
-            name: 'item-label',
-            text: title,
-            description: details,
-            fontSize: fontSize,
-            parent: this._switcherList,
-            xPosition: xPos,
-            yOffset: 0,
-            monitorIndex: this._monitorIndex
-        });
-
-        this._itemCaption.connect('destroy', (actor) => {
-            if (actor === this._itemCaption) {
-                this._itemCaption = null;
-            } else  {
-            }
-        });
-    }
-
-    // Actions
-    //////////////////////////////////////////
-    _getActions() {
-        if (!this._actions) {
-            this._actions = new ActionLib.Actions();
-        }
-
-        return this._actions;
     }
 
     _switchWorkspace(direction) {
@@ -2613,12 +2606,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         const windowMenuManager = new WindowMenu.WindowMenuManager(this);
         const item = this._items[this._selectedIndex];
 
-        _cancelTimeout = true;
+        options.cancelTimeout = true;
 
         windowMenuManager.showWindowMenuForWindow(selected, Meta.WindowMenuType.WM, item);
         windowMenuManager.menu.connect('destroy',
             (o, open) => {
-                _cancelTimeout = false;
+                options.cancelTimeout = false;
             }
         );
     }
@@ -3153,650 +3146,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return reverse;
     }
 });
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var CaptionLabel = GObject.registerClass(
-class CaptionLabel extends St.BoxLayout {
-    _init(params) {
-        const SEARCH = params.name === 'search-label';
-        this._xPosition = params.xPosition;
-        this._yOffset = params.yOffset;
-        this._parent = params.parent;
-        this._monitorIndex = params.monitorIndex;
-
-        super._init({
-            style_class: options.colorStyle.CAPTION_LABEL,
-            vertical: !SEARCH, // horizontal orientation for search label, vertical for title caption
-            style: `font-size: ${params.fontSize}em;` // border-radius: 12px; padding: 6px; background-color: rgba(0, 0, 0, ${bgOpacity});`,
-        });
-
-        this._label = new St.Label({
-            name: params.name,
-            text: params.text,
-            reactive: false,
-            y_align: Clutter.ActorAlign.CENTER
-        });
-
-        if (SEARCH) {
-            this.addSearchIcon();
-            this._label.add_style_class_name('search-label');
-        }
-
-        this.add_child(this._label);
-        if (params.description)
-            this.addDetails(params.description);
-
-        this._addToChrome();
-        this.setPosition();
-    }
-
-    _addToChrome() {
-        Main.layoutManager.addChrome(this);
-        this.get_parent().set_child_above_sibling(this, null);
-    }
-
-    setPosition() {
-        const xPos = this._xPosition;
-        const parent = this._parent;
-        const yOffset = this._yOffset;
-
-        const geometry = global.display.get_monitor_geometry(this._monitorIndex);
-        const margin = 8;
-
-        this.width = Math.min(this.width, geometry.width);
-
-        // win/app titles should be always placed centered to the switcher popup
-        let captionCenter = xPos ? xPos : parent.allocation.x1 + parent.width / 2;
-
-        // the +/-1 px compensates padding
-        let x = Math.floor(Math.max(Math.min(captionCenter - (this.width / 2), geometry.x + geometry.width - this.width - 1), geometry.x + 1));
-        let y = parent.allocation.y1 - this.height - yOffset - margin;
-
-        if (y < geometry.y)
-            y = parent.allocation.y2 + yOffset + margin;
-
-        [this.x, this.y] = [x, y];
-    }
-
-    setText(text) {
-        this._label.text = text;
-    }
-
-    addDetails(details) {
-        if (!this._descriptionLabel) {
-            this._descriptionLabel = new St.Label({
-                style_class: 'title-description',
-                style: `font-size: 0.7em;` // font size is relative to parent style
-            });
-        }
-
-        this._descriptionLabel.text = details;
-        this.add_child(this._descriptionLabel);
-    }
-
-    addSearchIcon() {
-        const icon = new St.Icon({
-            icon_name: 'edit-find-symbolic',
-            style_class: `search-icon`
-        });
-        this.add_child(icon);
-    }
-
-    _destroy() {
-        Main.layoutManager.removeChrome(this);
-        super.destroy();
-    }
-});
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var WindowIcon = GObject.registerClass(
-class WindowIcon extends St.BoxLayout {
-    _init(item, iconIndex, switcherParams) {
-        const metaWin = item;
-        super._init({
-            style_class: 'thumbnail-box',
-            vertical: true,
-            reactive: true,
-        });
-        this._switcherParams = switcherParams;
-        this._icon = new St.Widget({layout_manager: new Clutter.BinLayout()});
-        this._id = metaWin.get_id();
-
-        this.add_child(this._icon);
-        this._icon.destroy_all_children();
-
-        if (metaWin.get_title) {
-            this._createWindowIcon(metaWin);
-        }
-
-        if ( this._switcherParams.hotKeys && iconIndex < 12) {
-            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex);
-            this._icon.add_child(this._hotkeyIndicator);
-        }
-
-        if (this.titleLabel && this._switcherParams.showWinTitles) {
-            this.add_child(this.titleLabel);
-        }
-    }
-
-    _createCloseButton(metaWin) {
-        const closeButton = new St.Icon({
-            style_class: 'window-close-aatws',
-            icon_name: 'window-close-symbolic',
-            x_align: Clutter.ActorAlign.END,
-            y_align: Clutter.ActorAlign.START,
-            x_expand: true,
-            y_expand: true,
-            reactive: true
-        });
-        closeButton.connect('button-press-event', () => { return Clutter.EVENT_STOP; });
-        closeButton.connect('button-release-event', () => {
-            metaWin.delete(global.get_current_time());
-            return Clutter.EVENT_STOP;
-        });
-
-        this._closeButton = closeButton;
-        this._closeButton.opacity = 0;
-        this._icon.add_child(this._closeButton);
-    }
-
-    _createWindowIcon(window) {
-        this._is_window = true;
-        this.window = window;
-
-        this.titleLabel = new St.Label({
-            text: window.get_title(),
-            style_class: options.colorStyle.TITLE_LABEL,
-            x_align: Clutter.ActorAlign.CENTER,
-        });
-
-        let tracker = Shell.WindowTracker.get_default();
-        this.app = tracker.get_window_app(window);
-
-        let mutterWindow = this.window.get_compositor_private();
-        let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        let switched = false;
-        let size, cloneSize;
-
-        size = this._switcherParams.winPrevSize;
-        cloneSize = size;
-
-        if (!this._switcherParams.singleAppMode && options.APP_ICON_SIZE > size) {
-            size = options.APP_ICON_SIZE;
-            switched = true;
-            cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * this._switcherParams.winPrevSize);
-        }
-
-        let clone = AltTab._createWindowClone(mutterWindow, cloneSize * scaleFactor);
-        let icon;
-
-        if (this.app) {
-            icon = this._createAppIcon(this.app,
-                options.APP_ICON_SIZE);
-            this._appIcon = icon;
-            this._appIcon.reactive = false;
-        }
-
-        let base, front;
-        if (switched) {
-            base  = icon;
-            front = clone;
-        } else {
-            base  = clone;
-            front = icon;
-        }
-
-        if (this.window.minimized && options.MARK_MINIMIZED) {
-            front.opacity = 80;
-        }
-
-        this._alignFront(front);
-
-        this._icon.add_child(base);
-        this._icon.add_child(front);
-
-        // will be used to connect on icon signals (switcherList.icons[n]._front)
-        this._front = front;
-
-        if (this.window.is_above() || this.window.is_on_all_workspaces()) {
-            this._icon.add_child(this._getIndicatorBox());
-        }
-
-        if (options.WS_INDEXES) {
-            this._wsIndicator = this._createWsIcon(window.get_workspace().index() + 1)
-            this._icon.add_child(this._wsIndicator);
-        }
-
-        this._icon.set_size(size * scaleFactor, size * scaleFactor);
-    }
-
-    _alignFront(icon, isWindow = true) {
-        icon.x_align = icon.y_align = Clutter.ActorAlign.END;
-    }
-
-    _createAppIcon(app, size) {
-        let appIcon = app
-            ? app.create_icon_texture(size)
-            : new St.Icon({icon_name: 'icon-missing', icon_size: size});
-        appIcon.x_expand = appIcon.y_expand = true;
-        appIcon.reactive = true;
-        return appIcon;
-    }
-
-    _createWsIcon(index) {
-        let currentWS = global.workspace_manager.get_active_workspace_index();
-
-        let label = new St.Label({
-            text: `${index}`,
-            style_class: options.colorStyle.INDICATOR_OVERLAY,
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.END,
-        });
-        if (currentWS + 1 === index) {
-            label.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_HIGHLIGHTED);
-        }
-
-        return label;
-    }
-
-    _getIndicatorBox() {
-        const indicatorBox = new St.BoxLayout({
-            vertical: false,
-            //style_class: options.colorStyle.INDICATOR_OVERLAY,
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.START,
-        });
-
-        indicatorBox.add_child(this._createAboveIcon());
-        indicatorBox.add_child(this._createStickyIcon());
-
-        return indicatorBox;
-    }
-
-    _createAboveIcon() {
-        let icon = new St.Icon({
-            style_class: 'window-state-indicators',
-            icon_name: 'go-top-symbolic',
-            icon_size: 16,
-            y_expand: true,
-            y_align: Clutter.ActorAlign.START,
-            /*x_expand: true,
-            x_align: Clutter.ActorAlign.START,
-            */
-        });
-        icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
-        if (!this.window.is_above()) {
-            icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
-            icon.opacity = 0;
-        } else {
-            icon.add_style_class_name('window-state-indicators-active');
-        }
-        this._aboveIcon = icon;
-        return icon;
-    }
-
-    _createStickyIcon() {
-        let icon = new St.Icon({
-            style_class: 'window-state-indicators',
-            icon_name: 'view-pin-symbolic',
-            icon_size: 16,
-            y_expand: true,
-            y_align: Clutter.ActorAlign.START,
-            /*x_expand: true,
-            x_align: Clutter.ActorAlign.CENTER,
-            */
-        });
-        icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY);
-        this._stickyIcon = icon;
-        if (!this.window.is_on_all_workspaces()) {
-            icon.add_style_class_name(options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
-            icon.opacity = 0;
-        } else {
-            icon.add_style_class_name('window-state-indicators-active');
-        }
-        return icon;
-    }
-});
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var AppIcon = GObject.registerClass(
-class AppIcon extends AppDisplay.AppIcon {
-    _init(app, iconIndex, switcherParams) {
-        super._init(app);
-        // remove scroll connection created by my WSM extension
-        if (this._scrollConnectionID) {
-            this.disconnect(this._scrollConnectionID);
-        }
-        this._switcherParams = switcherParams;
-
-        const appInfo = app.get_app_info();
-        let appName = app.get_name();
-
-        if (this._switcherParams.addAppDetails && appInfo) {
-            if (appInfo.get_commandline() && appInfo.get_commandline().includes('snapd')) {
-                appName += ' (Snap)';
-            } else if (appInfo.get_commandline() && appInfo.get_commandline().includes('flatpak')) {
-                appName += ' (Flatpak)';
-            } else if (appInfo.get_commandline() && appInfo.get_commandline().toLowerCase().includes('.appimage')) {
-                appName += ' (AppImage)';
-            }
-            const genericName = appInfo.get_generic_name() || '';
-            const description = appInfo.get_description() || '';
-            this._appDetails = {
-                generic_name : genericName,
-                description: description
-            };
-        } else if (app.cachedWindows.length) {
-            this._appDetails = {
-                generic_name : app.cachedWindows[0].get_title() || '',
-            };
-        }
-
-        this.titleLabel = new St.Label({
-            text: appName,
-        });
-
-        this._id = app.get_id();
-
-        // remove original app icon style
-        this.style_class = '';
-        this.set_style('color: grey;');
-
-        if (options.SHOW_APP_TITLES) {
-            if (this.icon.label) {
-                //this.icon.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
-                // set label truncate method
-                this.icon.label.clutterText.set({
-                    line_wrap: false,
-                    ellipsize: 3, //Pango.EllipsizeMode.END,
-                });
-                // workaround that disconnects icon.label _updateMultiline()
-                this.icon.label = this.titleLabel;
-                this.icon.label.show();
-            }
-        } else {
-            if (this.icon.label) {
-                this.icon.label.hide();
-            }
-        }
-
-        const count = app.cachedWindows.length;
-        if ( count && this._shouldShowWinCounter(count)) {
-            const winCounterIndicator = this._createWinCounterIndicator(count);
-            //winCounterIndicator.add_style_class_name('running-counter');
-            // move the counter above app title
-            if (options.SHOW_APP_TITLES) {
-                winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 2}em;`);
-            }
-            this._iconContainer.add_child(winCounterIndicator);
-            this._winCounterIndicator = winCounterIndicator;
-        }
-
-        if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
-            this._dot.add_style_class_name('running-dot');
-            this._dot.add_style_class_name(options.colorStyle.RUNNING_DOT_COLOR);
-            this.icon.set_style('margin-bottom: 6px;');
-            if (!count) {
-                this._dot.opacity = 0;
-            }
-        } else {
-            if (this._winCounterIndicator)
-            this._winCounterIndicator.set_style(`margin-bottom: 1px;`);
-            this._iconContainer.remove_child(this._dot);
-        }
-
-        if (this._switcherParams.hotKeys && iconIndex < 12) {
-            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex);
-            this._iconContainer.add_child(this._hotkeyIndicator);
-        }
-
-        this._is_app = true;
-    }
-
-    _shouldShowWinCounter(count) {
-        if (options.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW && count === 1) {
-            return false;
-        } else {
-            return options.SHOW_WIN_COUNTER;
-        }
-    }
-
-    // this is override of original function to adjust icon size
-    _createIcon() {
-        return this.app.create_icon_texture(options.APP_MODE_ICON_SIZE);
-    }
-
-    _createWinCounterIndicator(num) {
-        let label = new St.Label({
-            text: `${num}`,
-            style_class: options.colorStyle.RUNNING_COUNTER,
-            x_expand: true,
-            y_expand: true,
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.END,
-            reactive: false
-        });
-
-        return label;
-    }
-
-    vfunc_button_press_event(buttonEvent) {
-        return Clutter.EVENT_PROPAGATE;
-    }
-});
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var WindowSwitcher = GObject.registerClass(
-class WindowSwitcher extends SwitcherPopup.SwitcherList {
-    _init(items, switcherParams) {
-        let squareItems = false;
-        super._init(squareItems);
-        this._switcherParams = switcherParams;
-
-        this._statusLabel = new St.Label({
-            x_align: Clutter.ActorAlign.START,
-            y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'status-label',
-        });
-
-        this.add_child(this._statusLabel);
-        if (!options.STATUS) {
-            this._statusLabel.hide();
-        }
-
-        this.icons = [];
-
-        let showAppsIcon;
-        if (this._switcherParams.showingApps && options.INCLUDE_SHOW_APPS_ICON) {
-            showAppsIcon = this._getShowAppsIcon();
-            if (this._switcherParams.reverseOrder) {
-                this.addItem(showAppsIcon, showAppsIcon.titleLabel);
-                this.icons.push(showAppsIcon);
-            }
-        }
-
-        for (let i = 0; i < items.length; i++) {
-            let item = items[i];
-            let icon;
-            if (item.get_title) {
-                icon = new WindowIcon(item, i, this._switcherParams);
-                if (switcherParams.mouseControl && item === global.display.get_tab_list(0, null)[0]) {
-                    icon._is_focused = true;
-                }
-            } else {
-                icon = new AppIcon(item, i, this._switcherParams);
-                if (switcherParams.mouseControl && item.cachedWindows.length && (item.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) {
-                    icon._is_focused = true;
-                }
-                icon.connect('menu-state-changed',
-                    (o, open) => {
-                        _cancelTimeout = open;
-                    }
-                );
-            }
-
-            this.addItem(icon, icon.titleLabel);
-            if (icon._is_focused) {
-                this._items[this._items.length - 1].add_style_class_name(options.colorStyle.FOCUSED);
-            }
-            this.icons.push(icon);
-
-            // the icon could be an app, not only a window
-            if (icon._is_window) {
-                icon._unmanagedSignalId = icon.window.connect('unmanaged', this._removeWindow.bind(this));
-            } else if (icon._is_app) {
-                if (icon.app.cachedWindows.length > 0) {
-                    icon.app.cachedWindows.forEach(w =>
-                        w._unmanagedSignalId = w.connect('unmanaged', this._removeWindow.bind(this))
-                    )
-                }
-            }
-        }
-
-        if (showAppsIcon && !this._switcherParams.reverseOrder) {
-            this.addItem(showAppsIcon, showAppsIcon.titleLabel);
-            this.icons.push(showAppsIcon);
-        }
-
-        this.connect('destroy', this._onDestroy.bind(this));
-    }
-
-    _getShowAppsIcon() {
-        const showAppsIcon = new Dash.ShowAppsIcon();
-        showAppsIcon.icon.setIconSize(options.APP_MODE_ICON_SIZE);
-        showAppsIcon._is_showAppsIcon = true;
-        showAppsIcon._id = 'show-apps-icon';
-        showAppsIcon.show(false);
-        showAppsIcon.toggleButton.style_class = '';
-        showAppsIcon.label.text = _('Show Applications');
-        showAppsIcon.titleLabel = showAppsIcon.label;
-        showAppsIcon.add_style_class_name(options.colorStyle.TITLE_LABEL);
-        return showAppsIcon;
-    }
-
-    _onDestroy() {
-        this.icons.forEach(icon => {
-            if (icon._unmanagedSignalId) {
-                icon.window.disconnect(icon._unmanagedSignalId);
-            } else if (icon.app) {
-                icon.app.cachedWindows.forEach(w => {
-                    if (w._unmanagedSignalId)
-                        w.disconnect(w._unmanagedSignalId);
-                });
-            }
-        });
-    }
-
-    vfunc_get_preferred_height(forWidth) {
-        let [minHeight, natHeight] = super.vfunc_get_preferred_height(forWidth);
-
-        let spacing = this.get_theme_node().get_padding(St.Side.BOTTOM);
-        let [labelMin, labelNat] = this._statusLabel.get_preferred_height(-1);
-
-        let multiplier = 0;
-        multiplier += options.STATUS ? 1 : 0;
-        minHeight += multiplier * labelMin + spacing;
-        natHeight += multiplier * labelNat + spacing;
-
-        return [minHeight, natHeight];
-    }
-
-    vfunc_allocate(box, flags) {
-        // no flags in GS 40+
-        const useFlags = flags !== undefined;
-        let themeNode = this.get_theme_node();
-        let contentBox = themeNode.get_content_box(box);
-        const spacing = themeNode.get_padding(St.Side.BOTTOM);
-        const statusLabelHeight = options.STATUS ? this._statusLabel.height : spacing;
-        const totalLabelHeight =
-            statusLabelHeight;
-
-        box.y2 -= totalLabelHeight;
-        useFlags    ? super.vfunc_allocate(box, flags)
-                    : super.vfunc_allocate(box);
-
-        // Hooking up the parent vfunc will call this.set_allocation() with
-        // the height without the label height, so call it again with the
-        // correct size here.
-        box.y2 += totalLabelHeight;
-        useFlags    ? this.set_allocation(box, flags)
-                    : this.set_allocation(box);
-
-        const childBox = new Clutter.ActorBox();
-        childBox.x1 = contentBox.x1 + 5;
-        childBox.x2 = contentBox.x2;
-        childBox.y2 = contentBox.y2;
-        childBox.y1 = childBox.y2 - statusLabelHeight;
-        useFlags    ? this._statusLabel.allocate(childBox, flags)
-                    : this._statusLabel.allocate(childBox);
-    }
-
-    _onItemMotion(item) {
-        // Avoid reentrancy
-        const icon = this.icons[this._items.indexOf(item)];
-        if (item !== this._items[this._highlighted] || (options.INTERACTIVE_INDICATORS && !icon._mouseControlsSet)) {
-            this._itemEntered(this._items.indexOf(item));
-        }
-
-        return Clutter.EVENT_PROPAGATE;
-    }
-
-    _onItemEnter(item) {
-        // Avoid reentrancy
-        //if (item !== this._items[this._highlighted])
-            this._itemEntered(this._items.indexOf(item));
-
-        return Clutter.EVENT_PROPAGATE;
-    }
-
-    highlight(index) {
-        if (this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_pseudo_class('selected');
-            if (options.colorStyle.STYLE)
-                this._items[this._highlighted].remove_style_class_name(options.colorStyle.SELECTED);
-            if (this.icons[this._highlighted]._is_focused)
-                this._items[this._highlighted].add_style_class_name(options.colorStyle.FOCUSED);
-        }
-
-        if (this._items[index]) {
-            this._items[index].add_style_pseudo_class('selected');
-            if (options.colorStyle.STYLE) {
-                this._items[index].remove_style_class_name(options.colorStyle.FOCUSED);
-                this._items[index].add_style_class_name(options.colorStyle.SELECTED);
-            }
-        }
-
-        this._highlighted = index;
-
-        let adjustment = this._scrollView.hscroll.adjustment;
-        let [value] = adjustment.get_values();
-        let [absItemX] = this._items[index].get_transformed_position();
-        let [, posX,] = this.transform_stage_point(absItemX, 0);
-        let [containerWidth] = this.get_transformed_size();
-        if (posX + this._items[index].get_width() > containerWidth)
-            this._scrollToRight(index);
-        else if (this._items[index].allocation.x1 - value < 0)
-            this._scrollToLeft(index);
-    }
-
-    _removeWindow(window) {
-        if (this.icons[0].window) {
-            let index = this.icons.findIndex(icon => {
-                return icon.window == window;
-            });
-            if (index === -1)
-                return;
-
-            this.icons.splice(index, 1);
-            this.removeItem(index);
-        } else {
-            this.emit('item-removed', -1);
-        }
-    }
-});
+//////////////////////////////////////////////////////////////////////////////////
 
 var   AppSwitcherPopup = GObject.registerClass(
 class AppSwitcherPopup extends WindowSwitcherPopup {
@@ -3806,24 +3157,3 @@ class AppSwitcherPopup extends WindowSwitcherPopup {
         this.SHOW_APPS = true;
     }
 });
-
-// icon indicating direct activation key
-function _createHotKeyNumIcon(index) {
-    let icon = new St.Widget({
-        x_expand: true,
-        y_expand: true,
-        x_align: Clutter.ActorAlign.START,
-        y_align: Clutter.ActorAlign.START,
-    });
-
-    let box = new St.BoxLayout({
-        style_class: options.colorStyle.INDICATOR_OVERLAY,
-        vertical: true,
-    });
-
-    icon.add_child(box);
-    let label = new St.Label({text: `F${(index + 1).toString()}`});
-    box.add(label);
-
-    return icon;
-}
