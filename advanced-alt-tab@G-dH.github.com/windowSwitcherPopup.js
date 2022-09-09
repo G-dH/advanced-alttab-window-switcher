@@ -2613,12 +2613,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         const windowMenuManager = new WindowMenu.WindowMenuManager(this);
         const item = this._items[this._selectedIndex];
 
-        const [x, y] = item.get_transformed_position();
-        const [width, height] = item.get_size();
-
-        const rect = {x, y, width, height};
         _cancelTimeout = true;
-        windowMenuManager.showWindowMenuForWindow(selected, Meta.WindowMenuType.WM, rect);
+
+        windowMenuManager.showWindowMenuForWindow(selected, Meta.WindowMenuType.WM, item);
         windowMenuManager.menu.connect('destroy',
             (o, open) => {
                 _cancelTimeout = false;

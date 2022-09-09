@@ -1,5 +1,12 @@
-// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*
-/* exported WindowMenuManager */
+/**
+ * AATWS - Advanced Alt-Tab Window Switcher
+ * WindowMenu
+ * modified original windowMenu modul
+ *
+ * @author     GdH <G-dH@github.com>
+ * @copyright  2021-2022
+ * @license    GPL-3.0
+ */
 
 const { GLib, Meta, St, Clutter } = imports.gi;
 
@@ -61,24 +68,6 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
         }
         if (!window.can_maximize())
             item.setSensitive(false);
-
-        /*item = this.addAction(_("Move"), event => {
-            this._grabAction(window, Meta.GrabOp.KEYBOARD_MOVING, event.get_time());
-        });
-        if (!window.allows_move())
-            item.setSensitive(false);
-
-        item = this.addAction(_("Resize"), event => {
-            this._grabAction(window, Meta.GrabOp.KEYBOARD_RESIZING_UNKNOWN, event.get_time());
-        });
-        if (!window.allows_resize())
-            item.setSensitive(false);
-
-        if (!window.titlebar_is_onscreen() && type != Meta.WindowType.DOCK && type != Meta.WindowType.DESKTOP) {
-            this.addAction(_("Move Titlebar Onscreen"), () => {
-                window.shove_titlebar_onscreen();
-            });
-        }*/
 
         item = this.addAction(_("Always on Top"), () => {
             if (window.is_above())
@@ -213,47 +202,22 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
         if (!window.can_close())
             item.setSensitive(false);
     }
-
-    _grabAction(window, grabOp, time) {
-        if (global.display.get_grab_op() == Meta.GrabOp.NONE) {
-            window.begin_grab_op(grabOp, true, time);
-            return;
-        }
-
-        let waitId = 0;
-        let id = global.display.connect('grab-op-end', display => {
-            display.disconnect(id);
-            GLib.source_remove(waitId);
-
-            window.begin_grab_op(grabOp, true, time);
-        });
-
-        waitId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
-            global.display.disconnect(id);
-            return GLib.SOURCE_REMOVE;
-        });
-    }
 };
 
 var WindowMenuManager = class {
     constructor(aatws) {
         this._aatws = aatws;
         this._manager = new PopupMenu.PopupMenuManager(Main.layoutManager.dummyCursor);
-
-        this._sourceActor = new St.Widget({ reactive: true, visible: false });
-        this._sourceActor.connect('button-press-event', () => {
-            this._manager.activeMenu.toggle();
-        });
-        Main.uiGroup.add_actor(this._sourceActor);
     }
 
-    showWindowMenuForWindow(window, type, rect) {
+    showWindowMenuForWindow(window, type, sourceActor) {
         if (!Main.sessionMode.hasWmMenus)
             return;
 
         if (type != Meta.WindowMenuType.WM)
             throw new Error('Unsupported window menu type');
-        let menu = new WindowMenu(window, this._sourceActor, this._aatws);
+
+        let menu = new WindowMenu(window, sourceActor, this._aatws);
 
         this._manager.addMenu(menu);
 
@@ -264,17 +228,12 @@ var WindowMenuManager = class {
             menu.close();
         });
 
-        this._sourceActor.set_size(Math.max(1, rect.width), Math.max(1, rect.height));
-        this._sourceActor.set_position(rect.x, rect.y);
-        this._sourceActor.show();
-
         menu.open(BoxPointer.PopupAnimation.FADE);
         menu.actor.navigate_focus(null, St.DirectionType.TAB_FORWARD, false);
         menu.connect('open-state-changed', (menu_, isOpen) => {
             if (isOpen)
                 return;
 
-            this._sourceActor.hide();
             menu.destroy();
             window.disconnect(destroyId);
         });
