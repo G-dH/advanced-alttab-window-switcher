@@ -1194,17 +1194,15 @@ The current monitor is the one where the switcher pop-up is located, or where th
             _('Create Window Thumbnail'),
             _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. \
 You can move the thumbnail anywhere on the screen using a mouse drag & drop and you can make as many thumbnails as you want.\n\
-To remove lastly created thumbnail, use this hotkey while pressing Ctrl key.\n\
+To remove lastly created thumbnail, use this hotkey while pressing Ctrl key, or click on the close button inside thumbnail.\n\
 To remove all created thumbnails, use this hotkey while pressing Shift and Ctrl keys.\n\
 Thumbnail controls:\n\
-    Double click:    \t\tactivates the source window\n\
-    Primary click:   \t\ttoggles scroll wheel function (resize / source)\n\
-    Secondary click: \t\tremoves the thumbnail\n\
-    Middle click:    \t\tcloses the source window\n\
-    Scroll wheel:    \t\tresizes or changes the source window\n\
-    Ctrl + Scroll wheel: \tchange source window or resize\n\
-    Shift + Scroll wheel: \tadjust opacity\n\
-    Ctrl + Primary click: \tToggles thumbnail between a window preview and app icon'),
+    Double click:    \t\t activates the source window\n\
+    Primary click:     \t\t toggles scroll wheel function (resize / source)\n\
+    Secondary click:    \t\t window preview\n\
+    Scroll wheel:       \t\t resizes or changes the source window\n\
+    Ctrl + Scroll wheel:  \t change source window or resize\n\
+    Shift + Scroll wheel: \t adjust opacity'),
             itemFactory.newEntry(),
             'hotkeyThumbnail'
         )
