@@ -1,18 +1,18 @@
 ## Changelog
 
-### v19 not yet released on EGO
+### v19/20 2022-09-09
 **Added**
-- Top and Bottom hot edge options allows to trigger AATWS popup using a mouse without Custom Hot Corners - Extended
-- Option `Interactive Indicators` with window menu allows more effective navigation using a mouse without the need to configure and remember actions on mouse buttons
-- Light and Dark color themes that can follow system wide Dark mode setting on GS 42+ and dark Gtk theme on older versions.
-- About page in Settings window with `Reset all options` button and links to the project sites.
+- Top and bottom hot edge options allows to trigger *AATWS* popup using a mouse without *Custom Hot Corners - Extended*.
+- Option `Interactive Indicators` and new window menu allows more effective navigation using a mouse without the need to configure and remember actions on mouse buttons.
+- Light and Dark color themes that can follow system wide Dark mode setting on GS 42+ and dark Gtk theme setting on older versions.
+- About page in preferences window with `Reset all options` button and links to the project related sites.
 
 **Fixed**
-- Mouse pointer overshoot scrolling in GS40+. It's a GS 40+ regression.
-- App window counter includes `skip_taskbar` windows
+- Mouse pointer overshoot scrolling in GS40+ doesn't work. It's a GS 40+ regression.
+- App window counter includes `skip_taskbar` windows.
 
 **Changed**
-- Default mouse buttons configuration
+- Default mouse buttons configuration.
 
 ### v18 2022-07-06
 **Fixed**
