@@ -9,7 +9,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 
 *AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in *type to search* feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you dont exacty know its name. AATWS also offers activation using a mouse by hitting a top or bottom hot edge and can serve as a app launcher and dock.
 
-![Window Switcher Popup](screenshot.png)
+![Window Switcher Popup](screenshots/screenshot.png)
 
 [<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
 
@@ -134,7 +134,7 @@ The most recent version in the repository is the one I'm currently running on my
 Run following commands in the terminal (`git` needs to installed, navigate to the directory you want to download the source):
 
     git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
-    cd advanced-alttab-window-switcher/advanced-alt-tab@G-dH.github.com/
+    cd advanced-alttab-window-switcher/
     make install
 
 ## Enable installed extension
@@ -155,11 +155,11 @@ If you like my work and want to keep me motivated, give me some feedback. You ca
 
 ## Screenshots
 
-![App Switcher Popup](screenshot0-1.png)
-![Extension configuration window](screenshot1.png)
-![Extension configuration window](screenshot2.png)
-![Extension configuration window](screenshot3.png)
-![Extension configuration window](screenshot4.png)
-![Extension configuration window](screenshot5.png)
-![Extension configuration window](screenshot6.png)
+![App Switcher Popup](screenshots/screenshot0-1.png)
+![Extension configuration window](screenshots/screenshot1.png)
+![Extension configuration window](screenshots/screenshot2.png)
+![Extension configuration window](screenshots/screenshot3.png)
+![Extension configuration window](screenshots/screenshot4.png)
+![Extension configuration window](screenshots/screenshot5.png)
+![Extension configuration window](screenshots/screenshot6.png)
  
