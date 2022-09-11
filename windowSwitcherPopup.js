@@ -939,12 +939,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._doNotUpdateOnNewWindow = true;
         const selected = this._getSelected();
         if (this._showingApps && selected) {
-            if ((!_shiftPressed() && !_ctrlPressed()) && !this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
-                        selected && selected.cachedWindows &&
-                        (
-                            (selected.cachedWindows[1] && options.SHOW_WINS_ON_ACTIVATE == 2) ||
-                            (options.SHOW_WINS_ON_ACTIVATE == 1 && selected.cachedWindows[0] === global.display.get_tab_list(0, null)[0])
-                        )) {
+            if (    (!_shiftPressed() && !_ctrlPressed()) && !this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
+                    selected && selected.cachedWindows &&
+                    ( (selected.cachedWindows[1] && options.SHOW_WINS_ON_ACTIVATE == 2) ||
+                    (options.SHOW_WINS_ON_ACTIVATE == 1 && global.display.get_tab_list(0, null).length &&
+                    selected.cachedWindows[0] === global.display.get_tab_list(0, null)[0]))
+                ) {
                     this._toggleSingleAppMode();
                     return;
             } else if (selected.cachedWindows && selected.cachedWindows[0]) {
@@ -2755,6 +2755,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }*/
 
         switch (action) {
+            case Action.ACTIVATE:
+                if (_shiftPressed() && !_ctrlPressed()) {
+                    this._moveToCurrentWS();
+                } else if (_ctrlPressed() && !_shiftPressed()) {
+                    this._openNewWindow();
+                } else {
+                    this._finish();
+                }
+                break;
             case Action.SELECT_ITEM:
                 this._disableHover();
                 this._scrollHandler(direction);
@@ -2781,15 +2790,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 break;
             case Action.SWITCHER_MODE:
                 this._toggleSwitcherMode();
-                break;
-            case Action.ACTIVATE:
-                if (_shiftPressed() && !_ctrlPressed()) {
-                    this._moveToCurrentWS();
-                } else if (_ctrlPressed() && !_shiftPressed()) {
-                    this._openNewWindow();
-                } else {
-                    this._finish();
-                }
                 break;
             case Action.THUMBNAIL:
                 this._createWinThumbnail();
