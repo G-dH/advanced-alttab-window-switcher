@@ -313,7 +313,9 @@ class AppIcon extends AppDisplay.AppIcon {
 
         if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
             this._dot.add_style_class_name('running-dot');
-            this._dot.add_style_class_name(this._options.colorStyle.RUNNING_DOT_COLOR);
+            // change dot color to be visible on light bg cause Adwaita uses white color
+            if (this._options.colorStyle.RUNNING_DOT_COLOR)
+                this._dot.add_style_class_name(this._options.colorStyle.RUNNING_DOT_COLOR);
             this.icon.set_style('margin-bottom: 6px;');
             if (!count) {
                 this._dot.opacity = 0;
