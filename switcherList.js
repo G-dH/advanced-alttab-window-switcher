@@ -58,6 +58,10 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
                 this.addItem(showAppsIcon, showAppsIcon.titleLabel);
                 this.icons.push(showAppsIcon);
             }
+
+            if (this._options.SHOW_APP_TITLES) {
+                showAppsIcon.set_style('margin-bottom: 0.9em');
+            }
         }
 
         for (let i = 0; i < items.length; i++) {
@@ -65,14 +69,14 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
             let icon;
             if (item.get_title) {
                 icon = new WindowIcon(item, i, this._switcherParams, this._options);
-                if (switcherParams.mouseControl && item === global.display.get_tab_list(0, null)[0]) {
+                /*if (switcherParams.mouseControl && item === global.display.get_tab_list(0, null)[0]) {
                     icon._is_focused = true;
-                }
+                }*/
             } else {
                 icon = new AppIcon(item, i, this._switcherParams, this._options);
-                if (switcherParams.mouseControl && item.cachedWindows.length && (item.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) {
+                /*if (switcherParams.mouseControl && item.cachedWindows.length && (item.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) {
                     icon._is_focused = true;
-                }
+                }*/
                 icon.connect('menu-state-changed',
                     (o, open) => {
                         this._options.cancelTimeout = open;
@@ -115,7 +119,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
         showAppsIcon.toggleButton.style_class = '';
         showAppsIcon.label.text = _('Show Applications');
         showAppsIcon.titleLabel = showAppsIcon.label;
-        showAppsIcon.add_style_class_name(this._options.colorStyle.TITLE_LABEL);
+        this._options.colorStyle.TITLE_LABEL && showAppsIcon.add_style_class_name(this._options.colorStyle.TITLE_LABEL);
         return showAppsIcon;
     }
 

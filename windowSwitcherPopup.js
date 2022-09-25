@@ -115,8 +115,6 @@ const TooltipTitleMode = {
     CENTER: 3
 }
 
-const LABEL_FONT_SIZE = 0.9;
-
 const Action = Settings.Actions;
 
 //let _cancelTimeout = false;
@@ -426,7 +424,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
+        options.colorStyle.SWITCHER_LIST && this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
 
         // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
         if (shellVersion >= 40 && this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {

@@ -20,6 +20,8 @@ const Settings        = Me.imports.settings;
 
 const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
+const LABEL_FONT_SIZE = 0.9;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
@@ -283,7 +285,7 @@ class AppIcon extends AppDisplay.AppIcon {
 
         if (this._options.SHOW_APP_TITLES) {
             if (this.icon.label) {
-                //this.icon.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
+                this.icon.label.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
                 // set label truncate method
                 this.icon.label.clutterText.set({
                     line_wrap: false,
