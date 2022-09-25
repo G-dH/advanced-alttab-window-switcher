@@ -3,7 +3,7 @@
 <schemalist>
   <schema path='/org/gnome/shell/extensions/advanced-alt-tab-window-switcher/' id='org.gnome.shell.extensions.advanced-alt-tab-window-switcher'>
     <key name='super-key-mode' type='i'>
-      <default>2</default>
+      <default>1</default>
     </key>
     <key name='enable-super' type='b'>
       <default>false</default>
