@@ -66,7 +66,7 @@ function enable() {
                     if (Main.overview._shown) return;
                     let win = global.display.get_focus_window();
                     if (win) {
-                        win.activate();
+                        win.activate(global.get_current_time());
                     }
                 });
             }
