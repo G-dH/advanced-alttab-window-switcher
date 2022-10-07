@@ -418,7 +418,7 @@ function _getCommonOpt() {
 
     let popupTimeoutAdjustment = new Gtk.Adjustment({
         upper: 400,
-        lower: 10,
+        lower: 0,
         step_increment: 10,
         page_increment: 100,
     });
@@ -450,7 +450,7 @@ function _getCommonOpt() {
     );
 
     optDict.SuperKeyMode = itemFactory.getRowWidget(
-            _('System Super Key Action'),
+            _('Super Key Action'),
             _("Open App switcher or Window switcher by pressing and releasing the Super key (default overlay-key, can be remapped in Gnome Tweaks). Default mode doesn't change system behavior."),
             itemFactory.newComboBox(),
             'superKeyMode',
@@ -497,7 +497,7 @@ function _getCommonOpt() {
     );
 
     optDict.HotEdgeMode = itemFactory.getRowWidget(
-        _('Hot Key Action'),
+        _('Hot Edge Action'),
         _("Default switcher mode for Hot Edge trigger."),
         itemFactory.newComboBox(),
         'hotEdgeMode',
