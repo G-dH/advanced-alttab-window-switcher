@@ -188,13 +188,15 @@ function _getWindows(workspace, modals = false) {
 var   WindowSwitcherPopup = GObject.registerClass(
 class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _init() {
+        this._initTime = Date.now();
         super._init();
         this._actions              = null;
         // Global options
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = ''; // can be set by the external trigger which provides the keyboard shortcut
-        // options var is set from extension.js when the extension is enabled
+
+        // options variable is set from extension.js when the extension is enabled
 
         this.KEYBOARD_TRIGGERED    = true;  // popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
         this.PREVIEW_SELECTED      = options.get('switcherPopupPreviewSelected');
@@ -242,7 +244,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._firstRun             = true;
         this._favoritesMRU         = true;
         this._doNotReactOnScroll   = false;
-        options.cancelTimeout             = false;
+        // _skipInitialSelection allows to avoid double selection when re-showing switcher followed by custom selection
+        this._skipInitialSelection = false;
+        options.cancelTimeout      = false;
 
         global.advancedWindowSwitcher = this;
         this.connect('destroy', this._onDestroyThis.bind(this));
@@ -278,9 +282,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     show(backward, binding, mask) {
         // remove overlay labels if exist
-        //this._removeCaptions();
+        this._removeCaptions();
 
-        if (!this._pushModal()) {
+        if (this._firstRun && !this._pushModal()) {
             return false;
         };
         // if only one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
@@ -388,7 +392,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._tempFilterMode = null;
-        this._connectNewWindows();
+        if (!this._newWindowSignalId)
+            this._connectNewWindows();
         return true;
     }
 
@@ -453,7 +458,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.PANEL_HEIGHT = Main.panel.height;
         this._switcherList.set_style(`margin-top: ${this.PANEL_HEIGHT + 4}px; padding-bottom: ${padding}px;`);
 
-        this._initialSelection(backward, binding);
+        if (this._firstRun || this._searchEntryNotEmpty())
+            this._initialSelection(backward, binding);
 
         // There's a race condition; if the user released Alt before
         // we got the grab, then we won't be notified. (See
@@ -476,7 +482,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._resetNoModsTimeout();
         }
 
-        this._setSwitcherStatus();
         // avoid showing overlay label before the switcher popup
         if (this._firstRun && this._itemCaption) {
             this._itemCaption.opacity = 0;
@@ -489,10 +494,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             // timeout in which click on the swhitcher background acts as 'activate' despite configuration
             // for quick switch to recent window when triggered using mouse and top/bottom popup position
             this._recentSwitchTime = Date.now() + 300;
-
+            // the initial delay needs to include the time spent so far
+            const delay = Math.max(0, options.INITIAL_DELAY - (Date.now() - this._initTime));
             this._initialDelayTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) ? options.INITIAL_DELAY : 0,
+                GLib.PRIORITY_HIGH,
+                (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) ? delay : 0,
                 () => {
                     if (!this._doNotShowImmediately) {
                         if (this.KEYBOARD_TRIGGERED) {
@@ -504,6 +510,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         }
                         Main.osdWindowManager.hideAll();
                     }
+
+                    this._setSwitcherStatus();
                     this._initialDelayTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
                 }
@@ -512,6 +520,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             GLib.Source.set_name_by_id(this._initialDelayTimeoutId, '[gnome-shell] Main.osdWindow.cancel');
         } else {
             this.opacity = 255;
+            if (this._searchEntryNotEmpty()) {
+                this._showSearchCaption(this._searchEntry);
+            } else if (this._searchEntry === '' && this._searchCaption) {
+                this._searchCaption.destroy();
+                this._searchCaption = null;
+            }
         }
 
         if (this._initialSelectionMode === SelectMode.RECENT || this._initialSelectionMode === SelectMode.NONE) {
@@ -684,6 +698,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _initialSelection(backward, binding) {
+        if (this._skipInitialSelection) {
+            this._skipInitialSelection = false;
+            return;
+        }
         if (this._itemCaption) {
             this._itemCaption._destroy();
         }
@@ -767,11 +785,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._doNotUpdateOnNewWindow)
                 return;
 
-            // there are situations when window list updates later than this callback is executed
+            // new window was created but maybe not realized yet, so we will wait before updating content of the switcher
+            // delay is easier to apply than connect the 'realized' signal of the new window if user spawn multiple new windows quickly
             if (this._newWindowConnectorTimeoutId)
                 GLib.source_remove(this._newWindowConnectorTimeoutId);
 
-                this._newWindowConnectorTimeoutId = GLib.timeout_add(
+            this._newWindowConnectorTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
                 200,
                 () => {
@@ -779,16 +798,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         return GLib.SOURCE_REMOVE;
                     }
 
-                    this._updateSwitcher();
+                    this._skipInitialSelection = true;
+                    this.show();
                     let app = _getWindowApp(win);
 
                     if (win && this._showingApps && this._selectedIndex > -1) {
                         if (app) {
                             this._select(this._getItemIndexByID(app.get_id()));
                         }
-                    }
-
-                    else if (this._selectedIndex > -1) {
+                    } else if (this._selectedIndex > -1) {
                         this._select(this._getItemIndexByID(win.get_id()));
                     }
 
@@ -838,11 +856,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._tempFilterMode = mode;
                 switcherList = this._getCustomWindowList(this._searchEntry);
                 if (switcherList.length > 0) {
-                    // if on empty WS/monitor, don't select any item
+                    // if on empty WS/monitor ...
                     if (this._searchEntry === null || this._searchEntry === '') {
-                        this._initialSelectionMode = SelectMode.NONE;
-                        this._selectedIndex = -1;
-
+                        // ... select first item if firstRun
+                        if (this._firstRun) {
+                            this._initialSelectionMode = SelectMode.FIRST;
+                            this._selectedIndex = 0;
+                        // ... select nothing if not firstRun
+                        } else {
+                            this._initialSelectionMode = SelectMode.NONE;
+                            this._selectedIndex = -1;
+                        }
+                        // set filter mode to ALL to avoid switching it back if user creates/moves any window to this empty ws
                         this.WIN_FILTER_MODE = this._tempFilterMode;
                     }
                     break;
@@ -868,7 +893,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         return switcherList;
     }
-    
+
     _shadeIn() {
         //let height = this._switcherList.height;
         this.opacity = 255;
@@ -883,12 +908,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             opacity: 255,
             duration: 70,
             mode: Clutter.AnimationMode.LINEAR,
-            onComplete: () => {
-                if (this._itemCaption) {
-                    this._itemCaption.opacity = 255;
-                }
-            },
         });
+
+        if (this._itemCaption) {
+            this._itemCaption.ease({
+                opacity: 255
+            });
+        }
     }
 
     _shadeOut() {
@@ -1022,6 +1048,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         id = id ? id.get_id() : null;
 
+        this._skipInitialSelection = true;
         this.show();
         this._select(this._getItemIndexByID(id));
         !options.PREVIEW_SELECTED && this._destroyWinPreview();
@@ -1045,6 +1072,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _setSwitcherStatus() {
+        if (!options.STATUS)
+            return;
+
         this._switcherList._statusLabel.set_text(
             `${_('Filter: ')}${FilterModeLabel[this._tempFilterMode === null ? this.WIN_FILTER_MODE : this._tempFilterMode]
             }${this._singleApp ? `/${_('APP')}` : ''},  ${
@@ -1052,13 +1082,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 _('Sort:')} ${this._showingApps ? SortingModeLabel[this.APP_SORTING_MODE] : SortingModeLabel[this.WIN_SORTING_MODE]}, ${
                 _('Search:')} ${this._searchEntry === null ? 'Off' : 'On'}`
         );
-
-        if (this._searchEntryNotEmpty()) {
-            this._showSearchCaption(this._searchEntry);
-        } else if (this._searchEntry === '' && this._searchCaption) {
-            this._searchCaption.destroy();
-            this._searchCaption = null;
-        }
     }
 
     _resetNoModsTimeout() {
@@ -1143,6 +1166,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else {
             this._selectedIndex = index;
             this._switcherList.highlight(index);
+            // don't slow down showing the popup
             if (options.ITEM_CAPTIONS > 1) {
                 this._showOverlayTitle();
             }
@@ -1736,7 +1760,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        // show window
+        // show window or overview
         else if (keysym === Clutter.KEY_space || keysym === Clutter.KEY_KP_0 || keysym === Clutter.KEY_KP_Insert) {
             if (_ctrlPressed()) {
                 this._popModal();
@@ -1925,6 +1949,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._itemCaption = null;
         }
         let selected = this._items[this._selectedIndex];
+
+        if (!selected)
+            return;
+
         let title;
         let details = '';
 
@@ -1988,6 +2016,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _updateMouseControls() {
         if (!this.mouseActive)
             return;
+
         // activate indicators only when mouse pointer is (probably) used to control the switcher
         if (this._updateNeeded) {
             this._items.forEach((w) => {
@@ -2372,6 +2401,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 id = _getWindowApp(this._items[0].window).get_id();
             }
 
+            this._skipInitialSelection = true;
             this.show();
             this._select(this._getItemIndexByID(id));
         } else /* if (this._switcherMode === SwitcherMode.WINDOWS)*/ {
@@ -2391,10 +2421,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
 
             this._initialSelectionMode = SelectMode.FIRST;
-            this.show();
 
             if (id !== undefined) {
+                this._skipInitialSelection = true;
+                this.show();
                 this._select(this._getItemIndexByID(id));
+            } else {
+                this.show();
             }
         }
     }
@@ -2438,12 +2471,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _switchWorkspace(direction) {
         let id = this._getSelectedID();
         this._getActions().switchWorkspace(direction, true);
-        this.show();
 
         if (this._selectedIndex > -1) {
+            this._skipInitialSelection = true;
+            this.show();
             this._doNotShowWin = true;
             this._select(this._getItemIndexByID(id));
             this._doNotShowWin = false;
+        } else {
+            this.show();
         }
 
             this._getActions().showWsSwitcherPopup();
