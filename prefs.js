@@ -425,7 +425,7 @@ function _getCommonOpt() {
 
     optDict.DelayShowingSwitcher = itemFactory.getRowWidget(
             _('Delay Showing Switcher (ms)'),
-            _("Delay showing the pop-up so that fast Alt+Tab users aren't disturbed by the pop-up briefly flashing."),
+            _("Allows to delay showing the pop-up so that fast Alt+Tab users aren't disturbed by the pop-up briefly flashing. Note that building the switcher pop-up take some time that depends on your system and on a number of items in the switcher, therefore even if you set the delay to 0, there still be some lag."),
             itemFactory.newSpinButton(popupTimeoutAdjustment),
             'switcherPopupTimeout'
     );
