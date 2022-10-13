@@ -150,12 +150,14 @@
   background-color: rgba(20, 20, 20, 0.95);
   border-color: rgba(63, 63, 63, 0.8);
   color: rgb(220, 220, 220);
+  text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.0);
 }
 
 .switcher-list-light, .caption-label-light, .search-label-light, .title-label-light {
   background-color: rgba(245, 245, 245, 0.95);
   border-color: rgba(150, 150, 150, 0.8);
   color: rgb(25, 25, 25);
+  text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.0);
 }
 
 .title-description {
