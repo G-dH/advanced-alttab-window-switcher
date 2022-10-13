@@ -452,8 +452,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList._rightArrow.add_style_class_name(options.colorStyle.ARROW);
         this._switcherList._leftArrow.add_style_class_name(options.colorStyle.ARROW);
 
-        let themeNode = this._switcherList.get_theme_node();
-        let padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
+        const themeNode = this._switcherList.get_theme_node();
+        const padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
 
         this.PANEL_HEIGHT = Main.panel.height;
         this._switcherList.set_style(`margin-top: ${this.PANEL_HEIGHT + 4}px; padding-bottom: ${padding}px;`);
@@ -1168,7 +1168,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._switcherList.highlight(index);
             // don't slow down showing the popup
             if (options.ITEM_CAPTIONS > 1) {
-                this._showOverlayTitle();
+                this._showTitleCaption();
             }
         }
 
@@ -1943,7 +1943,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }, options);
     }
 
-    _showOverlayTitle() {
+    _showTitleCaption() {
         if (this._itemCaption) {
             this._itemCaption._destroy();
             this._itemCaption = null;
@@ -1958,16 +1958,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (selected._is_window) {
             title = selected.window.get_title();
-            //if (this._searchEntryNotEmpty()) {
-                const appName = selected.app.get_name();
-                details = appName == title ? null : appName;
-            //}
+            const appName = selected.app.get_name();
+            details = appName == title ? '' : appName;
         } else {
             title = selected.titleLabel.get_text();
             // if serching apps add more info to the caption
             if (selected._appDetails) {
                 if (selected._appDetails.generic_name && !this._match(title, selected._appDetails.generic_name)) {
                     details += `${selected._appDetails.generic_name}`;
+
                 }
 
                 if (selected._appDetails.description && !this._match(title, selected._appDetails.description)) {
