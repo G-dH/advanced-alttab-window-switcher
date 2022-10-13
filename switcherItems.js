@@ -281,11 +281,14 @@ class AppIcon extends AppDisplay.AppIcon {
 
         // remove original app icon style
         this.style_class = '';
+        // symbolic icons should be visible on both dark and light background
         this.set_style('color: grey;');
 
         if (this._options.SHOW_APP_TITLES) {
             if (this.icon.label) {
                 this.icon.label.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
+                this.icon.label.set_style_class_name(this._options.colorStyle.TITLE_LABEL);
+                this.icon.label.opacity = 255;
                 // set label truncate method
                 this.icon.label.clutterText.set({
                     line_wrap: false,
@@ -316,15 +319,17 @@ class AppIcon extends AppDisplay.AppIcon {
         if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
             this._dot.add_style_class_name('running-dot');
             // change dot color to be visible on light bg cause Adwaita uses white color
-            if (this._options.colorStyle.RUNNING_DOT_COLOR)
+            if (this._options.colorStyle.RUNNING_DOT_COLOR) {
                 this._dot.add_style_class_name(this._options.colorStyle.RUNNING_DOT_COLOR);
-            this.icon.set_style('margin-bottom: 6px;');
+            }
+            this.icon.set_style('margin-bottom: 4px;');
             if (!count) {
                 this._dot.opacity = 0;
             }
         } else {
-            if (this._winCounterIndicator)
-            this._winCounterIndicator.set_style(`margin-bottom: 1px;`);
+            if (this._winCounterIndicator) {
+                this._winCounterIndicator.set_style(`margin-bottom: 1px;`);
+            }
             this._iconContainer.remove_child(this._dot);
         }
 
