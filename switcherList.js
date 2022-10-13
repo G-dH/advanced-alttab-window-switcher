@@ -33,7 +33,7 @@ const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 var SwitcherList = GObject.registerClass(
 class SwitcherList extends SwitcherPopup.SwitcherList {
     _init(items, options, switcherParams) {
-        let squareItems = false;
+        const squareItems = false;
         super._init(squareItems);
         this._options = options;
         this._switcherParams = switcherParams;
@@ -85,8 +85,13 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
             }
 
             this.addItem(icon, icon.titleLabel);
-            if (icon._is_focused) {
+            /*if (icon._is_focused) {
                 this._items[this._items.length - 1].add_style_class_name(this._options.colorStyle.FOCUSED);
+            }*/
+            if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
+                const item = this._items[this._items.length - 1];
+                const margin = 2;
+                item.set_style(`padding-bottom: ${margin}px;`);
             }
             this.icons.push(icon);
 
