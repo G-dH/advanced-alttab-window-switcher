@@ -491,7 +491,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // disturbed by the popup briefly flashing.
         // but not when we're just overriding already shown content
         if (this._firstRun) {
-            // timeout in which click on the swhitcher background acts as 'activate' despite configuration
+            // timeout in which click on the switcher background acts as 'activate' despite configuration
             // for quick switch to recent window when triggered using mouse and top/bottom popup position
             this._recentSwitchTime = Date.now() + 300;
             // the initial delay needs to include the time spent so far
@@ -644,7 +644,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!this.mouseActive)
             return;
         const item = this._items[n];
-        // avoid unnecessary reentrancy, reenter only when close button needs to be displayed
+        // avoid unnecessary reentrance, reenter only when close button needs to be displayed
         if (!(this._selectedIndex === n && (item._closeButton && item._closeButton.opacity === 255)) ||
              (this._selectedIndex === n && !item._closeButton))
             this._itemEnteredHandler(n);
@@ -921,7 +921,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._itemCaption) {
             this._itemCaption.opacity = 0;
         }
-        // realease the input before the animation so the user can interact with the rest of the desktop
+        // release the input before the animation so the user can interact with the rest of the desktop
         this._popModal();
         this._switcherList.ease({
             //height: 0,
@@ -1002,7 +1002,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             //Main.activateWindow(selected);
         }
 
-        // don't close the switcher if there is higher posibility that user wants to continue using it
+        // don't close the switcher if there is higher possibility that user wants to continue using it
         //if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE)))
             super._finish();
     }
@@ -1379,7 +1379,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return this._searchEntry !== null && this._searchEntry !== '';
     }
 
-    // sometimes mouse hover don't select item and click/scroll on the item would actvate another (previously selected) item
+    // sometimes mouse hover don't select item and click/scroll on the item would activate another (previously selected) item
     _selectClickedItem(item) {
         for (let i = 0; i < this._switcherList._items.length; i++) {
             if (item == this._switcherList._items[i]) {
@@ -1557,7 +1557,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (keysym === Clutter.KEY_Escape && this._singleApp && !this.KEYBOARD_TRIGGERED) {
             this._toggleSingleAppMode();
         } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
-            // if overlay-key (usually Super_L) is pressed within the timeout aftetr AATWS was triggered - double press
+            // if overlay-key (usually Super_L) is pressed within the timeout after AATWS was triggered - double press
             if ((!_ctrlPressed() && _shiftPressed()) || (this._overlayKeyInitTimeout && options.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.OVERVIEW)) {
                 this.fadeAndDestroy();
                 Main.overview.toggle();
@@ -1678,7 +1678,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         else if (keysym == Clutter.KEY_Left || options.get('hotkeyLeft').includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed()) {
-                this._moveFavotites(-1);
+                this._moveFavorites(-1);
             } else if (_ctrlPressed() && !_shiftPressed()) {
                     this._moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
             } else if (!_shiftPressed()) {
@@ -1688,7 +1688,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         } else if (keysym == Clutter.KEY_Right || options.get('hotkeyRight').includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed()) {
-                this._moveFavotites(+1);
+                this._moveFavorites(+1);
             } else if (_ctrlPressed() && !_shiftPressed()) {
                 this._moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
             } else if (!_shiftPressed()) {
@@ -1792,7 +1792,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        // make selected window Allways on Visible Workspace
+        // make selected window Always on Visible Workspace
         else if ((options.get('hotkeySticky').includes(keyString)) && (options.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             if (!this._showingApps) {
                 this._toggleWinSticky();
@@ -1962,7 +1962,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             details = appName == title ? '' : appName;
         } else {
             title = selected.titleLabel.get_text();
-            // if serching apps add more info to the caption
+            // if searching apps add more info to the caption
             if (selected._appDetails) {
                 if (selected._appDetails.generic_name && !this._match(title, selected._appDetails.generic_name)) {
                     details += `${selected._appDetails.generic_name}`;
@@ -2172,7 +2172,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 //item._wsIndicator.add_style_class_name('ws-indicator-hover');
             });
             item._wsIndicator.connect('leave-event', () => {
-                item._wsIndicator.remove_style_class_name('ws-indicator-hover');
+                //item._wsIndicator.remove_style_class_name('ws-indicator-hover');
                 item._wsIndicator.text = (item.window.get_workspace().index() + 1).toString();
             });
         }
@@ -2218,7 +2218,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return this._actions;
     }
 
-    _moveFavotites(direction) {
+    _moveFavorites(direction) {
         if ((!this._showingApps && this.INCLUDE_FAVORITES) || !this._getSelected())
             return;
 
@@ -2893,7 +2893,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (!options.MINIMIZED_LAST && !options.SKIP_MINIMIZED) {
             // wm returns tablist with the minimized windows at the end of the list, we want to move them back to their real MRU position
-            // but avoid sorting all windows because parents of the modal windows could already be moved to their children possition.
+            // but avoid sorting all windows because parents of the modal windows could already be moved to their children position.
             winList = winList.sort((a,b) => (b.get_user_time() > a.get_user_time()) && b.minimized);
         }
 
@@ -2916,7 +2916,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             winList.sort((a, b) => b.get_workspace().index() < a.get_workspace().index());
 
         } else if (this.GROUP_MODE === GroupMode.CURRENT_MON_FIRST && filterMode < FilterMode.MONITOR) {
-            // windows from the active workspace and monnitor first
+            // windows from the active workspace and monitor first
             winList.sort((a, b) =>  (b.get_workspace().index() === ws.index() && b.get_monitor() === monitor) &&
                                     (a.get_workspace().index() !== ws.index() || a.get_monitor() !== monitor));
 
@@ -3135,7 +3135,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let p = pattern.toLowerCase();
         let ps = p.split(/ +/);
 
-        // allows to use multiple exact paterns separated by space in arbitrary order
+        // allows to use multiple exact patterns separated by space in arbitrary order
         for (let w of ps) {
             if (!s.includes(w)) {
                 return false;

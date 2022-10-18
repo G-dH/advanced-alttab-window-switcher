@@ -7,7 +7,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 
 **Keyboard shortcuts for these switchers can be set in *GNOME Settings > Keyboard Shortcuts*.**
 
-*AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in *type to search* feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you dont exacty know its name. AATWS also offers activation using a mouse by hitting a top or bottom hot edge and can serve as a app launcher and dock.
+*AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in *type to search* feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you don't exactly know its name. AATWS also offers activation using a mouse by hitting a top or bottom hot edge and can serve as a app launcher and dock.
 
 ![Window Switcher Popup](screenshots/screenshot.png)
 
@@ -50,7 +50,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 |`;/~ (the key above Tab)`| - In the Window mode - sort windows by application, each subsequent key press selects the first window of the next app.<br>-In the Application mode - iterate over windows of the selected application, Tab switches back to apps.|
 |`G`|                       - Toggle `Sort windows by workspace`, if `Filter` mode is set to `ALL`.|
 |`1/+/!`|                   - Toggle `Single App` mode - shows only windows of the selected application.|
-|`E/Insert`|                - Toggle the `Type to Search` mode. If the search mode is activated by the hotkey, you can relese the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
+|`E/Insert`|                - Toggle the `Type to Search` mode. If the search mode is activated by the hotkey, you can release the Alt key and the popup will not close. Selected item then must be activated using the `Enter` key, or you can close the popup without item activation using the Esc. `Del` key clears the entry.
 |`W`|                       - `Close` the selected window or `Quit` selected application.|
 |`Ctrl+W`|                  - Close the application of the selected window.|
 |`Shift+Del`|               - Force Close - sends a `kill -9` signal to the application of selected window or to the selected application.|
@@ -59,8 +59,8 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 |`S`|                       - Toggle selected window `Always on Visible Workspace`. Ths state is indicated by the 'pin' icon at the top. Note, that this flag have all windows located on other than the primary monitor, when the GNOME Shell's option `Workspaces on Primary Display Only` is active.|
 |`X, Shift+Enter`|        - Move selected window to the current workspace and monitor<br>-The current monitor is the one where the switcher popup is placed or where the mouse pointer is currently placed if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.|
 |`M`|                       - Toggle full maximization of selected window on the current workspace and monitor. The current monitor is the one as described above.|
-|`N, Ctrl+Enter`|           - Open new window of selected application, if the application soupports it.|
-|`F`|                       - Move the selected window to a new empty workspace next to its current workspace and switches the window to the fullscreen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the fullscreen mode.|
+|`N, Ctrl+Enter`|           - Open new window of selected application, if the application supports it.|
+|`F`|                       - Move the selected window to a new empty workspace next to its current workspace and switches the window to the full-screen mode.<br>-Next use of this action on the same window moves the window back to its original workspace and turns off the full-screen mode.|
 |`Ctrl+;/~`|                - Toggle between Windows and Applications modes.|
 |`T`|                       - Create a thumbnail preview of the selected window and place it at the bottom right of the current monitor. You can remove the lastly created thumbnail using this hotkey while holding the `Ctrl` key pressed, or remove all created thumbnails while holding `Ctrl` and `Shift` keys pressed.|
 |`P`|                       - Open preferences window for this extension.|
@@ -72,11 +72,11 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 
 ### Type to Search
 
-- If the `Search mode` is activated (by the `E` or `Insert` hotkeys or as the default mode in the preferences window), the `A-Z` and `0-9` keys can be used to enter the search pattern. The switcher window/app list is imediately filtered/repopulated accordingly.
-- When you activate the Search mode using the hotkey, you can release the modifier keys used to activate the switcher (Alt, Super) and the switcher stays open. If the Search mode is active as default, relese of the modifier key activates the selected result as usual. If you activate the switcher using Super key, you have 5 seconds to start typing, or you can pres and release the `Ctrl` key to cancel the timeout.
+- If the `Search mode` is activated (by the `E` or `Insert` hotkeys or as the default mode in the preferences window), the `A-Z` and `0-9` keys can be used to enter the search pattern. The switcher window/app list is immediately filtered/repopulated accordingly.
+- When you activate the Search mode using the hotkey, you can release the modifier keys used to activate the switcher (Alt, Super) and the switcher stays open. If the Search mode is active as default, release of the modifier key activates the selected result as usual. If you activate the switcher using Super key, you have 5 seconds to start typing, or you can pres and release the `Ctrl` key to cancel the timeout.
 - Characters with diacritics are converted to its basic form and case doesn't matter.
 - You can also enter more patterns separated by a space in arbitrary order, so if you enter 'fox ext', a window with 'Extensions - Firefox' in the title will also be found. If you enter a character that would filter out all items (no match), this character will be removed and the selection will stays unchanged waiting for another character.
-- AATWS is saerching in the window title, app name, app generic name (which usually contains information what type of application it is), description, keywords (not localized), categories (not localized) and name of the app executable file. Properties for apps comes from their `.desktop` launchers.
+- AATWS is searching in the window title, app name, app generic name (which usually contains information what type of application it is), description, keywords (not localized), categories (not localized) and name of the app executable file. Properties for apps comes from their `.desktop` launchers.
 - Window search results are based not only on window titles but also on their app names and names of executable, so you can find all default file manager windows by typing `files` or even `nautilus`.
 - Option `Search All Windows` for the Window Switcher allows AATWS to search for windows outside the current filter scope if no window was found with the current filter mode.
 - YOption `Search Applications` for the Window Switcher allows AATWS to search applications in the Window switcher mode, so you don't have to leave the window switcher to launch a new app (if no window match the entered pattern).
@@ -84,7 +84,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 - In the App Switcher if no app match the entered pattern, windows are searched automatically.
 - Application search results add generic name (if different from name) and description to the name in icon tooltips to help identify unknown apps.
 - Option `Max Number of Search Results` for App Switcher limits output of search engine. Default is 12.
-- Application search results are weighted by the following criteria (in this order): position in the list of frequently used applications, app name starts with the pattern, any word in the item name/description/category/executable starts with the pattern. This means that you can very quicky and consistently find apps if you know their names, mostly using just one letter.
+- Application search results are weighted by the following criteria (in this order): position in the list of frequently used applications, app name starts with the pattern, any word in the item name/description/category/executable starts with the pattern. This means that you can very quickly and consistently find apps if you know their names, mostly using just one letter.
 - Window search results are weighted by the following criteria (in this order): app name starts with the pattern, any word in the window title/app name/executable starts with the pattern.
 
 **Even in the search mode you can use all hotkeys if you press and hold the Shift modifier key**.
@@ -130,7 +130,7 @@ Install the extension (`--force` switch needs to be used only if some version of
     gnome-extensions install --force advanced-alttab-window-switcher@G-dH.github.com.zip
 
 ### Installation of the latest development version
-The most recent version in the repository is the one I'm currently running on my own systems, problems may occure, but usually nothing serious.
+The most recent version in the repository is the one I'm currently running on my own systems, problems may occur, but usually nothing serious.
 Run following commands in the terminal (`git` needs to installed, navigate to the directory you want to download the source):
 
     git clone https://github.com/G-dH/advanced-alttab-window-switcher.git

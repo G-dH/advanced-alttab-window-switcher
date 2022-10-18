@@ -196,7 +196,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
     }
 
     _onItemEnter(item) {
-        // Avoid reentrancy
+        // Avoid reentrance
         //if (item !== this._items[this._highlighted])
             this._itemEntered(this._items.indexOf(item));
 

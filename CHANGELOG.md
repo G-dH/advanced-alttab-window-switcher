@@ -1,5 +1,18 @@
 ## Changelog
 
+### v21 (not yet released)
+**Fixed**
+- App activation in mouse mouse mode not working when no window opened
+- Option "Always Activate Focused Window" affects wm focus-mode auto-rise-delay
+- Super key set to AATWS by default
+- Removed double-selection causing title captions allocation errors
+- Initial delay doesn't subtract AATWS build time
+
+**Changed**
+- Disabled focused item indicator (I actually don't like it)
+- Background padding reduction
+
+
 ### v19/20 2022-09-09
 **Added**
 - Top and bottom hot edge options allows to trigger *AATWS* popup using a mouse without *Custom Hot Corners - Extended*.
@@ -23,33 +36,33 @@
 - Hotkey to toggle `Include Favorite Apps` - select `Show Apps Icon` and press the key above Tab (group switcher shortcut).
 
 **Fixed:**
-- DND Window thumbnails - scroll action works only once; when source windo closes, thumbnail isn't destroyed completely.
+- DND Window thumbnails - scroll action works only once; when source window closes, thumbnail isn't destroyed completely.
 
 
 ### v16 2022-07-06
 **Added:**
 - App Switcher Option: `Include Show Apps Icon` - allows you to toggle Overview's App Grid from AATWS.
-- App Switcher Option: `Show App Windows Before Activation` - if you click on icon with multiple windows, the switcher toggles to the single app mmode to show you the windows instead of activation of the most recently used window.
+- App Switcher Option: `Show App Windows Before Activation` - if you click on icon with multiple windows, the switcher toggles to the single app mode to show you the windows instead of activation of the most recently used window.
 - External/Mouse trigger option: `Force App Switcher Include Favorites` - App switcher can include favorite apps only if triggered using a mouse (from Custom Hot Corners - Extended).
 - Updated DND Window Thumbnail with overlay close button and scroll function indicator and also full-sized window preview on hover.
 
 **Fixed:**
-- backward navigation don't work for some keayboard shortcuts.
+- backward navigation don't work for some keyboard shortcuts.
 - Closing AATWS using Esc key sends Esc release event to the focused window which may react to it. Now AATWS closes on release of the Esc key instead of press to avoid this issue.
 
 
 ### v15
 **Added:**
-- Option `Synchronize Filter Mode` allows to keep the current window flter mode when switcheng between Window and App modes of the switcher, which was the default behavior until now. If disabled, the switcher will change the window filter mode to the respective default each time the switcher mode is changed.
+- Option `Synchronize Filter Mode` allows to keep the current window filter mode when switching between Window and App modes of the switcher, which was the default behavior until now. If disabled, the switcher will change the window filter mode to the respective default each time the switcher mode is changed.
 - Returned requested option `Show Workspace Switcher Pop-up`.
-- Option `Monitor with current window` aded to `Default Monitor` menu.
+- Option `Monitor with current window` added to `Default Monitor` menu.
 - Option `Hide Window Counter For Single-Window Apps` as complementary to the option `Show Window Counter` (PR [#27](https://github.com/G-dH/advanced-alttab-window-switcher/pull/27))
 
 **Other changes:**
 - Single app mode now includes windows whose parent applications do not match the ID but have the same name. It helps to, for example, isolate all windows of Virtual Box machines, preferences windows spawned by the Extensions app and other.
 - Always On Top state of the window is now indicated by the icon instead of elevated front (app) icon.
 - Action on hotkey `Shift+Super` changed back to Toggle Activities overview.
-- Updated style of running app dot ndicator.
+- Updated style of running app dot indicator.
 - Removed running app dot indicator if favorite apps are not included in the app switcher.  
 - Preferences window code refactored.
 - Activation of Preferences window from AATWS can now close blocking preferences window of another extension and also move its own already existing window to the current workspace.
@@ -65,32 +78,32 @@
 - Each window preview in the switcher list reveals the `Close Window` button on mouse hover to easily close the window.
 - Option `Up/Down Keys Action` allows to choose what action will be assigned to the arrow keys Up and Down - `Nothing`, `Switch Workspace`, `Toggle Single App Mode` or `Down:Single App, Up:Switcher Mode`.
 - Option `Always Activate Focused Window` - hack for the window manager that should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interacts with the window.
-- Adwaita prefs window support for GNOME Shell 42
+- Adwaita preferences window support for GNOME Shell 42
 - Overlay (Super_L in default) key press can now close the popup and initial double-press of the key can be set to user defined action - Open Activities Overview, Open App Grid, Activate Previous Window, Toggle Switcher Mode (App/Windows). It's an experimental option, hack that I'm using to unblock the Overlay key signal events in the modal state leads to brief graphics stuttering when AATWS pops up and out, which can be annoying if you work with video or any moving content.
-- App search results add information about whether the application was installed as Flatpak or Snap, and the commandline app property is searched instead of the executable propetry, so you can find all Snap or Flatpack applications by entering a specific pattern.
+- App search results add information about whether the application was installed as Flatpak or Snap, and the command line app property is searched instead of the executable property, so you can find all Snap or Flatpack applications by entering a specific pattern.
 
 **Fixed:**
 - Reverse ordered switcher list wider than the display has the first item out of the display.
 - Red dot indicator of running app ignores app filter mode.
 - App description not localized.
-- Mouse buttons and scroll wheel events for the switcher item not read from the whole highlited area.
+- Mouse buttons and scroll wheel events for the switcher item not read from the whole highlighted area.
 - Double click on DND window thumbnail doesn't work for GNOME Shell 42
 
 **Other changes**
 - Space/KP_0 keys toggle `Show Selected Window` `Preview` mode On/Off instead of one time preview.
 - Added Mouse page to preferences window
 - Removed workspace switcher options as they can be controlled using the `Workspace Switcher Manager` extension.
-- Preferences window now supports new GNOME 42 Adwaita toolkit and also Gtk3 and Gtk4 versions of prefs windows were refactored to get visually closer to the Adwaita version.
+- Preferences window now supports new GNOME 42 Adwaita toolkit and also Gtk3 and Gtk4 versions of preferences windows were refactored to get visually closer to the Adwaita version.
 
 ### v12
 **Added:**
 - Option `Tooltip Label Scale` allows to adjust tooltip labels size.
-- Option `Prioritize Running Apps` for serch in applications.
+- Option `Prioritize Running Apps` for search in applications.
 - Window title tooltip shows app name.
 - Updated metadata to support GNOME Shell 42.
 
 **Fixed:**
-- PushModal function - AATWS chrashes when grabing input not successful.
+- PushModal function - AATWS crashes when grabbing input not successful.
 
 **Other changes:**
 - Own tooltip label style replaced with the system `dash-label` style with fixed radius, to better fit the current Shell theme.
@@ -99,12 +112,12 @@
 **Added:**
 - Actions `Move Window/App to New Workspace` with `Ctrl + Shift + Up/Down` shortcut.
 - Option `Minimized Windows at the End` of the list (default in GNOME Shell is `true`).
-- `Super Key Mode` option can override default Super key functionality of GNOME Shell and instead of Activities AATWS opens App or Window Switcher. Unfortunately, when AATWS switcher is up and grabed input, the Super key press/release event cannot be catched by the AATWS unless you simultaneously press and hold any other modifier key, so I've added `Shift + Super` shortcut to toggle Activities overview and `Ctrl + Shift + Super` shortcut to toggle App Grid view.
+- `Super Key Mode` option can override default Super key functionality of GNOME Shell and instead of Activities AATWS opens App or Window Switcher. Unfortunately, when AATWS switcher is up and grabbed input, the Super key press/release event cannot be caught by the AATWS unless you simultaneously press and hold any other modifier key, so I've added `Shift + Super` shortcut to toggle Activities overview and `Ctrl + Shift + Super` shortcut to toggle App Grid view.
 - App switcher now search also in `comment`, `keywords` and `category` properties of app `.desktop` file, so it's easier to find application if you don't remember its name.
 - When searching apps, the tooltip title (if enabled) of selected application adds its `generic_name` (if differ from name), which usually contains generic type of application, and also adds `comment`, which contains app description.
 - Option for app switcher `Raise First Window Only` - on app activation raise only its most recently used window instead of all app windows.
 - Option `Show Selected Window` now has two options - `Show Preview` and `Show Window`
-- `Show Window` hotkey no longer raises a real window but shows a preview instead, which dowsn't alter the current window stack.
+- `Show Window` hotkey no longer raises a real window but shows a preview instead, which doesn't alter the current window stack.
 - Option `Max Number of Search Results` in App Switcher
 
 **Other Changes:**
@@ -120,6 +133,6 @@
 
 **Fixed:**
 - `Fullscreen Selected on Empty WS` action - restore window on removed workspace crashes GS.
-- Unaccessible items if `Show selected window/app imediately` is enabled and the switcher popup is wider than screen.
+- Unaccessible items if `Show selected window/app immediately` is enabled and the switcher popup is wider than screen.
 - Filter not shared between `Window` and `App` modes before the filter is switched.
 - Global variables mess

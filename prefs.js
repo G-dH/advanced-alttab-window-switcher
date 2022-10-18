@@ -128,11 +128,11 @@ function _getCommonOptionList() {
         opt.Behavior,
             opt.Position,
             opt.DefaultMonitor,
-            opt.ShowImediately,
+            opt.ShowImmediately,
             opt.SearchModeDefault,
             opt.SyncFilter,
             opt.UpDownArrowAction,
-            opt.HotkesRequireShift,
+            opt.HotkeysRequireShift,
             opt.WraparoundSelector,
             opt.HoverSelectsItem,
             opt.DelayShowingSwitcher,
@@ -300,7 +300,7 @@ function _getCommonOpt() {
         'switcherPopupSyncFilter'
     );
 
-    optDict.ShowImediately = itemFactory.getRowWidget(
+    optDict.ShowImmediately = itemFactory.getRowWidget(
             _('Show Selected Window'),
             _("Allows to see selected window in its original size immediately as the item is selected in the switcher. Preview shows a clone of the window, second option raises the original window and switches to its workspace."),
             itemFactory.newComboBox(),
@@ -328,7 +328,7 @@ function _getCommonOpt() {
             [_('Switcher Mode/Single App Mode'), 4]]
 );
 
-    optDict.HotkesRequireShift = itemFactory.getRowWidget(
+    optDict.HotkeysRequireShift = itemFactory.getRowWidget(
             _('Action Hotkeys Require Shift'),
             _('Single-key action hotkeys, except for navigation and filter switching hotkeys, will require you to hold down the Shift key.'),
             itemFactory.newSwitch(),
@@ -462,7 +462,7 @@ function _getCommonOpt() {
     const enableSuperSwitch = itemFactory.newSwitch();
     optDict.EnableSuper = itemFactory.getRowWidget(
             _('Enable Super as Hot Key (Experimental)'),
-            _('This option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in animations and video during opening an closing the switcher popup, but only in case the switcher was opened using the Super key, this does not affect the usual Alt/Super+Tab experince.'),
+            _('This option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in animations and video during opening an closing the switcher popup, but only in case the switcher was opened using the Super key, this does not affect the usual Alt/Super+Tab experience.'),
             enableSuperSwitch,
             'enableSuper'
     );
@@ -743,7 +743,7 @@ function _getAppsOpt() {
 
     optDict.IncludeFavorites = itemFactory.getRowWidget(
             _('Include Favorite Apps'),
-            _('Include Dash favorite apps even when not runnig so you can use the switcher as an app launcher.'),
+            _('Include Dash favorite apps even when not running so you can use the switcher as an app launcher.'),
             itemFactory.newSwitch(),
             'appSwitcherPopupFavoriteApps'
     );
@@ -758,7 +758,7 @@ function _getAppsOpt() {
     const showWinCounterSwitch = itemFactory.newSwitch();
     optDict.ShowWinCounter = itemFactory.getRowWidget(
             _('Show Window Counter'),
-            _('Adds a label with the number of windows openned by each app corresponding to the current filter mode.'),
+            _('Adds a label with the number of windows opened by each app corresponding to the current filter mode.'),
             showWinCounterSwitch,
             'appSwitcherPopupWinCounter'
        );
@@ -825,7 +825,7 @@ function _getMiscOpt() {
 
     optDict.AppStableOrder = itemFactory.getRowWidget(
             _('Force App Switcher Stable Sequence'),
-            _('When the app switcher is triggered using a mouse, the default app order can be overriden to behave more like a dock. Favorit apps (if included) keep the order they have in the Dash and other open apps the order as they were launched.'),
+            _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dock. Favorite apps (if included) keep the order they have in the Dash and other open apps the order as they were launched.'),
             itemFactory.newSwitch(),
             'switcherPopupExtAppStable'
     );
@@ -860,7 +860,7 @@ function _getMiscOpt() {
 
     optDict.MousePointerPosition = itemFactory.getRowWidget(
         _('Pop-up at Mouse Pointer Position'),
-        _('Only for external trigger like CHC-E extension. If the switcher was triggerd using a mouse, it will be placed at the position of the mouse pointer.'),
+        _('Only for external trigger like CHC-E extension. If the switcher was triggered using a mouse, it will be placed at the position of the mouse pointer.'),
         itemFactory.newSwitch(),
         'switcherPopupPointer'
     );
@@ -918,7 +918,7 @@ function _getMouseOpt() {
 
     optDict.PrimaryBackground = itemFactory.getRowWidget(
             _('Primary Click on switcher Background'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button on the switcher pop-up background'),
+            _('Action to be triggered by a click of the primary (usually left) mouse button on the switcher pop-up background'),
             itemFactory.newComboBox(),
             'switcherPopupPrimClickIn',
             actionList
@@ -926,7 +926,7 @@ function _getMouseOpt() {
 
     optDict.SecondaryBackground = itemFactory.getRowWidget(
             _('Secondary Click on switcher Background'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button on the switcher pop-up background'),
+            _('Action to be triggered by a click of the secondary (usually right) mouse button on the switcher pop-up background'),
             itemFactory.newComboBox(),
             'switcherPopupSecClickIn',
             actionList
@@ -950,7 +950,7 @@ function _getMouseOpt() {
 
     optDict.PrimaryOutside = itemFactory.getRowWidget(
             _('Primary Click Outside switcher'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button outside the switcher pop-up'),
+            _('Action to be triggered by a click of the primary (usually left) mouse button outside the switcher pop-up'),
             itemFactory.newComboBox(),
             'switcherPopupPrimClickOut',
             actionList
@@ -958,7 +958,7 @@ function _getMouseOpt() {
 
     optDict.SecondaryOutside = itemFactory.getRowWidget(
             _('Secondary Click Outside switcher'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button outside the switcher pop-up'),
+            _('Action to be triggered by a click of the secondary (usually right) mouse button outside the switcher pop-up'),
             itemFactory.newComboBox(),
             'switcherPopupSecClickOut',
             actionList
@@ -999,7 +999,7 @@ function _getMouseOpt() {
     winActionList.splice(1,1);*/
     optDict.PrimaryWinItem = itemFactory.getRowWidget(
             _('Primary Click on Item'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (window icon)'),
+            _('Action to be triggered by a click of the primary (usually left) mouse button on any switcher item (window icon)'),
             itemFactory.newComboBox(),
             'winSwitcherPopupPrimClickItem',
             winActionList
@@ -1007,7 +1007,7 @@ function _getMouseOpt() {
 
     optDict.SecondaryWinItem = itemFactory.getRowWidget(
             _('Secondary Click on Item'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (window icon)'),
+            _('Action to be triggered by a click of the secondary (usually right) mouse button on any switcher item (window icon)'),
             itemFactory.newComboBox(),
             'winSwitcherPopupSecClickItem',
             winActionList
@@ -1043,7 +1043,7 @@ function _getMouseOpt() {
     // appActionList.splice(1,1);
     optDict.PrimaryAppItem = itemFactory.getRowWidget(
             _('Primary Click on Item'),
-            _('Action to be triggered by a click of the primary (usualy left) mouse button on any switcher item (app icon)'),
+            _('Action to be triggered by a click of the primary (usually left) mouse button on any switcher item (app icon)'),
             itemFactory.newComboBox(),
             'appSwitcherPopupPrimClickItem',
             appActionList
@@ -1051,7 +1051,7 @@ function _getMouseOpt() {
 
     optDict.SecondaryAppItem = itemFactory.getRowWidget(
             _('Secondary Click on Item'),
-            _('Action to be triggered by a click of the secondary (usualy right) mouse button on any switcher item (app icon)'),
+            _('Action to be triggered by a click of the secondary (usually right) mouse button on any switcher item (app icon)'),
             itemFactory.newComboBox(),
             'appSwitcherPopupSecClickItem',
             appActionList
@@ -1131,7 +1131,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
     optionList.push(itemFactory.getRowWidget(
             _('Open New Window'),
-            _('Opens a new window of the selected application if the apllication supports it. You can also use default shortcut Ctrl+Enter'),
+            _('Opens a new window of the selected application if the application supports it. You can also use default shortcut Ctrl+Enter'),
             itemFactory.newEntry(),
             'hotkeyNewWin'
         )
@@ -1174,7 +1174,7 @@ Next use of this hotkey on the same window moves the window back to its original
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle Maximize on Current Workspce/Monitor'),
+            _('Toggle Maximize on Current Workspace/Monitor'),
             _('Toggles full maximization of the selected window on the current workspace and monitor.\
 The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
             itemFactory.newEntry(),
@@ -1242,7 +1242,7 @@ Thumbnail controls:\n\
 
     optionList.push(itemFactory.getRowWidget(
             _('Right'),
-            _('Has the same functionality as arrow Right. Slects next item, if Search mode is off.'),
+            _('Has the same functionality as arrow Right. Selects next item, if Search mode is off.'),
             itemFactory.newEntry(),
             'hotkeyRight'
         )
@@ -1288,7 +1288,7 @@ Thumbnail controls:\n\
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Window Mode: Iterate over Aplications'),
+            _('Window Mode: Iterate over Applications'),
             _('Switcher is in the Window mode: first press of the hotkey sorts windows by applications, each subsequent key press selects first window of the next app. Shift key changes direction.'),
             itemFactory.newEntry(),
             _('`/~ (key above Tab)')
@@ -1321,7 +1321,7 @@ Thumbnail controls:\n\
 
     optionList.push(itemFactory.getRowWidget(
             _('Force Quit'),
-            _('Sends kill -9 signal to the selected aplication or application of selected window.'),
+            _('Sends kill -9 signal to the selected application or application of selected window.'),
             itemFactory.newEntry(),
             _('Ctrl + Del')
         )
@@ -1377,7 +1377,7 @@ Thumbnail controls:\n\
 
     optionList.push(itemFactory.getRowWidget(
             _('Reorder Favorite App'),
-            _('In App Mode with Favorites Apps enabled you can change the possition of selected Favorite app. This change is system-wide.\n\
+            _('In App Mode with Favorites Apps enabled you can change the position of selected Favorite app. This change is system-wide.\n\
 If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'),
             itemFactory.newEntry(),
             _('Ctrl+Shift + Left/Right')
@@ -1434,7 +1434,7 @@ function getAboutOptionList() {
     ));
 
     optionList.push(itemFactory.getRowWidget(
-        _('Gome Extensions'),
+        _('Gnome Extensions'),
         _('Rate and comment the extension on GNOME Extensions site.'),
         itemFactory.newLinkButton('https://extensions.gnome.org/extension/4412'),
     ));
