@@ -270,12 +270,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 }
             }
         }
-        if (!result) {
-            let focusApp = global.display.get_focus_window();
-            if (focusApp) {
-                log(`[${Me.metadata.uuid}] ${focusApp.get_wm_class()} probably grabbed the inputs, exiting...`);
-            }
-        }
 
         return result;
     }
@@ -285,8 +279,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._removeCaptions();
 
         if (this._firstRun && !this._pushModal()) {
-            return false;
+            // workaround releasing already grabbed input on X11 - calling focus() function of any window (including the currently focused one) before pushing modal helps
+            const metaWin = global.display.get_tab_list(0, null)[0];
+            metaWin.focus(global.get_current_time());
+            if (!this._pushModal()) {
+                log(`[${Me.metadata.uuid}] Error: Unable to release input for successful Main.pushModal(), AATWS cannot start.`);
+                return false;
+            }
         };
+
         // if only one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
         if (Main.layoutManager.monitors.length < 2) {
             if (this.WIN_FILTER_MODE === FilterMode.MONITOR) {
