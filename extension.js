@@ -205,9 +205,9 @@ function _restoreOverlayKeyHandler() {
     }
 }
 
-function _toggleSwitcher(mouseTriggerred = false) {
+function _toggleSwitcher(mouseTriggered = false) {
     const altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
-    if (mouseTriggerred) {
+    if (mouseTriggered) {
         altTabPopup.KEYBOARD_TRIGGERED = false;
         altTabPopup.POPUP_POSITION = _options.get('hotEdgePosition') == 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
         const appSwitcherMode = _options.get('hotEdgeMode') == 0;
@@ -267,7 +267,7 @@ function _updateHotTrigger() {
         });
 
         const pressureBarrier = new Layout.PressureBarrier(
-            100, // pressure treshold
+            100, // pressure threshold
             Layout.HOT_CORNER_PRESSURE_TIMEOUT,
             Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
         );
@@ -278,7 +278,7 @@ function _updateHotTrigger() {
         _pressureBarriers.push([pressureBarrier, horizontalBarrier]);
         if (!_monitorsChangedSigId)
             _monitorsChangedSigId = Main.layoutManager.connect('monitors-changed', () => {
-                // avoid unnecessary executions, the singnal is being emmitted miltiple times
+                // avoid unnecessary executions, the signal is being emitted multiple times
                 if (!_monitorsChangedDelayId) {
                     _monitorsChangedDelayId = GLib.timeout_add_seconds(
                         GLib.PRIORITY_DEFAULT,

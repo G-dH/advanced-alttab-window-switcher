@@ -2140,6 +2140,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (item._wsIndicator && !item._wsIndicator.reactive) {
+            const cws = global.workspaceManager.get_active_workspace();
+            const ws = item.window.get_workspace();
+
+            if (ws === cws)
+                return;
+
             item._wsIndicator.reactive = true;
             item._wsIndicator.connect('button-press-event', (actor, event) => {
                 const button = event.get_button();
@@ -2149,8 +2155,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 } else if (button == Clutter.BUTTON_MIDDLE) {
                     return Clutter.EVENT_PROPAGATE;
                 } else if (button == Clutter.BUTTON_SECONDARY) {
-                    const cws = global.workspaceManager.get_active_workspace();
-                    const ws = item.window.get_workspace();
                     if (ws == cws) {
                         Main.overview.toggle();
                     } else {
