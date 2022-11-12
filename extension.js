@@ -73,6 +73,7 @@ function enable() {
             _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
 
             _updateHotTrigger();
+            _updateDashVisibility();
 
             log(`${Me.metadata.name}: enabled`);
             enabled = true;
@@ -111,6 +112,7 @@ function disable() {
     WindowSwitcherPopup.options = null;
 
     _removePressureBarrier();
+    _updateDashVisibility(true);
 
     _options = null;
     log(`${Me.metadata.name}: disabled`);
@@ -151,6 +153,20 @@ function _updateSettings(settings, key) {
         _updateHotTrigger();
     }
 
+    if (key == 'show-dash') {
+        _updateDashVisibility();
+    }
+}
+
+function _updateDashVisibility(reset) {
+    const visible = _options.get('showDash', true);
+    if (!visible) {
+        return;
+    } else if (reset || visible == 1) {
+        Main.overview.dash.visible = true;
+    } else {
+        Main.overview.dash.visible = false;
+    }
 }
 
 function _updateOverlayKeyHandler() {

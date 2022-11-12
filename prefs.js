@@ -150,7 +150,8 @@ function _getCommonOptionList() {
             opt.SuperDoublePress,
             opt.HotEdgePosition,
             opt.HotEdgeMode,
-            opt.HotEdgeMonitor
+            opt.HotEdgeMonitor,
+            opt.ShowDash
     ];
 
     return optionList;
@@ -512,6 +513,16 @@ function _getCommonOpt() {
         'hotEdgeMonitor',
         [[_('Primary'), 0],
          [_('All'),     1]]
+    );
+
+    optDict.ShowDash = itemFactory.getRowWidget(
+        _('Dash Visibility'),
+        _(`Controls visibility of the Dash in the Activities overview. You can disable the Dash if you are using AATWS instead.`),
+        itemFactory.newComboBox(),
+        'showDash',
+        [[_('Leave Unchanged'), 0],
+         [_('Show'),            1],
+         [_('Hide'),            2]]
     );
 
     return optDict;

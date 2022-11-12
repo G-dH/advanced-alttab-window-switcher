@@ -21,6 +21,9 @@
     <key name='hot-edge-mode' type='i'>
       <default>0</default>
     </key>
+    <key name='show-dash' type='i'>
+      <default>0</default>
+    </key>
 
     <key name='win-switcher-popup-preview-size' type='i'>
       <default>128</default>

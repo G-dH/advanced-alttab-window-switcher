@@ -136,6 +136,7 @@ var Options = class Options {
             hotEdgePosition: ['int', 'hot-edge-position'],
             hotEdgeMode: ['int', 'hot-edge-mode'],
             hotEdgeMonitor: ['int', 'hot-edge-monitor'],
+            showDash: ['int', 'show-dash'],
 
             switcherPopupPosition: ['int', 'switcher-popup-position'],
             switcherPopupMonitor: ['int', 'switcher-popup-monitor'],
