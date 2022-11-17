@@ -196,9 +196,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = ''; // can be set by the external trigger which provides the keyboard shortcut
 
-        // compatibility with legacy CHC-E
-        this.showOrig              = true;
-
         // options variable is set from extension.js when the extension is enabled
 
         this.CHCE_TRIGGERED        = false; // can be set to true from CHC-E extension
@@ -409,6 +406,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return true;
     }
 
+    showOrig() {} // compatibility with legacy CHC-E
     // original show() function
     _showPopup(backward, binding, mask) {
         if (this._items.length == 0)
