@@ -144,13 +144,15 @@ function _getCommonOptionList() {
             opt.ShowDirectActivation,
             opt.ShowStatus,
             opt.SingleAppPreviewSize,
-        opt.SystemIntegration,
+        opt.Super,
             opt.SuperKeyMode,
             opt.EnableSuper,
             opt.SuperDoublePress,
+        opt.HotEdge,
             opt.HotEdgePosition,
             opt.HotEdgeMode,
             opt.HotEdgeMonitor,
+        opt.Dash,
             opt.ShowDash
     ];
 
@@ -400,7 +402,7 @@ function _getCommonOpt() {
     );
 
     optDict.Appearance = itemFactory.getRowWidget(
-            _('Appearance'),
+            _('Appearance and Content'),
     );
 
     let singlePrevSizeAdjustment = new Gtk.Adjustment({
@@ -444,10 +446,8 @@ function _getCommonOpt() {
 
     // ----------------------------------------------
 
-    optDict.SystemIntegration = itemFactory.getRowWidget(
-            _('System Integration'),
-            null,
-            null
+    optDict.Super = itemFactory.getRowWidget(
+            _('Super (Windows) Key'),
     );
 
     optDict.SuperKeyMode = itemFactory.getRowWidget(
@@ -487,6 +487,10 @@ function _getCommonOpt() {
         superDoublePressSwitch.set_sensitive(widget.active);
     });
 
+    optDict.HotEdge = itemFactory.getRowWidget(
+        _('Hot Edge'),
+    );
+
     optDict.HotEdgePosition = itemFactory.getRowWidget(
         _('Hot Edge Position'),
         _("Open App switcher or Window switcher by hitting an edge of the monitor with your mouse pointer."),
@@ -513,6 +517,10 @@ function _getCommonOpt() {
         'hotEdgeMonitor',
         [[_('Primary'), 0],
          [_('All'),     1]]
+    );
+
+    optDict.Dash = itemFactory.getRowWidget(
+        _('Dash'),
     );
 
     optDict.ShowDash = itemFactory.getRowWidget(
