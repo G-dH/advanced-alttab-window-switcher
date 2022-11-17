@@ -196,13 +196,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = ''; // can be set by the external trigger which provides the keyboard shortcut
 
+        // compatibility with legacy CHC-E
+        this.showOrig              = true;
+
         // options variable is set from extension.js when the extension is enabled
 
-        this.KEYBOARD_TRIGGERED    = true;  // popup triggered by a keyboard. when true, POSITION_POINTER will be ignored. This var can be set from the caller
+        this.CHCE_TRIGGERED        = false; // can be set to true from CHC-E extension
+        this.KEYBOARD_TRIGGERED    = true; // can be set to false if mouse was used to trigger AATWS
         this.PREVIEW_SELECTED      = options.get('switcherPopupPreviewSelected');
         this.SEARCH_DEFAULT        = options.get('switcherPopupStartSearch');
         this.POSITION_POINTER      = options.POSITION_POINTER;
+
         this.POPUP_POSITION        = options.POPUP_POSITION;
+        // default gaps between switcher and top/bottom screen edge
+        this.TOP_MARGIN            = 6;
+        this.BOTTOM_MARGIN         = 6;
+        // current screen scale factor that also affects margins
+        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+        this.SCALE_FACTOR          = scaleFactor;
 
         // Window switcher
         this.WIN_FILTER_MODE       = options.get('winSwitcherPopupFilter');
@@ -456,8 +467,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         const themeNode = this._switcherList.get_theme_node();
         const padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
 
-        this.PANEL_HEIGHT = Main.panel.height;
-        this._switcherList.set_style(`margin-top: ${this.PANEL_HEIGHT + 4}px; padding-bottom: ${padding}px;`);
+        if (this._firstRun) {
+            if (this.CHCE_TRIGGERED && this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
+                this.TOP_MARGIN = 0;
+                this.BOTTOM_MARGIN = 0;
+            } else if (this.POPUP_POSITION === Position.TOP) {
+                this.TOP_MARGIN = Math.round(Main.panel.height / this.SCALE_FACTOR + 4);
+            }
+        }
+
+        this._switcherList.set_style(`margin-top: ${this.TOP_MARGIN}px; margin-bottom: ${this.BOTTOM_MARGIN}px; padding-bottom: ${padding}px;`);
 
         if (this._firstRun || this._searchEntryNotEmpty())
             this._initialSelection(backward, binding);
@@ -672,7 +691,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             x = Math.max(x, monitor.x);
         }
 
-        if (this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
+        if (this.CHCE_TRIGGERED && this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
             if (x === undefined)
                 x = Math.min(this._pointer.x, monitor.x + monitor.width - childNaturalWidth);
             childBox.x1 = x;
@@ -1023,7 +1042,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._iconsConnections.push(switcherButton.connect('scroll-event', this._onItemScrollEvent.bind(this)));
             // connect ShowAppsIcon
             if (switcherButton.get_child().toggleButton) {
-                switcherButton.get_child().toggleButton.connect('notify::checked', () => this._getActions().toggleAppGrid());
+                switcherButton.get_child().toggleButton.connect('notify::checked', () => {
+                    this.fadeAndDestroy();
+                    this._getActions().toggleAppGrid();
+                });
             }
         });
     }
@@ -1342,16 +1364,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _isPointerOut() {
-        let [x, y, mods] = global.get_pointer();
+        let [x, y,] = global.get_pointer();
         let switcher = this._switcherList;
-        // margin expands the "inside" area around the popup to cover gaps between popup and edge of the monitor
-        const margin = 15;
-        const marginTop = this.PANEL_HEIGHT + 4;
+        // margin expands the "inside" area around the popup to cover gap between the popup and the edge of screen (Top/Bottom position), plus small overlap
+        const margin = this.BOTTOM_MARGIN * this.SCALE_FACTOR - 1;
+        const marginTop = this.TOP_MARGIN * this.SCALE_FACTOR;
 
         if (x < (switcher.allocation.x1 - margin) || x > (switcher.allocation.x1 + switcher.width + margin)) {
-            return true;
+            // return true if the pointer is horizontally outside the switcher and cannot be at the top or bottom of the screen
+            if (!((this.POPUP_POSITION === Position.TOP && y === switcher.allocation.y1 - marginTop) || (this.POPUP_POSITION === Position.BOTTOM && y === switcher.allocation.y2 + margin)))
+                return true;
         }
-        if (y < (switcher.allocation.y1 - marginTop) || y > (switcher.allocation.y1 + switcher.height + margin)) {
+        if (y < (switcher.allocation.y1 - marginTop) || y > (switcher.allocation.y2 + margin)) {
             return true;
         }
 
