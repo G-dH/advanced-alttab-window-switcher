@@ -465,7 +465,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList._leftArrow.add_style_class_name(options.colorStyle.ARROW);
 
         const themeNode = this._switcherList.get_theme_node();
-        const padding = themeNode.get_padding(St.Side.BOTTOM) / 2;
+        const padding = Math.round(themeNode.get_padding(St.Side.BOTTOM) / 2 / this.SCALE_FACTOR);
 
         if (this._firstRun) {
             if (this.CHCE_TRIGGERED && this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
