@@ -467,8 +467,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._firstRun) {
             if (this.CHCE_TRIGGERED && this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
-                this.TOP_MARGIN = 0;
-                this.BOTTOM_MARGIN = 0;
+                this.TOP_MARGIN = 2;
+                this.BOTTOM_MARGIN = 2;
             } else if (this.POPUP_POSITION === Position.TOP) {
                 this.TOP_MARGIN = Math.round(Main.panel.height / this.SCALE_FACTOR + 4);
             }
