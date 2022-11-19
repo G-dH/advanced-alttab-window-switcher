@@ -6,6 +6,7 @@
 - option `Remember Keyboard` - if active, the input set using the shortcut will be activated every time AATWS is displayed.
 
 **Fixed**
+- `Show Hotkeys F1-F12 for Direct Activation` option crashes AATWS.
 - App activation in mouse mouse mode not working when no window opened.
 - Option "Always Activate Focused Window" affects wm focus-mode auto-rise-delay.
 - Super key set to AATWS by default.
