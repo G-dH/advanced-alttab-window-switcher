@@ -1,19 +1,26 @@
 ## Changelog
 
 ### v21 (not yet released)
+**Added**
+- Shortcut Shift + Enter for switching input source (keyboard layout).
+- option `Remember Keyboard` - if active, the input set using the shortcut will be activated every time AATWS is displayed.
+
 **Fixed**
-- App activation in mouse mouse mode not working when no window opened
-- Option "Always Activate Focused Window" affects wm focus-mode auto-rise-delay
-- Super key set to AATWS by default
-- Removed double-selection causing title captions allocation errors
-- Initial delay doesn't subtract AATWS build time
+- App activation in mouse mouse mode not working when no window opened.
+- Option "Always Activate Focused Window" affects wm focus-mode auto-rise-delay.
+- Super key set to AATWS by default.
+- Double-selection causing title captions allocation errors.
+- Initial delay doesn't subtract AATWS build time.
+- Hot edge trigger won't start AATWS if focused window grabbed inputs (like VBox machine).
+- Screen scale factor affects popup margins and bottom padding non-linearly.
+- Margins when AATWS triggered from CHC-E extension.
 
 **Changed**
-- Disabled focused item indicator (I actually don't like it)
-- Background padding reduction
+- Disabled focused item indicator (I actually don't like it).
+- Background padding reduction.
 
 
-### v19/20 2022-09-09
+### v20/19 2022-09-09
 **Added**
 - Top and bottom hot edge options allows to trigger *AATWS* popup using a mouse without *Custom Hot Corners - Extended*.
 - Option `Interactive Indicators` and new window menu allows more effective navigation using a mouse without the need to configure and remember actions on mouse buttons.
