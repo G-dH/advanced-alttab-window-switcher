@@ -296,6 +296,12 @@
     <key name='hotkey-right' type='s'>
       <default>'L'</default>
     </key>
+    <key name='remember-input' type='b'>
+      <default>false</default>
+    </key>
+    <key name='input-source-id' type='s'>
+      <default>''</default>
+    </key>
   
   </schema>
 </schemalist>

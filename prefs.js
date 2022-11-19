@@ -153,7 +153,9 @@ function _getCommonOptionList() {
             opt.HotEdgeMode,
             opt.HotEdgeMonitor,
         opt.Dash,
-            opt.ShowDash
+            opt.ShowDash,
+        opt.Input,
+            opt.RememberInput
     ];
 
     return optionList;
@@ -532,6 +534,17 @@ function _getCommonOpt() {
          [_('Show'),            1],
          [_('Hide'),            2]]
     );
+
+    optDict.Input = itemFactory.getRowWidget(
+        _('Keyboard Layout'),
+    );
+
+    optDict.RememberInput = itemFactory.getRowWidget(
+        _('Remember Keyboard'),
+        _('AATWS can remember keyboard layout that you can change using the built-in Shift + Enter shortcut. This option can noticeably slow down switching windows since switching input source is slow in GNOME Shell.'),
+        itemFactory.newSwitch(),
+        'rememberInput'
+);
 
     return optDict;
 }
@@ -1101,7 +1114,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Switch Filter mode'),
+            _('Filter mode'),
             _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
             itemFactory.newEntry(),
             'hotkeySwitchFilter'
@@ -1109,7 +1122,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle Search Mode On/Off'),
+            _('Search Mode'),
             _("In the search mode you can enter multiple patterns separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, description, categories, keywords, and app executables, so you can find most of editor apps by typing 'edit', games by typing 'game' and so on. You can even search for sections in the GNOME Settings app."),
             itemFactory.newEntry(),
             'hotkeySearch'
@@ -1117,16 +1130,16 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle Sort by Workspace'),
-            _('Toggles sorting by workspace, when Filter Mode is set to ALL.'),
+            _('Sort by Workspace'),
+            _('Sorts windows by workspace, if Filter Mode is set to ALL.'),
             itemFactory.newEntry(),
             'hotkeyGroupWs'
         )
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle Show Only Windows of Selected App'),
-            _('Toggles Single App mode - list only the windows of the selected application.'),
+            _('Show Only Windows of Selected App'),
+            _('Single App mode - list only the windows of the selected application.'),
             itemFactory.newEntry(),
             'hotkeySingleApp'
         )
@@ -1166,18 +1179,16 @@ The current monitor is the one where the switcher pop-up is located, or where th
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle "Always on Top"'),
-            _("Toggles window 'Always on Top'. Also switches to the window workspace and rise the window.\
-This state is indicated by the front icon on top instead of the bottom.\
-If you press the 'A' key twice, it's actually equivalent to the one press of hotkey for 'Show selected window'"),
+            _('Always on Top'),
+            _('Window will be raised and will stay above all other windows, even if it lose focus. This state is indicated by an icon over the window preview.'),
             itemFactory.newEntry(),
             'hotkeyAbove'
         )
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle "Always on Visible Workspace"'),
-            _(''),
+            _('Always on Visible Workspace'),
+            _('Window will be visible on all workspaces. This state is indicated by an icon over the window preview.'),
             itemFactory.newEntry(),
             'hotkeySticky'
         )
@@ -1193,16 +1204,16 @@ Next use of this hotkey on the same window moves the window back to its original
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle Maximize on Current Workspace/Monitor'),
-            _('Toggles full maximization of the selected window on the current workspace and monitor.\
-The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse from the Custom Hot Corners - Extended extension.'),
+            _('Maximize on Current Workspace/Monitor'),
+            _('Selected window will be maximized on the current workspace and monitor.\
+The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse.'),
             itemFactory.newEntry(),
             'hotkeyMaximize'
         )
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Toggle Switcher Mode (Win/App)'),
+            _('Switcher Mode (Windows/Apps)'),
             _('Toggles between Windows and Applications modes'),
             itemFactory.newEntry(),
             'hotkeySwitcherMode'
@@ -1220,8 +1231,8 @@ Thumbnail controls:\n\
     Primary click:     \t\t toggles scroll wheel function (resize / source)\n\
     Secondary click:    \t\t window preview\n\
     Scroll wheel:       \t\t resizes or changes the source window\n\
-    Ctrl + Scroll wheel:  \t change source window or resize\n\
-    Shift + Scroll wheel: \t adjust opacity'),
+    Ctrl + Scroll wheel:  \t changes source window or resize\n\
+    Shift + Scroll wheel: \t adjusts opacity'),
             itemFactory.newEntry(),
             'hotkeyThumbnail'
         )
@@ -1229,7 +1240,7 @@ Thumbnail controls:\n\
 
     optionList.push(itemFactory.getRowWidget(
             _('Open Preferences'),
-            _('Opens AATWS preferences window.'),
+            _('Opens AATWS settings window.'),
             itemFactory.newEntry(),
             'hotkeyPrefs'
         )
@@ -1417,6 +1428,14 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
             itemFactory.newEntry(),
             _('Ctrl + Shift + Super')
         )
+    );
+
+    optionList.push(itemFactory.getRowWidget(
+        _('Switch Keyboard Layout'),
+        _('Switches to the next input source in the list. Current layout is indicated on the top panel.'),
+        itemFactory.newEntry(),
+        'Shift + Enter/Return'
+    )
     );
 
     return optionList;

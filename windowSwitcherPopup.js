@@ -17,6 +17,7 @@ const SwitcherPopup   = imports.ui.switcherPopup;
 const AppDisplay      = imports.ui.appDisplay;
 const Dash            = imports.ui.dash;
 const PopupMenu       = imports.ui.popupMenu;
+const Keyboard        = imports.ui.status.keyboard;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
@@ -288,10 +289,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._firstRun && !this._pushModal()) {
             // workaround releasing already grabbed input on X11 - calling focus() function of any window (including the currently focused one) before pushing modal helps
-            const metaWin = global.display.get_tab_list(0, null)[0];
-            metaWin.focus(global.get_current_time());
+            const metaWin = global.display.get_tab_list(0, null)[1];
+            metaWin && metaWin.focus(global.get_current_time());
             if (!this._pushModal()) {
-                log(`[${Me.metadata.uuid}] Error: Unable to release input for successful Main.pushModal(), AATWS cannot start.`);
+                log(`[${Me.metadata.uuid}] Error: Unable to grab input, AATWS cannot start.`);
                 return false;
             }
         };
@@ -401,9 +402,70 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._tempFilterMode = null;
-        if (!this._newWindowSignalId)
+        if (!this._newWindowSignalId) {
             this._connectNewWindows();
+        }
+
         return true;
+    }
+
+    // Set keyboard layout stored in AATWS settings if available and needed.
+    // This function must be executed after the popup is displayed and reset before activation of selected window.
+
+    // In GS 40-42 any popup window causes the currently active window lose focus, unlike in 3.3x and 43.
+    // This means that AATWS is actually setting input for the active window in GS 3.3x and 43,
+    // if GS is set to Set input individually for each window
+    // and needs to be reset before activation of another window.
+    _setInput(reset = false) {
+        if (reset) {
+            // reset the input only if needed
+            if (this._originalSource && this._originalSource.id !== options.INPUT_SOURCE_ID) {
+                this._originalSource.activate(false);
+            }
+            this._originalSource = null;
+
+            return;
+        }
+
+        if (!options.REMEMBER_INPUT || !options.INPUT_SOURCE_ID) {
+            return;
+        }
+
+        const inputSourceManager = Keyboard.getInputSourceManager();
+        this._originalSource = inputSourceManager._currentSource;
+        const inputSources = Object.values(inputSourceManager._inputSources);
+
+        if (inputSources.length < 2)
+            return;
+
+        for (let i = 0; i < inputSources.length; i++) {
+            if (inputSources[i].id == options.INPUT_SOURCE_ID) {
+                inputSources[i].activate(false);
+                this._activeInput = options.INPUT_SOURCE_ID;
+                this._setSwitcherStatus();
+                break;
+            }
+        }
+    }
+
+    // switch to the next keyboard layout in the list
+    _switchInputSource() {
+        const inputSourceManager = Keyboard.getInputSourceManager();
+        const currentSource = inputSourceManager._currentSource;
+        const inputSources = Object.values(inputSourceManager._inputSources);
+
+        if (inputSources.length < 2)
+            return;
+
+        const currentIndex = inputSources.indexOf(currentSource);
+        const nextIndex = (currentIndex + 1) % inputSources.length;
+        const activeSource = inputSources[nextIndex]
+        activeSource.activate(false);
+        if (options.REMEMBER_INPUT) {
+            options.set('inputSourceId', activeSource.id);
+        }
+        this._activeInput = activeSource.id;
+        this._setSwitcherStatus();
     }
 
     showOrig() {} // compatibility with legacy CHC-E
@@ -523,6 +585,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             if (this._itemCaption)
                                 this._itemCaption.opacity = 255;
                             this.opacity = 255;
+                            this._setInputDelayId = GLib.timeout_add(
+                                GLib.PRIORITY_DEFAULT,
+                                20,
+                                () => this._setInput()
+                            );
                         } else {
                             this._shadeIn();
                         }
@@ -926,11 +993,19 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             opacity: 255,
             duration: 70,
             mode: Clutter.AnimationMode.LINEAR,
+            onComplete: () => {
+                this._setInputDelayId = GLib.timeout_add(
+                    GLib.PRIORITY_DEFAULT,
+                    20,
+                    () => this._setInput()
+                );
+            }
         });
 
         if (this._itemCaption) {
             this._itemCaption.ease({
-                opacity: 255
+                opacity: 255,
+                duration: 70,
             });
         }
     }
@@ -970,6 +1045,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else {
             this.destroy();
         }
+
+        if (this._setInputDelayId) {
+            GLib.source_remove(this._setInputDelayId);
+        }
+
     }
 
     _finish() {
@@ -991,6 +1071,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return;
             } else if (selected.cachedWindows && selected.cachedWindows[0]) {
                 if (options.APP_RAISE_FIRST_ONLY) {
+                    //this._activeWinSource = selected.cachedWindows[0]._currentSource;
+                    this._setInput('reset');
                     this._activateWindow(selected.cachedWindows[0]);
                 } else {
                     // following not only activates the app recent window, but also rise all other windows of the app above other windows
@@ -1002,6 +1084,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         wins[i].raise();
                     }
 
+                    //this._activeWinSource = selected.cachedWindows[0]._currentSource;
+                    this._setInput('reset');
                     this._activateWindow(selected.cachedWindows[0]);
                 }
             } else if (selected && selected.get_n_windows) {
@@ -1016,6 +1100,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._getActions().toggleAppGrid();
             }
         } else if (selected) {
+            //this._activeWinSource = selected._currentSource;
+            this._setInput('reset');
             this._activateWindow(selected);
             //Main.activateWindow(selected);
         }
@@ -1101,7 +1187,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }${this._singleApp ? `/${_('APP')}` : ''},  ${
                 _('Group:')} ${this._showingApps ? 'No' : GroupModeLabel[this.GROUP_MODE]}, ${
                 _('Sort:')} ${this._showingApps ? SortingModeLabel[this.APP_SORTING_MODE] : SortingModeLabel[this.WIN_SORTING_MODE]}, ${
-                _('Search:')} ${this._searchEntry === null ? 'Off' : 'On'}`
+                _('Search:')} ${this._searchEntry === null ? 'Off' : 'On'}${
+                this._activeInput? ', ' + _('Keyboard:') + ' ' + this._activeInput : ''}`
         );
     }
 
@@ -1870,6 +1957,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         else if ((options.get('hotkeyPrefs').includes(keyString)) && (options.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._openPrefsWindow();
             this.fadeAndDestroy();
+        }
+
+        else if (keysym === Clutter.KEY_Return && _shiftPressed()) {
+            this._switchInputSource();
         }
 
         else if (keysym === Clutter.KEY_Menu) {

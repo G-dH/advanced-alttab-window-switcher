@@ -137,6 +137,8 @@ var Options = class Options {
             hotEdgeMode: ['int', 'hot-edge-mode'],
             hotEdgeMonitor: ['int', 'hot-edge-monitor'],
             showDash: ['int', 'show-dash'],
+            inputSourceId: ['string', 'input-source-id'],
+            rememberInput: ['boolean', 'remember-input'],
 
             switcherPopupPosition: ['int', 'switcher-popup-position'],
             switcherPopupMonitor: ['int', 'switcher-popup-monitor'],
@@ -347,6 +349,8 @@ var Options = class Options {
         this.HOVER_SELECT          = this.get('switcherPopupHoverSelect');
         this.SYNC_FILTER           = this.get('switcherPopupSyncFilter');
         this.INTERACTIVE_INDICATORS = this.get('switcherPopupInteractiveIndicators');
+        this.INPUT_SOURCE_ID       = this.get('inputSourceId');
+        this.REMEMBER_INPUT        = this.get('rememberInput');
 
         // Window switcher
         this.WIN_FILTER_MODE       = this.get('winSwitcherPopupFilter');
