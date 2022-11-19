@@ -45,7 +45,7 @@ class WindowIcon extends St.BoxLayout {
         }
 
         if ( this._switcherParams.hotKeys && iconIndex < 12) {
-            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex);
+            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex, options.colorStyle.INDICATOR_OVERLAY);
             this._icon.add_child(this._hotkeyIndicator);
         }
 
@@ -334,7 +334,7 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         if (this._switcherParams.hotKeys && iconIndex < 12) {
-            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex);
+            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex, options.colorStyle.INDICATOR_OVERLAY);
             this._iconContainer.add_child(this._hotkeyIndicator);
         }
 
@@ -374,7 +374,7 @@ class AppIcon extends AppDisplay.AppIcon {
 });
 
 // icon indicating direct activation key
-function _createHotKeyNumIcon(index) {
+function _createHotKeyNumIcon(index, style) {
     let icon = new St.Widget({
         x_expand: true,
         y_expand: true,
@@ -383,7 +383,7 @@ function _createHotKeyNumIcon(index) {
     });
 
     let box = new St.BoxLayout({
-        style_class: options.colorStyle.INDICATOR_OVERLAY,
+        style_class: style,
         vertical: true,
     });
 
