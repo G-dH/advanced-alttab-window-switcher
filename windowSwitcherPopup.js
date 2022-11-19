@@ -596,7 +596,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         Main.osdWindowManager.hideAll();
                     }
 
-                    this._setSwitcherStatus();
                     this._initialDelayTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
                 }
@@ -642,6 +641,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._firstRun = false;
+        this._setSwitcherStatus();
         return true;
     }
 
