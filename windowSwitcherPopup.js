@@ -288,8 +288,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._removeCaptions();
 
         if (this._firstRun && !this._pushModal()) {
-            // workaround releasing already grabbed input on X11 - calling focus() function of any window (including the currently focused one) before pushing modal helps
-            const metaWin = global.display.get_tab_list(0, null)[1];
+            // workaround releasing already grabbed input on X11 - works for Virtual Box Machine in full-screen if its control panel is available
+            const metaWin = global.display.get_tab_list(0, null)[0];
             metaWin && metaWin.focus(global.get_current_time());
             if (!this._pushModal()) {
                 log(`[${Me.metadata.uuid}] Error: Unable to grab input, AATWS cannot start.`);
@@ -2568,7 +2568,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this.WIN_FILTER_MODE = filterMode;
         }
         this._filterSwitched = true;
-        this.show();
+        this._updateSwitcher();
     }
 
     _toggleWsOrder() {
@@ -2690,7 +2690,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._showWindow();
         this._updateSwitcher();
-        //this._getActions().showWsSwitcherPopup();
     }
 
     _reorderWorkspace(direction = 0) {
