@@ -538,7 +538,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._switcherList.set_style(`margin-top: ${this.TOP_MARGIN}px; margin-bottom: ${this.BOTTOM_MARGIN}px; padding-bottom: ${padding}px;`);
 
-        if (this._firstRun || this._searchEntryNotEmpty())
+        if (this._firstRun || this._searchEntry !== null)
             this._initialSelection(backward, binding);
 
         // There's a race condition; if the user released Alt before
@@ -588,7 +588,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             this._setInputDelayId = GLib.timeout_add(
                                 GLib.PRIORITY_DEFAULT,
                                 20,
-                                () => this._setInput()
+                                () => {
+                                    this._setInput();
+                                    this._setInputDelayId = 0;
+                                }
                             );
                         } else {
                             this._shadeIn();
@@ -998,7 +1001,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._setInputDelayId = GLib.timeout_add(
                     GLib.PRIORITY_DEFAULT,
                     20,
-                    () => this._setInput()
+                    () => {
+                        this._setInput();
+                        this._setInputDelayId = 0;
+                    }
                 );
             }
         });
