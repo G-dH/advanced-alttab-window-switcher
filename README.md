@@ -7,7 +7,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 
 **Keyboard shortcuts for these switchers can be set in *GNOME Settings > Keyboard Shortcuts*.**
 
-*AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in *type to search* feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you don't exactly know its name. AATWS also offers activation using a mouse by hitting a top or bottom hot edge and can serve as a app launcher and dock.
+*AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in *type to search* feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you don't exactly know its name. AATWS also offers activation using a mouse by hitting a top or bottom hot edge and can serve as a app launcher and replacement for dash or dock.
 
 ![Window Switcher Popup](screenshots/screenshot.png)
 
@@ -69,6 +69,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 |`Ctrl+Shift+Left/Right`|   - In App mode with Favorites change the position of the selected favorite application in the Favorite apps list.|
 |`Shift+Super`|             - Toggle Activities Overview|
 |`Ctrl+Shift+Super`|        - Toggle App Grid Overview|
+|`Shift+Enter`|             - Switch keyboard layout|
 
 ### Type to Search
 
