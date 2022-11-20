@@ -652,10 +652,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._showWinImmediatelyTimeoutId,
             this._newWindowConnectorTimeoutId,
             this._updateTimeoutId,
-            this._overlayKeyInitTimeout
+            this._overlayKeyInitTimeout,
+            this._setInputDelayId
         ];
-        timeouts.forEach(timeoutId => {
-            if (timeoutId) GLib.source_remove(timeoutId);
+        timeouts.forEach(id => {
+            if (id) GLib.source_remove(id);
         });
 
         if (this._newWindowSignalId) {
@@ -1044,10 +1045,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         } else {
             this.destroy();
-        }
-
-        if (this._setInputDelayId) {
-            GLib.source_remove(this._setInputDelayId);
         }
 
     }
