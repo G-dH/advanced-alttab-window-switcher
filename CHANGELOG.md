@@ -13,13 +13,12 @@
 - Super key set to AATWS by default.
 - Double-selection causing title captions allocation errors.
 - Initial delay doesn't subtract AATWS build time.
-- Hot edge trigger won't start AATWS if focused window grabbed inputs (like VBox machine).
 - Screen scale factor affects popup margins and bottom padding non-linearly.
 - Margins when AATWS triggered from CHC-E extension.
 
 **Changed**
 - Disabled focused item indicator (I actually don't like it).
-- Background padding reduction.
+- Style - background padding reduction.
 
 
 ### v20/19 2022-09-09
