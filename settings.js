@@ -103,6 +103,7 @@ const ColorStyleLight = {
 
 var Options = class Options {
     constructor() {
+        this._connectionIds = [];
         this.colorStyle = ColorStyleDefault;
 
         this.cancelTimeout = false; // state variable used by the switcher popup
@@ -111,7 +112,7 @@ var Options = class Options {
         // delay write to backend to avoid excessive disk writes when adjusting scales and spinbuttons
         this._writeTimeoutId = 0;
         this._gsettings.delay();
-        this._gsettings.connect('changed', () => {
+        this.connect('changed', () => {
             if (this._writeTimeoutId)
                 GLib.Source.remove(this._writeTimeoutId);
 
@@ -126,8 +127,6 @@ var Options = class Options {
                 }
             );
         });
-
-        this._connectionIds = [];
 
         this.options = {
             superKeyMode: ['int', 'super-key-mode'],
@@ -239,8 +238,8 @@ var Options = class Options {
         this._intSettings = ExtensionUtils.getSettings('org.gnome.desktop.interface');
         this._updateColorScheme();
         this._intSettingsSigId = shellVersion >= 42
-                    ? this._intSettings && this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
-                    : this._intSettings && this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
+                    ? this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
+                    : this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
     }
 
     _updateColorScheme(settings, key) {
@@ -366,6 +365,7 @@ var Options = class Options {
         this.WINDOW_PREVIEW_SIZE   = this.get('winSwitcherPopupPreviewSize');
         this.APP_ICON_SIZE         = this.get('winSwitcherPopupIconSize');
         this.WS_INDEXES            = this.get('winSwitcherPopupWsIndexes');
+
         // App switcher
         this.APP_FILTER_MODE       = this.get('appSwitcherPopupFilter');
         this.APP_SORTING_MODE      = this.get('appSwitcherPopupSorting');
