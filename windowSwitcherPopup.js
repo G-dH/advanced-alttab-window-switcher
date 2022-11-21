@@ -289,13 +289,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._removeCaptions();
 
         if (this._firstRun && !this._pushModal()) {
-            // workaround releasing already grabbed input on X11 - works for Virtual Box Machine in full-screen if its control panel is available
-            const metaWin = global.display.get_tab_list(0, null)[0];
-            metaWin && metaWin.focus(global.get_current_time());
-            if (!this._pushModal()) {
-                log(`[${Me.metadata.uuid}] Error: Unable to grab input, AATWS cannot start.`);
-                return false;
-            }
+            // workaround releasing already grabbed input on X11
+            Main.panel.statusArea.appMenu.menu.toggle();
+            Main.panel.statusArea.appMenu.menu.actor.opacity = 0;
+
+            this._pushModalTimeoutId = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                200,
+                () => {
+                    Main.panel.statusArea.appMenu.menu.toggle();
+                    if (!this._pushModal()) {
+                        log(`[${Me.metadata.uuid}] Error: Unable to grab input, AATWS cannot start.`);
+                        this.destroy();
+                    }
+
+                    this._pushModalTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                }
+            )
         };
 
         // if only one monitor is connected, then filter MONITOR is redundant to WORKSPACE, therefore MONITOR mode will be ignored
@@ -657,7 +668,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._newWindowConnectorTimeoutId,
             this._updateTimeoutId,
             this._overlayKeyInitTimeout,
-            this._setInputDelayId
+            this._setInputDelayId,
+            this._pushModalTimeoutId
         ];
         timeouts.forEach(id => {
             if (id) GLib.source_remove(id);
