@@ -488,8 +488,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.opacity = 0;
         this.get_allocation_box();
 
+        options.colorStyle.SWITCHER_LIST && this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
+
         // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS, green for ALL
-        if (/*!this._firstRun*/this._filterSwitched && !options.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
+        if (this._filterSwitched && !options.STATUS && !(this._showingApps && this._searchEntryNotEmpty())) {
             let fm = this._showingApps ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
             fm = this._tempFilterMode ? this._tempFilterMode : fm;
 
@@ -501,8 +503,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._switcherList.add_style_class_name('switcher-list-all');
             }
         }
-
-        options.colorStyle.SWITCHER_LIST && this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
 
         // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
         if (shellVersion >= 40 && this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
