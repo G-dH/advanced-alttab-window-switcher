@@ -102,7 +102,7 @@
       <default>false</default>
     </key>
     <key name='switcher-popup-status' type='b'>
-      <default>true</default>
+      <default>false</default>
     </key>
     <key name='switcher-popup-tooltip-title' type='i'>
       <default>2</default>
