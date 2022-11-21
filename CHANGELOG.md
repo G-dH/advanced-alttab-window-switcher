@@ -15,10 +15,11 @@
 - Initial delay doesn't subtract AATWS build time.
 - Screen scale factor affects popup margins and bottom padding non-linearly.
 - Margins when AATWS triggered from CHC-E extension.
+- Unable to grab input and show the switcher popup if Virtual Box Machine window has focus.
 
 **Changed**
 - Disabled focused item indicator (I actually don't like it).
-- Style - background padding reduction.
+- Style - background padding reduction, thicker left/right color border indicating Filter Mode.
 
 
 ### v20/19 2022-09-09
