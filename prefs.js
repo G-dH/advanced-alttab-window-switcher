@@ -32,23 +32,23 @@ const Actions = Settings.Actions;
 
 const actionList = [
     [_('Do Nothing'),                      Actions.NONE],
-    [_('Select Next Item'),                Actions.SELECT_ITEM],
-    [_('Activate Selected'),               Actions.ACTIVATE],
+    [_('Close Switcher Popup'),            Actions.HIDE],
+    [_('Select Next/Previous'),            Actions.SELECT_ITEM],
+    [_('Activate'),                        Actions.ACTIVATE],
     [_('Switch Workspace'),                Actions.SWITCH_WS],
     [_('Open New Window'),                 Actions.NEW_WINDOW],
-    [_('Show Selected'),                   Actions.SHOW],
+    [_('Show / Preview'),                  Actions.SHOW],
     [_('Open Context Menu'),               Actions.MENU],
     [_('Switch Filter Mode'),              Actions.SWITCH_FILTER],
     [_('Toggle Single App Mode'),          Actions.SINGLE_APP],
     [_('Toggle Switcher Mode'),            Actions.SWITCHER_MODE],
     [_('Close/Quit Selected'),             Actions.CLOSE_QUIT],
     [_('Force Quit Selected App'),         Actions.KILL],
-    [_('Move Selected to Current WS'),     Actions.MOVE_TO_WS],
-    [_('Fullscreen Selected on Empty WS'), Actions.FS_ON_NEW_WS],
-    [_('Group by Applications'),           Actions.GROUP_APP],
-    [_('Current Monitor First'),           Actions.CURRENT_MON_FIRST],
+    [_('Move Selected to Current WS/Monitor'), Actions.MOVE_TO_WS],
+    [_('Toggle Fullscreen on Empty WS'),   Actions.FS_ON_NEW_WS],
+    [_('Sort Windows by Applications'),    Actions.GROUP_APP],
+    [_('Sort Current Monitor First'),      Actions.CURRENT_MON_FIRST],
     [_('Create Window Thumbnail'),         Actions.THUMBNAIL],
-    [_('Hide Switcher Popup'),             Actions.HIDE],
     [_('Open Preferences'),                Actions.PREFS],
 ];
 
@@ -1130,7 +1130,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     );
 
     optionList.push(itemFactory.getRowWidget(
-            _('Sort by Workspace'),
+            _('Sort Windows by Workspace'),
             _('Sorts windows by workspace, if Filter Mode is set to ALL.'),
             itemFactory.newEntry(),
             'hotkeyGroupWs'
