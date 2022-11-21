@@ -118,7 +118,8 @@ const TooltipTitleMode = {
 
 const Action = Settings.Actions;
 
-//let _cancelTimeout = false;
+const SCROLL_TIMEOUT = 200;
+const SCROLL_SELECTION_TIMEOUT = 20;
 
 
 function _shiftPressed(state) {
@@ -252,7 +253,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._tempFilterMode       = null;
         this._firstRun             = true;
         this._favoritesMRU         = true;
-        this._doNotReactOnScroll   = false;
+        this._lastActionTimeStamp  = 0;
         // _skipInitialSelection allows to avoid double selection when re-showing switcher followed by custom selection
         this._skipInitialSelection = false;
         options.cancelTimeout      = false;
@@ -1026,7 +1027,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList.ease({
             //height: 0,
             opacity: 0,
-            duration: 100,
+            duration: 70,
             mode: Clutter.AnimationMode.LINEAR,
             onComplete: () => this.destroy(),
         });
@@ -1068,7 +1069,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     selected && selected.cachedWindows &&
                     ( (selected.cachedWindows[1] && options.SHOW_WINS_ON_ACTIVATE == 2) ||
                     (options.SHOW_WINS_ON_ACTIVATE == 1 && global.display.get_tab_list(0, null).length &&
-                    selected.cachedWindows[0] === global.display.get_tab_list(0, null)[0]))
+                    selected.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) &&
+                    selected.cachedWindows[0].get_workspace() === global.workspace_manager.get_active_workspace()
                 ) {
                     this._toggleSingleAppMode();
                     return;
@@ -1533,22 +1535,35 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _onItemScrollEvent(actor, event) {
-        // if scroll is not changing selection, select item under mouse pointer just for case it's when hover select missed the event
-        if (options.get('appSwitcherPopupScrollItem') !== Action.SELECT_ITEM) {
-            this._selectClickedItem(actor);
-        }
-        let direction = event.get_scroll_direction();
+        const direction = event.get_scroll_direction();
         if (direction === Clutter.ScrollDirection.SMOOTH) {
             return Clutter.EVENT_STOP;
         }
+        const action = this._showingApps ?
+            options.get('appSwitcherPopupScrollItem') :
+            options.get('winSwitcherPopupScrollItem');
 
-        if (this._showingApps) {
-            this._triggerAction(options.get('appSwitcherPopupScrollItem'), direction);
-        } else { // if (this._switcherMode === SwitcherMode.WINDOWS) {
-            this._triggerAction(options.get('winSwitcherPopupScrollItem'), direction);
+        if (!this._scrollActionAllowed(action))
+            return Clutter.EVENT_STOP;
+
+        // if scroll doesn't control selection, select the item under the pointer in case the hover selection missed the event
+        if (action !== Action.SELECT_ITEM) {
+            this._selectClickedItem(actor);
         }
 
+        this._lastActionTimeStamp = Date.now();
+        this._triggerAction(action, direction);
+
         return Clutter.EVENT_STOP;
+    }
+
+    _scrollActionAllowed(action) {
+        const timeout = action === Action.SELECT_ITEM ?
+            SCROLL_SELECTION_TIMEOUT :
+            SCROLL_TIMEOUT;
+        if (Date.now() - this._lastActionTimeStamp < timeout)
+            return false;
+        return true;
     }
 
     vfunc_key_press_event(keyEvent) {
@@ -2018,19 +2033,22 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return Clutter.EVENT_STOP;
     }
 
-    vfunc_scroll_event(scrollEvent) {
-        let direction = scrollEvent.direction;
-        if (direction === Clutter.ScrollDirection.SMOOTH || this._doNotReactOnScroll) {
-            this._doNotReactOnScroll = false;
-            return;
+    vfunc_scroll_event(event) {
+        const direction = event.direction;
+        if (direction === Clutter.ScrollDirection.SMOOTH) {
+            return false;
         }
+
+        const action = this._isPointerOut() ?
+            options.get('switcherPopupScrollOut') :
+            options.get('switcherPopupScrollIn');
+
+        if (!this._scrollActionAllowed(action))
+            return Clutter.EVENT_STOP;
 
         this._resetNoModsTimeout();
 
-        const action = this._isPointerOut()
-            ? options.get('switcherPopupScrollOut')
-            : options.get('switcherPopupScrollIn');
-
+        this._lastActionTimeStamp = Date.now();
         this._triggerAction(action, direction);
 
         return Clutter.EVENT_STOP;
