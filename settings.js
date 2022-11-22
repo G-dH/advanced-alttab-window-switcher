@@ -135,6 +135,8 @@ var Options = class Options {
             hotEdgePosition: ['int', 'hot-edge-position'],
             hotEdgeMode: ['int', 'hot-edge-mode'],
             hotEdgeMonitor: ['int', 'hot-edge-monitor'],
+            hotEdgePressure: ['int', 'hot-edge-pressure'],
+            hotEdgeWidth: ['int', 'hot-edge-width'],
             showDash: ['int', 'show-dash'],
             inputSourceId: ['string', 'input-source-id'],
             rememberInput: ['boolean', 'remember-input'],

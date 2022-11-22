@@ -152,6 +152,8 @@ function _getCommonOptionList() {
             opt.HotEdgePosition,
             opt.HotEdgeMode,
             opt.HotEdgeMonitor,
+            opt.HotEdgePressure,
+            opt.HotEdgeWidth,
         opt.Dash,
             opt.ShowDash,
         opt.Input,
@@ -519,6 +521,34 @@ function _getCommonOpt() {
         'hotEdgeMonitor',
         [[_('Primary'), 0],
          [_('All'),     1]]
+    );
+
+    const hotPressureAdjustment = new Gtk.Adjustment({
+        upper: 500,
+        lower: 0,
+        step_increment: 10,
+        page_increment: 50,
+    });
+
+    optDict.HotEdgePressure = itemFactory.getRowWidget(
+            _('Hot Edge Pressure Threshold'),
+            _('Adjusts a "force" the mouse pointer needs to trigger the hot edge.'),
+            itemFactory.newSpinButton(hotPressureAdjustment),
+            'hotEdgePressure'
+    );
+
+    const hotWidthAdjustment = new Gtk.Adjustment({
+        upper: 100,
+        lower: 10,
+        step_increment: 5,
+        page_increment: 10,
+    });
+
+    optDict.HotEdgeWidth = itemFactory.getRowWidget(
+            _('Hot Edge Width (%)'),
+            _('Adjusts width of the hot edge barrier in percentage of the screen width.'),
+            itemFactory.newSpinButton(hotWidthAdjustment),
+            'hotEdgeWidth'
     );
 
     optDict.Dash = itemFactory.getRowWidget(

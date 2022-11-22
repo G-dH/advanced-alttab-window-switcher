@@ -149,7 +149,8 @@ function _updateSettings(settings, key) {
         _updateOverlayKeyHandler();
     }
 
-    if (key == 'hot-edge-position' || key == 'hot-edge-monitor') {
+    if (key == 'hot-edge-position' || key == 'hot-edge-monitor' ||
+        key == 'hot-edge-pressure' || key == 'hot-edge-width') {
         _updateHotTrigger();
     }
 
@@ -251,7 +252,8 @@ function _updateHotTrigger() {
             // ...and block opposite directions. Neither with X nor with Wayland
             // ...such barriers work.
 
-        const offset = 100;
+        const scale = _options.get('hotEdgeWidth', true) / 100;
+        const offset = Math.round(geometry.width * (1 - scale) / 2);
         const x1 = geometry.x + offset;
         const x2 = geometry.x + geometry.width - offset;
         let y = position == 1 ? geometry.y : geometry.y + geometry.height;
@@ -267,7 +269,7 @@ function _updateHotTrigger() {
         });
 
         const pressureBarrier = new Layout.PressureBarrier(
-            100, // pressure threshold
+            _options.get('hotEdgePressure', true), // pressure threshold
             Layout.HOT_CORNER_PRESSURE_TIMEOUT,
             Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
         );
