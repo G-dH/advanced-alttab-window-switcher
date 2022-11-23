@@ -148,7 +148,7 @@ function _getWindowApp(metaWindow) {
 function _getRunningAppsIds(stableSequence = false) {
     let running = [];
     if (stableSequence) {
-        let winList = AltTab.getWindows(null);
+        let winList = _getWindows(null);
         // We need to get stable order, the functions above return MRU order
         winList.sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());
         winList.forEach(w => {
@@ -336,7 +336,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._switchGroupInit = true;
             let id, name;
             //let metaWin = global.display.get_tab_list(Meta.WindowType.NORMAL, null)[0];
-            const metaWin = AltTab.getWindows(null)[0];
+            const metaWin = _getWindows(null)[0];
             if (metaWin) {
                 const app = _getWindowApp(metaWin);
                 id = app.get_id();
@@ -984,7 +984,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._initialSelectionMode = SelectMode.FIRST;
         }
 
-        if (!switcherList.length && !AltTab.getWindows(null).length && !this._searchEntryNotEmpty()) {
+        if (!switcherList.length && !_getWindows(null).length && !this._searchEntryNotEmpty()) {
             this._switcherMode = SwitcherMode.APPS;
             this.INCLUDE_FAVORITES = true;
             this.SHOW_APPS = true;
@@ -997,20 +997,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _shadeIn() {
-        //let height = this._switcherList.height;
         this.opacity = 255;
-        this._switcherList.opacity = 0;
         if (this._itemCaption) {
             this._itemCaption.opacity = 0;
         }
 
-        //this._switcherList.height = 0;
         this._switcherList.ease({
-            //height,
             opacity: 255,
-            duration: 70,
-            mode: Clutter.AnimationMode.LINEAR,
+            duration: 100,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
+                if (this._itemCaption)
+                    this._itemCaption.opacity = 255;
                 this._setInputDelayId = GLib.timeout_add(
                     GLib.PRIORITY_DEFAULT,
                     20,
@@ -1025,7 +1023,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._itemCaption) {
             this._itemCaption.ease({
                 opacity: 255,
-                duration: 70,
+                duration: 100,
             });
         }
     }
@@ -1034,13 +1032,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._itemCaption) {
             this._itemCaption.opacity = 0;
         }
-        // release the input before the animation so the user can interact with the rest of the desktop
+
         this._popModal();
         this._switcherList.ease({
-            //height: 0,
             opacity: 0,
-            duration: 70,
-            mode: Clutter.AnimationMode.LINEAR,
+            duration: 100,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => this.destroy(),
         });
     }
@@ -1065,7 +1062,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else {
             this.destroy();
         }
-
     }
 
     _finish() {
@@ -1088,7 +1084,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return;
             } else if (selected.cachedWindows && selected.cachedWindows[0]) {
                 if (options.APP_RAISE_FIRST_ONLY) {
-                    //this._activeWinSource = selected.cachedWindows[0]._currentSource;
                     this._setInput('reset');
                     this._activateWindow(selected.cachedWindows[0]);
                 } else {
@@ -1101,7 +1096,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         wins[i].raise();
                     }
 
-                    //this._activeWinSource = selected.cachedWindows[0]._currentSource;
                     this._setInput('reset');
                     this._activateWindow(selected.cachedWindows[0]);
                 }
@@ -1117,7 +1111,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._getActions().toggleAppGrid();
             }
         } else if (selected) {
-            //this._activeWinSource = selected._currentSource;
             this._setInput('reset');
             this._activateWindow(selected);
             //Main.activateWindow(selected);
@@ -1253,7 +1246,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _getFocusedItemIndex() {
         //const metaWin = global.display.get_tab_list(Meta.TabList.NORMAL, null)[0];
-        const metaWin = AltTab.getWindows(null)[0];
+        const metaWin = _getWindows(null)[0];
         if (!metaWin)
             return 0;
 
@@ -1424,7 +1417,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _allWSWindowsSameMonitor() {
         let currentWS = global.workspace_manager.get_active_workspace();
-        let windows = AltTab.getWindows(currentWS);
+        let windows = _getWindows(currentWS);
 
         if (windows.length === 0) {
             return null;
@@ -1486,7 +1479,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _getCurrentMonitorIndex() {
         const ws = global.workspaceManager.get_active_workspace();
-        let windows = AltTab.getWindows(ws);
+        let windows = _getWindows(ws);
         const monIndex = windows.length > 0 ? windows[0].get_monitor()
                                             : global.display.get_current_monitor();
         return monIndex;
@@ -3027,7 +3020,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let ws = global.workspace_manager.get_active_workspace();
         let monitor = this._monitorIndex;
         let workspace = null;
-        //let winList = AltTab.getWindows(workspace);
         let winList = _getWindows(workspace, options.INCLUDE_MODALS);
 
         const currentWin = winList[0];

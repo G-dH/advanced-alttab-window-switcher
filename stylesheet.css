@@ -34,38 +34,23 @@
   padding-bottom: 2px;
 }
 
-.indicator-overlay-inactive-dark {
-  color: black;
-}
-
-.indicator-overlay-inactive-light {
+.indicator-overlay-inactive-light, .indicator-overlay-inactive-dark {
   color: rgb(160, 160, 160);
 }
-
-/*.ws-indicator-hover {
-  font-size: 1.1em;
-  padding-top: 2px;
-  padding-bottom: 2px;
-}*/
 
 .running-counter-dark {
   background-color: rgba(50, 50, 50, 0.6);
   padding-left: 0.5em;
   padding-right: 0.5em;
-  /*margin-bottom: 3px;*/
 }
 
 .running-counter-light {
   background-color: rgba(250, 250, 250, 0.7);
   padding-left: 0.5em;
   padding-right: 0.5em;
-  /*margin-bottom: 3px;*/
 }
 
 .running-counter-hover {
-  /*font-size: 1.3em;*/
-  /*padding-top: 2px;
-  padding-bottom: 4px;*/
   padding-left: 1em;
   padding-right: 1em;
 }
