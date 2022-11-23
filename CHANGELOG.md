@@ -5,6 +5,7 @@
 - Shortcut Shift + Enter for switching input source (keyboard layout).
 - Option `Remember Keyboard` - if active, the input set using the shortcut will be activated every time AATWS is displayed.
 - Option `Dash Visibility` allows you to hide Dash in the Activities overview, in case you only use AATWS.
+- Options `Hot Edge Pressure Threshold` and `Hot Edge Width`.
 
 **Fixed**
 - `Show Hotkeys F1-F12 for Direct Activation` option crashes AATWS.
