@@ -294,19 +294,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             // calling focus() can release the input of full-screen VBox machine with control panel
             focusWin && focusWin.focus(global.get_current_time());
             if (!this._pushModal()) {
-                // opening menu switch the input to the menu
-                // AATWS will try to steal the input after closing the menu
-                // this should work when windowed VBox Machine has focus
-                Main.panel.statusArea.appMenu.menu.toggle();
-                Main.panel.statusArea.appMenu.menu.actor.opacity = 0;
+                // steal the input first and try to pushModal later
+                global.stage.set_key_focus(this);
 
                 this._pushModalTimeoutId = GLib.timeout_add(
                     GLib.PRIORITY_DEFAULT,
                     // delay cannot be too short
-                    // if system is busy, AATWS may not be successful with pushModal() and that leads to the crash on 'incorrect pop' exception on destroy()
+                    // if system is busy, pushModal may fail and AATWS crashes on the 'incorrect pop' exception on destroy()
                     200,
                     () => {
-                        Main.panel.statusArea.appMenu.menu.toggle();
                         if (!this._pushModal()) {
                             log(`[${Me.metadata.uuid}] Error: Unable to grab input, AATWS cannot start.`);
                             this.destroy();
