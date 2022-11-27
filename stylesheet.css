@@ -181,18 +181,21 @@
 
 .switcher-list-all {
   border-color: rgba(0, 160, 0, 0.8);
+  border-top-width: 2px;
   border-left-width: 2px;
   border-right-width: 2px;
 }
 
 .switcher-list-workspace {
   border-color: rgba(160, 130, 0, 0.8);
+  border-top-width: 2px;
   border-left-width: 2px;
   border-right-width: 2px;
 }
 
 .switcher-list-monitor {
   border-color: rgba(160, 0, 0, 0.8);
+  border-top-width: 2px;
   border-left-width: 2px;
   border-right-width: 2px;
 }
