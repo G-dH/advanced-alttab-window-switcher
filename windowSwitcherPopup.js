@@ -281,6 +281,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
+        this._haveModal = result;
         return result;
     }
 
@@ -358,10 +359,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this.showHotKeys = this.KEYBOARD_TRIGGERED;
 
-        if (this._pointer == undefined) {
+        if (!this._pointer) {
             this._pointer = [];
             [this._pointer.x, this._pointer.y] = global.get_pointer();
-            this._haveModal = true;
         }
 
         if (this._tempFilterMode) {
@@ -494,7 +494,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._alreadyShowed = true;
 
-        this._haveModal = true;
         this.add_child(this._switcherList);
         this._switcherList.connect('item-activated', this._itemActivated.bind(this));
         this._switcherList.connect('item-entered', this._itemEntered.bind(this));
