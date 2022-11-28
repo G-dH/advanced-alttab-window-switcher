@@ -1251,6 +1251,14 @@ The current monitor is the one where the switcher pop-up is located, or where th
     );
 
     optionList.push(itemFactory.getRowWidget(
+        _('Apps Mode: Toggle Include Favorites'),
+        _('Allows to show/hide favorite applications in the App switcher list'),
+        itemFactory.newEntry(),
+        'hotkeyFavorites'
+    )
+);
+
+    optionList.push(itemFactory.getRowWidget(
             _('Create Window Thumbnail'),
             _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. \
 You can move the thumbnail anywhere on the screen using a mouse drag & drop and you can make as many thumbnails as you want.\n\

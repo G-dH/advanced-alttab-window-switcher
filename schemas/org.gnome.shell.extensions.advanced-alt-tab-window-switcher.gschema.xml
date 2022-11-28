@@ -302,6 +302,9 @@
     <key name='hotkey-right' type='s'>
       <default>'L'</default>
     </key>
+    <key name='hotkey-favorites' type='s'>
+      <default>'O'</default>
+    </key>
     <key name='remember-input' type='b'>
       <default>false</default>
     </key>

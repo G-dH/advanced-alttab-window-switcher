@@ -1981,6 +1981,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.fadeAndDestroy();
         }
 
+        else if ((options.get('hotkeyFavorites').includes(keyString)) && (options.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
+            this.INCLUDE_FAVORITES = !this.INCLUDE_FAVORITES;
+            this.show();
+        }
+
         else if (keysym === Clutter.KEY_Return && _shiftPressed()) {
             this._switchInputSource();
         }

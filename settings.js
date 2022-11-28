@@ -232,6 +232,7 @@ var Options = class Options {
             hotkeyDown: ['string', 'hotkey-down'],
             hotkeyUp: ['string', 'hotkey-up'],
             hotkeyRight: ['string', 'hotkey-right'],
+            hotkeyFavorites: ['string', 'hotkey-favorites']
         };
         this.cachedOptions = {};
 
