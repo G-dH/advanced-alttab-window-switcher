@@ -40,9 +40,7 @@ class WindowIcon extends St.BoxLayout {
         this.add_child(this._icon);
         this._icon.destroy_all_children();
 
-        if (metaWin.get_title) {
-            this._createWindowIcon(metaWin);
-        }
+        this._createWindowIcon(metaWin);
 
         if ( this._switcherParams.hotKeys && iconIndex < 12) {
             this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex, options.colorStyle.INDICATOR_OVERLAY);
@@ -79,8 +77,18 @@ class WindowIcon extends St.BoxLayout {
         this._is_window = true;
         this.window = window;
 
+        let title = window.get_title();
+        if (this._switcherParams.showItemTitle) {
+            // move workspace/folder name to the front, so it will be visible if label is ellipsized
+            if (title.includes(' - VSCodium')) {
+                const split = title.split(' - ');
+                if (split.length === 3)
+                    title = `${split[1]} - ${split[0]} - ${split[2]}`;
+            }
+        }
+
         this.titleLabel = new St.Label({
-            text: window.get_title(),
+            text: title,
             style_class: this._options.colorStyle.TITLE_LABEL,
             x_align: Clutter.ActorAlign.CENTER,
         });
