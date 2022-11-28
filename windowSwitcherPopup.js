@@ -301,7 +301,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._pushModalTimeoutId = GLib.timeout_add(
                     GLib.PRIORITY_DEFAULT,
                     // delay cannot be too short
-                    // if system is busy, pushModal may fail and AATWS crashes on the 'incorrect pop' exception on destroy()
+                    // if system is busy, pushModal may fail again
                     200,
                     () => {
                         if (!this._pushModal()) {
@@ -427,65 +427,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return true;
     }
 
-    // Set keyboard layout stored in AATWS settings if available and needed.
-    // This function must be executed after the popup is displayed and reset before activation of selected window.
-
-    // In GS 40-42 any popup window causes the currently active window lose focus, unlike in 3.3x and 43.
-    // This means that AATWS is actually setting input for the active window in GS 3.3x and 43,
-    // if GS is set to Set input individually for each window
-    // and needs to be reset before activation of another window.
-    _setInput(reset = false) {
-        if (reset) {
-            // reset the input only if needed
-            if (this._originalSource && this._originalSource.id !== options.INPUT_SOURCE_ID) {
-                this._originalSource.activate(false);
-            }
-            this._originalSource = null;
-
-            return;
-        }
-
-        if (!options.REMEMBER_INPUT || !options.INPUT_SOURCE_ID) {
-            return;
-        }
-
-        const inputSourceManager = Keyboard.getInputSourceManager();
-        this._originalSource = inputSourceManager._currentSource;
-        const inputSources = Object.values(inputSourceManager._inputSources);
-
-        if (inputSources.length < 2)
-            return;
-
-        for (let i = 0; i < inputSources.length; i++) {
-            if (inputSources[i].id == options.INPUT_SOURCE_ID) {
-                inputSources[i].activate(false);
-                this._activeInput = options.INPUT_SOURCE_ID;
-                this._setSwitcherStatus();
-                break;
-            }
-        }
-    }
-
-    // switch to the next keyboard layout in the list
-    _switchInputSource() {
-        const inputSourceManager = Keyboard.getInputSourceManager();
-        const currentSource = inputSourceManager._currentSource;
-        const inputSources = Object.values(inputSourceManager._inputSources);
-
-        if (inputSources.length < 2)
-            return;
-
-        const currentIndex = inputSources.indexOf(currentSource);
-        const nextIndex = (currentIndex + 1) % inputSources.length;
-        const activeSource = inputSources[nextIndex]
-        activeSource.activate(false);
-        if (options.REMEMBER_INPUT) {
-            options.set('inputSourceId', activeSource.id);
-        }
-        this._activeInput = activeSource.id;
-        this._setSwitcherStatus();
-    }
-
     showOrig() {} // compatibility with legacy CHC-E
     // original show() function
     _showPopup(backward, binding, mask) {
@@ -555,8 +496,16 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._switcherList.set_style(`margin-top: ${this.TOP_MARGIN}px; margin-bottom: ${this.BOTTOM_MARGIN}px; padding-bottom: ${padding}px;`);
 
+        if (this._searchEntryNotEmpty()) {
+            this._initialSelectionMode = SelectMode.FIRST;
+        }
+
         if (this._firstRun || this._searchEntry !== null)
             this._initialSelection(backward, binding);
+
+        if (!this._searchEntryNotEmpty() && this._initialSelectionMode === SelectMode.NONE) {
+            this._initialSelectionMode = SelectMode.ACTIVE;
+        }
 
         // There's a race condition; if the user released Alt before
         // we got the grab, then we won't be notified. (See
@@ -630,10 +579,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._searchCaption.destroy();
                 this._searchCaption = null;
             }
-        }
-
-        if (this._initialSelectionMode === SelectMode.RECENT || this._initialSelectionMode === SelectMode.NONE) {
-            this._initialSelectionMode = SelectMode.ACTIVE;
         }
 
         this._resetNoModsTimeout();
@@ -813,17 +758,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._itemCaption._destroy();
         }
 
-        if (this._searchEntryNotEmpty())
-            this._initialSelectionMode = SelectMode.FIRST;
-
         if (this._items.length === 1 && this._switcherList) {
             this._select(0);
             return;
         }
 
-        if (!this._showingApps && this.WIN_SORTING_MODE === SortingMode.MRU && this.GROUP_MODE === GroupMode.WORKSPACES) {
+        let reverse = this._shouldReverse();
+
+        // if items are grouped by workspace, select next item on the current ws
+        if (this.GROUP_MODE === GroupMode.WORKSPACES && !this._showingApps && this.WIN_SORTING_MODE === SortingMode.MRU) {
             const activeWs = global.workspace_manager.get_active_workspace();
-            if (!this._shouldReverse()) {
+            if (!reverse) {
                 for (let i = 0; i < this._items.length; i++) {
                     if (this._items[i].window.get_workspace() == activeWs) {
                         let index = i;
@@ -848,40 +793,34 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
+        if (this._initialSelectionMode === SelectMode.ACTIVE) {
+            this._select(this._getFocusedItemIndex());
+            return;
+        }
+
         if (backward) {
-            if (this._initialSelectionMode === SelectMode.SECOND) {
-                if (this._shouldReverse()) {
-                    this._select(1);
-                } else {
-                    this._select(this._items.length - 1);
-                }
-            } else if (this._initialSelectionMode === SelectMode.ACTIVE) {
-                this._select(this._getFocusedItemIndex());
+            this._select(this._items.length - 1);
+            return;
+        }
+
+        // (revers && backwards) should never happen since reverse is mouse option and backward kbd only
+
+        if (this._initialSelectionMode === SelectMode.SECOND) {
+            if (!reverse) {
+                this._select(1);
+            } else if (reverse) {
+                this._select(this._items.length - 2);
+                this._switcherList._scrollToRight(this._items.length - 1);
             }
 
         } else if (this._initialSelectionMode === SelectMode.FIRST) {
-            if (this._shouldReverse()) {
+            if (!reverse) {
+                this._select(0);
+            } else {
                 this._select(this._items.length - 1);
-            } else {
-                this._select(0);
             }
 
-        } else if (this._initialSelectionMode === SelectMode.SECOND) {
-            if (this._items.length > 1) {
-                if (this._shouldReverse()) {
-                    this._select(this._items.length - 2);
-                    this._switcherList._scrollToRight(this._items.length - 1);
-                } else {
-                    this._select(1);
-                }
-            } else {
-                this._select(0);
-            }
-
-        } else if (this._initialSelectionMode === SelectMode.ACTIVE) {
-            this._select(this._getFocusedItemIndex());
-
-        } else if (this._initialSelectionMode === SelectMode.NONE && this._shouldReverse()) {
+        } else if (this._initialSelectionMode === SelectMode.NONE && reverse) {
             // if reversed and list longer than display, move to the last (reversed first) item
             this._switcherList._scrollToRight(this._items.length - 1);
         }
@@ -922,6 +861,65 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 }
             );
         });
+    }
+
+    // Set keyboard layout stored in AATWS settings if available and needed.
+    // This function must be executed after the popup is displayed and reset before activation of selected window.
+
+    // In GS 40-42 any popup window causes the currently active window lose focus, unlike in 3.3x and 43.
+    // This means that AATWS is actually setting input for the active window in GS 3.3x and 43,
+    // if GS is set to Set input individually for each window
+    // and needs to be reset before activation of another window.
+    _setInput(reset = false) {
+        if (reset) {
+            // reset the input only if needed
+            if (this._originalSource && this._originalSource.id !== options.INPUT_SOURCE_ID) {
+                this._originalSource.activate(false);
+            }
+            this._originalSource = null;
+
+            return;
+        }
+
+        if (!options.REMEMBER_INPUT || !options.INPUT_SOURCE_ID) {
+            return;
+        }
+
+        const inputSourceManager = Keyboard.getInputSourceManager();
+        this._originalSource = inputSourceManager._currentSource;
+        const inputSources = Object.values(inputSourceManager._inputSources);
+
+        if (inputSources.length < 2)
+            return;
+
+        for (let i = 0; i < inputSources.length; i++) {
+            if (inputSources[i].id == options.INPUT_SOURCE_ID) {
+                inputSources[i].activate(false);
+                this._activeInput = options.INPUT_SOURCE_ID;
+                this._setSwitcherStatus();
+                break;
+            }
+        }
+    }
+
+    // switch to the next keyboard layout in the list
+    _switchInputSource() {
+        const inputSourceManager = Keyboard.getInputSourceManager();
+        const currentSource = inputSourceManager._currentSource;
+        const inputSources = Object.values(inputSourceManager._inputSources);
+
+        if (inputSources.length < 2)
+            return;
+
+        const currentIndex = inputSources.indexOf(currentSource);
+        const nextIndex = (currentIndex + 1) % inputSources.length;
+        const activeSource = inputSources[nextIndex]
+        activeSource.activate(false);
+        if (options.REMEMBER_INPUT) {
+            options.set('inputSourceId', activeSource.id);
+        }
+        this._activeInput = activeSource.id;
+        this._setSwitcherStatus();
     }
 
     _getSwitcherList() {
@@ -1049,11 +1047,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     fadeAndDestroy() {
         this._doNotShowImmediately = true;
-        try {
-            this._popModal();
-        } catch (e){
-            log(`${Me.metadata.name}: Error: incorrect pop`)
-        }
+        this._popModal();
 
         if (this._itemCaption) {
             this._itemCaption.opacity = 0;
@@ -2540,41 +2534,49 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.SHOW_APPS = false;
             this._singleApp = null;
 
-            let id = 0;
-            if (this._showingApps) {
-                if (selected && selected.cachedWindows && selected.cachedWindows.length) {
-                    id = selected.cachedWindows[0].get_id();
+            if (!this._searchEntryNotEmpty()) {
+                let id = 0;
+                if (this._showingApps) {
+                    if (selected && selected.cachedWindows && selected.cachedWindows.length) {
+                        id = selected.cachedWindows[0].get_id();
+                    }
+                } else {
+                    id = _getWindowApp(this._items[0].window).get_id();
                 }
-            } else {
-                id = _getWindowApp(this._items[0].window).get_id();
-            }
 
-            this._skipInitialSelection = true;
-            this.show();
-            this._select(this._getItemIndexByID(id));
-        } else /* if (this._switcherMode === SwitcherMode.WINDOWS)*/ {
-            this._switcherMode = SwitcherMode.APPS;
-            this.SHOW_APPS = true;
-            this._singleApp = null;
-            let id;
-
-            if (this._showingApps) {
-                if (this._selectedIndex > -1 && selected && selected.cachedWindows && selected.cachedWindows.length) {
-                    id = selected.cachedWindows[0].get_id();
-                }
-            } else {
-                if (this._selectedIndex > -1) {
-                    id = _getWindowApp(this._items[this._selectedIndex].window).get_id();
-                }
-            }
-
-            this._initialSelectionMode = SelectMode.FIRST;
-
-            if (id !== undefined) {
                 this._skipInitialSelection = true;
                 this.show();
                 this._select(this._getItemIndexByID(id));
             } else {
+                this._initialSelectionMode = SelectMode.FIRST;
+                this.show();
+            }
+        } else /* if (this._switcherMode === SwitcherMode.WINDOWS)*/ {
+            this._switcherMode = SwitcherMode.APPS;
+            this.SHOW_APPS = true;
+            this._singleApp = null;
+
+            if (!this._searchEntryNotEmpty()) {
+                let id;
+
+                if (this._showingApps) {
+                    if (this._selectedIndex > -1 && selected && selected.cachedWindows && selected.cachedWindows.length) {
+                        id = selected.cachedWindows[0].get_id();
+                    }
+                } else if (this._selectedIndex > -1) {
+                        id = _getWindowApp(this._items[this._selectedIndex].window).get_id();
+                }
+
+                if (id !== undefined) {
+                    this._skipInitialSelection = true;
+                    this.show();
+                    this._select(this._getItemIndexByID(id));
+                } else {
+                    this._initialSelectionMode = SelectMode.FIRST;
+                    this.show();
+                }
+            } else {
+                this._initialSelectionMode = SelectMode.FIRST;
                 this.show();
             }
         }
