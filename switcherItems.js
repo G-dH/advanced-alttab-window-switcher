@@ -339,6 +339,7 @@ class AppIcon extends AppDisplay.AppIcon {
                 this._winCounterIndicator.set_style(`margin-bottom: 1px;`);
             }
             this._iconContainer.remove_child(this._dot);
+            //this.icon.set_style('margin-bottom: 4px;');
         }
 
         if (this._switcherParams.hotKeys && iconIndex < 12) {

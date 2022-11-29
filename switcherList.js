@@ -33,8 +33,7 @@ const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 var SwitcherList = GObject.registerClass(
 class SwitcherList extends SwitcherPopup.SwitcherList {
     _init(items, options, switcherParams) {
-        const squareItems = false;
-        super._init(squareItems);
+        super._init(false); // squareItems = false
         this._options = options;
         this._switcherParams = switcherParams;
 
@@ -88,11 +87,14 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
             /*if (icon._is_focused) {
                 this._items[this._items.length - 1].add_style_class_name(this._options.colorStyle.FOCUSED);
             }*/
-            if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
+
+            // compensate item height added by "running dot" (underscore) indicator
+            if (icon._is_app && this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
                 const item = this._items[this._items.length - 1];
-                const margin = 2;
+                const margin = 1;
                 item.set_style(`padding-bottom: ${margin}px;`);
             }
+
             this.icons.push(icon);
 
             // the icon could be an app, not only a window

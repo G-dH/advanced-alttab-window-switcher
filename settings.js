@@ -383,5 +383,6 @@ var Options = class Options {
         this.SEARCH_PREF_RUNNING   = this.get('appSwitcherPopupSearchPrefRunning');
         this.INCLUDE_SHOW_APPS_ICON= this.get('appSwitcherPopupIncludeShowAppsIcon');
         this.SHOW_WINS_ON_ACTIVATE = this.get('appSwitcherPopupShowWinsOnActivate');
+        this.INCLUDE_FAV_MOUSE     = this.get('switcherPopupExtAppFavorites');
     }
 };

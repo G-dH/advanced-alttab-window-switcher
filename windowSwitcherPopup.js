@@ -337,7 +337,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        this.INCLUDE_FAVORITES = this.KEYBOARD_TRIGGERED ? this.INCLUDE_FAVORITES : options.get('switcherPopupExtAppFavorites');
+        // you can have different setting for switcher triggered ba kbd and mouse, but both should be switchable on the fly using a hotkey
+        this.INCLUDE_FAVORITES = (this.KEYBOARD_TRIGGERED || !this._firstRun) ? this.INCLUDE_FAVORITES : options.INCLUDE_FAV_MOUSE;
 
         if (binding == 'switch-group' || binding == 'switch-group-backward') {
             this._switchGroupInit = true;
@@ -987,6 +988,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._initialSelectionMode = SelectMode.FIRST;
         }
 
+        // if no windows at all, show dash content to launch new app
         if (!switcherList.length && !_getWindows(null).length && !this._searchEntryNotEmpty()) {
             this._switcherMode = SwitcherMode.APPS;
             this.INCLUDE_FAVORITES = true;
@@ -1162,7 +1164,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             id = this._getSelected();
         }
 
-        id = id ? id.get_id() : null;
+        id = id ? id._id : null;
 
         this._skipInitialSelection = true;
         this.show();
@@ -1763,7 +1765,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         }
                     } else if (selected && selected._is_showAppsIcon) {
                         this.INCLUDE_FAVORITES = !this.INCLUDE_FAVORITES;
-                        this.show();
+                        this._updateSwitcher();
+                        //this.show();
                     } else {
                         this._toggleSwitcherMode();
                     }
