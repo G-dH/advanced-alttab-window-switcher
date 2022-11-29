@@ -1,8 +1,20 @@
 ## Changelog
+### v22 (not released yet)
+**Added:**
+- App switcher hotkey to toggle `Include Favorite Apps`.
+- VSCodium window titles - ws/folder name in the title label moves to the front to be visible if the title is ellipsized.
 
-### v21 (not yet released)
+**Fixed:**
+- Improved workaround for releasing grabbed keyboard input, fixed incorrect pop if pushModal unsuccessful.
+- Initial selection after toggle `Switcher Mode`.
+
+**Changed:**
+- Style - thicker top color border indicating Filter Mode.
+- Refactored `_initialSelection()`.
+
+### v21 2022-11-23 (e.g.o)
 **Added**
-- Shortcut Shift + Enter for switching input source (keyboard layout).
+- Shortcut `Shift + Enter` for switching input source (keyboard layout).
 - Option `Remember Keyboard` - if active, the input set using the shortcut will be activated every time AATWS is displayed.
 - Option `Dash Visibility` allows you to hide Dash in the Activities overview, in case you only use AATWS.
 - Options `Hot Edge Pressure Threshold` and `Hot Edge Width`.
@@ -10,7 +22,7 @@
 **Fixed**
 - `Show Hotkeys F1-F12 for Direct Activation` option crashes AATWS.
 - App activation in mouse mouse mode not working when no window opened.
-- Option "Always Activate Focused Window" affects wm focus-mode auto-rise-delay.
+- Option `Always Activate Focused Window` affects wm focus-mode auto-rise-delay.
 - Super key set to AATWS by default.
 - Double-selection causing title captions allocation errors.
 - Initial delay doesn't subtract AATWS build time.
