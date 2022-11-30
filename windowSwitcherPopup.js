@@ -1072,7 +1072,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
         this._doNotShowWin = true;
         this._doNotUpdateOnNewWindow = true;
-        const selected = this._getSelected();
+        const selected = this._getSelectedTarget();
         if (this._showingApps && selected) {
             if (    (!_shiftPressed() && !_ctrlPressed()) && !this.KEYBOARD_TRIGGERED && options.SHOW_WINS_ON_ACTIVATE &&
                     selected && selected.cachedWindows &&
@@ -1160,11 +1160,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (winToApp) {
             if (this._items[0] && this._items[0].window)
                 id = _getWindowApp(this._items[0].window);
+                id = id ? id.get_id() : 0;
         } else {
-            id = this._getSelected();
+            id = this._getSelectedID();
         }
-
-        id = id ? id._id : null;
 
         this._skipInitialSelection = true;
         this.show();
@@ -1217,7 +1216,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         }
 
                         if (this._showingApps) {
-                            const selected = this._getSelected();
+                            const selected = this._getSelectedTarget();
                             if (selected && selected.cachedWindows && selected.cachedWindows.length) {
                                 this._finish();
                             } else {
@@ -1435,7 +1434,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return true;
     }
 
-    _getSelected() {
+    _getSelectedTarget() {
         let selected = null;
         if (this._selectedIndex > -1) {
             let it = this._items[this._selectedIndex];
@@ -1749,7 +1748,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } // else if (keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) { // 96 is grave, 126 ascii tilde, 65112 dead_abovering. I didn't find Clutter constants.
         else if (action == Meta.KeyBindingAction.SWITCH_GROUP || action == Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD ||
                  keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) {
-            const selected = this._getSelected();
+            const selected = this._getSelectedTarget();
             if (_ctrlPressed()) {
                 this._toggleSwitcherMode();
             } else { // Ctrl not pressed
@@ -1766,7 +1765,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     } else if (selected && selected._is_showAppsIcon) {
                         this.INCLUDE_FAVORITES = !this.INCLUDE_FAVORITES;
                         this._updateSwitcher();
-                        //this.show();
                     } else {
                         this._toggleSwitcherMode();
                     }
@@ -2296,7 +2294,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             item._wsIndicator.connect('button-press-event', (actor, event) => {
                 const button = event.get_button();
                 if (button == Clutter.BUTTON_PRIMARY) {
-                    if (this._getSelected().get_workspace().index() != global.workspaceManager.get_active_workspace_index())
+                    if (this._getSelectedTarget().get_workspace().index() != global.workspaceManager.get_active_workspace_index())
                         this._moveToCurrentWS();
                 } else if (button == Clutter.BUTTON_MIDDLE) {
                     return Clutter.EVENT_PROPAGATE;
@@ -2370,10 +2368,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _moveFavorites(direction) {
-        if ((!this._showingApps && this.INCLUDE_FAVORITES) || !this._getSelected())
+        if ((!this._showingApps && this.INCLUDE_FAVORITES) || !this._getSelectedTarget())
             return;
 
-        let app = this._getSelected().get_id();
+        let app = this._getSelectedTarget().get_id();
         let favorites = global.settings.get_strv('favorite-apps');
         let fromIndex = favorites.indexOf(app);
         let maxIndex = favorites.length - 1;
@@ -2412,7 +2410,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _showPreview(toggle = false) {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
         if (!selected || selected._is_showAppsIcon) {
             return;
         }
@@ -2447,7 +2445,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _showWindow() {
         if (this._doNotShowWin)
             return;
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2476,7 +2474,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleSingleAppMode(switchOn = false) {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2536,7 +2534,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleSwitcherMode() {
-        const selected = this._getSelected();
+        const selected = this._getSelectedTarget();
         if (this._switcherMode === SwitcherMode.APPS) {
             this._switcherMode = SwitcherMode.WINDOWS;
             this.SHOW_APPS = false;
@@ -2669,7 +2667,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _moveWinToNewAdjacentWs(direction, select = null) {
         let selected = select;
         if (!selected) {
-            selected = this._getSelected();
+            selected = this._getSelectedTarget();
         }
 
         if (!selected || selected._is_showAppsIcon || (selected.cachedWindows && !selected.cachedWindows.length)) {
@@ -2685,7 +2683,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _moveWinToAdjacentWs(direction, select = null) {
         let selected = select;
         if (!selected) {
-            selected = this._getSelected();
+            selected = this._getSelectedTarget();
         }
         if (!selected || selected._is_showAppsIcon || (selected.cachedWindows && !selected.cachedWindows.length)) {
             return;
@@ -2723,7 +2721,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _moveToCurrentWS() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2742,7 +2740,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleMaximizeOnCurrentMonitor() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
         if (selected && !selected.cachedWindows) {
             this._getActions().toggleMaximizeOnCurrentMonitor(
                 selected, this.KEYBOARD_TRIGGERED ? this._monitorIndex : -1);
@@ -2752,7 +2750,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleFullscreenOnNewWS() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
         if (selected && !selected.cachedWindows) {
             this._getActions().fullscreenWinOnEmptyWs(selected);
             this._delayedUpdate(200);
@@ -2774,7 +2772,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _createWinThumbnail() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2789,7 +2787,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _openWindowMenu() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon)
             return;
@@ -2808,7 +2806,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _openAppIconMenu() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon)
             return;
@@ -2850,7 +2848,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _closeWinQuitApp() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2867,7 +2865,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _closeAppWindows() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2875,7 +2873,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _killApp() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2889,7 +2887,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _openNewWindow() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon)
             return;
@@ -2915,7 +2913,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleWinAbove() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 
@@ -2925,7 +2923,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleWinSticky() {
-        let selected = this._getSelected();
+        let selected = this._getSelectedTarget();
 
         if (!selected || selected._is_showAppsIcon) return;
 

@@ -83,19 +83,18 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
                 );
             }
 
-            this.addItem(icon, icon.titleLabel);
+            this.icons.push(icon);
+
             /*if (icon._is_focused) {
                 this._items[this._items.length - 1].add_style_class_name(this._options.colorStyle.FOCUSED);
             }*/
 
-            // compensate item height added by "running dot" (underscore) indicator
-            if (icon._is_app && this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
-                const item = this._items[this._items.length - 1];
+            // compensate item height added by "running dot (line)" indicator
+            const listItem = this.addItem(icon, icon.titleLabel);
+            if (icon._is_app && (this._switcherParams.includeFavorites || this._switcherParams.searchActive)) {
                 const margin = 1;
-                item.set_style(`padding-bottom: ${margin}px;`);
+                listItem.set_style(`padding-bottom: ${margin}px;`);
             }
-
-            this.icons.push(icon);
 
             // the icon could be an app, not only a window
             if (icon._is_window) {
