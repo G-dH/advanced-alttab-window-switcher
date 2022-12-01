@@ -1,5 +1,5 @@
 ## Changelog
-### v22 (not released yet)
+### v22 (2022-12-01)
 **Added:**
 - App switcher hotkey to toggle `Include Favorite Apps`.
 - VSCodium window titles - ws/folder name in the title label moves to the front to be visible if the title is ellipsized.
@@ -12,6 +12,7 @@
 **Changed:**
 - Style - thicker top color border indicating Filter Mode.
 - Refactored `_initialSelection()`.
+
 
 ### v21 2022-11-23 (e.g.o)
 **Added**
