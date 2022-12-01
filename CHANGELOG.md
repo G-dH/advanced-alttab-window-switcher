@@ -3,6 +3,7 @@
 **Added:**
 - App switcher hotkey to toggle `Include Favorite Apps`.
 - VSCodium window titles - ws/folder name in the title label moves to the front to be visible if the title is ellipsized.
+- Link to `CHANGELOG.md` on `About` tab in `Settings` window.
 
 **Fixed:**
 - Improved workaround for releasing grabbed keyboard input, fixed incorrect pop if pushModal unsuccessful.
