@@ -254,6 +254,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._firstRun             = true;
         this._favoritesMRU         = true;
         this._lastActionTimeStamp  = 0;
+        this._recentShowTime       = 0;
         // _skipInitialSelection allows to avoid double selection when re-showing switcher followed by custom selection
         this._skipInitialSelection = false;
         options.cancelTimeout      = false;
@@ -286,8 +287,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     show(backward, binding, mask) {
+        // limit number of updates in time to avoid conflicts
+        const time = Date.now();
+        if (time - this._recentShowTime < 100)
+            return;
+
+        this._recentShowTime = time;
+
         // remove overlay labels if exist
-        this._removeCaptions();
+        //this._removeCaptions();
 
         if (this._firstRun && !this._pushModal()) {
             // workarounds releasing already grabbed input on X11
@@ -833,35 +841,41 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 return;
 
             // new window was created but maybe not realized yet, so we will wait before updating content of the switcher
-            // delay is easier to apply than connect the 'realized' signal of the new window if user spawn multiple new windows quickly
-            if (this._newWindowConnectorTimeoutId)
-                GLib.source_remove(this._newWindowConnectorTimeoutId);
-
-            this._newWindowConnectorTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                200,
-                () => {
-                    if (this._doNotUpdateOnNewWindow) {
-                        return GLib.SOURCE_REMOVE;
+            const winActor = win.get_compositor_private();
+            if (!winActor.realized) {
+                this._awaitingWin = win;
+                const realizeId = winActor.connect('realize', () => {
+                    // update switcher only if no newer window is waiting for realization
+                    if (this._awaitingWin === win) {
+                        this._updateSwitcher();
+                        this._awaitingWin = null;
                     }
-
-                    this._skipInitialSelection = true;
-                    this.show();
-                    let app = _getWindowApp(win);
-
-                    if (win && this._showingApps && this._selectedIndex > -1) {
-                        if (app) {
-                            this._select(this._getItemIndexByID(app.get_id()));
-                        }
-                    } else if (this._selectedIndex > -1) {
-                        this._select(this._getItemIndexByID(win.get_id()));
-                    }
-
-                    this._newWindowConnectorTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-                }
-            );
+                    winActor.disconnect(realizeId);
+                    return;
+                });
+            } else {
+                this._updateSwitcher();
+            }
         });
+
+        /*this._newWindowSignalId = global.display.connect_after('window-created', (w, win) => {
+            if (this._doNotUpdateOnNewWindow || this._newWindowSignalId)
+                return;
+
+            // new window was created but maybe not realized yet, so we will wait before updating content of the switcher
+            // delay is easier to handle than many 'realize' signal connections, if user spawn many new windows quickly
+            if (this._newWindowSignalId) {
+                GLib.source_remove(this._newWindowSignalId);
+            }
+
+            this._newWindowSignalId = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                200, () => {
+                this._newWindowSignalId = 0;
+                this._updateSwitcher();
+                return;
+            });
+        });*/
     }
 
     // Set keyboard layout stored in AATWS settings if available and needed.
@@ -1002,16 +1016,33 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _shadeIn() {
+        let translation_y = 0;
+        switch (this.POPUP_POSITION) {
+            case 1:
+                translation_y =  - this._switcherList.height - (Main.panel.height + 20) / this.SCALE_FACTOR;
+                break;
+            case 3:
+                translation_y =  this._switcherList.height + 20;
+                break;
+        }
+        //this._switcherList.translation_y = translation_y;
         this.opacity = 255;
+        this._switcherList.opacity = 0;
+
         if (this._itemCaption) {
             this._itemCaption.opacity = 0;
         }
 
+        this._inAnimation = true;
         this._switcherList.ease({
+            // delay animation by the time needed for creating the popup
+            //delay: 100,
+            //translation_y: 0,
             opacity: 255,
             duration: 100,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
+                this._inAnimation = false;
                 if (this._itemCaption)
                     this._itemCaption.opacity = 255;
                 this._setInputDelayId = GLib.timeout_add(
@@ -1025,12 +1056,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         });
 
-        if (this._itemCaption) {
+        /*if (this._itemCaption) {
             this._itemCaption.ease({
                 opacity: 255,
                 duration: 100,
             });
-        }
+        }*/
     }
 
     _shadeOut() {
@@ -1039,8 +1070,20 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._popModal();
+
+        let translation_y = 0;
+        switch (this.POPUP_POSITION) {
+            case 1:
+                translation_y =  - this._switcherList.height - (Main.panel.height + 6) / this.SCALE_FACTOR;
+                break;
+            case 3:
+                translation_y =  this._switcherList.height + 6;
+                break;
+        }
+
         this._switcherList.ease({
-            opacity: 0,
+            translation_y: translation_y,
+            //opacity: 0,
             duration: 100,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => this.destroy(),
@@ -1118,8 +1161,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // don't close the switcher if there is higher possibility that user wants to continue using it
-        //if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE)))
+        if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE)))
             super._finish();
+        else
+            this._doNotUpdateOnNewWindow = false;
     }
 
     _activateWindow(metaWin) {
@@ -1779,7 +1824,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                         }
                     } else if (this.GROUP_MODE !== GroupMode.APPS) {
                         this.GROUP_MODE = GroupMode.APPS;
+                        this._skipInitialSelection = true;
                         this.show();
+                        this._selectNextApp(0);
                     } else {
                         this._selectNextApp(index);
                     }
@@ -2149,6 +2196,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             monitorIndex: this._monitorIndex
         }, options);
 
+        if (this._inAnimation) {
+            this._itemCaption.opacity = 0;
+        }
         this._itemCaption.connect('destroy', (actor) => {
             if (actor === this._itemCaption) {
                 this._itemCaption = null;

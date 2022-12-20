@@ -109,7 +109,7 @@ var CaptionLabel = GObject.registerClass(
         }
     
         _destroy() {
-            Main.layoutManager.removeChrome(this);
+            //Main.layoutManager.removeChrome(this);
             super.destroy();
         }
     });

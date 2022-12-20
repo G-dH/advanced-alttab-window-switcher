@@ -20,8 +20,7 @@ const PopupMenu       = imports.ui.popupMenu;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
-const AppIcon         = Me.imports.switcherItems.AppIcon;
-const WindowIcon      = Me.imports.switcherItems.WindowIcon;
+const { AppIcon, WindowIcon, ShowAppsIcon } = Me.imports.switcherItems;
 const CaptionLabel    = Me.imports.captionLabel.CaptionLabel;
 const WindowMenu      = Me.imports.windowMenu;
 const Settings        = Me.imports.settings;
@@ -51,15 +50,11 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
         this.icons = [];
 
         let showAppsIcon;
-        if (this._switcherParams.showingApps && this._options.INCLUDE_SHOW_APPS_ICON) {
+        if (this._switcherParams.showingApps && (this._options.INCLUDE_SHOW_APPS_ICON || this._switcherParams.mouseControl)) {
             showAppsIcon = this._getShowAppsIcon();
             if (this._switcherParams.reverseOrder) {
                 this.addItem(showAppsIcon, showAppsIcon.titleLabel);
                 this.icons.push(showAppsIcon);
-            }
-
-            if (this._options.SHOW_APP_TITLES) {
-                showAppsIcon.set_style('margin-bottom: 0.9em');
             }
         }
 
@@ -117,15 +112,24 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
     }
 
     _getShowAppsIcon() {
-        const showAppsIcon = new Dash.ShowAppsIcon();
-        showAppsIcon.icon.setIconSize(this._options.APP_MODE_ICON_SIZE);
-        showAppsIcon._is_showAppsIcon = true;
-        showAppsIcon._id = 'show-apps-icon';
-        showAppsIcon.show(false);
-        showAppsIcon.toggleButton.style_class = '';
-        showAppsIcon.label.text = _('Show Applications');
-        showAppsIcon.titleLabel = showAppsIcon.label;
-        this._options.colorStyle.TITLE_LABEL && showAppsIcon.add_style_class_name(this._options.colorStyle.TITLE_LABEL);
+        const showAppsIcon = new ShowAppsIcon( {
+            iconSize: this._options.APP_MODE_ICON_SIZE,
+            showLabel: this._options.SHOW_APP_TITLES,
+            style: this._options.colorStyle.TITLE_LABEL,
+        });
+
+        showAppsIcon.connect('button-press-event', (a, event) => {
+            const btn = event.get_button();
+            if (btn === Clutter.BUTTON_SECONDARY) {
+                Main.overview.toggle();
+                return Clutter.EVENT_STOP;
+            } else if (btn === Clutter.BUTTON_MIDDLE) {
+                new Me.imports.actions.Actions().openPrefsWindow();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
+
         return showAppsIcon;
     }
 
@@ -209,14 +213,14 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
             this._items[this._highlighted].remove_style_pseudo_class('selected');
             if (this._options.colorStyle.STYLE)
                 this._items[this._highlighted].remove_style_class_name(this._options.colorStyle.SELECTED);
-            if (this.icons[this._highlighted]._is_focused)
-                this._items[this._highlighted].add_style_class_name(this._options.colorStyle.FOCUSED);
+            /*if (this.icons[this._highlighted]._is_focused)
+                this._items[this._highlighted].add_style_class_name(this._options.colorStyle.FOCUSED);*/
         }
 
         if (this._items[index]) {
             this._items[index].add_style_pseudo_class('selected');
             if (this._options.colorStyle.STYLE) {
-                this._items[index].remove_style_class_name(this._options.colorStyle.FOCUSED);
+                //this._items[index].remove_style_class_name(this._options.colorStyle.FOCUSED);
                 this._items[index].add_style_class_name(this._options.colorStyle.SELECTED);
             }
         }

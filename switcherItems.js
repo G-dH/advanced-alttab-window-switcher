@@ -13,6 +13,7 @@ const { GObject, St, Shell, Clutter } = imports.gi;
 
 const AltTab          = imports.ui.altTab;
 const AppDisplay      = imports.ui.appDisplay;
+const IconGrid        = imports.ui.iconGrid;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
@@ -252,7 +253,7 @@ class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams, options) {
         super._init(app);
         this._options = options;
-        // remove scroll connection created by my WSM extension
+        // remove scroll connection created by my OFP extension
         if (this._scrollConnectionID) {
             this.disconnect(this._scrollConnectionID);
         }
@@ -313,18 +314,26 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         const count = app.cachedWindows.length;
+        let winCounterIndicator;
         if ( count && this._shouldShowWinCounter(count)) {
-            const winCounterIndicator = this._createWinCounterIndicator(count);
+            winCounterIndicator = this._createWinCounterIndicator(count);
             //winCounterIndicator.add_style_class_name('running-counter');
             // move the counter above app title
-            if (this._options.SHOW_APP_TITLES) {
-                winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 2}em;`);
-            }
+            /*if (this._options.SHOW_APP_TITLES && !this._switcherParams.includeFavorites) {
+                winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
+            } else {
+                winCounterIndicator.set_style(`margin-bottom: 1px;`);
+            }*/
             this._iconContainer.add_child(winCounterIndicator);
             this._winCounterIndicator = winCounterIndicator;
         }
 
         if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
+            if (winCounterIndicator && this._options.SHOW_APP_TITLES) {
+                this._winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.8}em;`);
+            } else if (winCounterIndicator && !this._options.SHOW_APP_TITLES) {
+                winCounterIndicator.set_style(`margin-bottom: 7px;`);
+            }
             this._dot.add_style_class_name('running-dot');
             // change dot color to be visible on light bg cause Adwaita uses white color
             if (this._options.colorStyle.RUNNING_DOT_COLOR) {
@@ -335,10 +344,8 @@ class AppIcon extends AppDisplay.AppIcon {
                 this._dot.opacity = 0;
             }
         } else {
-            if (this._winCounterIndicator) {
-                this._winCounterIndicator.set_style(`margin-bottom: 1px;`);
-            }
             this._iconContainer.remove_child(this._dot);
+            winCounterIndicator && this._options.SHOW_APP_TITLES && this._winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
             //this.icon.set_style('margin-bottom: 4px;');
         }
 
@@ -379,6 +386,45 @@ class AppIcon extends AppDisplay.AppIcon {
 
     vfunc_button_press_event(buttonEvent) {
         return Clutter.EVENT_PROPAGATE;
+    }
+});
+
+var ShowAppsIcon = GObject.registerClass(
+class ShowAppsIcon extends St.Widget {
+    _init(params) {
+        super._init({ reactive: true });
+
+        const iconSize = params.iconSize;
+        const showLabel = params.showLabel;
+        const style = params.style;
+
+
+        this._is_showAppsIcon = true;
+        this._id = 'show-apps-icon';
+
+        this.icon = new IconGrid.BaseIcon(_('Apps'), {
+            setSizeManually: true,
+            showLabel: showLabel,
+            createIcon: this._createIcon.bind(this),
+        });
+        this.icon.setIconSize(iconSize);
+        this.icon.add_style_class_name(style);
+
+        this.titleLabel = new St.Label({
+            text: _('Show Applications'),
+        });
+
+        this.add_child(this.icon);
+    }
+
+    _createIcon(size) {
+        this._iconActor = new St.Icon({
+            icon_name: 'view-app-grid-symbolic',
+            icon_size: size,
+            style_class: 'show-apps-icon',
+            track_hover: true,
+        });
+        return this._iconActor;
     }
 });
 
