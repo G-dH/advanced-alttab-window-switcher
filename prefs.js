@@ -66,25 +66,32 @@ function init() {
     gOptions = new Settings.Options();
 
     itemFactory = new ItemFactory(gOptions);
+    const options = _getOptions();
 
     pageList = [
         {
             name: 'common',
             title: _('Common'),
             iconName: 'preferences-system-symbolic',
-            optionList: _getCommonOptionList()
+            optionList: _getCommonOptionList(options)
         },
         {
             name: 'windows',
             title: _('Window Switcher'),
             iconName: 'focus-windows-symbolic',
-            optionList: _getWindowOptionList()
+            optionList: _getWindowOptionList(options)
         },
         {
             name: 'apps',
             title: _('App Switcher'),
             iconName: 'view-app-grid-symbolic',
-            optionList: _getAppOptionList()
+            optionList: _getAppOptionList(options)
+        },
+        {
+            name: 'dock',
+            title: _('Dock Mode'),
+            iconName: 'user-bookmarks-symbolic',
+            optionList: _getDockOptionList(options)
         },
         {
             name: 'hotkeys',
@@ -96,13 +103,13 @@ function init() {
             name: 'mouse',
             title: _('Mouse'),
             iconName: 'input-mouse-symbolic',
-            optionList: _getMouseOptionList()
+            optionList: _getMouseOptionList(options)
         },
         {
             name: 'misc',
             title: _('Misc'),
             iconName: 'preferences-other-symbolic',
-            optionList: _getMiscOptionList()
+            optionList: _getMiscOptionList(options)
         },
         {
             name: 'about',
@@ -121,8 +128,8 @@ function buildPrefsWidget() {
     return new LegacyPrefs().getPrefsWidget(pageList);
 }
 
-function _getCommonOptionList() {
-    const opt = _getCommonOpt();
+function _getCommonOptionList(options) {
+    const opt = options;
 
     const optionList = [
         opt.Behavior,
@@ -137,7 +144,7 @@ function _getCommonOptionList() {
             opt.HoverSelectsItem,
             opt.DelayShowingSwitcher,
             opt.InteractiveIndicators,
-        opt.Appearance,
+        opt.AppearanceCommon,
             opt.Theme,
             opt.OverlayTitle,
             opt.TooltipLabelScale,
@@ -148,14 +155,6 @@ function _getCommonOptionList() {
             opt.SuperKeyMode,
             opt.EnableSuper,
             opt.SuperDoublePress,
-        opt.HotEdge,
-            opt.HotEdgePosition,
-            opt.HotEdgeMode,
-            opt.HotEdgeMonitor,
-            opt.HotEdgePressure,
-            opt.HotEdgeWidth,
-        opt.Dash,
-            opt.ShowDash,
         opt.Input,
             opt.RememberInput
     ];
@@ -163,13 +162,13 @@ function _getCommonOptionList() {
     return optionList;
 }
 
-function _getWindowOptionList() {
-    const opt = _getWindowsOpt();
+function _getWindowOptionList(options) {
+    const opt = options;
 
     const optionList = [
         opt.Behavior,
-            opt.DefaultFilter,
-            opt.DefaultSorting,
+            opt.DefaultFilterWin,
+            opt.DefaultSortingWin,
             opt.DefaultGrouping,
             opt.DistinguishMinimized,
             opt.SkipMinimized,
@@ -177,7 +176,7 @@ function _getWindowOptionList() {
             opt.IncludeModals,
             opt.SearchAllWindows,
             opt.SearchApplications,
-        opt.Appearance,
+        opt.AppearanceWin,
             opt.ShowWindowTitle,
             opt.ShowWorkspaceIndex,
             opt.WindowPreviewSize,
@@ -187,19 +186,19 @@ function _getWindowOptionList() {
     return optionList;
 }
 
-function _getAppOptionList() {
-    const opt = _getAppsOpt();
+function _getAppOptionList(options) {
+    const opt = options;
 
     const optionList = [
         opt.Behavior,
-            opt.DefaultFilter,
-            opt.DefaultSorting,
+            opt.DefaultFilterApp,
+            opt.DefaultSortingApp,
             opt.RaiseFirstWinOnly,
             opt.ResultsLimit,
             opt.SearchPrefRunning,
             opt.IncludeFavorites,
             opt.IncludeShowAppsIcon,
-        opt.Appearance,
+        opt.AppearanceApp,
             opt.ShowAppTitle,
             opt.ShowWinCounter,
             opt.HideWinCounterForSingleWindow,
@@ -209,10 +208,16 @@ function _getAppOptionList() {
     return optionList;
 }
 
-function _getMiscOptionList() {
-    const opt = _getMiscOpt();
+function _getDockOptionList(options) {
+    const opt = options;
 
     const optionList = [
+        opt.HotEdge,
+            opt.HotEdgePosition,
+            opt.HotEdgeMode,
+            opt.HotEdgeMonitor,
+            opt.HotEdgePressure,
+            opt.HotEdgeWidth,
         opt.ExternalTrigger,
             opt.SingleOnActivate,
             opt.AppStableOrder,
@@ -221,6 +226,17 @@ function _getMiscOptionList() {
             opt.PointerOutTimeout,
             opt.ActivateOnHide,
             opt.MousePointerPosition,
+        opt.Dash,
+            opt.ShowDash,
+    ];
+
+    return optionList;
+}
+
+function _getMiscOptionList(options) {
+    const opt = options;
+
+    const optionList = [
         opt.WindowManager,
             opt.AlwaysActivateFocused,
         opt.Workspace,
@@ -232,8 +248,8 @@ function _getMiscOptionList() {
     return optionList;
 }
 
-function _getMouseOptionList() {
-    const opt = _getMouseOpt();
+function _getMouseOptionList(options) {
+    const opt = options;
 
     const optionList = [
         opt.Common,
@@ -273,7 +289,7 @@ function getOptionsPage(optionList, pageProperties = {}) {
 
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
-function _getCommonOpt() {
+function _getOptions() {
     const optDict = {};
 
     optDict.Behavior = itemFactory.getRowWidget(
@@ -405,7 +421,7 @@ function _getCommonOpt() {
             'switcherPopupStatus'
     );
 
-    optDict.Appearance = itemFactory.getRowWidget(
+    optDict.AppearanceCommon = itemFactory.getRowWidget(
             _('Appearance and Content'),
     );
 
@@ -574,24 +590,15 @@ function _getCommonOpt() {
         _('AATWS can remember keyboard layout that you can change using the built-in Shift + Enter shortcut. This option can noticeably slow down switching windows since switching input source is slow in GNOME Shell.'),
         itemFactory.newSwitch(),
         'rememberInput'
-);
-
-    return optDict;
-}
+    );
 
 // ////////////////////////////////////////////////
-
-function _getWindowsOpt() {
-    // options item format:
-    // [text, tooltip, widget, settings-variable, options for combo]
-
-    const optDict = {};
 
     optDict.Behavior = itemFactory.getRowWidget(
             _('Behavior'),
     );
 
-    optDict.DefaultFilter = itemFactory.getRowWidget(
+    optDict.DefaultFilterWin = itemFactory.getRowWidget(
             _('Default Filter'),
             _('Filter windows that should appear in the list. Filter can also be changed on the fly using a hotkey.'),
             itemFactory.newComboBox(),
@@ -601,7 +608,7 @@ function _getWindowsOpt() {
                 [_('Current Monitor'),   3]]
     );
 
-    optDict.DefaultSorting = itemFactory.getRowWidget(
+    optDict.DefaultSortingWin = itemFactory.getRowWidget(
             _('Default Sorting'),
             _('The order in which the list of windows should be sorted.'),
             itemFactory.newComboBox(),
@@ -695,7 +702,7 @@ function _getWindowsOpt() {
             'winSwitcherPopupWsIndexes'
     );
 
-    optDict.Appearance = itemFactory.getRowWidget(
+    optDict.AppearanceWin = itemFactory.getRowWidget(
             _('Appearance'),
     );
 
@@ -727,21 +734,13 @@ function _getWindowsOpt() {
             'winSwitcherPopupIconSize'
     );
 
-    return optDict;
-}
 // //////////////////////////////////////////////////////////////////////
-
-function _getAppsOpt() {
-    // options item format:
-    // [text, tooltip, widget, settings-variable, options for combo]
-
-    const optDict = {};
 
     optDict.Behavior = itemFactory.getRowWidget(
             _('Behavior'),
     );
 
-    optDict.DefaultFilter = itemFactory.getRowWidget(
+    optDict.DefaultFilterApp = itemFactory.getRowWidget(
             _('Default Filter'),
             _('Filter windows that should appear in the list. Filter can also be changed on the fly using a hotkey.'),
             itemFactory.newComboBox(),
@@ -753,7 +752,7 @@ function _getAppsOpt() {
             ]
     );
 
-    optDict.DefaultSorting = itemFactory.getRowWidget(
+    optDict.DefaultSortingApp = itemFactory.getRowWidget(
             _('Default Sorting'),
             _('What key should be used to sort the app list.'),
             itemFactory.newComboBox(),
@@ -838,7 +837,7 @@ function _getAppsOpt() {
         hideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
     });
 
-    optDict.Appearance = itemFactory.getRowWidget(
+    optDict.AppearanceApp = itemFactory.getRowWidget(
             _('Appearance'),
     );
 
@@ -856,16 +855,11 @@ function _getAppsOpt() {
             'appSwitcherPopupIconSize'
     );
 
-    return optDict;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-function _getMiscOpt() {
-    const optDict = {};
-
     optDict.ExternalTrigger = itemFactory.getRowWidget(
-            _('Mouse Triggered Switcher Options'),
+            _('Customizations for popup triggered by mouse pointer (using hot edge or CHC-E extension)'),
     );
 
     optDict.SingleOnActivate = itemFactory.getRowWidget(
@@ -915,7 +909,7 @@ function _getMiscOpt() {
 
     optDict.ActivateOnHide = itemFactory.getRowWidget(
             _('Activate Selected Item on Hide'),
-            _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before pop-up hides.'),
+            _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before the pop-up hides.'),
             itemFactory.newSwitch(),
             'switcherPopupActivateOnHide'
     );
@@ -968,11 +962,7 @@ function _getMiscOpt() {
             'winThumbnailScale'
     );
 
-    return optDict;
-}
-
-function _getMouseOpt() {
-    const optDict = {};
+///////////////////////////////////////////////////////////////////////
 
     optDict.Common = itemFactory.getRowWidget(
             _('Common'),
