@@ -416,6 +416,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
 
             this._switcherList = new SwitcherList(switcherList, options, switcherParams);
+            this._connectShowAppsIcon();
 
             if (!options.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
                 this._switcherList._itemEntered = function() {}
@@ -617,6 +618,24 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._firstRun = false;
         this._setSwitcherStatus();
         return true;
+    }
+
+    _connectShowAppsIcon() {
+        const showAppsIcon = this._switcherList._showAppsIcon;
+        if (!showAppsIcon)
+            return;
+
+        showAppsIcon.connect('button-press-event', (a, event) => {
+            const btn = event.get_button();
+            if (btn === Clutter.BUTTON_SECONDARY) {
+                Main.overview.toggle();
+                return Clutter.EVENT_STOP;
+            } else if (btn === Clutter.BUTTON_MIDDLE) {
+                new Me.imports.actions.Actions().openPrefsWindow();
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
     }
 
     _onDestroyThis() {
@@ -2318,7 +2337,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     return Clutter.EVENT_STOP;
                 } else if (button == Clutter.BUTTON_MIDDLE) {
                     this._openNewWindow();
-                    return Clutter.EVENT_PROPAGATE;
+                    return Clutter.EVENT_STOP;
                 } else if (button == Clutter.BUTTON_SECONDARY) {
                     this._toggleSwitcherMode();
                     return Clutter.EVENT_STOP;

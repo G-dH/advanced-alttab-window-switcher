@@ -56,6 +56,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
                 this.addItem(showAppsIcon, showAppsIcon.titleLabel);
                 this.icons.push(showAppsIcon);
             }
+            this._showAppsIcon = showAppsIcon;
         }
 
         for (let i = 0; i < items.length; i++) {
@@ -116,18 +117,6 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
             iconSize: this._options.APP_MODE_ICON_SIZE,
             showLabel: this._options.SHOW_APP_TITLES,
             style: this._options.colorStyle.TITLE_LABEL,
-        });
-
-        showAppsIcon.connect('button-press-event', (a, event) => {
-            const btn = event.get_button();
-            if (btn === Clutter.BUTTON_SECONDARY) {
-                Main.overview.toggle();
-                return Clutter.EVENT_STOP;
-            } else if (btn === Clutter.BUTTON_MIDDLE) {
-                new Me.imports.actions.Actions().openPrefsWindow();
-                return Clutter.EVENT_STOP;
-            }
-            return Clutter.EVENT_PROPAGATE;
         });
 
         return showAppsIcon;
