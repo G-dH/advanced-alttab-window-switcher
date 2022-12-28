@@ -214,6 +214,7 @@ function _getDockOptionList(options) {
     const optionList = [
         opt.HotEdge,
             opt.HotEdgePosition,
+            opt.HotEdgeFullScreen,
             opt.HotEdgeMode,
             opt.HotEdgeMonitor,
             opt.HotEdgePressure,
@@ -507,6 +508,7 @@ function _getOptions() {
         superDoublePressSwitch.set_sensitive(widget.active);
     });
 
+
     optDict.HotEdge = itemFactory.getRowWidget(
         _('Hot Edge'),
     );
@@ -519,6 +521,13 @@ function _getOptions() {
         [[_('Disabled'), 0],
          [_('Top'),      1],
          [_('Bottom'),   2]]
+    );
+
+    optDict.HotEdgeFullScreen = itemFactory.getRowWidget(
+        _('Enable Hot Edge in Fullscreen Mode'),
+        _("Disable this option if you, for example, play fullscreen games where triggering the switcher popup is not welcome."),
+        itemFactory.newSwitch(),
+        'hotEdgeFullScreen'
     );
 
     optDict.HotEdgeMode = itemFactory.getRowWidget(
@@ -859,7 +868,7 @@ function _getOptions() {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
     optDict.ExternalTrigger = itemFactory.getRowWidget(
-            _('Customizations for popup triggered by mouse pointer (using hot edge or CHC-E extension)'),
+            _('Options for the mouse triggered switcher (using Hot Edge or CHC-E extension)'),
     );
 
     optDict.SingleOnActivate = itemFactory.getRowWidget(

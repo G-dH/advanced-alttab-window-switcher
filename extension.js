@@ -274,7 +274,7 @@ function _updateHotTrigger() {
             Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
         );
 
-        pressureBarrier.connect('trigger', _onPressureTriggered);
+        pressureBarrier.connect('trigger', _onPressureTriggered.bind(this, Main.layoutManager.monitors[i]));
         pressureBarrier.addBarrier(horizontalBarrier);
 
         _pressureBarriers.push([pressureBarrier, horizontalBarrier]);
@@ -318,8 +318,10 @@ function _removePressureBarrier() {
     }
 }
 
-function _onPressureTriggered (){
-    _toggleSwitcher(true);
+function _onPressureTriggered (monitor){
+    const fsAllowed = _options.get('hotEdgeFullScreen');
+    if (!(!fsAllowed && monitor.inFullscreen))
+        _toggleSwitcher(true);
 }
 
 function _extensionEnabled() {

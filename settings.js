@@ -134,6 +134,7 @@ var Options = class Options {
             superDoublePressAction: ['int', 'super-double-press-action'],
             hotEdgePosition: ['int', 'hot-edge-position'],
             hotEdgeMode: ['int', 'hot-edge-mode'],
+            hotEdgeFullScreen: ['boolean', 'hot-edge-fullscreen'],
             hotEdgeMonitor: ['int', 'hot-edge-monitor'],
             hotEdgePressure: ['int', 'hot-edge-pressure'],
             hotEdgeWidth: ['int', 'hot-edge-width'],
