@@ -294,9 +294,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._recentShowTime = time;
 
-        // remove overlay labels if exist
-        //this._removeCaptions();
-
         if (this._firstRun && !this._pushModal()) {
             // workarounds releasing already grabbed input on X11
             const focusWin = global.display.get_focus_window();
@@ -2132,10 +2129,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _showSearchCaption(text) {
         const margin = 20;
-        if (this._searchCaption) {
-            this._searchCaption._destroy();
-        }
-
         const offset = this._itemCaption
         ? this._itemCaption.height + margin
         : margin;
@@ -2143,7 +2136,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         const xPosition = 0;
 
         const fontSize = options.CAPTIONS_SCALE * 2;
-        this._searchCaption = new CaptionLabel({
+        const params = {
             name: 'search-label',
             text: text,
             fontSize: fontSize,
@@ -2151,14 +2144,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             xPosition: xPosition,
             yOffset: offset,
             monitorIndex: this._monitorIndex
-        }, options);
+        };
+        if (!this._searchCaption) {
+            this._searchCaption = new CaptionLabel(params, options);
+        } else {
+            this._searchCaption.update(params);
+        }
     }
 
     _showTitleCaption() {
-        if (this._itemCaption) {
-            this._itemCaption._destroy();
-            this._itemCaption = null;
-        }
         let selected = this._items[this._selectedIndex];
 
         if (!selected)
@@ -2204,7 +2198,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         const fontSize = options.CAPTIONS_SCALE;
 
-        this._itemCaption = new CaptionLabel({
+        const params = {
             name: 'item-label',
             text: title,
             description: details,
@@ -2213,7 +2207,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             xPosition: xPos,
             yOffset: 0,
             monitorIndex: this._monitorIndex
-        }, options);
+        };
+
+        if (!this._itemCaption) {
+            this._itemCaption = new CaptionLabel(params, options);
+        } else {
+            this._itemCaption.update(params);
+        }
 
         if (this._inAnimation) {
             this._itemCaption.opacity = 0;
