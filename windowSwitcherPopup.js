@@ -393,7 +393,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
 
             if (this._switcherList) {
-                this.remove_child(this._switcherList);
                 this._switcherList.destroy();
             }
 
@@ -434,8 +433,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return true;
     }
 
-    showOrig() {} // compatibility with legacy CHC-E
-    // original show() function
     _showPopup(backward, binding, mask) {
         if (this._items.length == 0)
             return false;

@@ -112,7 +112,8 @@ class CaptionLabel extends St.BoxLayout {
             this._descriptionLabel._removed = false;
         }
 
-        this._descriptionLabel.text = details;
+        if (this._descriptionLabel && details)
+            this._descriptionLabel.text = details;
     }
 
     addSearchIcon() {
