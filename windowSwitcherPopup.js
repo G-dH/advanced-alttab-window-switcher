@@ -374,18 +374,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._tempFilterMode = null;
         }
 
-        let switcherList = this._getSwitcherList();
+        let itemList = this._getItemList();
 
-        if (!switcherList.length && this._searchEntryNotEmpty()) {
+        if (!itemList.length && this._searchEntryNotEmpty()) {
             // no results -> back to the last successful pattern
             this._searchEntry = this._searchEntry.slice(0, -1);
             this._tempFilterMode = null;
-            switcherList = this._getSwitcherList();
+            itemList = this._getItemList();
         }
 
-        if (switcherList.length > 0) {
+        if (itemList.length > 0) {
             if (this._shouldReverse()) {
-                switcherList.reverse();
+                itemList.reverse();
             }
             // avoid immediate switch to recent window when Show Win Preview mode is active
             if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN && !this._showingApps && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU) {
@@ -411,7 +411,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 reverseOrder: this._shouldReverse()
             }
 
-            this._switcherList = new SwitcherList(switcherList, options, switcherParams);
+            this._switcherList = new SwitcherList(itemList, options, switcherParams);
             this._connectShowAppsIcon();
 
             if (!options.HOVER_SELECT && this.KEYBOARD_TRIGGERED) {
@@ -950,8 +950,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._setSwitcherStatus();
     }
 
-    _getSwitcherList() {
-        let switcherList;
+    _getItemList() {
+        let itemList;
 
         if (this._singleApp && this._switcherDestroyedOnLastWinClosed) {
             if (this._searchEntryNotEmpty()) {
@@ -966,13 +966,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (this.SHOW_APPS) {
-            switcherList = this._getAppList(this._searchEntry);
-            if (!switcherList.length && this.APP_FILTER_MODE > 1) {
+            itemList = this._getAppList(this._searchEntry);
+            if (!itemList.length && this.APP_FILTER_MODE > 1) {
                 this._tempFilterMode = FilterMode.ALL;
-                switcherList = this._getAppList(this._searchEntry);
+                itemList = this._getAppList(this._searchEntry);
             }
         } else {
-            switcherList = this._getCustomWindowList(this._searchEntry);
+            itemList = this._getCustomWindowList(this._searchEntry);
         }
 
         let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '') ||
@@ -981,14 +981,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // if no window matches the searched pattern, try to switch to a less restricted filter if possible and allowed
         // even if the switcher is in app mode, try to search windows if no app matches the search pattern
         let mode = this._switcherMode === SwitcherMode.APPS ? this.WIN_FILTER_MODE : this.WIN_FILTER_MODE - 1;
-        if (switcherList.length === 0 &&
+        if (itemList.length === 0 &&
             (this.WIN_FILTER_MODE !== FilterMode.ALL || this._switcherMode === SwitcherMode.APPS) &&
             filterSwitchAllowed
         ) {
             for (mode; mode > 0; mode--) {
                 this._tempFilterMode = mode;
-                switcherList = this._getCustomWindowList(this._searchEntry);
-                if (switcherList.length > 0) {
+                itemList = this._getCustomWindowList(this._searchEntry);
+                if (itemList.length > 0) {
                     // if on empty WS/monitor ...
                     if (this._searchEntry === null || this._searchEntry === '') {
                         // ... select first item if firstRun
@@ -1010,13 +1010,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // if no windows/apps match the searched pattern and searching apps is allowed, try to find some apps instead
-        if (switcherList.length === 0 && options.SEARCH_APPS === true && this._searchEntryNotEmpty()) {
-            switcherList = this._getAppList(this._searchEntry);
+        if (itemList.length === 0 && options.SEARCH_APPS === true && this._searchEntryNotEmpty()) {
+            itemList = this._getAppList(this._searchEntry);
             this._initialSelectionMode = SelectMode.FIRST;
         }
 
         // if no windows at all, show dash content to launch new app
-        if (!switcherList.length && !_getWindows(null).length && !this._searchEntryNotEmpty()) {
+        if (!itemList.length && !_getWindows(null).length && !this._searchEntryNotEmpty()) {
             this._switcherMode = SwitcherMode.APPS;
             this.INCLUDE_FAVORITES = true;
             this.SHOW_APPS = true;
@@ -1025,7 +1025,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return this._getAppList();
         }
 
-        return switcherList;
+        return itemList;
     }
 
     _shadeIn() {
