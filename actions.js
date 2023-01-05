@@ -168,15 +168,17 @@ var Actions = class {
         } else {
             // Pressing the apps btn before overview activation avoids icons animation in GS 3.36/3.38
             // but in GS40 with Dash to Dock and its App button set to "no animation", this whole sequence is problematic
-            if (Settings.shellVersion < 40)
+            if (shellVersion < 40) {
+                // in 3.36 pressing the button is usually enough to activate overview, but not always
                 Main.overview.dash.showAppsButton.checked = true;
-            // in 3.36 pressing the button is usually enough to activate overview, but not always
-            Main.overview.show();
-            // pressing apps btn before overview has no effect in GS 40, so once again
-            Main.overview.dash.showAppsButton.checked = true;
-
-            // Main.overview.showApps()  // GS 40 only, can show app grid, but not when overview is already active
-            // Main.overview.viewSelector._toggleAppsPage();  // GS 36/38
+                Main.overview.show();
+            } else {
+                if (Main.overview._shown) {
+                    Main.overview.dash.showAppsButton.checked = true;
+                } else {
+                    Main.overview.show(2); // 2 for App Grid
+                }
+            }
         }
     }
 
@@ -299,7 +301,7 @@ var Actions = class {
         let activeWs = global.workspace_manager.get_active_workspace();
         let activeWsIdx = activeWs.index();
         let targetIdx = activeWsIdx + direction;
-        if (targetIdx > 0 || targetIdx < (global.workspace_manager.get_n_workspaces() - 1)) {
+        if (targetIdx > -1 && targetIdx < (global.workspace_manager.get_n_workspaces())) {
             global.workspace_manager.reorder_workspace(activeWs, targetIdx);
         }
     }
