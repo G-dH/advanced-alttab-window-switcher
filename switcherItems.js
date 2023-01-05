@@ -253,6 +253,10 @@ class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams, options) {
         super._init(app);
         this._options = options;
+
+        // avoid conflict with rest of the system
+        this._onMenuPoppedDown = () => { };
+
         // remove scroll connection created by my OFP extension
         if (this._scrollConnectionID) {
             this.disconnect(this._scrollConnectionID);
@@ -355,6 +359,13 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         this._is_app = true;
+
+        // if user activates an action that includes destroying the switcher from the app menu
+        // when appIcon is destroyed, the fading app menu jumps to the top left corner of the monitor (lost parent / relative position).
+        // hiding the menu immediately hides this visual glitch
+        this.connect('destroy', () => {
+            this._menu && this._menu.actor.hide();
+        });
     }
 
     _shouldShowWinCounter(count) {
