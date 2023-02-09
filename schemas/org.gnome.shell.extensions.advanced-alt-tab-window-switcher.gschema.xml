@@ -68,6 +68,9 @@
       <default>3</default>
     </key>
 
+    <key name='switcher-ws-thumbnails' type='i'>
+      <default>2</default>
+    </key>
     <key name='switcher-popup-preview-selected' type='i'>
       <default>1</default>
     </key>

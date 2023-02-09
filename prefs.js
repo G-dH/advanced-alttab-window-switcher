@@ -145,6 +145,7 @@ function _getCommonOptionList(options) {
             opt.DelayShowingSwitcher,
             opt.InteractiveIndicators,
         opt.AppearanceCommon,
+            opt.WsThumbnails,
             opt.Theme,
             opt.OverlayTitle,
             opt.TooltipLabelScale,
@@ -453,6 +454,17 @@ function _getOptions() {
             itemFactory.newSpinButton(popupTimeoutAdjustment),
             'switcherPopupTimeout'
     );
+
+    optDict.WsThumbnails = itemFactory.getRowWidget(
+        _('Show Workspace Thumbnails'),
+        _('AATWS can show workspace thumbnails above/below the switcher, so you can see their content and switch workspace using a mouse. You can also reorder current workspace using Shift+Scroll or Ctrl+Page Up/Down.'),
+        itemFactory.newComboBox(),
+        'switcherWsThumbnails',
+           [[_('Disable'),                0],
+            [_('Show'),                   1],
+            [_('Show in Dock Mode Only'), 2]]
+    );
+
 
     optDict.Theme = itemFactory.getRowWidget(
         _('Color Theme'),

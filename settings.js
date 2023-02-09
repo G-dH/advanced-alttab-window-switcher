@@ -106,7 +106,7 @@ var Options = class Options {
         this._connectionIds = [];
         this.colorStyle = ColorStyleDefault;
 
-        this.cancelTimeout = false; // state variable used by the switcher popup
+        this.cancelTimeout = false; // state variable used by the switcher popup and needs to be available for other modules
 
         this._gsettings = ExtensionUtils.getSettings(_schema);
         // delay write to backend to avoid excessive disk writes when adjusting scales and spinbuttons
@@ -166,6 +166,7 @@ var Options = class Options {
             switcherPopupSyncFilter: ['boolean', 'switcher-popup-sync-filter'],
             switcherPopupTheme: ['int', 'switcher-popup-theme'],
             switcherPopupInteractiveIndicators: ['boolean', 'switcher-popup-interactive-indicators'],
+            switcherWsThumbnails: ['int', 'switcher-ws-thumbnails'],
             singleAppPreviewSize: ['int', 'win-switcher-single-prev-size'],
             winSwitcherPopupFilter: ['int', 'win-switcher-popup-filter'],
             winSwitcherPopupSorting: ['int', 'win-switcher-popup-sorting'],
@@ -354,6 +355,7 @@ var Options = class Options {
         this.INTERACTIVE_INDICATORS = this.get('switcherPopupInteractiveIndicators');
         this.INPUT_SOURCE_ID       = this.get('inputSourceId');
         this.REMEMBER_INPUT        = this.get('rememberInput');
+        this.WS_THUMBNAILS         = this.get('switcherWsThumbnails');
 
         // Window switcher
         this.WIN_FILTER_MODE       = this.get('winSwitcherPopupFilter');

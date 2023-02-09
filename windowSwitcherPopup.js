@@ -18,6 +18,7 @@ const AppDisplay      = imports.ui.appDisplay;
 const Dash            = imports.ui.dash;
 const PopupMenu       = imports.ui.popupMenu;
 const Keyboard        = imports.ui.status.keyboard;
+const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
@@ -261,6 +262,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         global.advancedWindowSwitcher = this;
         this.connect('destroy', this._onDestroyThis.bind(this));
+
+        this._wsManagerConId = global.workspace_manager.connect('workspace-switched', this._onWorkspaceChanged.bind(this));
+    }
+
+    _onWorkspaceChanged() {
+        if (!this._doNotUpdateOnNewWindow && this._workspace !== global.workspace_manager.get_active_workspace()) {
+            if (!this._showingApps) {
+                this.WIN_FILTER_MODE = FilterMode.MONITOR;
+            }
+            this.show();
+        }
     }
 
     _pushModal() {
@@ -447,6 +459,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // need to scroll when selecting
         this.visible = true;
         this.opacity = 0;
+
+        // build ws thumbnails if enabled
+        this._showWsThumbnails();
+
         this.get_allocation_box();
 
         options.colorStyle.SWITCHER_LIST && this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
@@ -647,6 +663,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (id) GLib.source_remove(id);
         });
 
+        if (this._wsManagerConId) {
+            global.workspace_manager.disconnect(this._wsManagerConId);
+        }
+
         if (this._newWindowSignalId) {
             global.display.disconnect(this._newWindowSignalId);
         }
@@ -662,6 +682,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._originalOverlayKey) {
             const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
             _overlaySettings.set_string('overlay-key', this._originalOverlayKey);
+        }
+
+        if (this._wsTmb) {
+            this.remove_child(this._wsTmb);
+            this._wsTmb = null;
         }
 
         global.advancedWindowSwitcher = null;
@@ -729,6 +754,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let monitor = this._getMonitorByIndex(this._monitorIndex);
         // no flags in GS 40+
         const useFlags = flags != undefined;
+        box.set_size(monitor.width, monitor.height);
         useFlags    ? this.set_allocation(box, flags)
                     : this.set_allocation(box);
         let childBox = new Clutter.ActorBox();
@@ -769,6 +795,58 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         useFlags    ? this._switcherList.allocate(childBox, flags)
                     : this._switcherList.allocate(childBox);
+
+        if (this._wsTmb) {
+            const wsTmb = this._wsTmb;
+            const vertical = global.workspaceManager.layout_rows === -1;
+            if (vertical) {
+                let width = 100 * (monitor.width / monitor.height);
+                let [, height] = wsTmb.get_preferred_custom_height(width);
+                height = Math.round(Math.min(height, monitor.height - this._switcherList.height - 70));
+                //[, width] = wsTmb.get_preferred_custom_width(height);
+
+                let x = monitor.x + (monitor.width - width) / 2;
+                let y;
+                if (this.POPUP_POSITION === Position.BOTTOM) {
+                    y = this._switcherList.allocation.y1 - height - 60;
+                } else if (this.POPUP_POSITION === Position.TOP || this.POPUP_POSITION === Position.CENTER) {
+                    y = this._switcherList.allocation.y2 + 60;
+                }
+
+                childBox.set_origin(x, y);
+                childBox.set_size(width, height);
+                wsTmb.allocate(childBox);
+
+                wsTmb.width = width;
+                wsTmb.height = height;
+            } else {
+                let height = 100;
+                let width;
+                if (wsTmb.get_preferred_custom_width) {
+                    // custom function of Vertical Workspaces extension
+                    [, width] = wsTmb.get_preferred_custom_width(height);
+                } else {
+                    // in default GS this sets the size same as in the overview
+                    [, width] = wsTmb.get_preferred_width(height * 2);
+                    [height, ] = wsTmb.get_preferred_height(width);
+                }
+
+
+                width = (Math.min(width, monitor.width));
+
+                let x = monitor.x + (monitor.width - width) / 2;
+                let y;
+                if (this.POPUP_POSITION === Position.BOTTOM) {
+                    y = this._switcherList.allocation.y1 - height - 60;
+                } else if (this.POPUP_POSITION === Position.TOP || this.POPUP_POSITION === Position.CENTER) {
+                    y = this._switcherList.allocation.y2 + 60;
+                }
+
+                childBox.set_origin(x, y);
+                childBox.set_size(width, height);
+                wsTmb.allocate(childBox);
+            }
+        }
     }
 
     _initialSelection(backward, binding) {
@@ -1029,16 +1107,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _shadeIn() {
-        let translation_y = 0;
+        const ANIMATION_TIME = 200;
+        /*let translation_y = 0;
+        let translationWsTmb_y = 0;
         switch (this.POPUP_POSITION) {
             case 1:
-                translation_y =  - this._switcherList.height - (Main.panel.height + 20) / this.SCALE_FACTOR;
+                translation_y =  -this._switcherList.height - (Main.panel.height + 20) / this.SCALE_FACTOR;
+                if (this._wsTmb)
+                    translationWsTmb_y = -this._wsTmb.allocation.y2;
                 break;
             case 3:
                 translation_y =  this._switcherList.height + 20;
+                translationWsTmb_y = this._wsTmb.allocation.y1;
                 break;
         }
-        //this._switcherList.translation_y = translation_y;
+        this._switcherList.translation_y = translation_y;*/
+        if (this._wsTmb) {
+            //this._wsTmb.translation_y = translationWsTmb_y;
+            this._wsTmb.opacity = 0;
+        }
         this.opacity = 255;
         this._switcherList.opacity = 0;
 
@@ -1049,10 +1136,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._inAnimation = true;
         this._switcherList.ease({
             // delay animation by the time needed for creating the popup
-            //delay: 100,
+            //delay: 50,
             //translation_y: 0,
             opacity: 255,
-            duration: 100,
+            duration: ANIMATION_TIME,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
                 this._inAnimation = false;
@@ -1069,12 +1156,21 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         });
 
-        /*if (this._itemCaption) {
+        if (this._wsTmb) {
+            this._wsTmb.ease({
+                opacity: 255,
+                //translation_y: 0,
+                duration: ANIMATION_TIME,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        if (this._itemCaption) {
             this._itemCaption.ease({
                 opacity: 255,
-                duration: 100,
+                duration: ANIMATION_TIME,
             });
-        }*/
+        }
     }
 
     _shadeOut() {
@@ -1101,6 +1197,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => this.destroy(),
         });
+
+        if (this._wsTmb) {
+            this._wsTmb.ease({
+                duration: 100,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                translation_y: this._switcherList.allocation.y2 - this._wsTmb.y
+            });
+        }
     }
 
     fadeAndDestroy() {
@@ -1174,7 +1278,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // don't close the switcher if there is higher possibility that user wants to continue using it
-        if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE)))
+        if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE) || selected._is_showAppsIcon))
             super._finish();
         else
             this._doNotUpdateOnNewWindow = false;
@@ -1224,6 +1328,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._skipInitialSelection = true;
+
         this.show();
         this._select(this._getItemIndexByID(id));
         !options.PREVIEW_SELECTED && this._destroyWinPreview();
@@ -1267,7 +1372,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             GLib.PRIORITY_DEFAULT,
             options.NO_MODS_TIMEOUT,
             () => {
-                if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !options.cancelTimeout) {
+                if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !this._isPointerOnWsTmb() && !options.cancelTimeout) {
                     if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
                         if (this._lastShowed) {
                             this._selectedIndex = this._lastShowed;
@@ -1517,22 +1622,52 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _isPointerOut() {
-        let [x, y,] = global.get_pointer();
-        let switcher = this._switcherList;
+        const [x, y,] = global.get_pointer();
+        const switcher = this._switcherList;
         // margin expands the "inside" area around the popup to cover gap between the popup and the edge of screen (Top/Bottom position), plus small overlap
+        let result = false;
         const margin = this.BOTTOM_MARGIN * this.SCALE_FACTOR - 1;
         const marginTop = this.TOP_MARGIN * this.SCALE_FACTOR;
 
         if (x < (switcher.allocation.x1 - margin) || x > (switcher.allocation.x1 + switcher.width + margin)) {
             // return true if the pointer is horizontally outside the switcher and cannot be at the top or bottom of the screen
             if (!((this.POPUP_POSITION === Position.TOP && y === switcher.allocation.y1 - marginTop) || (this.POPUP_POSITION === Position.BOTTOM && y === switcher.allocation.y2 + margin)))
-                return true;
-        }
-        if (y < (switcher.allocation.y1 - marginTop) || y > (switcher.allocation.y2 + margin)) {
-            return true;
+                result = true;
+        } else if (y < (switcher.allocation.y1 - marginTop) || y > (switcher.allocation.y2 + margin)) {
+            result = true;
         }
 
-        return false;
+        return result && !this._isPointerOnWsTmb(true);
+    }
+
+    _isPointerOnWsTmb(includeSpaceBetween = false) {
+        if (!this._wsTmb) return false;
+
+        const [x, y,] = global.get_pointer();
+        const wsTmb = this._wsTmb;
+
+        const switcher = this._switcherList;
+
+        if (x < wsTmb.allocation.x1 || (x > (wsTmb.allocation.x1 + wsTmb.width))) {
+            // return true if the pointer is horizontally outside the wsTmb
+                return false;
+        }
+
+        if (includeSpaceBetween) {
+            // include space between ws thumbnails and the switcher
+            const wsTmbAbove = switcher.allocation.y1 > wsTmb.allocation.y1;
+            const wsTmbY1 = wsTmbAbove ? wsTmb.allocation.y1 : switcher.allocation.y2;
+            const wsTmbY2 = wsTmbAbove ? switcher.allocation.y1 : wsTmb.allocation.y2;
+
+            if (y < wsTmbY1 || y > wsTmbY2)
+                return false;
+
+        } else {
+            if (y < wsTmb.allocation.y1 || y > wsTmb.allocation.y2)
+                return false;
+        }
+
+        return true;
     }
 
     _getCurrentMonitorIndex() {
@@ -2067,6 +2202,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     vfunc_button_press_event(event) {
+        if (this._wsTmb && this._isPointerOnWsTmb()) {
+            this._wsTmbButtonPressEvent(event);
+            return Clutter.EVENT_STOP;
+        }
+
         const btn = event.button;
         const pointerOut = this._isPointerOut();
         let action;
@@ -2104,9 +2244,27 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     vfunc_scroll_event(event) {
-        const direction = event.direction;
+        let direction = event.direction;
         if (direction === Clutter.ScrollDirection.SMOOTH) {
             return false;
+        }
+
+        if (this._wsTmb && this._isPointerOnWsTmb()) {
+            // scroll over ws thumbnails switches ws
+            if (Date.now() - this._lastActionTimeStamp > 50) {
+                direction = direction === Clutter.ScrollDirection.UP
+                        ? Meta.MotionDirection.UP
+                        : Meta.MotionDirection.DOWN;
+                if (_shiftPressed()) {
+                    this._reorderWorkspace(direction === Meta.MotionDirection.UP ? -1 : 1);
+                } else {
+                    this._switchWorkspace(direction);
+                }
+
+                this._lastActionTimeStamp = Date.now();
+            }
+
+            return Clutter.EVENT_STOP;
         }
 
         const action = this._isPointerOut() ?
@@ -2124,10 +2282,44 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return Clutter.EVENT_STOP;
     }
 
+    _wsTmbButtonPressEvent(event) {
+        const btn = event.button;
+
+        if (btn === Clutter.BUTTON_PRIMARY) {
+            // show windows on this workspace
+            //this._switcherMode = SwitcherMode.WINDOWS;
+            //this.SHOW_APPS = false;
+
+            // switch workspace
+            let { x, y } = event;
+            // entering overview steal mouse events from AATWS, therefore btn release gets into the swTmb instead
+            // which activates the action
+            this._wsTmb._activateThumbnailAtPoint(x, y, event.time, true);
+
+            if (this.SHOW_APPS) {
+                //this.APP_FILTER_MODE = FilterMode.WORKSPACE;
+            } else {
+                this._singleApp = null;
+                this._skipInitialSelection = true;
+                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
+                this._updateSwitcher();
+            }
+        } else if (btn === Clutter.BUTTON_SECONDARY) {
+            let { x, y } = event;
+            const [r_, xx] = this._wsTmb.transform_stage_point(x, y);
+            const thumbnail = this._wsTmb._thumbnails.find(t => xx >= t.x && xx <= t.x + t.width);
+            const wsIndex = thumbnail.metaWorkspace.index();
+            Main.overview._overview.controls._workspacesDisplay._scrollAdjustment.value = wsIndex;
+            this._wsTmb.hide();
+            Main.overview.show();
+            this.fadeAndDestroy();
+        }
+    }
+
     _showSearchCaption(text) {
         const margin = 20;
         const offset = this._itemCaption
-        ? this._itemCaption.height + margin
+        ? this._itemCaption.height + margin + (this._wsTmb ? this._wsTmb.height: 0)
         : margin;
 
         const xPosition = 0;
@@ -2693,6 +2885,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _switchWorkspace(direction) {
         let id = this._getSelectedID();
         this._getActions().switchWorkspace(direction, true);
+        this._workspace = global.workspace_manager.get_active_workspace();
 
         if (this._selectedIndex > -1) {
             this._skipInitialSelection = true;
@@ -2704,7 +2897,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.show();
         }
 
-            this._getActions().showWsSwitcherPopup();
+        this._getActions().showWsSwitcherPopup();
     }
 
     _switchMonitor(direction) {
@@ -2802,7 +2995,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _reorderWorkspace(direction = 0) {
         this._getActions().reorderWorkspace(direction);
-            this._getActions().showWsSwitcherPopup();
+        this._getActions().showWsSwitcherPopup();
     }
 
     _toggleMaximizeOnCurrentMonitor() {
@@ -2999,6 +3192,19 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _openPrefsWindow() {
         this._getActions().openPrefsWindow();
+    }
+
+    _showWsThumbnails() {
+        const enabled = options.WS_THUMBNAILS === 1 || (options.WS_THUMBNAILS === 2 && !this.KEYBOARD_TRIGGERED);
+        if (!this._wsTmb && shellVersion >=42 && enabled) {
+            const wsTmb = new
+                WorkspaceThumbnail.ThumbnailsBox(Main.overview._overview.controls._workspacesDisplay._scrollAdjustment,
+                this._monitorIndex);
+
+            this.add_child(wsTmb);
+            wsTmb._createThumbnails();
+            this._wsTmb = wsTmb;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////
