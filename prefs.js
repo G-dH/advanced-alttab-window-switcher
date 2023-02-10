@@ -1523,6 +1523,7 @@ function getAboutOptionList() {
     optionList.push(itemFactory.getRowWidget(
         _('Changelog'),
         _("See what's changed."),
+        itemFactory.newLinkButton('https://github.com/G-dH/advanced-alttab-window-switcher/blob/main/CHANGELOG.md'),
     ));
 
     optionList.push(itemFactory.getRowWidget(
