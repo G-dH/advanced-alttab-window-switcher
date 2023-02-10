@@ -1,4 +1,10 @@
 ## Changelog
+### 23 (not yet released)
+**Added:**
+- Option `Enable Hot Edge in Fullscreen Mode` allows to control whether the hot edge trigger will be active when the focused window is in the fullscreen mode.
+- Option `Show Workspace Thumbnails` allows to display ws thumbnails next to the switcher popup for better orientation and direct activation of workspaces, that also allows drag an drop windows between workspaces.
+- Dock related options moved to the new `Dock Mode` page in the Settings window.
+
 ### v22 (2022-12-01)
 **Added:**
 - App switcher hotkey to toggle `Include Favorite Apps`.

@@ -30,6 +30,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 - Mouse control, including optional top or bottom hot edge for switcher activation.
 - Configurable mouse buttons and scroll wheel.
 - Supported by the *Custom Hot Corners - Extended* extension.
+- Workspace Thumbnails option allows better navigation between workspaces.
 
 
 ### Hotkeys
