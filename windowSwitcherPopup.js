@@ -117,6 +117,8 @@ const TooltipTitleMode = {
     CENTER: 3
 }
 
+var ANIMATION_TIME = 200;
+
 const Action = Settings.Actions;
 
 const SCROLL_TIMEOUT = 200;
@@ -267,12 +269,30 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _onWorkspaceChanged() {
-        if (!this._doNotUpdateOnNewWindow && this._workspace !== global.workspace_manager.get_active_workspace()) {
-            if (!this._showingApps) {
-                this.WIN_FILTER_MODE = FilterMode.MONITOR;
-            }
-            this.show();
+        if (!this._doNotUpdateOnNewWindow) {
+            this._updateOnWorkspaceSwitched();
         }
+    }
+
+    _updateOnWorkspaceSwitched(callback) {
+        if (this._wsSwitcherAnimationDelayId) {
+            GLib.source_remove(this._wsSwitcherAnimationDelayId);
+        }
+
+        this._wsSwitcherAnimationDelayId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT,
+            // re-build the switcher after workspace switcher animation to avoid stuttering
+            250 * St.Settings.get().slow_down_factor,
+            () => {
+                this.WIN_FILTER_MODE = options.WIN_FILTER_MODE;
+                this.show();
+                if (callback) {
+                    callback();
+                }
+                this._wsSwitcherAnimationDelayId = 0;
+                return GLib.SOURCE_REMOVE;
+            }
+        );
     }
 
     _pushModal() {
@@ -460,9 +480,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this.visible = true;
         this.opacity = 0;
 
-        // build ws thumbnails if enabled
-        this._showWsThumbnails();
-
         this.get_allocation_box();
 
         options.colorStyle.SWITCHER_LIST && this._switcherList.add_style_class_name(options.colorStyle.SWITCHER_LIST);
@@ -583,6 +600,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             this._shadeIn();
                         }
                         Main.osdWindowManager.hideAll();
+                        // build ws thumbnails if enabled
+                        this._showWsThumbnails();
+                        if (this._wsTmb) {
+                            this._wsTmb.opacity = 0;
+                            this._wsTmb.ease({
+                                opacity: 255,
+                                //translation_y: 0,
+                                duration: ANIMATION_TIME / 2,
+                                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                            });
+                        }
                     }
 
                     this._initialDelayTimeoutId = 0;
@@ -596,8 +624,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._searchEntryNotEmpty()) {
                 this._showSearchCaption(this._searchEntry);
             } else if (this._searchEntry === '' && this._searchCaption) {
-                this._searchCaption.destroy();
-                this._searchCaption = null;
+                this._searchCaption.hide();
             }
         }
 
@@ -754,7 +781,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let monitor = this._getMonitorByIndex(this._monitorIndex);
         // no flags in GS 40+
         const useFlags = flags != undefined;
-        box.set_size(monitor.width, monitor.height);
+        if (shellVersion >= 40) {
+            box.set_size(monitor.width, monitor.height);
+        }
         useFlags    ? this.set_allocation(box, flags)
                     : this.set_allocation(box);
         let childBox = new Clutter.ActorBox();
@@ -828,7 +857,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 } else {
                     // in default GS this sets the size same as in the overview
                     [, width] = wsTmb.get_preferred_width(height * 2);
-                    [height, ] = wsTmb.get_preferred_height(width);
+                    [, height] = wsTmb.get_preferred_height(width);
                 }
 
 
@@ -844,9 +873,63 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
                 childBox.set_origin(x, y);
                 childBox.set_size(width, height);
-                wsTmb.allocate(childBox);
+
+                useFlags ? wsTmb.allocate(childBox, flags)
+                         : wsTmb.allocate(childBox);
             }
         }
+
+        if (this._itemCaption) {
+            this._setCaptionAllocationBox(this._itemCaption, childBox, monitor);
+            useFlags ? this._itemCaption.allocate(childBox, flags)
+                     : this._itemCaption.allocate(childBox);
+        }
+
+        if (this._searchCaption) {
+            this._setCaptionAllocationBox(this._searchCaption, childBox, monitor);
+            useFlags ? this._searchCaption.allocate(childBox, flags)
+                     : this._searchCaption.allocate(childBox);
+        }
+    }
+
+    _setCaptionAllocationBox(caption, childBox, monitor) {
+        let index = this._selectedIndex;
+        // get item position on the screen and calculate center position of the label
+        let actor, xPos;
+        if (options.ITEM_CAPTIONS === 2 && caption == this._itemCaption) {
+            actor = this._items[index];
+        } else {
+            actor = this._switcherList;
+        }
+
+        if (actor) {
+            [xPos] = actor.get_transformed_position();
+            xPos = Math.floor(xPos + actor.width / 2);
+        } else {
+            xPos = monitor.width / 2;
+        }
+
+        let [, height] = caption.get_preferred_height(monitor.width);
+        let [, width] = caption.get_preferred_width(height);
+        width = Math.min(width, monitor.width);
+        childBox.set_size(width, height);
+
+        const margin = 8;
+        const parent = this._switcherList;
+        const yOffset = caption._yOffset;
+
+        // win/app titles should be always placed centered to the switcher popup
+        let captionCenter = xPos ? xPos : parent.allocation.x1 + parent.width / 2;
+
+        // the +/-1 px compensates padding
+        let x = Math.floor(Math.max(Math.min(captionCenter - (width / 2), monitor.x + monitor.width - width - 1), monitor.x + 1));
+        let y = parent.allocation.y1 - height - yOffset - margin;
+
+        if (y < monitor.y)
+            y = parent.allocation.y2 + yOffset + margin;
+
+        childBox.set_origin(x, y);
+        return childBox;
     }
 
     _initialSelection(backward, binding) {
@@ -855,7 +938,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return;
         }
         if (this._itemCaption) {
-            this._itemCaption._destroy();
+            //this._itemCaption._destroy();
+            this._itemCaption.hide();
         }
 
         if (this._items.length === 1 && this._switcherList) {
@@ -1107,7 +1191,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _shadeIn() {
-        const ANIMATION_TIME = 200;
         /*let translation_y = 0;
         let translationWsTmb_y = 0;
         switch (this.POPUP_POSITION) {
@@ -1990,6 +2073,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._monitorIndex = (this._monitorIndex + 1) % (mod);
 
             this._updateSwitcher();
+            this._showWsThumbnails();
         } else if (options.get('hotkeySearch').includes(keyString) || keysym == Clutter.KEY_Insert) {
             this._toggleSearchMode();
         }
@@ -2203,7 +2287,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     vfunc_button_press_event(event) {
         if (this._wsTmb && this._isPointerOnWsTmb()) {
-            this._wsTmbButtonPressEvent(event);
             return Clutter.EVENT_STOP;
         }
 
@@ -2282,60 +2365,23 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return Clutter.EVENT_STOP;
     }
 
-    _wsTmbButtonPressEvent(event) {
-        const btn = event.button;
-
-        if (btn === Clutter.BUTTON_PRIMARY) {
-            // show windows on this workspace
-            //this._switcherMode = SwitcherMode.WINDOWS;
-            //this.SHOW_APPS = false;
-
-            // switch workspace
-            let { x, y } = event;
-            // entering overview steal mouse events from AATWS, therefore btn release gets into the swTmb instead
-            // which activates the action
-            this._wsTmb._activateThumbnailAtPoint(x, y, event.time, true);
-
-            if (this.SHOW_APPS) {
-                //this.APP_FILTER_MODE = FilterMode.WORKSPACE;
-            } else {
-                this._singleApp = null;
-                this._skipInitialSelection = true;
-                this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
-                this._updateSwitcher();
-            }
-        } else if (btn === Clutter.BUTTON_SECONDARY) {
-            let { x, y } = event;
-            const [r_, xx] = this._wsTmb.transform_stage_point(x, y);
-            const thumbnail = this._wsTmb._thumbnails.find(t => xx >= t.x && xx <= t.x + t.width);
-            const wsIndex = thumbnail.metaWorkspace.index();
-            Main.overview._overview.controls._workspacesDisplay._scrollAdjustment.value = wsIndex;
-            this._wsTmb.hide();
-            Main.overview.show();
-            this.fadeAndDestroy();
-        }
-    }
-
     _showSearchCaption(text) {
         const margin = 20;
         const offset = this._itemCaption
         ? this._itemCaption.height + margin + (this._wsTmb ? this._wsTmb.height: 0)
         : margin;
 
-        const xPosition = 0;
-
         const fontSize = options.CAPTIONS_SCALE * 2;
         const params = {
             name: 'search-label',
             text: text,
             fontSize: fontSize,
-            parent: this._switcherList,
-            xPosition: xPosition,
             yOffset: offset,
             monitorIndex: this._monitorIndex
         };
         if (!this._searchCaption) {
             this._searchCaption = new CaptionLabel(params, options);
+            this.add_child(this._searchCaption);
         } else {
             this._searchCaption.update(params);
         }
@@ -2373,18 +2419,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        let index = this._selectedIndex;
-        // get item position on the screen and calculate center position of the label
-        let actor, xPos;
-        if (options.ITEM_CAPTIONS === 2) {
-            actor = this._items[index];
-        } else {
-            actor = this._switcherList;
-        }
-
-        [xPos] = actor.get_transformed_position();
-        xPos = Math.floor(xPos + actor.width / 2);
-
         const fontSize = options.CAPTIONS_SCALE;
 
         const params = {
@@ -2392,14 +2426,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             text: title,
             description: details,
             fontSize: fontSize,
-            parent: this._switcherList,
-            xPosition: xPos,
             yOffset: 0,
-            monitorIndex: this._monitorIndex
         };
 
         if (!this._itemCaption) {
             this._itemCaption = new CaptionLabel(params, options);
+            this.add_child(this._itemCaption);
         } else {
             this._itemCaption.update(params);
         }
@@ -2407,11 +2439,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._inAnimation) {
             this._itemCaption.opacity = 0;
         }
-        this._itemCaption.connect('destroy', (actor) => {
-            if (actor === this._itemCaption) {
+        this._itemCaption.connect('destroy', () => {
                 this._itemCaption = null;
-            } else  {
-            }
         });
     }
 
@@ -2781,6 +2810,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._searchEntry !== null) {
             this._searchEntry = null;
             options.cancelTimeout = false;
+            if (this._searchCaption)
+                this._searchCaption.hide();
         } else {
             this._searchEntry = '';
             this._modifierMask = 0;
@@ -2885,16 +2916,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _switchWorkspace(direction) {
         let id = this._getSelectedID();
         this._getActions().switchWorkspace(direction, true);
-        this._workspace = global.workspace_manager.get_active_workspace();
 
         if (this._selectedIndex > -1) {
             this._skipInitialSelection = true;
-            this.show();
-            this._doNotShowWin = true;
-            this._select(this._getItemIndexByID(id));
-            this._doNotShowWin = false;
+            const callback = function() {
+                this._doNotShowWin = true;
+                this._select(this._getItemIndexByID(id));
+                this._doNotShowWin = false;
+            }.bind(this);
+            this._updateOnWorkspaceSwitched(callback);
         } else {
-            this.show();
+            this._updateOnWorkspaceSwitched();
         }
 
         this._getActions().showWsSwitcherPopup();
@@ -2910,6 +2942,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (monIdx > -1) {
                 this._monitorIndex = monIdx;
                 this._updateSwitcher();
+                this._showWsThumbnails();
             }
         }
     }
@@ -3196,13 +3229,22 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _showWsThumbnails() {
         const enabled = options.WS_THUMBNAILS === 1 || (options.WS_THUMBNAILS === 2 && !this.KEYBOARD_TRIGGERED);
-        if (!this._wsTmb && shellVersion >=42 && enabled) {
+        if (shellVersion >=42 && enabled) {
+            if (this._wsTmb) {
+                this.remove_child(this._wsTmb);
+                // adding dummy placeholder with empty hide function removes errors caused by accessing already destroyed placeholder while destroying wsTmb
+                // problem are callbacks registered by Meta.later_add in ThumbnailsBox class
+                this._wsTmb._dropPlaceholder = {hide: () => {}};
+                this._wsTmb.destroy();
+            }
             const wsTmb = new
                 WorkspaceThumbnail.ThumbnailsBox(Main.overview._overview.controls._workspacesDisplay._scrollAdjustment,
                 this._monitorIndex);
 
-            this.add_child(wsTmb);
             wsTmb._createThumbnails();
+            //wsTmb.add_style_class_name(options.colorStyle.CAPTION_LABEL);
+            this.add_child(wsTmb);
+            this.set_child_below_sibling(wsTmb, null);
             this._wsTmb = wsTmb;
         }
     }
