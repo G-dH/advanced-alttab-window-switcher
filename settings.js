@@ -51,8 +51,8 @@ var Actions = {
 
 const ColorStyleDefault = {
     STYLE: '',
-    SWITCHER_LIST : '',
-    CAPTION_LABEL : 'dash-label',
+    SWITCHER_LIST: '',
+    CAPTION_LABEL: 'dash-label',
     TITLE_LABEL: '',
     SELECTED: '',
     FOCUSED: 'focused-dark',
@@ -63,13 +63,13 @@ const ColorStyleDefault = {
     RUNNING_COUNTER: 'running-counter-dark',
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
     RUNNING_DOT_COLOR: '',
-    ARROW: ''
-}
+    ARROW: '',
+};
 
 const ColorStyleDark = {
     STYLE: '1',
-    SWITCHER_LIST : 'switcher-list-dark',
-    CAPTION_LABEL : 'caption-label-dark',
+    SWITCHER_LIST: 'switcher-list-dark',
+    CAPTION_LABEL: 'caption-label-dark',
     TITLE_LABEL: 'title-label-dark',
     SELECTED: 'selected-dark',
     FOCUSED: 'focused-dark',
@@ -80,13 +80,13 @@ const ColorStyleDark = {
     RUNNING_COUNTER: 'running-counter-dark',
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
     RUNNING_DOT_COLOR: '',
-    ARROW: 'arrow-dark'
-}
+    ARROW: 'arrow-dark',
+};
 
 const ColorStyleLight = {
     STYLE: '2',
-    SWITCHER_LIST : 'switcher-list-light',
-    CAPTION_LABEL : 'caption-label-light',
+    SWITCHER_LIST: 'switcher-list-light',
+    CAPTION_LABEL: 'caption-label-light',
     TITLE_LABEL: 'title-label-light',
     SELECTED: 'selected-light',
     FOCUSED: 'focused-light',
@@ -98,8 +98,8 @@ const ColorStyleLight = {
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
     RUNNING_DOT_COLOR: '',
     RUNNING_DOT_ADWAITA: 'running-dot-color',
-    ARROW: 'arrow-light'
-}
+    ARROW: 'arrow-light',
+};
 
 var Options = class Options {
     constructor() {
@@ -196,7 +196,7 @@ var Options = class Options {
             appSwitcherPopupWinCounter: ['boolean', 'app-switcher-popup-win-counter'],
             appSwitcherPopupHideWinCounterForSingleWindow: ['boolean', 'app-switcher-popup-hide-win-counter-for-single-window'],
             appSwitcherPopupTitles: ['boolean', 'app-switcher-popup-titles'],
-            //appSwitcherPopupSwitchToSingleOnActivate: ['boolean', 'app-switcher-popup-switch-to-single-on-activate'],
+            // appSwitcherPopupSwitchToSingleOnActivate: ['boolean', 'app-switcher-popup-switch-to-single-on-activate'],
             appSwitcherPopupShowWinsOnActivate: ['int', 'app-switcher-popup-show-wins-on-activate'],
             appSwitcherPopupIncludeShowAppsIcon: ['boolean', 'app-switcher-popup-include-show-apps-icon'],
             appSwitcherPopupScrollItem: ['int', 'app-switcher-popup-scroll-item'],
@@ -234,7 +234,7 @@ var Options = class Options {
             hotkeyDown: ['string', 'hotkey-down'],
             hotkeyUp: ['string', 'hotkey-up'],
             hotkeyRight: ['string', 'hotkey-right'],
-            hotkeyFavorites: ['string', 'hotkey-favorites']
+            hotkeyFavorites: ['string', 'hotkey-favorites'],
         };
         this.cachedOptions = {};
 
@@ -243,11 +243,11 @@ var Options = class Options {
         this._intSettings = ExtensionUtils.getSettings('org.gnome.desktop.interface');
         this._updateColorScheme();
         this._intSettingsSigId = shellVersion >= 42
-                    ? this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
-                    : this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
+            ? this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
+            : this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
     }
 
-    _updateColorScheme(settings, key) {
+    _updateColorScheme(/* settings, key */) {
         const gtkTheme = this._intSettings.get_string('gtk-theme');
         const darkScheme = shellVersion >= 42 ? this._intSettings.get_string('color-scheme') === 'prefer-dark' : gtkTheme.endsWith('-dark');
         let colorStyle = this.get('switcherPopupTheme');
@@ -270,11 +270,11 @@ var Options = class Options {
         }
 
         ColorStyleLight.RUNNING_DOT_COLOR = this.colorStyle === ColorStyleLight && gtkTheme === 'Adwaita'
-                                            ? ColorStyleLight.RUNNING_DOT_ADWAITA
-                                            : '';
+            ? ColorStyleLight.RUNNING_DOT_ADWAITA
+            : '';
     }
 
-    _updateCachedSettings(settings, key) {
+    _updateCachedSettings(/* settings, key */) {
         Object.keys(this.options).forEach(v => this.get(v, true));
         this._updateColorScheme();
         this._setOptionConstants();
@@ -282,13 +282,13 @@ var Options = class Options {
 
     get(option, updateCache = false) {
         if (updateCache || this.cachedOptions[option] === undefined) {
-            const [format, key, settings] = this.options[option];
+            const [, key, settings] = this.options[option];
             let gSettings;
-            if (settings !== undefined) {
+            if (settings !== undefined)
                 gSettings = settings();
-            } else {
+            else
                 gSettings = this._gsettings;
-            }
+
 
             this.cachedOptions[option] = gSettings.get_value(key).deep_unpack();
         }
@@ -299,20 +299,20 @@ var Options = class Options {
     set(option, value) {
         const [format, key] = this.options[option];
         switch (format) {
-            case 'string':
-                this._gsettings.set_string(key, value);
-                break;
-            case 'int':
-                this._gsettings.set_int(key, value);
-                break;
-            case 'boolean':
-                this._gsettings.set_boolean(key, value);
-                break;
+        case 'string':
+            this._gsettings.set_string(key, value);
+            break;
+        case 'int':
+            this._gsettings.set_int(key, value);
+            break;
+        case 'boolean':
+            this._gsettings.set_boolean(key, value);
+            break;
         }
     }
 
     getDefault(option) {
-        const [format, key] = this.options[option];
+        const [, key] = this.options[option];
         return this._gsettings.get_default_value(key).deep_unpack();
     }
 
@@ -326,7 +326,7 @@ var Options = class Options {
         this._connectionIds.forEach(id => this._gsettings.disconnect(id));
         if (this._writeTimeoutId)
             GLib.Source.remove(this._writeTimeoutId);
-            this._writeTimeoutId = 0;
+        this._writeTimeoutId = 0;
 
         this._intSettings.disconnect(this._intSettingsSigId);
         this._intSettings = null;
@@ -384,7 +384,7 @@ var Options = class Options {
         this.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW = this.get('appSwitcherPopupHideWinCounterForSingleWindow');
         this.APP_MODE_ICON_SIZE    = this.get('appSwitcherPopupIconSize');
         this.SEARCH_PREF_RUNNING   = this.get('appSwitcherPopupSearchPrefRunning');
-        this.INCLUDE_SHOW_APPS_ICON= this.get('appSwitcherPopupIncludeShowAppsIcon');
+        this.INCLUDE_SHOW_APPS_ICON = this.get('appSwitcherPopupIncludeShowAppsIcon');
         this.SHOW_WINS_ON_ACTIVATE = this.get('appSwitcherPopupShowWinsOnActivate');
         this.INCLUDE_FAV_MOUSE     = this.get('switcherPopupExtAppFavorites');
     }

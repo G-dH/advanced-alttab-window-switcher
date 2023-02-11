@@ -17,6 +17,9 @@ const Screenshot = imports.ui.screenshot;
 const Config = imports.misc.config;
 const shellVersion = parseFloat(Config.PACKAGE_VERSION);
 
+// gettext
+const _ = imports.misc.extensionUtils.getCurrentExtension().imports.settings._;
+
 
 var WindowMenu = class extends PopupMenu.PopupMenu {
     constructor(window, sourceActor, aatws) {
@@ -43,7 +46,7 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
                     const actor = window.get_compositor_private();
                     const content = actor.paint_to_content(null);
                     const texture = content.get_texture();
-    
+
                     await Screenshot.captureScreenshot(texture, null, 1, null);
                 } catch (e) {
                     logError(e, 'Error capturing screenshot');
@@ -62,14 +65,14 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
                 window.unmaximize(Meta.MaximizeFlags.BOTH);
             });
         } else {
-            item = this.addAction(_("Maximize"), () => {
+            item = this.addAction(_('Maximize'), () => {
                 window.maximize(Meta.MaximizeFlags.BOTH);
             });
         }
         if (!window.can_maximize())
             item.setSensitive(false);
 
-        item = this.addAction(_("Always on Top"), () => {
+        item = this.addAction(_('Always on Top'), () => {
             if (window.is_above())
                 window.unmake_above();
             else
@@ -79,10 +82,10 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
         });
         if (window.is_above())
             item.setOrnament(PopupMenu.Ornament.CHECK);
-        if (window.get_maximized() == Meta.MaximizeFlags.BOTH ||
-            type == Meta.WindowType.DOCK ||
-            type == Meta.WindowType.DESKTOP ||
-            type == Meta.WindowType.SPLASHSCREEN)
+        if (window.get_maximized() === Meta.MaximizeFlags.BOTH ||
+            type === Meta.WindowType.DOCK ||
+            type === Meta.WindowType.DESKTOP ||
+            type === Meta.WindowType.SPLASHSCREEN)
             item.setSensitive(false);
 
         if (Main.sessionMode.hasWorkspaces &&
@@ -90,7 +93,7 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
              window.is_on_primary_monitor())) {
             let isSticky = window.is_on_all_workspaces();
 
-            item = this.addAction(_("Always on Visible Workspace"), () => {
+            item = this.addAction(_('Always on Visible Workspace'), () => {
                 if (isSticky)
                     window.unstick();
                 else
@@ -105,27 +108,26 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
 
             if (!isSticky) {
                 const vertical = global.workspaceManager.layout_rows === -1;
-                let workspace = window.get_workspace();
                 if (!vertical) {
-                    this.addAction(_("Move to Workspace Left"), () => {
+                    this.addAction(_('Move to Workspace Left'), () => {
                         let dir = Clutter.ScrollDirection.UP;
                         this._aatws._moveWinToAdjacentWs(dir);
                     });
                 }
                 if (!vertical) {
-                    this.addAction(_("Move to Workspace Right"), () => {
+                    this.addAction(_('Move to Workspace Right'), () => {
                         let dir = Clutter.ScrollDirection.DOWN;
                         this._aatws._moveWinToAdjacentWs(dir);
                     });
                 }
                 if (vertical) {
-                    this.addAction(_("Move to Workspace Up"), () => {
+                    this.addAction(_('Move to Workspace Up'), () => {
                         let dir = Clutter.ScrollDirection.UP;
                         this._aatws._moveWinToAdjacentWs(dir);
                     });
                 }
                 if (vertical) {
-                    this.addAction(_("Move to Workspace Down"), () => {
+                    this.addAction(_('Move to Workspace Down'), () => {
                         let dir = Clutter.ScrollDirection.DOWN;
                         this._aatws._moveWinToAdjacentWs(dir);
                     });
@@ -142,8 +144,8 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
             let dir = Meta.DisplayDirection.UP;
             let upMonitorIndex =
                 display.get_monitor_neighbor_index(monitorIndex, dir);
-            if (upMonitorIndex != -1) {
-                this.addAction(_("Move to Monitor Up"), () => {
+            if (upMonitorIndex !== -1) {
+                this.addAction(_('Move to Monitor Up'), () => {
                     window.move_to_monitor(upMonitorIndex);
                 });
             }
@@ -151,8 +153,8 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
             dir = Meta.DisplayDirection.DOWN;
             let downMonitorIndex =
                 display.get_monitor_neighbor_index(monitorIndex, dir);
-            if (downMonitorIndex != -1) {
-                this.addAction(_("Move to Monitor Down"), () => {
+            if (downMonitorIndex !== -1) {
+                this.addAction(_('Move to Monitor Down'), () => {
                     window.move_to_monitor(downMonitorIndex);
                 });
             }
@@ -160,8 +162,8 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
             dir = Meta.DisplayDirection.LEFT;
             let leftMonitorIndex =
                 display.get_monitor_neighbor_index(monitorIndex, dir);
-            if (leftMonitorIndex != -1) {
-                this.addAction(_("Move to Monitor Left"), () => {
+            if (leftMonitorIndex !== -1) {
+                this.addAction(_('Move to Monitor Left'), () => {
                     window.move_to_monitor(leftMonitorIndex);
                 });
             }
@@ -169,34 +171,34 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
             dir = Meta.DisplayDirection.RIGHT;
             let rightMonitorIndex =
                 display.get_monitor_neighbor_index(monitorIndex, dir);
-            if (rightMonitorIndex != -1) {
-                this.addAction(_("Move to Monitor Right"), () => {
+            if (rightMonitorIndex !== -1) {
+                this.addAction(_('Move to Monitor Right'), () => {
                     window.move_to_monitor(rightMonitorIndex);
                 });
             }
         }
 
-        this.addAction(_('Move to Current Workspace'), event => {
-            //window.change_workspace(global.workspace_manager.get_active_workspace());
+        this.addAction(_('Move to Current Workspace'), () => {
+            // window.change_workspace(global.workspace_manager.get_active_workspace());
             this._aatws._getActions().moveWindowToCurrentWs(window, this._aatws.KEYBOARD_TRIGGERED ? this._aatws._monitorIndex : -1);
         });
 
-        item = this.addAction(_('Fullscreen on Empty Workspace'), event => {
-            //window.change_workspace(global.workspace_manager.get_active_workspace());
+        item = this.addAction(_('Fullscreen on Empty Workspace'), () => {
+            // window.change_workspace(global.workspace_manager.get_active_workspace());
             this._aatws._getActions().fullscreenWinOnEmptyWs(window);
             this._aatws._updateSwitcher();
         });
         if (window._originalWS)
-        item.setOrnament(PopupMenu.Ornament.CHECK);
+            item.setOrnament(PopupMenu.Ornament.CHECK);
 
-        this.addAction(_('Create Window Thumbnail (PIP)'), event => {
-            //window.change_workspace(global.workspace_manager.get_active_workspace());
+        this.addAction(_('Create Window Thumbnail (PIP)'), () => {
+            // window.change_workspace(global.workspace_manager.get_active_workspace());
             this._aatws._getActions().makeThumbnailWindow(window);
         });
-        
+
         this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        item = this.addAction(_("Close"), event => {
+        item = this.addAction(_('Close'), event => {
             window.delete(event.get_time());
         });
         if (!window.can_close())
@@ -214,7 +216,7 @@ var WindowMenuManager = class {
         if (!Main.sessionMode.hasWmMenus)
             return;
 
-        if (type != Meta.WindowMenuType.WM)
+        if (type !== Meta.WindowMenuType.WM)
             throw new Error('Unsupported window menu type');
 
         let menu = new WindowMenu(window, sourceActor, this._aatws);

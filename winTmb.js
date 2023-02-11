@@ -35,29 +35,29 @@ class WindowThumbnail extends St.BoxLayout {
         this._prevBtnPressTime = 0;
         this._parent = parent;
         this.w = metaWin;
-        super._init({visible: true, reactive: true, can_focus: true, track_hover: true});
+        super._init({ visible: true, reactive: true, can_focus: true, track_hover: true });
         this.connect('button-release-event', this._onBtnReleased.bind(this));
         this.connect('scroll-event', this._onScrollEvent.bind(this));
-        //this.connect('motion-event', this._onMouseMove.bind(this)); // may be useful in the future..
+        // this.connect('motion-event', this._onMouseMove.bind(this)); // may be useful in the future..
 
         this._delegate = this;
-        this._draggable = DND.makeDraggable(this, {dragActorOpacity: DRAG_OPACITY});
+        this._draggable = DND.makeDraggable(this, { dragActorOpacity: DRAG_OPACITY });
         this._draggable.connect('drag-end', this._end_drag.bind(this));
         this._draggable.connect('drag-cancelled', this._end_drag.bind(this));
-        this._draggable._animateDragEnd = (eventTime) => {
+        this._draggable._animateDragEnd = eventTime => {
             this._draggable._animationInProgress = true;
             this._draggable._onAnimationComplete(this._draggable._dragActor, eventTime);
             this.opacity = this._customOpacity;
         };
 
-        this.clone = new Clutter.Clone({reactive: true});
+        this.clone = new Clutter.Clone({ reactive: true });
         Main.layoutManager.addChrome(this);
 
         this.window = this.w.get_compositor_private();
 
         this.clone.set_source(this.window);
 
-        this._tmb = new St.Widget({layout_manager: new Clutter.BinLayout()});
+        this._tmb = new St.Widget({ layout_manager: new Clutter.BinLayout() });
         this.add_child(this._tmb);
 
         this._bin = new St.Bin();
@@ -80,9 +80,8 @@ class WindowThumbnail extends St.BoxLayout {
             global.display.set_cursor(Meta.Cursor.DEFAULT);
             this._closeButton.opacity = 0;
             this._scrollModeBin.opacity = 0;
-            if (this._winPreview) {
+            if (this._winPreview)
                 this._destroyWindowPreview();
-            }
         });
 
         this._setSize(true);
@@ -127,7 +126,7 @@ class WindowThumbnail extends St.BoxLayout {
         Main.layoutManager._queueUpdateRegions();
     }
 
-    /*_onMouseMove(actor, event) {
+    /* _onMouseMove(actor, event) {
         let [pos_x, pos_y] = event.get_coords();
         let state = event.get_state();
         if (this._ctrlPressed(state)) {
@@ -136,16 +135,16 @@ class WindowThumbnail extends St.BoxLayout {
 
     _onBtnReleased(actor, event) {
         // Clutter.Event.click_count property in no longer available, since GS42
-        if ((event.get_time() - this._prevBtnPressTime) < Clutter.Settings.get_default().double_click_time) {
-            this._click_count +=1;
-        } else {
+        if ((event.get_time() - this._prevBtnPressTime) < Clutter.Settings.get_default().double_click_time)
+            this._click_count += 1;
+        else
             this._click_count = 1;
-        }
+
         this._prevBtnPressTime = event.get_time();
 
-        if (this._click_count === 2 && event.get_button() === Clutter.BUTTON_PRIMARY) {
+        if (this._click_count === 2 && event.get_button() === Clutter.BUTTON_PRIMARY)
             this.w.activate(global.get_current_time());
-        }
+
 
         const button = event.get_button();
         const state = event.get_state();
@@ -181,30 +180,30 @@ class WindowThumbnail extends St.BoxLayout {
     _onScrollEvent(actor, event) {
         let direction = event.get_scroll_direction();
         if (direction === 4)
-            return;
+            return Clutter.EVENT_PROPAGATE;
         if (this._actionTimeoutActive())
-            return;
+            return Clutter.EVENT_PROPAGATE;
         let state = event.get_state();
         switch (direction) {
         case Clutter.ScrollDirection.UP:
             if (this._shiftPressed(state)) {
                 this.opacity = Math.min(255, this.opacity + 24);
                 this._customOpacity = this.opacity;
-            }
-            else if (this._reverseTmbWheelFunc !== this._ctrlPressed(state))
+            } else if (this._reverseTmbWheelFunc !== this._ctrlPressed(state)) {
                 this._switchSourceWin(-1);
-            else if (this._reverseTmbWheelFunc === this._ctrlPressed(state))
+            } else if (this._reverseTmbWheelFunc === this._ctrlPressed(state)) {
                 this.scale = Math.max(0.05, this.scale - 0.025);
+            }
             break;
         case Clutter.ScrollDirection.DOWN:
             if (this._shiftPressed(state)) {
                 this.opacity = Math.max(48, this.opacity - 24);
                 this._customOpacity = this.opacity;
-            }
-            else if (this._reverseTmbWheelFunc !== this._ctrlPressed(state))
+            } else if (this._reverseTmbWheelFunc !== this._ctrlPressed(state)) {
                 this._switchSourceWin(+1);
-            else if (this._reverseTmbWheelFunc === this._ctrlPressed(state))
+            } else if (this._reverseTmbWheelFunc === this._ctrlPressed(state)) {
                 this.scale = Math.min(1, this.scale + 0.025);
+            }
             break;
         default:
             return Clutter.EVENT_PROPAGATE;
@@ -218,9 +217,9 @@ class WindowThumbnail extends St.BoxLayout {
             this.window.disconnect(this.windowConnect);
             this.clone.set_source(null);
         }
-        if (this._winPreview) {
+        if (this._winPreview)
             this._destroyWindowPreview();
-        }
+
         this._parent.windowThumbnails.splice(this._parent.windowThumbnails.indexOf(this), 1);
         this.destroy();
     }
@@ -265,10 +264,9 @@ class WindowThumbnail extends St.BoxLayout {
         });
         this.w = w;
 
-        //this._setIcon();
-        if (this._winPreview) {
+        // this._setIcon();
+        if (this._winPreview)
             this._showWindowPreview(true);
-        }
     }
 
     _actionTimeoutActive() {
@@ -285,7 +283,7 @@ class WindowThumbnail extends St.BoxLayout {
         let app = tracker.get_window_app(this.w);
         let icon = app
             ? app.create_icon_texture(this.height)
-            : new St.Icon({icon_name: 'icon-missing', icon_size: this.height});
+            : new St.Icon({ icon_name: 'icon-missing', icon_size: this.height });
         icon.x_expand = icon.y_expand = true;
         if (this.icon)
             this.icon.destroy();
@@ -293,9 +291,8 @@ class WindowThumbnail extends St.BoxLayout {
     }
 
     _switchView(clone = false) {
-        if (clone) {
+        if (clone)
             this._bin.set_child(this.clone);
-        }
     }
 
     _addCloseButton() {
@@ -321,7 +318,7 @@ class WindowThumbnail extends St.BoxLayout {
     _addScrollModeIcon() {
         this._scrollModeBin = new St.Bin({
             x_expand: true,
-            y_expand: true
+            y_expand: true,
         });
         this._scrollModeResizeIcon = new St.Icon({
             icon_name: 'view-fullscreen-symbolic',
@@ -332,7 +329,7 @@ class WindowThumbnail extends St.BoxLayout {
             opacity: SCROLL_ICON_OPACITY,
             style_class: 'icon-dropshadow',
             scale_x: 0.5,
-            scale_y: 0.5
+            scale_y: 0.5,
         });
         this._scrollModeSourceIcon = new St.Icon({
             icon_name: 'media-skip-forward-symbolic',
@@ -343,7 +340,7 @@ class WindowThumbnail extends St.BoxLayout {
             opacity: SCROLL_ICON_OPACITY,
             style_class: 'icon-dropshadow',
             scale_x: 0.5,
-            scale_y: 0.5
+            scale_y: 0.5,
         });
         this._scrollModeBin.set_child(this._scrollModeResizeIcon);
         this._tmb.add_child(this._scrollModeBin);
@@ -371,7 +368,7 @@ class WindowThumbnail extends St.BoxLayout {
                 opacity: 255,
                 duration: 70,
                 mode: Clutter.AnimationMode.LINEAR,
-                /*onComplete: () => {
+                /* onComplete: () => {
                     this._closeButton.opacity = 50;
                 },*/
             });
@@ -381,7 +378,7 @@ class WindowThumbnail extends St.BoxLayout {
                 duration: 70,
                 mode: Clutter.AnimationMode.LINEAR,
                 onComplete: () => {
-                }
+                },
             });
         } else {
             this._winPreview.opacity = 255;
@@ -394,15 +391,15 @@ class WindowThumbnail extends St.BoxLayout {
     _destroyWindowPreview() {
         if (this._winPreview) {
             this._winPreview.ease({
-            opacity: 0,
-            duration: 100,
-            mode: Clutter.AnimationMode.LINEAR,
-            onComplete: () => {
-                this._winPreview.destroy();
-                this._winPreview = null;
-                this.opacity = this._customOpacity;
-            }
-        });
+                opacity: 0,
+                duration: 100,
+                mode: Clutter.AnimationMode.LINEAR,
+                onComplete: () => {
+                    this._winPreview.destroy();
+                    this._winPreview = null;
+                    this.opacity = this._customOpacity;
+                },
+            });
         }
     }
 });

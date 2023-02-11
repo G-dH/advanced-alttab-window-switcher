@@ -21,15 +21,10 @@ const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
 const shellVersion = Settings.shellVersion;
 
-const ws_indicator_mode = {
-    'DISABLE': 0,
-    'DEFAULT': 1,
-    'INDEX': 2,
-};
 
-var get_current_monitor_geometry = function () {
+function getCurrentMonitorGeometry() {
     return global.display.get_monitor_geometry(global.display.get_current_monitor());
-};
+}
 
 function _getWindowApp(metaWindow) {
     let tracker = Shell.WindowTracker.get_default();
@@ -61,12 +56,13 @@ var Actions = class {
     }
 
     removeLastThumbnail() {
-        if (!global.stage.windowThumbnails) return;
+        if (!global.stage.windowThumbnails)
+            return;
 
         const length = global.stage.windowThumbnails.length;
         if (length)
             global.stage.windowThumbnails[length - 1].destroy();
-            global.stage.windowThumbnails.pop();
+        global.stage.windowThumbnails.pop();
     }
 
     hideThumbnails() {
@@ -92,9 +88,9 @@ var Actions = class {
     }
 
     _getShellSettings() {
-        if (!this._shellSettings) {
+        if (!this._shellSettings)
             this._shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
-        }
+
         return this._shellSettings;
     }
 
@@ -108,18 +104,17 @@ var Actions = class {
     }
 
     _isWsOrientationHorizontal() {
-        if (global.workspace_manager.layout_rows == -1)
-			return false;
+        if (global.workspace_manager.layout_rows === -1)
+            return false;
         return true;
     }
 
     _translateDirectionToHorizontal(direction) {
         if (this._isWsOrientationHorizontal()) {
-            if (direction == Meta.MotionDirection.UP) {
+            if (direction === Meta.MotionDirection.UP)
                 direction = Meta.MotionDirection.LEFT;
-            } else {
+            else
                 direction = Meta.MotionDirection.RIGHT;
-            }
         }
         return direction;
     }
@@ -153,7 +148,7 @@ var Actions = class {
         if (currentMonitorIndex !== targetMonitorIndex) {
             // move window to target monitor
             win.move_to_monitor(targetMonitorIndex);
-            /*let actor = win.get_compositor_private();
+            /* let actor = win.get_compositor_private();
             let targetMonitor  = this._getMonitorByIndex(targetMonitorIndex);
 
             let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
@@ -165,20 +160,17 @@ var Actions = class {
     toggleAppGrid() {
         if (Main.overview.dash.showAppsButton.checked) {
             Main.overview.hide();
-        } else {
+        } else if (shellVersion < 40) {
             // Pressing the apps btn before overview activation avoids icons animation in GS 3.36/3.38
             // but in GS40 with Dash to Dock and its App button set to "no animation", this whole sequence is problematic
-            if (shellVersion < 40) {
-                // in 3.36 pressing the button is usually enough to activate overview, but not always
-                Main.overview.dash.showAppsButton.checked = true;
-                Main.overview.show();
-            } else {
-                if (Main.overview._shown) {
-                    Main.overview.dash.showAppsButton.checked = true;
-                } else {
-                    Main.overview.show(2); // 2 for App Grid
-                }
-            }
+
+            // in 3.36 pressing the button is usually enough to activate overview, but not always
+            Main.overview.dash.showAppsButton.checked = true;
+            Main.overview.show();
+        } else if (Main.overview._shown) {
+            Main.overview.dash.showAppsButton.checked = true;
+        } else {
+            Main.overview.show(2); // 2 for App Grid
         }
     }
 
@@ -193,7 +185,7 @@ var Actions = class {
             win.unmake_fullscreen();
             if (win._originalWS) {
                 let ws = false;
-                for(let i = 0; i < global.workspaceManager.n_workspaces; i++) {
+                for (let i = 0; i < global.workspaceManager.n_workspaces; i++) {
                     let w = global.workspaceManager.get_workspace_by_index(i);
                     if (w === win._originalWS) {
                         ws = true;
@@ -212,9 +204,9 @@ var Actions = class {
             win.make_fullscreen();
             let nWindows = ws.list_windows().filter(
                 w =>
-                    //w.get_window_type() === Meta.WindowType.NORMAL &&
+                    // w.get_window_type() === Meta.WindowType.NORMAL &&
                     !w.is_on_all_workspaces()
-                ).length;
+            ).length;
             if (nWindows > 1) {
                 let newWsIndex = ws.index() + 1;
                 Main.wm.insertWorkspace(newWsIndex);
@@ -227,8 +219,8 @@ var Actions = class {
 
     toggleMaximizeOnCurrentMonitor(metaWindow, monitorIndex) {
         let win = metaWindow;
-        if (win.get_workspace().index() === global.workspace_manager.get_active_workspace().index()
-            && monitorIndex === win.get_monitor()) {
+        if (win.get_workspace().index() === global.workspace_manager.get_active_workspace().index() &&
+            monitorIndex === win.get_monitor()) {
             if (win.get_maximized() === Meta.MaximizeFlags.BOTH)
                 win.unmaximize(Meta.MaximizeFlags.BOTH);
             else
@@ -262,7 +254,7 @@ var Actions = class {
             win.stick();
     }
 
-    switchWorkspace(direction, noIndicator = false) {
+    switchWorkspace(direction /* noIndicator = false */) {
         direction = this._translateDirectionToHorizontal(direction);
         const targetWs = global.workspaceManager.get_active_workspace().get_neighbor(direction);
         Main.wm.actionMoveWorkspace(targetWs);
@@ -271,28 +263,31 @@ var Actions = class {
     showWsSwitcherPopup(direction, wsIndex) {
         if (!this.WS_SHOW_POPUP)
             return;
-        if (!wsIndex) {
+        if (!wsIndex)
             wsIndex = global.workspace_manager.get_active_workspace_index();
-        }
+
 
         if (!Main.overview.visible) {
             const vertical = global.workspaceManager.layout_rows === -1;
-            if (Main.wm._workspaceSwitcherPopup == null) {
+            if (Main.wm._workspaceSwitcherPopup === null) {
                 Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
                 Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
                     Main.wm._workspaceSwitcherPopup = null;
                 });
             }
 
-            let motion = direction === Meta.MotionDirection.DOWN
-                ? (vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT)
-                : (vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT);
+            let motion;
+            if (direction === Meta.MotionDirection.DOWN)
+                motion = vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT;
+            else
+                motion = vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT;
 
-            if (shellVersion >= 42) {
+
+
+            if (shellVersion >= 42)
                 Main.wm._workspaceSwitcherPopup.display(wsIndex);
-            } else {
+            else
                 Main.wm._workspaceSwitcherPopup.display(motion, wsIndex);
-            }
         }
     }
 
@@ -301,9 +296,8 @@ var Actions = class {
         let activeWs = global.workspace_manager.get_active_workspace();
         let activeWsIdx = activeWs.index();
         let targetIdx = activeWsIdx + direction;
-        if (targetIdx > -1 && targetIdx < (global.workspace_manager.get_n_workspaces())) {
+        if (targetIdx > -1 && targetIdx < global.workspace_manager.get_n_workspaces())
             global.workspace_manager.reorder_workspace(activeWs, targetIdx);
-        }
     }
 
     makeThumbnailWindow(metaWindow) {
@@ -316,7 +310,7 @@ var Actions = class {
         if (!metaWin)
             return;
 
-        let monitorHeight = get_current_monitor_geometry().height;
+        let monitorHeight = getCurrentMonitorGeometry().height;
         let scale = this._gOptions.get('winThumbnailScale');
         global.stage.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, global.stage, {
             'height': Math.floor(scale / 100 * monitorHeight),
@@ -346,11 +340,10 @@ var Actions = class {
     _getOpenPrefsWindow() {
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         for (let win of windows) {
-            if (win.get_title().includes(Me.metadata.name) && _getWindowApp(win).get_name() === 'Extensions') {
+            if (win.get_title().includes(Me.metadata.name) && _getWindowApp(win).get_name() === 'Extensions')
                 return { metaWin: win, isCHCE: true };
-            } else if (win.wm_class.includes('org.gnome.Shell.Extensions')) {
+            else if (win.wm_class.includes('org.gnome.Shell.Extensions'))
                 return { metaWin: win, isCHCE: false };
-            }
         }
         return { metaWin: null, isCHCE: null };
     }

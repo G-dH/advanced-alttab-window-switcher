@@ -29,14 +29,14 @@ class CaptionLabel extends St.BoxLayout {
         super._init({
             style_class: this._options.colorStyle.CAPTION_LABEL,
             vertical: !this._search, // horizontal orientation for search label, vertical for title caption
-            style: `font-size: ${params.fontSize}em;` // border-radius: 12px; padding: 6px; background-color: rgba(0, 0, 0, ${bgOpacity});`,
+            style: `font-size: ${params.fontSize}em;`, // border-radius: 12px; padding: 6px; background-color: rgba(0, 0, 0, ${bgOpacity});`,
         });
 
         this._label = new St.Label({
             name: params.name,
             text: params.text,
             reactive: false,
-            y_align: Clutter.ActorAlign.CENTER
+            y_align: Clutter.ActorAlign.CENTER,
         });
 
         if (this._search) {
@@ -66,7 +66,7 @@ class CaptionLabel extends St.BoxLayout {
         if (details && !this._descriptionLabel) {
             this._descriptionLabel = new St.Label({
                 style_class: 'title-description',
-                style: `font-size: 0.7em;` // font size is relative to parent style
+                style: 'font-size: 0.7em;', // font size is relative to parent style
             });
             this.add_child(this._descriptionLabel);
         } else if (!details && this._descriptionLabel && !this._descriptionLabel._removed) {
@@ -84,13 +84,13 @@ class CaptionLabel extends St.BoxLayout {
     addSearchIcon() {
         const icon = new St.Icon({
             icon_name: 'edit-find-symbolic',
-            style_class: `search-icon`
+            style_class: 'search-icon',
         });
         this.add_child(icon);
     }
 
     _destroy() {
-        //Main.layoutManager.removeChrome(this);
+        // Main.layoutManager.removeChrome(this);
         super.destroy();
     }
 });
