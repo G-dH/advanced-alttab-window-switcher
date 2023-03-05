@@ -3,7 +3,7 @@
  * Prefs
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2022
+ * @copyright  2021-2023
  * @license    GPL-3.0
  */
 
@@ -986,7 +986,7 @@ function _getOptions() {
 
     optDict.AlwaysActivateFocused = itemFactory.getRowWidget(
         _('Always Activate Focused Window'),
-        _('This is a hack for the window manager, it should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interacts with the window.'),
+        _('For GNOME Shell version < 43. This is a hack for the window manager, it should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interacts with the window.'),
         itemFactory.newSwitch(),
         'wmAlwaysActivateFocused'
     );

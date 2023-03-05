@@ -3,7 +3,7 @@
  * Extension
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2022
+ * @copyright  2021-2023
  * @license    GPL-3.0
  */
 
@@ -60,16 +60,7 @@ function enable() {
             if (_options.get('superKeyMode') > 1)
                 _updateOverlayKeyHandler();
 
-
-            if (_options.get('wmAlwaysActivateFocused')) {
-                _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', () => {
-                    if (Main.overview._shown)
-                        return;
-                    let win = global.display.get_focus_window();
-                    if (win)
-                        win.activate(global.get_current_time());
-                });
-            }
+            _updateAlwaysActivateFocusedConnection();
             _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
 
             _updateHotTrigger();
@@ -134,11 +125,14 @@ function _removeThumbnails(hide = false) {
 }
 
 function _updateAlwaysActivateFocusedConnection() {
-    if (_options.get('wmAlwaysActivateFocused', true) && !_wmFocusToActiveHandlerId) {
+    // GS 43 activates focused windows immediately by default and this can lead to problems with refocusing window you're switching from
+    if (_options.get('wmAlwaysActivateFocused', true) && Settings.shellVersion < 43 && !_wmFocusToActiveHandlerId) {
         _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', () => {
-            let win = global.display.get_focus_window();
-            if (win)
-                Main.activateWindow(win);
+            if (!Main.overview._shown) {
+                let win = global.display.get_focus_window();
+                if (win)
+                    Main.activateWindow(win);
+            }
         });
     } else if (_wmFocusToActiveHandlerId) {
         global.display.disconnect(_wmFocusToActiveHandlerId);
