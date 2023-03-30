@@ -1,5 +1,5 @@
 ## Changelog
-### 23 (2023-03-30)
+### v23/24 (2023-03-30)
 **Added:**
 - Option `Enable Hot Edge in Fullscreen Mode` allows to control whether the hot edge trigger will be active when the focused window is in the full-screen mode.
 - Option `Show Workspace Thumbnails` allows to display workspace thumbnails above/below the switcher popup for a better navigation and control over workspaces. I also allows drag an drop windows between workspaces
