@@ -347,7 +347,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     show(backward, binding, mask) {
         if (this._updateInProgress)
             return false;
-
         this._updateInProgress = true;
 
         if (this._firstRun && !this._pushModal()) {
@@ -1427,7 +1426,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _delayedUpdate(delay) {
         if (this._timeoutIds.update)
             GLib.source_remove(this._timeoutIds.update);
-
 
         this._timeoutIds.update = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
@@ -2525,6 +2523,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (button === Clutter.BUTTON_PRIMARY) {
                     if (this._getSelectedTarget().get_workspace().index() !== global.workspaceManager.get_active_workspace_index())
                         this._moveToCurrentWS();
+                    return Clutter.EVENT_STOP;
                 } else if (button === Clutter.BUTTON_MIDDLE) {
                     return Clutter.EVENT_PROPAGATE;
                 } else if (button === Clutter.BUTTON_SECONDARY) {
@@ -2966,7 +2965,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         });
 
         this._showWindow();
-        this._updateSwitcher();
+        this._delayedUpdate(100);
     }
 
     _reorderWorkspace(direction = 0) {
