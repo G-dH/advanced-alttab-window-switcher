@@ -471,18 +471,21 @@ function _getOptions() {
         'switcherPopupTimeout'
     );
 
-    optDict.WsThumbnails = itemFactory.getRowWidget(
-        _('Show Workspace Thumbnails'),
-        _('AATWS can show workspace thumbnails above/below the switcher, so you can see their content and switch workspace using a mouse. You can also reorder current workspace using Shift+Scroll or Ctrl+Page Up/Down.'),
-        itemFactory.newComboBox(),
-        'switcherWsThumbnails',
-        [
-            [_('Disable'),                0],
-            [_('Show'),                   1],
-            [_('Show in Dock Mode Only'), 2],
-        ]
-    );
-
+    if (shellVersion >= 42) {
+        optDict.WsThumbnails = itemFactory.getRowWidget(
+            _('Show Workspace Thumbnails'),
+            _('AATWS can show workspace thumbnails above/below the switcher, so you can see their content and switch workspace using a mouse. You can also reorder current workspace using Ctrl/Shift+Scroll or Ctrl+Page Up/Down.'),
+            itemFactory.newComboBox(),
+            'switcherWsThumbnails',
+            [
+                [_('Disable'),                0],
+                [_('Show'),                   1],
+                [_('Show in Dock Mode Only'), 2],
+            ]
+        );
+    } else {
+        optDict.WsThumbnails = null;
+    }
 
     optDict.Theme = itemFactory.getRowWidget(
         _('Color Theme'),
@@ -1857,6 +1860,8 @@ const AdwPrefs = class {
         const page = new Adw.PreferencesPage(pageProperties);
         let group;
         for (let item of optionList) {
+            if (!item)
+                continue;
             // label can be plain text for Section Title
             // or GtkBox for Option
             const option = item[0];
@@ -2015,6 +2020,8 @@ const LegacyPrefs = class {
         let frame;
         let frameBox;
         for (let item of optionList) {
+            if (!item)
+                continue;
             // label can be plain text for Section Title
             // or GtkBox for Option
             const option = item[0];

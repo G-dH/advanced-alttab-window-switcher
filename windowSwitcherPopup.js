@@ -845,60 +845,37 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._wsTmb) {
             const SIZE = 110;
             const wsTmb = this._wsTmb;
-            const vertical = global.workspaceManager.layout_rows === -1;
-            if (vertical) {
-                let width = SIZE * (monitor.width / monitor.height);
-                let [, height] = wsTmb.get_preferred_custom_height(width);
-                height = Math.round(Math.min(height, monitor.height - this._switcherList.height - 70));
-                // [, width] = wsTmb.get_preferred_custom_width(height);
 
-                x = monitor.x + (monitor.width - width) / 2;
-                let y;
-                const yOffset = options.ITEM_CAPTIONS > 1 ? 60 : 20;
-                if (this.POPUP_POSITION === Position.BOTTOM)
-                    y = this._switcherList.allocation.y1 - height - yOffset;
-                else if (this.POPUP_POSITION === Position.TOP || this.POPUP_POSITION === Position.CENTER)
-                    y = this._switcherList.allocation.y2 + yOffset;
-
-
-                childBox.set_origin(x, y);
-                childBox.set_size(width, height);
-                wsTmb.allocate(childBox);
-
-                wsTmb.width = width;
-                wsTmb.height = height;
+            let height = SIZE;
+            let width;
+            if (wsTmb.get_preferred_custom_width) {
+                // custom function of Vertical Workspaces extension
+                [, width] = wsTmb.get_preferred_custom_width(height);
             } else {
-                let height = SIZE;
-                let width;
-                if (wsTmb.get_preferred_custom_width) {
-                    // custom function of Vertical Workspaces extension
-                    [, width] = wsTmb.get_preferred_custom_width(height);
-                } else {
-                    // in default GS this sets the size same as in the overview
-                    [, width] = wsTmb.get_preferred_width(height * 2);
-                    [, height] = wsTmb.get_preferred_height(width);
-                }
-
-
-                width = Math.min(width, monitor.width);
-
-                let x = monitor.x + (monitor.width - width) / 2;
-                let y;
-                const yOffset = options.ITEM_CAPTIONS > 1 ? 60 : 20;
-                if (this.POPUP_POSITION === Position.BOTTOM)
-                    y = this._switcherList.allocation.y1 - height - yOffset;
-                else if (this.POPUP_POSITION === Position.TOP || this.POPUP_POSITION === Position.CENTER)
-                    y = this._switcherList.allocation.y2 + yOffset;
-
-
-                childBox.set_origin(x, y);
-                childBox.set_size(width, height);
-
-                if (useFlags)
-                    wsTmb.allocate(childBox, flags);
-                else
-                    wsTmb.allocate(childBox);
+                // in default GS this sets the size same as in the overview
+                [, width] = wsTmb.get_preferred_width(height * 2);
+                [, height] = wsTmb.get_preferred_height(width);
             }
+
+
+            width = Math.min(width, monitor.width);
+
+            let x = monitor.x + (monitor.width - width) / 2;
+            let y;
+            const yOffset = options.ITEM_CAPTIONS > 1 ? 60 : 20;
+            if (this.POPUP_POSITION === Position.BOTTOM)
+                y = this._switcherList.allocation.y1 - height - yOffset;
+            else if (this.POPUP_POSITION === Position.TOP || this.POPUP_POSITION === Position.CENTER)
+                y = this._switcherList.allocation.y2 + yOffset;
+
+
+            childBox.set_origin(x, y);
+            childBox.set_size(width, height);
+
+            if (useFlags)
+                wsTmb.allocate(childBox, flags);
+            else
+                wsTmb.allocate(childBox);
         }
 
         if (this._itemCaption) {
@@ -2302,7 +2279,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 direction = direction === Clutter.ScrollDirection.UP
                     ? Meta.MotionDirection.UP
                     : Meta.MotionDirection.DOWN;
-                if (_shiftPressed())
+                if (_shiftPressed() || _ctrlPressed())
                     this._reorderWorkspace(direction === Meta.MotionDirection.UP ? -1 : 1);
                 else
                     this._switchWorkspace(direction);
@@ -3210,7 +3187,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
             const wsTmb = new
             WorkspaceThumbnail.ThumbnailsBox(Main.overview._overview.controls._workspacesDisplay._scrollAdjustment,
-                this._monitorIndex);
+                this._monitorIndex,
+                Clutter.Orientation.HORIZONTAL);
 
             wsTmb._createThumbnails();
             // wsTmb.add_style_class_name(options.colorStyle.CAPTION_LABEL);

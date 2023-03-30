@@ -3,7 +3,7 @@
  * Actions
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2022
+ * @copyright  2021-2023
  * @license    GPL-3.0
  */
 
