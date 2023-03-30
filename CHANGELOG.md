@@ -1,9 +1,13 @@
 ## Changelog
-### 23 (not yet released)
+### 23 (2023-03-30)
 **Added:**
-- Option `Enable Hot Edge in Fullscreen Mode` allows to control whether the hot edge trigger will be active when the focused window is in the fullscreen mode.
-- Option `Show Workspace Thumbnails` allows to display ws thumbnails next to the switcher popup for better orientation and direct activation of workspaces, that also allows drag an drop windows between workspaces.
+- Option `Enable Hot Edge in Fullscreen Mode` allows to control whether the hot edge trigger will be active when the focused window is in the full-screen mode.
+- Option `Show Workspace Thumbnails` allows to display workspace thumbnails above/below the switcher popup for a better navigation and control over workspaces. I also allows drag an drop windows between workspaces
 - Dock related options moved to the new `Dock Mode` page in the Settings window.
+
+**Fixed:**
+- Some modifier keys are unsupported
+- Option *Always Activate Focused Window* unnecessary and causing issues in GNOME 43+
 
 ### v22 (2022-12-01)
 **Added:**

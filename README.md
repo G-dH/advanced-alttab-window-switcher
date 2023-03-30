@@ -9,32 +9,30 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 
 *AATWS - Advanced Alt-Tab Window Switcher* offers effective and highly customizable navigation between windows, workspaces, monitors and also window control. With the built-in *type to search* feature you don't even need to see what's in the switcher list to find your window or app instantly. App Switcher has also built-in app launcher and can find application even if you don't exactly know its name. AATWS also offers activation using a mouse by hitting a top or bottom hot edge and can serve as an app launcher and replacement for dash or dock.
 
-![Window Switcher Popup](screenshots/screenshot.png)
-
 [<img alt="" height="100" src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true">](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/)
 
-## Features:
+![Window Switcher Popup](screenshots/screenshot.png)
 
-- Supports GNOME Shell 3.36 - 43.
-- Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*.
-- Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed.
-- Hotkeys allow to control switcher and windows, including relocations.
-- Workspace navigation.
-- Navigation between monitors.
-- Full-size window previews.
-- Size adjustments.
+## Features:
+- Supports GNOME Shell 3.36 - 44
+- Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*
+- Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed
+- Hotkeys allow to control switcher and windows, including relocations
+- Workspace navigation
+- Navigation between monitors
+- Full-size window previews
+- Size adjustments
 - Can replace dash/dock
-- Application launcher, app switcher can include favorite apps and *Show Apps* icon.
-- Optional Super key activation.
-- Configurable overlay indicators, optionally interactive to help with mouse control.
-- Mouse control, including optional top or bottom hot edge for switcher activation.
-- Configurable mouse buttons and scroll wheel.
-- Supported by the *Custom Hot Corners - Extended* extension.
-- Workspace Thumbnails option allows better navigation between workspaces.
+- Application launcher, app switcher can include favorite apps and *Show Apps* icon
+- Optional Super key activation
+- Configurable overlay indicators, optionally interactive to help with mouse control
+- Mouse control, including optional top or bottom hot edge for switcher activation
+- Configurable mouse buttons and scroll wheel
+- Supported by the *Custom Hot Corners - Extended* extension
+- Workspace Thumbnails option allows better navigation between workspaces
 
 
 ### Hotkeys
-
 [A-Z] hotkeys can be customized in AATWS Preferences window, for each customizable action can be set up to two hotkeys for case you need to cover a non [a-zA-Z] keystroke with and without Shift modifier. You can disable any customizable hotkey by deleting its entry. Some core hotkeys cannot be customized nor disabled.
 
 **Default configuration:**
@@ -73,7 +71,6 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 |`Shift+Enter`|             - Switch keyboard layout|
 
 ### Type to Search
-
 - If the `Search mode` is activated (by the `E` or `Insert` hotkeys or as the default mode in the preferences window), the `A-Z` and `0-9` keys can be used to enter the search pattern. The switcher window/app list is immediately filtered/repopulated accordingly.
 - When you activate the Search mode using the hotkey, you can release the modifier keys used to activate the switcher (Alt, Super) and the switcher stays open. If the Search mode is active as default, release of the modifier key activates the selected result as usual. If you activate the switcher using Super key, you have 5 seconds to start typing, or you can pres and release the `Ctrl` key to cancel the timeout.
 - Characters with diacritics are converted to its basic form and case doesn't matter.
@@ -92,7 +89,6 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 **Even in the search mode you can use all hotkeys if you press and hold the Shift modifier key**.
 
 ### DND Window Thumbnails
-
 Window thumbnails are scaled-down window clones that can be used to monitor windows not currently visible on the screen. By pressing the `T` hotkey (which you can change) you can create a thumbnail of the selected window which will be placed at bottom right of the current monitor. You can create as many clones as you want and place them anywhere on the screen. Each thumbnail can be independently resized, you can adjust its opacity and even change its source window. When the thumbnail's source window is closed, its thumbnail will be removed too.
 You can remove the lastly created thumbnail using `Ctrl + T` or remove all thumbnails using `Ctrl + Shift + T`.
 
@@ -110,19 +106,15 @@ You can remove the lastly created thumbnail using `Ctrl + T` or remove all thumb
 Known bugs: when the thumbnail is created above VirtualBox virtual machine window, the thumbnail becomes irresponsive.
 
 ## Changelog
-
 [CHANGELOG.md](CHANGELOG.md)
 
 ## Installation
-
 You can install this extension in several ways.
 
 ### Installation from extensions.gnome.org
-
 The easiest way to install AATWS: go to [extensions.gnome.org](https://extensions.gnome.org/extension/4412/advanced-alttab-window-switcher/) and toggle the switch. This installation also gives you automatic updates in the future.
 
 ### Installation from the latest Github release
-
 Download the latest release archive using following command:
 
     wget https://github.com/G-dH/advanced-alttab-window-switcher/releases/latest/download/advanced-alt-tab@G-dH.github.com.zip
@@ -140,7 +132,6 @@ Run following commands in the terminal (`git` needs to installed, navigate to th
     make install
 
 ## Enable installed extension
-
 After installation you need to enable the extension. Only direct installation from extension.gnome.org loads the code and enables the extension immediately.
 
 - First restart GNOME Shell (`ALt` + `F2`, `r`, `Enter`, or Log Out/Log In if you use Wayland)
@@ -150,19 +141,7 @@ After installation you need to enable the extension. Only direct installation fr
     gnome-extensions enable advanced-alt-tab@G-dH.github.com
 
 ## Contribution
+Contributions are welcome and I will try my best to answer quickly to all suggestions.
 
-Contributions are welcome and I will try my best to answer quickly to all suggestions. I'd really appreciate corrections of my bad english.
-
+## Buy Me a Coffee
 If you like my work and want to keep me motivated, give me some feedback. You can also [buy me a coffee](https://buymeacoffee.com/georgdh).
-
-## Screenshots
-
-![App Switcher Popup](screenshots/screenshot0-1.png)
-![Extension configuration window](screenshots/screenshot1.png)
-![Extension configuration window](screenshots/screenshot2.png)
-![Extension configuration window](screenshots/screenshot3.png)
-![Extension configuration window](screenshots/screenshot4.png)
-![Extension configuration window](screenshots/screenshot5.png)
-![Extension configuration window](screenshots/screenshot6.png)
-![Extension configuration window](screenshots/screenshot7.png)
- 
