@@ -15,7 +15,7 @@ const Main            = imports.ui.main;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
-const Settings        = Me.imports.settings;
+const Settings        = Me.imports.src.settings;
 
 const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 

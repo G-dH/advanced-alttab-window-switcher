@@ -13,7 +13,7 @@ const { Gtk, GLib, Gio, GObject } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
-const Settings       = Me.imports.settings;
+const Settings       = Me.imports.src.settings;
 
 // gettext
 const _  = Settings._;

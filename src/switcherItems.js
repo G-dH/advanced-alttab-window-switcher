@@ -17,7 +17,7 @@ const IconGrid        = imports.ui.iconGrid;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
-const Settings        = Me.imports.settings;
+const Settings        = Me.imports.src.settings;
 const _               = Settings._;
 
 const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);

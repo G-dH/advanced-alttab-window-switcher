@@ -18,7 +18,8 @@ const Config = imports.misc.config;
 const shellVersion = parseFloat(Config.PACKAGE_VERSION);
 
 // gettext
-const _ = imports.misc.extensionUtils.getCurrentExtension().imports.settings._;
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+const _ = Me.imports.src.settings._;
 
 
 var WindowMenu = class extends PopupMenu.PopupMenu {

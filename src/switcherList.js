@@ -20,11 +20,11 @@ const PopupMenu       = imports.ui.popupMenu;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
-const { AppIcon, WindowIcon, ShowAppsIcon } = Me.imports.switcherItems;
-const CaptionLabel    = Me.imports.captionLabel.CaptionLabel;
-const WindowMenu      = Me.imports.windowMenu;
-const Settings        = Me.imports.settings;
-const ActionLib       = Me.imports.actions;
+const { AppIcon, WindowIcon, ShowAppsIcon } = Me.imports.src.switcherItems;
+const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
+const WindowMenu      = Me.imports.src.windowMenu;
+const Settings        = Me.imports.src.settings;
+const ActionLib       = Me.imports.src.actions;
 
 const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 

@@ -9,12 +9,11 @@
 
 'use strict';
 
-const { GObject, Clutter, St, Meta, Shell } = imports.gi;
+const { GObject, Clutter, St, Meta, Shell, Graphene } = imports.gi;
 
 const Main         = imports.ui.main;
 const DND          = imports.ui.dnd;
 const AltTab       = imports.ui.altTab;
-const Graphene     = imports.gi.Graphene;
 const shellVersion = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const SCROLL_ICON_OPACITY = 240;

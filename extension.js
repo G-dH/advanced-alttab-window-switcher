@@ -17,9 +17,9 @@ const Layout                 = imports.ui.layout;
 
 const ExtensionUtils       = imports.misc.extensionUtils;
 const Me                   = ExtensionUtils.getCurrentExtension();
-const Settings             = Me.imports.settings;
-const WindowSwitcherPopup  = Me.imports.windowSwitcherPopup;
-const Actions              = Me.imports.actions;
+const Settings             = Me.imports.src.settings;
+const WindowSwitcherPopup  = Me.imports.src.windowSwitcherPopup;
+const Actions              = Me.imports.src.actions;
 
 let _delayId;
 let enabled = false;

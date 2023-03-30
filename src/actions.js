@@ -15,8 +15,8 @@ const Main                   = imports.ui.main;
 const ExtensionUtils         = imports.misc.extensionUtils;
 const Me                     = ExtensionUtils.getCurrentExtension();
 
-const Settings               = Me.imports.settings;
-const WinTmb                 = Me.imports.winTmb;
+const Settings               = Me.imports.src.settings;
+const WinTmb                 = Me.imports.src.winTmb;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
 const shellVersion = Settings.shellVersion;

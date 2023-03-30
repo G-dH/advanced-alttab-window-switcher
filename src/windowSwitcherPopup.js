@@ -23,14 +23,14 @@ const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
 
-const SwitcherList    = Me.imports.switcherList.SwitcherList;
-const AppSwitcher     = Me.imports.switcherList.AppSwitcher;
-const AppIcon         = Me.imports.switcherItems.AppIcon;
-const WindowIcon      = Me.imports.switcherItems.WindowIcon;
-const CaptionLabel    = Me.imports.captionLabel.CaptionLabel;
-const WindowMenu      = Me.imports.windowMenu;
-const Settings        = Me.imports.settings;
-const ActionLib       = Me.imports.actions;
+const SwitcherList    = Me.imports.src.switcherList.SwitcherList;
+const AppSwitcher     = Me.imports.src.switcherList.AppSwitcher;
+const AppIcon         = Me.imports.src.switcherItems.AppIcon;
+const WindowIcon      = Me.imports.src.switcherItems.WindowIcon;
+const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
+const WindowMenu      = Me.imports.src.windowMenu;
+const Settings        = Me.imports.src.settings;
+const ActionLib       = Me.imports.src.actions;
 
 // gettext
 const _               = Settings._;
