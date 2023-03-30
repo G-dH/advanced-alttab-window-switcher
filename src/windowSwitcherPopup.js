@@ -303,11 +303,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateOnWorkspaceSwitched(callback) {
-        if (this._timeoutIds._wsSwitcherAnimationDelayId)
-            GLib.source_remove(this._timeoutIds._wsSwitcherAnimationDelayId);
+        if (this._timeoutIds.wsSwitcherAnimationDelayId)
+            GLib.source_remove(this._timeoutIds.wsSwitcherAnimationDelayId);
 
 
-        this._timeoutIds._wsSwitcherAnimationDelayId = GLib.timeout_add(
+        this._timeoutIds.wsSwitcherAnimationDelayId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
             // re-build the switcher after workspace switcher animation to avoid stuttering
             250 * St.Settings.get().slow_down_factor,
@@ -317,7 +317,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (callback)
                     callback();
 
-                this._timeoutIds._wsSwitcherAnimationDelayId = 0;
+                this._timeoutIds.wsSwitcherAnimationDelayId = 0;
                 return GLib.SOURCE_REMOVE;
             }
         );
