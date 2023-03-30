@@ -284,16 +284,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._firstRun             = true;
         this._favoritesMRU         = true;
         this._lastActionTimeStamp  = 0;
-        // this._recentShowTime       = 0;
         this._updateInProgress     = false;
         // _skipInitialSelection allows to avoid double selection when re-showing switcher followed by custom selection
         this._skipInitialSelection = false;
         options.cancelTimeout      = false;
 
         global.advancedWindowSwitcher = this;
-        this.connect('destroy', this._onDestroyThis.bind(this));
 
         this._wsManagerConId = global.workspace_manager.connect('workspace-switched', this._onWorkspaceChanged.bind(this));
+        this._newWindowConId = 0;
 
         this._timeoutIds = {};
     }
@@ -304,11 +303,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _updateOnWorkspaceSwitched(callback) {
-        if (this._wsSwitcherAnimationDelayId)
-            GLib.source_remove(this._wsSwitcherAnimationDelayId);
+        if (this._timeoutIds._wsSwitcherAnimationDelayId)
+            GLib.source_remove(this._timeoutIds._wsSwitcherAnimationDelayId);
 
 
-        this._wsSwitcherAnimationDelayId = GLib.timeout_add(
+        this._timeoutIds._wsSwitcherAnimationDelayId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
             // re-build the switcher after workspace switcher animation to avoid stuttering
             250 * St.Settings.get().slow_down_factor,
@@ -318,7 +317,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (callback)
                     callback();
 
-                this._wsSwitcherAnimationDelayId = 0;
+                this._timeoutIds._wsSwitcherAnimationDelayId = 0;
                 return GLib.SOURCE_REMOVE;
             }
         );
@@ -480,7 +479,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._tempFilterMode = null;
-        if (!this._newWindowSignalId)
+        if (!this._newWindowConId)
             this._connectNewWindows();
 
 
@@ -694,10 +693,25 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         });
     }
 
-    _onDestroyThis() {
+    _onDestroy() {
         this._doNotUpdateOnNewWindow = true;
-        // this._initialDelayTimeoutId and this._noModsTimeoutId were already removed in super class
 
+        this._popModal();
+
+        // remove original timeouts
+        if (this._motionTimeoutId)
+            GLib.source_remove(this._motionTimeoutId);
+        if (this._initialDelayTimeoutId)
+            GLib.source_remove(this._initialDelayTimeoutId);
+        if (this._noModsTimeoutId)
+            GLib.source_remove(this._noModsTimeoutId);
+
+        // Make sure the SwitcherList is always destroyed, it may not be
+        // a child of the actor at this point.
+        if (this._switcherList)
+            this._switcherList.destroy();
+
+        // remove all local timeouts
         Object.values(this._timeoutIds).forEach(id => {
             if (id)
                 GLib.source_remove(id);
@@ -707,8 +721,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             global.workspace_manager.disconnect(this._wsManagerConId);
 
 
-        if (this._newWindowSignalId)
-            global.display.disconnect(this._newWindowSignalId);
+        if (this._newWindowConId)
+            global.display.disconnect(this._newWindowConId);
 
         this._removeCaptions();
 
@@ -1010,7 +1024,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _connectNewWindows() {
-        this._newWindowSignalId = global.display.connect_after('window-created', (w, win) => {
+        this._newWindowConId = global.display.connect_after('window-created', (w, win) => {
             if (this._doNotUpdateOnNewWindow)
                 return;
 
@@ -1031,20 +1045,20 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         });
 
-        /* this._newWindowSignalId = global.display.connect_after('window-created', (w, win) => {
-            if (this._doNotUpdateOnNewWindow || this._newWindowSignalId)
+        /* this._newWindowConId = global.display.connect_after('window-created', (w, win) => {
+            if (this._doNotUpdateOnNewWindow || this._newWindowConId)
                 return;
 
             // new window was created but maybe not realized yet, so we will wait before updating content of the switcher
             // delay is easier to handle than many 'realize' signal connections, if user spawn many new windows quickly
-            if (this._newWindowSignalId) {
-                GLib.source_remove(this._newWindowSignalId);
+            if (this._newWindowConId) {
+                GLib.source_remove(this._newWindowConId);
             }
 
-            this._newWindowSignalId = GLib.timeout_add(
+            this._newWindowConId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
                 200, () => {
-                this._newWindowSignalId = 0;
+                this._newWindowConId = 0;
                 this._updateSwitcher();
                 return;
             });
