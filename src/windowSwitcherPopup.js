@@ -2002,7 +2002,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this.fadeAndDestroy();
                 // this._toggleSwitcherMode();
             }
-        } else if (_isTabAction(action) ||
+        } else if (_isTabAction(action) || _isTabBackwardAction(action) ||
             ((keysym === Clutter.KEY_Tab || keysym === Clutter.KEY_ISO_Left_Tab) && !_ctrlPressed()) ||
                 // shortcut key that triggered the switcher - support for CHC-E
                 (this._keyBind &&
