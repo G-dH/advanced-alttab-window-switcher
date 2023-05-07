@@ -258,6 +258,8 @@ class AppIcon extends AppDisplay.AppIcon {
 
         // avoid conflict with rest of the system
         this._onMenuPoppedDown = () => { };
+        // mouse events should go through the AppIcon to the switcher button
+        this.reactive = false;
 
         // remove scroll connection created by my OFP extension
         if (this._scrollConnectionID)
