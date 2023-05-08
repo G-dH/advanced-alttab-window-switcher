@@ -36,9 +36,9 @@ function _newImageFromIconName(name, size = null) {
 }
 
 var ItemFactory = class ItemFactory {
-    constructor(options) {
-        this._options = options;
-        this._settings = this._options._gsettings;
+    constructor(gOptions) {
+        this._options = gOptions;
+        this._settings = gOptions._gsettings;
     }
 
     getRowWidget(text, caption, widget, variable, options = []) {
@@ -93,8 +93,8 @@ var ItemFactory = class ItemFactory {
                 this._connectComboBox(widget, key, variable, options);
             else if (widget._isEntry)
                 this._connectEntry(widget, key, variable);
-            else if (widget._isDropDown)
-                this._connectDropDown(widget, key, variable, options);
+            /* else if (widget._isDropDown)
+                this._connectDropDown(widget, key, variable, options);*/
         }
 
         return item;
@@ -132,7 +132,7 @@ var ItemFactory = class ItemFactory {
         });
     }
 
-    _connectDropDown(widget, key, variable, options) {
+    /* _connectDropDown(widget, key, variable, options) {
         const model = widget.get_model();
         const currentValue = this._options.get(variable);
         for (let i = 0; i < options.length; i++) {
@@ -169,7 +169,7 @@ var ItemFactory = class ItemFactory {
         });
 
         widget.set_factory(factory);
-    }
+    }*/
 
     _connectEntry(widget, key, variable) {
         if (variable.startsWith('hotkey')) {
@@ -250,7 +250,7 @@ var ItemFactory = class ItemFactory {
         return comboBox;
     }
 
-    newDropDown() {
+    /* newDropDown() {
         const dropDown = new Gtk.DropDown({
             model: new Gio.ListStore({
                 item_type: DropDownItem,
@@ -261,7 +261,7 @@ var ItemFactory = class ItemFactory {
         });
         dropDown._isDropDown = true;
         return dropDown;
-    }
+    }*/
 
     newEntry() {
         const entry = new Gtk.Entry({
@@ -289,7 +289,7 @@ var ItemFactory = class ItemFactory {
 
     newLinkButton(uri) {
         const linkBtn = new Gtk.LinkButton({
-            label: shellVersion < 42 ? 'Click Me!' : '',
+            label: shellVersion < 42 ? 'Link' : '',
             uri,
             halign: Gtk.Align.END,
             valign: Gtk.Align.CENTER,
@@ -325,7 +325,7 @@ var ItemFactory = class ItemFactory {
     }
 };
 
-const DropDownItem = GObject.registerClass({
+/* const DropDownItem = GObject.registerClass({
     GTypeName: 'DropdownItem',
     Properties: {
         'text': GObject.ParamSpec.string(
@@ -360,10 +360,10 @@ const DropDownItem = GObject.registerClass({
         this._id = id;
     }
 }
-);
+);*/
 
 var AdwPrefs = class {
-    getFilledWindow(window, pages) {
+    static getFilledWindow(window, pages) {
         for (let page of pages) {
             const title = page.title;
             const icon_name = page.iconName;
@@ -376,22 +376,10 @@ var AdwPrefs = class {
                 })
             );
         }
-
-        window.set_search_enabled(true);
-
-        window.connect('close-request', () => {
-            Settings.gOptions.destroy();
-            Settings.gOptions = null;
-            /* itemFactory = null;
-            pageList = null;*/
-        });
-
-        window.set_default_size(800, 800);
-
         return window;
     }
 
-    _getAdwPage(optionList, pageProperties = {}) {
+    static _getAdwPage(optionList, pageProperties = {}) {
         pageProperties.width_request = 840;
         const page = new Adw.PreferencesPage(pageProperties);
         let group;
@@ -447,7 +435,7 @@ var AdwPrefs = class {
 };
 
 var LegacyPrefs = class {
-    getPrefsWidget(pages) {
+    static getPrefsWidget(pages) {
         const prefsWidget = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
         });
@@ -515,21 +503,11 @@ var LegacyPrefs = class {
         prefsWidget[append](stack);
         prefsWidget.connect('realize', widget => {
             const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
-            const width = 800;
-            const height = 800;
-            window.set_default_size(width, height);
             const headerbar = window.get_titlebar();
             if (shellVersion >= 40)
                 headerbar.title_widget = stackSwitcher;
             else
                 headerbar.custom_title = stackSwitcher;
-
-
-            const signal = Gtk.get_major_version() === 3 ? 'destroy' : 'close-request';
-            window.connect(signal, () => {
-                Settings.gOptions.destroy();
-                Settings.gOptions = null;
-            });
         });
 
         if (prefsWidget.show_all)
@@ -538,7 +516,7 @@ var LegacyPrefs = class {
         return prefsWidget;
     }
 
-    _getLegacyPage(optionList, pageProperties) {
+    static _getLegacyPage(optionList, pageProperties) {
         const page = new Gtk.ScrolledWindow(pageProperties);
         const mainBox = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,

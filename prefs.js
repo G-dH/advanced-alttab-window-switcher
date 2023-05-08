@@ -21,41 +21,43 @@ const _  = Settings._;
 
 const shellVersion   = Settings.shellVersion;
 
-let itemFactory;
-let pageList;
-
 const Actions = Settings.Actions;
 
-const actionList = [
-    [_('Do Nothing'),                      Actions.NONE],
-    [_('Close Switcher Popup'),            Actions.HIDE],
-    [_('Select Next/Previous'),            Actions.SELECT_ITEM],
-    [_('Activate'),                        Actions.ACTIVATE],
-    [_('Switch Workspace'),                Actions.SWITCH_WS],
-    [_('Open New Window'),                 Actions.NEW_WINDOW],
-    [_('Show / Preview'),                  Actions.SHOW],
-    [_('Open Context Menu'),               Actions.MENU],
-    [_('Switch Filter Mode'),              Actions.SWITCH_FILTER],
-    [_('Toggle Single App Mode'),          Actions.SINGLE_APP],
-    [_('Toggle Switcher Mode'),            Actions.SWITCHER_MODE],
-    [_('Close/Quit Selected'),             Actions.CLOSE_QUIT],
-    [_('Force Quit Selected App'),         Actions.KILL],
-    [_('Move Selected to Current WS/Monitor'), Actions.MOVE_TO_WS],
-    [_('Toggle Fullscreen on Empty WS'),   Actions.FS_ON_NEW_WS],
-    [_('Sort Windows by Applications'),    Actions.GROUP_APP],
-    [_('Sort Current Monitor First'),      Actions.CURRENT_MON_FIRST],
-    [_('Create Window Thumbnail'),         Actions.THUMBNAIL],
-    [_('Open Preferences'),                Actions.PREFS],
-];
+let gOptions;
+
+function _getActionList() {
+    return [
+        [_('Do Nothing'),                      Actions.NONE],
+        [_('Close Switcher Popup'),            Actions.HIDE],
+        [_('Select Next/Previous'),            Actions.SELECT_ITEM],
+        [_('Activate'),                        Actions.ACTIVATE],
+        [_('Switch Workspace'),                Actions.SWITCH_WS],
+        [_('Open New Window'),                 Actions.NEW_WINDOW],
+        [_('Show / Preview'),                  Actions.SHOW],
+        [_('Open Context Menu'),               Actions.MENU],
+        [_('Switch Filter Mode'),              Actions.SWITCH_FILTER],
+        [_('Toggle Single App Mode'),          Actions.SINGLE_APP],
+        [_('Toggle Switcher Mode'),            Actions.SWITCHER_MODE],
+        [_('Close/Quit Selected'),             Actions.CLOSE_QUIT],
+        [_('Force Quit Selected App'),         Actions.KILL],
+        [_('Move Selected to Current WS/Monitor'), Actions.MOVE_TO_WS],
+        [_('Toggle Fullscreen on Empty WS'),   Actions.FS_ON_NEW_WS],
+        [_('Sort Windows by Applications'),    Actions.GROUP_APP],
+        [_('Sort Current Monitor First'),      Actions.CURRENT_MON_FIRST],
+        [_('Create Window Thumbnail'),         Actions.THUMBNAIL],
+        [_('Open Preferences'),                Actions.PREFS],
+    ];
+}
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    Settings.gOptions = new Settings.Options();
+    gOptions = new Settings.Options();
+}
 
-    itemFactory = new OptionsFactory.ItemFactory(Settings.gOptions);
-    const options = _getOptions();
-
-    pageList = [
+function _getPageList() {
+    const itemFactory = new OptionsFactory.ItemFactory(gOptions);
+    const options = _getOptions(itemFactory);
+    const pageList = [
         {
             name: 'common',
             title: _('Common'),
@@ -84,7 +86,7 @@ function init() {
             name: 'hotkeys',
             title: _('Hotkeys'),
             iconName: 'input-keyboard-symbolic',
-            optionList: _getHotkeysOptionList(),
+            optionList: _getHotkeysOptionList(itemFactory),
         },
         {
             name: 'mouse',
@@ -102,17 +104,39 @@ function init() {
             name: 'about',
             title: _('About'),
             iconName: 'preferences-system-details-symbolic',
-            optionList: getAboutOptionList(),
+            optionList: getAboutOptionList(itemFactory),
         },
     ];
+
+    return pageList;
 }
 
 function fillPreferencesWindow(window) {
-    return new OptionsFactory.AdwPrefs().getFilledWindow(window, pageList);
+    OptionsFactory.AdwPrefs.getFilledWindow(window, _getPageList());
+    window.set_search_enabled(true);
+    window.set_default_size(800, 800);
+    window.connect('close-request', () => {
+        gOptions.destroy();
+        gOptions = null;
+    });
 }
 
 function buildPrefsWidget() {
-    return new OptionsFactory.LegacyPrefs().getPrefsWidget(pageList);
+    const prefsWidget = OptionsFactory.LegacyPrefs.getPrefsWidget(_getPageList());
+    prefsWidget.connect('realize', widget => {
+        const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
+
+        const width = 800;
+        const height = 800;
+        window.set_default_size(width, height);
+
+        const signal = Gtk.get_major_version() === 3 ? 'destroy' : 'close-request';
+        window.connect(signal, () => {
+            gOptions.destroy();
+            gOptions = null;
+        });
+    });
+    return prefsWidget;
 }
 
 function _getCommonOptionList(options) {
@@ -286,8 +310,9 @@ function _getMouseOptionList(options) {
 
 // ////////////////////////////////////////////////////////////////
 // ////////////////////////////////////////////////////////////////
-function _getOptions() {
+function _getOptions(itemFactory) {
     const optDict = {};
+    const actionList = _getActionList();
 
     optDict.Behavior = itemFactory.getRowWidget(
         _('Behavior')
@@ -530,7 +555,7 @@ function _getOptions() {
         ]
     );
 
-    superDoublePressSwitch.set_sensitive(Settings.gOptions.get('enableSuper'));
+    superDoublePressSwitch.set_sensitive(gOptions.get('enableSuper'));
     enableSuperSwitch.connect('notify::active', widget => {
         superDoublePressSwitch.set_sensitive(widget.active);
     });
@@ -710,7 +735,7 @@ function _getOptions() {
     });
 
     const minimizedLastBtn = itemFactory.newSwitch();
-    minimizedLastBtn.set_sensitive(!Settings.gOptions.get('winSkipMinimized'));
+    minimizedLastBtn.set_sensitive(!gOptions.get('winSkipMinimized'));
     optDict.MinimizedLast = itemFactory.getRowWidget(
         _('Minimized Windows Last'),
         _('Moves minimized windows to the end of the list, which is the default behavior in GNOME Shell.'),
@@ -904,7 +929,7 @@ function _getOptions() {
         'appSwitcherPopupHideWinCounterForSingleWindow'
     );
 
-    hideWinCounterForSingleWindowSwitch.set_sensitive(Settings.gOptions.get('appSwitcherPopupWinCounter'));
+    hideWinCounterForSingleWindowSwitch.set_sensitive(gOptions.get('appSwitcherPopupWinCounter'));
     showWinCounterSwitch.connect('notify::active', widget => {
         hideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
     });
@@ -1195,10 +1220,11 @@ function _getOptions() {
     return optDict;
 }
 
-function _getHotkeysOptionList() {
+function _getHotkeysOptionList(itemFactory) {
     let optionList = [];
     // options item format:
     // [text, tooltip, widget, settings-variable, options for combo]
+
 
     optionList.push(itemFactory.getRowWidget(
         _('Custom hotkeys (you can assign up to 2 characters (keys) to each action)'),
@@ -1544,8 +1570,9 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
     return optionList;
 }
 
-function getAboutOptionList() {
+function getAboutOptionList(itemFactory) {
     const optionList = [];
+    // const itemFactory = new OptionsFactory.ItemFactory();
 
     optionList.push(itemFactory.getRowWidget(
         Me.metadata.name
