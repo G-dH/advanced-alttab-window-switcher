@@ -9,24 +9,18 @@
 
 'use strict';
 
-const { Gtk, GLib, Gio, GObject } = imports.gi;
+const { Gtk } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me             = ExtensionUtils.getCurrentExtension();
 const Settings       = Me.imports.src.settings;
+const OptionsFactory = Me.imports.src.optionsFactory;
 
 // gettext
 const _  = Settings._;
 
 const shellVersion   = Settings.shellVersion;
 
-// libadwaita is available starting with GNOME Shell 42.
-let Adw = null;
-try {
-    Adw = imports.gi.Adw;
-} catch (e) {}
-
-let gOptions;
 let itemFactory;
 let pageList;
 
@@ -54,20 +48,11 @@ const actionList = [
     [_('Open Preferences'),                Actions.PREFS],
 ];
 
-// conversion of Gtk3 / Gtk4 widgets add methods
-const append = shellVersion < 40 ? 'add' : 'append';
-const set_child = shellVersion < 40 ? 'add' : 'set_child';
-
-function _newImageFromIconName(name, size = null) {
-    const args = shellVersion >= 40 ? [name] : [name, size];
-    return Gtk.Image.new_from_icon_name(...args);
-}
-
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    gOptions = new Settings.Options();
+    Settings.gOptions = new Settings.Options();
 
-    itemFactory = new ItemFactory(gOptions);
+    itemFactory = new OptionsFactory.ItemFactory(Settings.gOptions);
     const options = _getOptions();
 
     pageList = [
@@ -123,11 +108,11 @@ function init() {
 }
 
 function fillPreferencesWindow(window) {
-    return new AdwPrefs().getFilledWindow(window, pageList);
+    return new OptionsFactory.AdwPrefs().getFilledWindow(window, pageList);
 }
 
 function buildPrefsWidget() {
-    return new LegacyPrefs().getPrefsWidget(pageList);
+    return new OptionsFactory.LegacyPrefs().getPrefsWidget(pageList);
 }
 
 function _getCommonOptionList(options) {
@@ -173,6 +158,8 @@ function _getWindowOptionList(options) {
     const opt = options;
 
     const optionList = [
+        opt.Controls,
+        opt.ShortcutWin,
         opt.Behavior,
         opt.DefaultFilterWin,
         opt.DefaultSortingWin,
@@ -198,6 +185,8 @@ function _getAppOptionList(options) {
     const opt = options;
 
     const optionList = [
+        opt.Controls,
+        opt.ShortcutApp,
         opt.Behavior,
         opt.DefaultFilterApp,
         opt.DefaultSortingApp,
@@ -541,7 +530,7 @@ function _getOptions() {
         ]
     );
 
-    superDoublePressSwitch.set_sensitive(gOptions.get('enableSuper'));
+    superDoublePressSwitch.set_sensitive(Settings.gOptions.get('enableSuper'));
     enableSuperSwitch.connect('notify::active', widget => {
         superDoublePressSwitch.set_sensitive(widget.active);
     });
@@ -649,6 +638,17 @@ function _getOptions() {
 
     // ////////////////////////////////////////////////
 
+    // Window Switcher options
+    optDict.Controls = itemFactory.getRowWidget(
+        _('Controls')
+    );
+
+    optDict.ShortcutWin = itemFactory.getRowWidget(
+        _('Keyboard Shortcuts'),
+        _('AATWS replaces the default window switcher popups so the keyboard shortcuts can be set in GNOME Settings app > Keyboard > Keyboard Shortcuts > "Switch windows" and "Switch windows of an application"'),
+        itemFactory.newLabel()
+    );
+
     optDict.Behavior = itemFactory.getRowWidget(
         _('Behavior')
     );
@@ -710,7 +710,7 @@ function _getOptions() {
     });
 
     const minimizedLastBtn = itemFactory.newSwitch();
-    minimizedLastBtn.set_sensitive(!gOptions.get('winSkipMinimized'));
+    minimizedLastBtn.set_sensitive(!Settings.gOptions.get('winSkipMinimized'));
     optDict.MinimizedLast = itemFactory.getRowWidget(
         _('Minimized Windows Last'),
         _('Moves minimized windows to the end of the list, which is the default behavior in GNOME Shell.'),
@@ -796,9 +796,21 @@ function _getOptions() {
 
     // //////////////////////////////////////////////////////////////////////
 
-    optDict.Behavior = itemFactory.getRowWidget(
-        _('Behavior')
+    // App Switcher options
+    // group title already defined in the window section
+    // optDict.Controls = itemFactory.getRowWidget(
+    //    _('Controls')
+    // );
+
+    optDict.ShortcutApp = itemFactory.getRowWidget(
+        _('Keyboard Shortcut'),
+        _('AATWS replaces the default app switcher popup so the keyboard shortcut can be set in GNOME Settings app > Keyboard > Keyboard Shortcuts > "Switch applications"'),
+        itemFactory.newLabel()
     );
+
+    // optDict.Behavior = itemFactory.getRowWidget(
+    //    _('Behavior')
+    // );
 
     optDict.DefaultFilterApp = itemFactory.getRowWidget(
         _('Default Filter'),
@@ -892,7 +904,7 @@ function _getOptions() {
         'appSwitcherPopupHideWinCounterForSingleWindow'
     );
 
-    hideWinCounterForSingleWindowSwitch.set_sensitive(gOptions.get('appSwitcherPopupWinCounter'));
+    hideWinCounterForSingleWindowSwitch.set_sensitive(Settings.gOptions.get('appSwitcherPopupWinCounter'));
     showWinCounterSwitch.connect('notify::active', widget => {
         hideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
     });
@@ -1109,8 +1121,9 @@ function _getOptions() {
     );
 
     let winActionList = [...actionList];
-    /* winActionList.splice(6,1);
-    winActionList.splice(1,1);*/
+    // winActionList.splice(6,1);
+    // winActionList.splice(1,1);
+
     optDict.PrimaryWinItem = itemFactory.getRowWidget(
         _('Primary Click on Item'),
         _('Action to be triggered by a click of the primary (usually left) mouse button on any switcher item (window icon)'),
@@ -1587,490 +1600,3 @@ function getAboutOptionList() {
 
     return optionList;
 }
-
-// ----------------------------------------------------------
-
-const ItemFactory = class ItemFactory {
-    constructor(options) {
-        this._options = options;
-        this._settings = this._options._gsettings;
-    }
-
-    getRowWidget(text, caption, widget, variable, options = []) {
-        let item = [];
-        let label;
-        if (widget) {
-            label = new Gtk.Box({
-                orientation: Gtk.Orientation.VERTICAL,
-                spacing: 4,
-                halign: Gtk.Align.START,
-                valign: Gtk.Align.CENTER,
-            });
-            const option = new Gtk.Label({
-                halign: Gtk.Align.START,
-            });
-            option.set_text(text);
-            label[append](option);
-
-            if (caption) {
-                const captionLabel = new Gtk.Label({
-                    halign: Gtk.Align.START,
-                    wrap: true,
-                    /* width_chars: 80,*/
-                    xalign: 0,
-                });
-                const context = captionLabel.get_style_context();
-                context.add_class('dim-label');
-                context.add_class('caption');
-                captionLabel.set_text(caption);
-                label[append](captionLabel);
-            }
-            label._title = text;
-        } else {
-            label = text;
-        }
-        item.push(label);
-        item.push(widget);
-
-        let key;
-
-        if (variable && this._options.options[variable]) {
-            const opt = this._options.options[variable];
-            key = opt[1];
-        }
-
-        if (widget) {
-            if (widget._is_switch)
-                this._connectSwitch(widget, key, variable);
-            else if (widget._is_spinbutton)
-                this._connectSpinButton(widget, key, variable);
-            else if (widget._is_combo_box)
-                this._connectComboBox(widget, key, variable, options);
-            else if (widget._is_entry)
-                this._connectEntry(widget, key, variable);
-        }
-
-        return item;
-    }
-
-    _connectSwitch(widget, key /* variable */) {
-        this._settings.bind(key, widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-    }
-
-    _connectSpinButton(widget, key /* variable */) {
-        this._settings.bind(key, widget.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
-    }
-
-    _connectComboBox(widget, key, variable, options) {
-        let model = widget.get_model();
-        widget._comboMap = {};
-        for (const [label, value] of options) {
-            let iter;
-            model.set(iter = model.append(), [0, 1], [label, value]);
-            if (value === gOptions.get(variable))
-                widget.set_active_iter(iter);
-
-            widget._comboMap[value] = iter;
-        }
-        gOptions.connect(`changed::${key}`, () => {
-            widget.set_active_iter(widget._comboMap[gOptions.get(variable, true)]);
-        });
-        widget.connect('changed', () => {
-            const [success, iter] = widget.get_active_iter();
-
-            if (!success)
-                return;
-
-            gOptions.set(variable, model.get_value(iter, 1));
-        });
-    }
-
-    _connectEntry(widget, key, variable) {
-        if (variable.startsWith('hotkey')) {
-            this._settings.bind(key, widget, 'text', Gio.SettingsBindFlags.GET);
-            widget.connect('changed', entry => {
-                if (entry._doNotEdit)
-                    return;
-
-                entry._doNotEdit = true;
-                let text = entry.get_text();
-                let txt = '';
-                for (let i = 0; i < text.length; i++) {
-                    // if (/[a-zA-Z0-9]|/.test(text[i])) {
-                    let char = text[i].toUpperCase();
-                    if (!txt.includes(char))
-                        txt += char;
-
-                    // }
-                }
-                txt = txt.slice(0, 2);
-                entry.set_text(txt);
-                entry._doNotEdit = false;
-                gOptions.set(variable, txt);
-            });
-
-            widget.set_icon_from_icon_name(Gtk.EntryIconPosition.SECONDARY, 'edit-clear-symbolic');
-            widget.set_icon_activatable(Gtk.EntryIconPosition.SECONDARY, true);
-            widget.connect('icon-press', e => {
-                if (e.get_text() === '')
-                    e.set_text(this._settings.getDefault(variable));
-                else
-                    e.set_text('');
-            });
-        } else {
-            widget.width_chars = 25;
-            widget.set_text(variable);
-            widget.editable = false;
-            widget.can_focus = false;
-        }
-    }
-
-    newSwitch() {
-        let sw = new Gtk.Switch({
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-        });
-        sw._is_switch = true;
-        return sw;
-    }
-
-    newSpinButton(adjustment) {
-        let spinButton = new Gtk.SpinButton({
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-            vexpand: false,
-            xalign: 0.5,
-        });
-        spinButton.set_adjustment(adjustment);
-        spinButton._is_spinbutton = true;
-        return spinButton;
-    }
-
-    newComboBox() {
-        const model = new Gtk.ListStore();
-        model.set_column_types([GObject.TYPE_STRING, GObject.TYPE_INT]);
-        const comboBox = new Gtk.ComboBox({
-            model,
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-        });
-        const renderer = new Gtk.CellRendererText();
-        comboBox.pack_start(renderer, true);
-        comboBox.add_attribute(renderer, 'text', 0);
-        comboBox._is_combo_box = true;
-        return comboBox;
-    }
-
-    newEntry() {
-        const entry = new Gtk.Entry({
-            width_chars: 6,
-            max_width_chars: 5,
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-            xalign: 0.5,
-        });
-        entry._is_entry = true;
-        return entry;
-    }
-
-    newLabel(text = '') {
-        const label = new Gtk.Label({
-            label: text,
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-        });
-        label._activatable = false;
-        return label;
-    }
-
-    newLinkButton(uri) {
-        const linkBtn = new Gtk.LinkButton({
-            label: shellVersion < 42 ? 'Click Me!' : '',
-            uri,
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-        });
-        return linkBtn;
-    }
-
-    newOptionsResetButton() {
-        const btn = new Gtk.Button({
-            halign: Gtk.Align.END,
-            valign: Gtk.Align.CENTER,
-            hexpand: true,
-        });
-
-        const context = btn.get_style_context();
-        context.add_class('destructive-action');
-
-        if (shellVersion >= 40)
-            btn.icon_name = 'view-refresh-symbolic';
-        else
-            btn.add(Gtk.Image.new_from_icon_name('view-refresh-symbolic', Gtk.IconSize.BUTTON));
-
-
-        btn.connect('clicked', () => {
-            const settings = this._settings;
-            settings.list_keys().forEach(
-                key => settings.reset(key)
-            );
-        });
-        btn._activatable = false;
-        return btn;
-    }
-};
-
-const AdwPrefs = class {
-    getFilledWindow(window, pages) {
-        for (let page of pages) {
-            const title = page.title;
-            const icon_name = page.iconName;
-            const optionList = page.optionList;
-
-            window.add(
-                this._getAdwPage(optionList, {
-                    title,
-                    icon_name,
-                })
-            );
-        }
-
-        window.set_search_enabled(true);
-
-        window.connect('close-request', () => {
-            gOptions.destroy();
-            gOptions = null;
-            itemFactory = null;
-            pageList = null;
-        });
-
-        window.set_default_size(800, 800);
-
-        return window;
-    }
-
-    _getAdwPage(optionList, pageProperties = {}) {
-        pageProperties.width_request = 840;
-        const page = new Adw.PreferencesPage(pageProperties);
-        let group;
-        for (let item of optionList) {
-            if (!item)
-                continue;
-            // label can be plain text for Section Title
-            // or GtkBox for Option
-            const option = item[0];
-            const widget = item[1];
-            if (!widget) {
-                if (group)
-                    page.add(group);
-
-                group = new Adw.PreferencesGroup({
-                    title: option,
-                    hexpand: true,
-                    width_request: 700,
-                });
-                continue;
-            }
-
-            const row = new Adw.ActionRow({
-                title: option._title,
-            });
-
-            const grid = new Gtk.Grid({
-                column_homogeneous: false,
-                column_spacing: 20,
-                margin_start: 8,
-                margin_end: 8,
-                margin_top: 8,
-                margin_bottom: 8,
-                hexpand: true,
-            });
-            /* for (let i of item) {
-                box[append](i);*/
-            grid.attach(option, 0, 0, 1, 1);
-            if (widget)
-                grid.attach(widget, 1, 0, 1, 1);
-
-            row.set_child(grid);
-            if (widget._activatable === false)
-                row.activatable = false;
-            else
-                row.activatable_widget = widget;
-
-            group.add(row);
-        }
-        page.add(group);
-        return page;
-    }
-};
-
-const LegacyPrefs = class {
-    getPrefsWidget(pages) {
-        const prefsWidget = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-        });
-        const stack = new Gtk.Stack({
-            hexpand: true,
-        });
-        const stackSwitcher = new Gtk.StackSwitcher({
-            halign: Gtk.Align.CENTER,
-            hexpand: true,
-        });
-        if (shellVersion < 40)
-            stackSwitcher.homogeneous = true;
-        const context = stackSwitcher.get_style_context();
-        context.add_class('caption');
-
-        stackSwitcher.set_stack(stack);
-        stack.set_transition_duration(300);
-        stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT);
-
-        const pageProperties = {
-            hscrollbar_policy: Gtk.PolicyType.NEVER,
-            vscrollbar_policy: Gtk.PolicyType.AUTOMATIC,
-            vexpand: true,
-            hexpand: true,
-            visible: true,
-        };
-
-        const pagesBtns = [];
-
-        for (let page of pages) {
-            const name = page.name;
-            const title = page.title;
-            const iconName = page.iconName;
-            const optionList = page.optionList;
-
-            stack.add_named(this._getLegacyPage(optionList, pageProperties), name);
-            pagesBtns.push(
-                [new Gtk.Label({ label: title }), _newImageFromIconName(iconName, Gtk.IconSize.BUTTON)]
-            );
-        }
-
-        let stBtn = stackSwitcher.get_first_child ? stackSwitcher.get_first_child() : null;
-        for (let i = 0; i < pagesBtns.length; i++) {
-            const box = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 6, visible: true });
-            const icon = pagesBtns[i][1];
-            icon.margin_start = 30;
-            icon.margin_end = 30;
-            box[append](icon);
-            box[append](pagesBtns[i][0]);
-            if (stackSwitcher.get_children) {
-                stBtn = stackSwitcher.get_children()[i];
-                stBtn.add(box);
-            } else {
-                stBtn.set_child(box);
-                stBtn.visible = true;
-                stBtn = stBtn.get_next_sibling();
-            }
-        }
-
-        if (stack.show_all)
-            stack.show_all();
-        if (stackSwitcher.show_all)
-            stackSwitcher.show_all();
-
-        prefsWidget[append](stack);
-        prefsWidget.connect('realize', widget => {
-            const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
-            const width = 800;
-            const height = 800;
-            window.set_default_size(width, height);
-            const headerbar = window.get_titlebar();
-            if (shellVersion >= 40)
-                headerbar.title_widget = stackSwitcher;
-            else
-                headerbar.custom_title = stackSwitcher;
-
-
-            const signal = Gtk.get_major_version() === 3 ? 'destroy' : 'close-request';
-            window.connect(signal, () => {
-                gOptions.destroy();
-                gOptions = null;
-            });
-        });
-
-        if (prefsWidget.show_all)
-            prefsWidget.show_all();
-
-        return prefsWidget;
-    }
-
-    _getLegacyPage(optionList, pageProperties) {
-        const page = new Gtk.ScrolledWindow(pageProperties);
-        const mainBox = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-            spacing: 5,
-            homogeneous: false,
-            margin_start: 30,
-            margin_end: 30,
-            margin_top: 12,
-            margin_bottom: 12,
-        });
-
-        const context = page.get_style_context();
-        context.add_class('background');
-
-        let frame;
-        let frameBox;
-        for (let item of optionList) {
-            if (!item)
-                continue;
-            // label can be plain text for Section Title
-            // or GtkBox for Option
-            const option = item[0];
-            const widget = item[1];
-
-            if (!widget) {
-                const lbl = new Gtk.Label({
-                    label: option,
-                    xalign: 0,
-                    margin_bottom: 4,
-                });
-
-                const context = lbl.get_style_context();
-                context.add_class('heading');
-
-                mainBox[append](lbl);
-
-                frame = new Gtk.Frame({
-                    margin_bottom: 16,
-                });
-
-                frameBox = new Gtk.ListBox({
-                    selection_mode: null,
-                });
-
-                mainBox[append](frame);
-                frame[set_child](frameBox);
-                continue;
-            }
-
-            const grid = new Gtk.Grid({
-                column_homogeneous: false,
-                column_spacing: 20,
-                margin_start: 8,
-                margin_end: 8,
-                margin_top: 8,
-                margin_bottom: 8,
-                hexpand: true,
-            });
-
-            grid.attach(option, 0, 0, 5, 1);
-
-            if (widget)
-                grid.attach(widget, 5, 0, 2, 1);
-
-            frameBox[append](grid);
-        }
-        page[set_child](mainBox);
-
-        return page;
-    }
-};
