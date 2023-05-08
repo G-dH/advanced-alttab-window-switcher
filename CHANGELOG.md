@@ -1,5 +1,5 @@
 ## Changelog
-### v25 (2023-05-08)
+### v25/26 (2023-05-08)
 **Fixed:**
 - App switcher icons ignore mouse clicks in GNOME 44
 - Backward select does't work for non-Tab shortcuts
