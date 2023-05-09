@@ -557,13 +557,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._searchEntryNotEmpty())
             this._initialSelectionMode = SelectMode.FIRST;
 
+        // if all windows are minimized, the first on the list is the previously used
+        if (this._firstRun && this._items[0].window && this._items[0].window.minimized)
+            this._initialSelectionMode = SelectMode.FIRST;
 
         if (this._firstRun || this._searchEntry !== null)
             this._initialSelection(backward, binding);
 
         if (!this._searchEntryNotEmpty() && this._initialSelectionMode === SelectMode.NONE)
             this._initialSelectionMode = SelectMode.ACTIVE;
-
 
         // There's a race condition; if the user released Alt before
         // we got the grab, then we won't be notified. (See
