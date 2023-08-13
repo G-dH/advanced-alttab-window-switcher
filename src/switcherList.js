@@ -9,24 +9,23 @@
 
 'use strict';
 
-const { GObject, GLib, St, Shell, Gdk, Meta, Clutter } = imports.gi;
+// const { GObject, GLib, St, Shell, Gdk, Meta, Clutter } = imports.gi;
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
+import GObject from 'gi://GObject';
 
-const Main            = imports.ui.main;
-const AltTab          = imports.ui.altTab;
-const SwitcherPopup   = imports.ui.switcherPopup;
-const AppDisplay      = imports.ui.appDisplay;
-const Dash            = imports.ui.dash;
-const PopupMenu       = imports.ui.popupMenu;
+import * as SwitcherPopup from 'resource:///org/gnome/shell/ui/switcherPopup.js';
+// const ExtensionUtils  = imports.misc.extensionUtils;
+// const Me              = ExtensionUtils.getCurrentExtension();
+// const { AppIcon, WindowIcon, ShowAppsIcon } = Me.imports.src.switcherItems;
+import { AppIcon, WindowIcon, ShowAppsIcon } from './switcherItems.js';
 
-const ExtensionUtils  = imports.misc.extensionUtils;
-const Me              = ExtensionUtils.getCurrentExtension();
-const { AppIcon, WindowIcon, ShowAppsIcon } = Me.imports.src.switcherItems;
-const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
-const WindowMenu      = Me.imports.src.windowMenu;
-const Settings        = Me.imports.src.settings;
-const ActionLib       = Me.imports.src.actions;
+// const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
+// const WindowMenu      = Me.imports.src.windowMenu;
+// const Settings        = Me.imports.src.settings;
+// const ActionLib       = Me.imports.src.actions;
 
-const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
+// const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 
 /* Item structure:
@@ -48,7 +47,7 @@ const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
                         ._id
 
 */
-var SwitcherList = GObject.registerClass(
+export const SwitcherList = GObject.registerClass(
 class SwitcherList extends SwitcherPopup.SwitcherList {
     _init(items, options, switcherParams) {
         super._init(false); // squareItems = false

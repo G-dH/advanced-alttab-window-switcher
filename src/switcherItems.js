@@ -9,23 +9,36 @@
 
 'use strict';
 
-const { GObject, St, Shell, Clutter } = imports.gi;
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
+import Shell from 'gi://Shell';
+import GObject from 'gi://GObject';
 
-const AltTab          = imports.ui.altTab;
-const AppDisplay      = imports.ui.appDisplay;
-const IconGrid        = imports.ui.iconGrid;
+import * as AppDisplay from 'resource:///org/gnome/shell/ui/appDisplay.js';
+import * as IconGrid from 'resource:///org/gnome/shell/ui/iconGrid.js';
 
-const ExtensionUtils  = imports.misc.extensionUtils;
-const Me              = ExtensionUtils.getCurrentExtension();
-const Settings        = Me.imports.src.settings;
-const _               = Settings._;
-
-const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const LABEL_FONT_SIZE = 0.9;
 
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var WindowIcon = GObject.registerClass(
+
+function _createWindowClone(window, size) {
+    let [width, height] = window.get_size();
+    let scale = Math.min(1.0, size / width, size / height);
+    return new Clutter.Clone({
+        source: window,
+        width: width * scale,
+        height: height * scale,
+        x_align: Clutter.ActorAlign.CENTER,
+        y_align: Clutter.ActorAlign.CENTER,
+        // usual hack for the usual bug in ClutterBinLayout...
+        x_expand: true,
+        y_expand: true,
+    });
+}
+
+export const WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
     _init(item, iconIndex, switcherParams, options) {
         const metaWin = item;
@@ -113,7 +126,7 @@ class WindowIcon extends St.BoxLayout {
             cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * this._switcherParams.winPrevSize);
         }
 
-        let clone = AltTab._createWindowClone(mutterWindow, cloneSize * scaleFactor);
+        let clone = _createWindowClone(mutterWindow, cloneSize * scaleFactor);
         let icon;
 
         if (this.app) {
@@ -250,7 +263,7 @@ class WindowIcon extends St.BoxLayout {
 
 // ////////////////////////////////////////////////////////////////////////
 
-var AppIcon = GObject.registerClass(
+export const AppIcon = GObject.registerClass(
 class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams, options) {
         super._init(app);
@@ -402,7 +415,7 @@ class AppIcon extends AppDisplay.AppIcon {
     }
 });
 
-var ShowAppsIcon = GObject.registerClass(
+export const ShowAppsIcon = GObject.registerClass(
 class ShowAppsIcon extends St.Widget {
     _init(params) {
         super._init({ reactive: true });

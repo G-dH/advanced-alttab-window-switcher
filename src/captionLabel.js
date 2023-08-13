@@ -9,18 +9,22 @@
 
 'use strict';
 
-const { GObject, St, Clutter } = imports.gi;
+// const { GObject, St, Clutter } = imports.gi;
+import GObject from 'gi://GObject';
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
 
-const Main            = imports.ui.main;
+// const Main            = imports.ui.main;
+// import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-const ExtensionUtils  = imports.misc.extensionUtils;
-const Me              = ExtensionUtils.getCurrentExtension();
-const Settings        = Me.imports.src.settings;
+// const ExtensionUtils  = imports.misc.extensionUtils;
+// const Me              = ExtensionUtils.getCurrentExtension();
+// const Settings        = Me.imports.src.settings;
 
-const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
+// const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 
-var CaptionLabel = GObject.registerClass(
+export const CaptionLabel = GObject.registerClass(
 class CaptionLabel extends St.BoxLayout {
     _init(params, options) {
         this._search = params.name === 'search-label';

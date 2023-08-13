@@ -9,20 +9,22 @@
 
 'use strict';
 
-const GLib = imports.gi.GLib;
+import GLib from 'gi://GLib';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+export let gettext;
 
-const Config = imports.misc.config;
-var   shellVersion = parseFloat(Config.PACKAGE_VERSION);
+// const ExtensionUtils = imports.misc.extensionUtils;
+// const Me = ExtensionUtils.getCurrentExtension();
 
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-var _ = Gettext.gettext;
+// const Config = imports.misc.config;
+// var   shellVersion = parseFloat(Config.PACKAGE_VERSION);
 
-const _schema = 'org.gnome.shell.extensions.advanced-alt-tab-window-switcher';
+// const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+// var _ = Gettext.gettext;
 
-var Actions = {
+// const _schema = 'org.gnome.shell.extensions.advanced-alt-tab-window-switcher';
+
+export const Actions = {
     NONE:              0,
     SELECT_ITEM:       1,
     ACTIVATE:          2,
@@ -101,14 +103,15 @@ const ColorStyleLight = {
     ARROW: 'arrow-light',
 };
 
-var Options = class Options {
-    constructor() {
+export const Options = class Options {
+    constructor(extension) {
+        gettext = extension.gettext.bind(extension);
         this._connectionIds = [];
         this.colorStyle = ColorStyleDefault;
 
         this.cancelTimeout = false; // state variable used by the switcher popup and needs to be available for other modules
 
-        this._gsettings = ExtensionUtils.getSettings(_schema);
+        this._gsettings = extension.getSettings();
         // delay write to backend to avoid excessive disk writes when adjusting scales and spinbuttons
         this._writeTimeoutId = 0;
         this._gsettings.delay();
@@ -240,16 +243,14 @@ var Options = class Options {
 
         this._setOptionConstants();
 
-        this._intSettings = ExtensionUtils.getSettings('org.gnome.desktop.interface');
+        this._intSettings = extension.getSettings('org.gnome.desktop.interface');
         this._updateColorScheme();
-        this._intSettingsSigId = shellVersion >= 42
-            ? this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this))
-            : this._intSettings.connect('changed::gtk-theme', this._updateColorScheme.bind(this));
+        this._intSettingsSigId = this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this));
     }
 
     _updateColorScheme(/* settings, key */) {
         const gtkTheme = this._intSettings.get_string('gtk-theme');
-        const darkScheme = shellVersion >= 42 ? this._intSettings.get_string('color-scheme') === 'prefer-dark' : gtkTheme.endsWith('-dark');
+        const darkScheme = this._intSettings.get_string('color-scheme') === 'prefer-dark';
         let colorStyle = this.get('switcherPopupTheme');
 
         switch (colorStyle) {

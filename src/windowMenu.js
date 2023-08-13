@@ -8,21 +8,30 @@
  * @license    GPL-3.0
  */
 
-const { GLib, Meta, St, Clutter } = imports.gi;
+// const { Meta, St, Clutter } = imports.gi;
+import Meta from 'gi://Meta';
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
 
-const BoxPointer = imports.ui.boxpointer;
-const Main = imports.ui.main;
-const PopupMenu = imports.ui.popupMenu;
-const Screenshot = imports.ui.screenshot;
-const Config = imports.misc.config;
-const shellVersion = parseFloat(Config.PACKAGE_VERSION);
+// const BoxPointer = imports.ui.boxpointer;
+// const Main = imports.ui.main;
+// const PopupMenu = imports.ui.popupMenu;
+// const Screenshot = imports.ui.screenshot;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as Screenshot from 'resource:///org/gnome/shell/ui/screenshot.js';
+
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+// const Config = imports.misc.config;
+// const shellVersion = parseFloat(Config.PACKAGE_VERSION);
 
 // gettext
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const _ = Me.imports.src.settings._;
+// const Me = imports.misc.extensionUtils.getCurrentExtension();
+// const _ = Me.imports.src.settings._;
 
 
-var WindowMenu = class extends PopupMenu.PopupMenu {
+export const WindowMenu = class extends PopupMenu.PopupMenu {
     constructor(window, sourceActor, aatws) {
         super(sourceActor, 0.5, St.Side.LEFT);
 
@@ -41,19 +50,18 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
         let item;
 
         // Translators: entry in the window right click menu.
-        if (shellVersion >= 42) {
-            item = this.addAction(_('Take Screenshot'), async () => {
-                try {
-                    const actor = window.get_compositor_private();
-                    const content = actor.paint_to_content(null);
-                    const texture = content.get_texture();
+        item = this.addAction(_('Take Screenshot'), async () => {
+            try {
+                const actor = window.get_compositor_private();
+                const content = actor.paint_to_content(null);
+                const texture = content.get_texture();
 
-                    await Screenshot.captureScreenshot(texture, null, 1, null);
-                } catch (e) {
-                    logError(e, 'Error capturing screenshot');
-                }
-            });
-        }
+                await Screenshot.captureScreenshot(texture, null, 1, null);
+            } catch (e) {
+                logError(e, 'Error capturing screenshot');
+            }
+        });
+
 
         item = this.addAction(_('Hide'), () => {
             window.minimize();
@@ -207,7 +215,7 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
     }
 };
 
-var WindowMenuManager = class {
+export const WindowMenuManager = class {
     constructor(aatws) {
         this._aatws = aatws;
         this._manager = new PopupMenu.PopupMenuManager(Main.layoutManager.dummyCursor);

@@ -9,18 +9,21 @@
 
 'use strict';
 
-const { GObject, Clutter, St, Meta, Shell, Graphene } = imports.gi;
+import GObject from 'gi://GObject';
+import Clutter from 'gi://Clutter';
+import St from 'gi://St';
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
 
-const Main         = imports.ui.main;
-const DND          = imports.ui.dnd;
-const AltTab       = imports.ui.altTab;
-const shellVersion = parseFloat(imports.misc.config.PACKAGE_VERSION);
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
+import * as AltTab from 'resource:///org/gnome/shell/ui/altTab.js';
 
 const SCROLL_ICON_OPACITY = 240;
 const DRAG_OPACITY = 200;
 const CLOSE_BTN_OPACITY = 240;
 
-var   WindowThumbnail = GObject.registerClass(
+export const WindowThumbnail = GObject.registerClass(
 class WindowThumbnail extends St.BoxLayout {
     _init(metaWin, parent, args) {
         this._hoverShowsPreview = false;
@@ -298,7 +301,7 @@ class WindowThumbnail extends St.BoxLayout {
         const closeButton = new St.Button({
             opacity: 0,
             style_class: 'window-close',
-            child: new St.Icon({ icon_name: shellVersion < 40 ? 'window-close-symbolic' : 'preview-close-symbolic' }),
+            child: new St.Icon({ icon_name: 'preview-close-symbolic' }),
             x_align: Clutter.ActorAlign.END,
             y_align: Clutter.ActorAlign.START,
             x_expand: true,
@@ -356,7 +359,7 @@ class WindowThumbnail extends St.BoxLayout {
         }
 
         if (!this._winPreview) {
-            this._winPreview = new AltTab.CyclerHighlight();
+            this._winPreview = new CyclerHighlight();
             global.window_group.add_actor(this._winPreview);
             [this._winPreview._xPointer, this._winPreview._yPointer] = global.get_pointer();
         }
@@ -402,3 +405,68 @@ class WindowThumbnail extends St.BoxLayout {
         }
     }
 });
+
+const CyclerHighlight = GObject.registerClass(
+    class CyclerHighlight extends St.Widget {
+        _init() {
+            super._init({ layout_manager: new Clutter.BinLayout() });
+            this._window = null;
+
+            this._clone = new Clutter.Clone();
+            this.add_actor(this._clone);
+
+            this._highlight = new St.Widget({ style_class: 'cycler-highlight' });
+            this.add_actor(this._highlight);
+
+            let coordinate = Clutter.BindCoordinate.ALL;
+            let constraint = new Clutter.BindConstraint({ coordinate });
+            this._clone.bind_property('source', constraint, 'source', 0);
+
+            this.add_constraint(constraint);
+
+            this.connect('destroy', this._onDestroy.bind(this));
+        }
+
+        set window(w) {
+            if (this._window === w)
+                return;
+
+            this._window?.disconnectObject(this);
+
+            this._window = w;
+
+            if (this._clone.source)
+                this._clone.source.sync_visibility();
+
+            const windowActor = this._window?.get_compositor_private() ?? null;
+
+            if (windowActor)
+                windowActor.hide();
+
+            this._clone.source = windowActor;
+
+            if (this._window) {
+                this._onSizeChanged();
+                this._window.connectObject('size-changed',
+                    this._onSizeChanged.bind(this), this);
+            } else {
+                this._highlight.set_size(0, 0);
+                this._highlight.hide();
+            }
+        }
+
+        _onSizeChanged() {
+            const bufferRect = this._window.get_buffer_rect();
+            const rect = this._window.get_frame_rect();
+            this._highlight.set_size(rect.width, rect.height);
+            this._highlight.set_position(
+                rect.x - bufferRect.x,
+                rect.y - bufferRect.y);
+            this._highlight.show();
+        }
+
+        _onDestroy() {
+            this.window = null;
+        }
+    });
+

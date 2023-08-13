@@ -9,17 +9,13 @@
 
 'use strict';
 
-const { GObject, St, Meta, Shell } = imports.gi;
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
 
-const Main                   = imports.ui.main;
-const ExtensionUtils         = imports.misc.extensionUtils;
-const Me                     = ExtensionUtils.getCurrentExtension();
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as WorkspaceSwitcherPopup from 'resource:///org/gnome/shell/ui/workspaceSwitcherPopup.js';
 
-const Settings               = Me.imports.src.settings;
-const WinTmb                 = Me.imports.src.winTmb;
-const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
-
-const shellVersion = Settings.shellVersion;
+import * as WinTmb from './winTmb.js';
 
 
 function getCurrentMonitorGeometry() {
@@ -31,9 +27,12 @@ function _getWindowApp(metaWindow) {
     return tracker.get_window_app(metaWindow);
 }
 
-var Actions = class {
-    constructor() {
-        this._gOptions = new Settings.Options();
+export const Actions = class {
+    constructor(options, extension) {
+        this._extension = extension;
+        this.metadata = extension.metadata;
+
+        this._gOptions = options;
         this.WIN_SKIP_MINIMIZED = this._gOptions.get('winSkipMinimized');
         this.WS_SHOW_POPUP = this._gOptions.get('wsShowSwitcherPopup');
     }
@@ -89,7 +88,7 @@ var Actions = class {
 
     _getShellSettings() {
         if (!this._shellSettings)
-            this._shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
+            this._shellSettings = this.getSettings('org.gnome.shell');
 
         return this._shellSettings;
     }
@@ -158,20 +157,12 @@ var Actions = class {
     }
 
     toggleAppGrid() {
-        if (Main.overview.dash.showAppsButton.checked) {
+        if (Main.overview.dash.showAppsButton.checked)
             Main.overview.hide();
-        } else if (shellVersion < 40) {
-            // Pressing the apps btn before overview activation avoids icons animation in GS 3.36/3.38
-            // but in GS40 with Dash to Dock and its App button set to "no animation", this whole sequence is problematic
-
-            // in 3.36 pressing the button is usually enough to activate overview, but not always
+        else if (Main.overview._shown)
             Main.overview.dash.showAppsButton.checked = true;
-            Main.overview.show();
-        } else if (Main.overview._shown) {
-            Main.overview.dash.showAppsButton.checked = true;
-        } else {
+        else
             Main.overview.show(2); // 2 for App Grid
-        }
     }
 
     fullscreenWinOnEmptyWs(metaWindow = null) {
@@ -268,7 +259,6 @@ var Actions = class {
 
 
         if (!Main.overview.visible) {
-            const vertical = global.workspaceManager.layout_rows === -1;
             if (Main.wm._workspaceSwitcherPopup === null) {
                 Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
                 Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
@@ -276,18 +266,7 @@ var Actions = class {
                 });
             }
 
-            let motion;
-            if (direction === Meta.MotionDirection.DOWN)
-                motion = vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT;
-            else
-                motion = vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT;
-
-
-
-            if (shellVersion >= 42)
-                Main.wm._workspaceSwitcherPopup.display(wsIndex);
-            else
-                Main.wm._workspaceSwitcherPopup.display(motion, wsIndex);
+            Main.wm._workspaceSwitcherPopup.display(wsIndex);
         }
     }
 
@@ -331,7 +310,7 @@ var Actions = class {
             }
         }
         try {
-            Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
+            Main.extensionManager.openExtensionPrefs(this.metadata.uuid, '', {});
         } catch (e) {
             log(e);
         }
@@ -340,11 +319,11 @@ var Actions = class {
     _getOpenPrefsWindow() {
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         for (let win of windows) {
-            if (win.get_title().includes(Me.metadata.name) && _getWindowApp(win).get_name() === 'Extensions')
-                return { metaWin: win, isCHCE: true };
+            if (win.get_title().includes(this.metadata.name) && _getWindowApp(win).get_name() === 'Extensions')
+                return { metaWin: win, isAATWS: true };
             else if (win.wm_class.includes('org.gnome.Shell.Extensions'))
-                return { metaWin: win, isCHCE: false };
+                return { metaWin: win, isAATWS: false };
         }
-        return { metaWin: null, isCHCE: null };
+        return { metaWin: null, isAATWS: null };
     }
 };
