@@ -1,4 +1,4 @@
-# AATWS - Advanced Alt-Tab Window Switcher
+# AATWS - Advanced Alt-Tab Window Switcher (ESM branch)
 An extension for GNOME Shell that replaces its following built-in switchers:
 
 - **Switch windows**
@@ -14,7 +14,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 ![Window Switcher Popup](screenshots/screenshot.png)
 
 ## Features:
-- Supports GNOME Shell 3.36 - 44
+- Supports GNOME Shell 45 
 - Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*
 - Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed
 - Hotkeys allow to control switcher and windows, including relocations
