@@ -176,11 +176,13 @@ function _getWindowApp(metaWindow) {
     return tracker.get_window_app(metaWindow);
 }
 
-function _getRunningAppsIds(stableSequence = false) {
+function _getRunningAppsIds(stableSequence = false, workspace = null, monitor = null) {
     let running = [];
     if (stableSequence) {
-        let winList = _getWindows(null);
+        let winList = _getWindows(workspace);
         // We need to get stable order, the functions above return MRU order
+        if (monitor !== null)
+            winList = winList.filter(win => win.get_monitor() === monitor);
         winList.sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());
         winList.forEach(w => {
             let app = _getWindowApp(w);
@@ -3418,8 +3420,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         let appList = [];
 
-        const running = Shell.AppSystem.get_default().get_running(); // AppSystem returns list in MRU order
-        const runningIds = _getRunningAppsIds(true); // true for stable sequence order
+        let running = Shell.AppSystem.get_default().get_running(); // AppSystem returns list in MRU order
+        const workspace = filterMode > FilterMode.ALL
+            ? global.workspace_manager.get_active_workspace()
+            : null;
+        const monitor = this._monitorIndex;
+        const runningIds = _getRunningAppsIds(true, workspace, monitor); // true for stable sequence order
+        running = running.filter(app => runningIds.includes(app.get_id()));
 
         let favorites = [];
         let favoritesFull = [];
