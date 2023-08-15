@@ -8,28 +8,26 @@
  * @license    GPL-3.0
  */
 
-// const { Meta, St, Clutter } = imports.gi;
 import Meta from 'gi://Meta';
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 
-// const BoxPointer = imports.ui.boxpointer;
-// const Main = imports.ui.main;
-// const PopupMenu = imports.ui.popupMenu;
-// const Screenshot = imports.ui.screenshot;
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Screenshot from 'resource:///org/gnome/shell/ui/screenshot.js';
 
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
-// const Config = imports.misc.config;
-// const shellVersion = parseFloat(Config.PACKAGE_VERSION);
-
 // gettext
-// const Me = imports.misc.extensionUtils.getCurrentExtension();
-// const _ = Me.imports.src.settings._;
+let _;
 
+
+export function init(extension) {
+    _ = extension.gettext.bind(extension);
+}
+
+export function cleanGlobal() {
+    _ = null;
+}
 
 export const WindowMenu = class extends PopupMenu.PopupMenu {
     constructor(window, sourceActor, aatws) {

@@ -28,18 +28,10 @@ function _getWindowApp(metaWindow) {
 }
 
 export const Actions = class {
-    constructor(options, extension) {
-        this._extension = extension;
-        this.metadata = extension.metadata;
-
+    constructor(options) {
         this._gOptions = options;
         this.WIN_SKIP_MINIMIZED = this._gOptions.get('winSkipMinimized');
         this.WS_SHOW_POPUP = this._gOptions.get('wsShowSwitcherPopup');
-    }
-
-    clean() {
-        this._gOptions = null;
-        this._shellSettings = null;
     }
 
     removeThumbnails() {
@@ -297,11 +289,11 @@ export const Actions = class {
         }));
     }
 
-    openPrefsWindow() {
+    openPrefsWindow(metadata) {
         // if prefs window already exist, move it to the current WS and activate it
-        const { metaWin, isCHCE } = this._getOpenPrefsWindow();
+        const { metaWin, isMyPrefs } = this._getOpenPrefsWindow(metadata);
         if (metaWin) {
-            if (!isCHCE) {
+            if (!isMyPrefs) {
                 metaWin.delete(global.get_current_time());
             } else {
                 this.moveWindowToCurrentWs(metaWin);
@@ -310,20 +302,20 @@ export const Actions = class {
             }
         }
         try {
-            Main.extensionManager.openExtensionPrefs(this.metadata.uuid, '', {});
+            Main.extensionManager.openExtensionPrefs(metadata.uuid, '', {});
         } catch (e) {
             log(e);
         }
     }
 
-    _getOpenPrefsWindow() {
+    _getOpenPrefsWindow(metadata) {
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         for (let win of windows) {
-            if (win.get_title().includes(this.metadata.name) && _getWindowApp(win).get_name() === 'Extensions')
-                return { metaWin: win, isAATWS: true };
+            if (win.get_title().includes(metadata.name) && _getWindowApp(win).get_name() === 'Extensions')
+                return { metaWin: win, isMyPrefs: true };
             else if (win.wm_class.includes('org.gnome.Shell.Extensions'))
-                return { metaWin: win, isAATWS: false };
+                return { metaWin: win, isMyPrefs: false };
         }
-        return { metaWin: null, isAATWS: null };
+        return { metaWin: null, isMyPrefs: null };
     }
 };

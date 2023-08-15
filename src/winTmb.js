@@ -17,11 +17,11 @@ import Shell from 'gi://Shell';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
-import * as AltTab from 'resource:///org/gnome/shell/ui/altTab.js';
 
 const SCROLL_ICON_OPACITY = 240;
 const DRAG_OPACITY = 200;
 const CLOSE_BTN_OPACITY = 240;
+
 
 export const WindowThumbnail = GObject.registerClass(
 class WindowThumbnail extends St.BoxLayout {

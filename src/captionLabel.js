@@ -9,19 +9,9 @@
 
 'use strict';
 
-// const { GObject, St, Clutter } = imports.gi;
 import GObject from 'gi://GObject';
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
-
-// const Main            = imports.ui.main;
-// import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-
-// const ExtensionUtils  = imports.misc.extensionUtils;
-// const Me              = ExtensionUtils.getCurrentExtension();
-// const Settings        = Me.imports.src.settings;
-
-// const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 
 export const CaptionLabel = GObject.registerClass(

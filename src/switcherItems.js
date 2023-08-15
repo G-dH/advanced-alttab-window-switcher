@@ -17,11 +17,20 @@ import GObject from 'gi://GObject';
 import * as AppDisplay from 'resource:///org/gnome/shell/ui/appDisplay.js';
 import * as IconGrid from 'resource:///org/gnome/shell/ui/iconGrid.js';
 
-import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+// gettext
+let _;
 
 const LABEL_FONT_SIZE = 0.9;
 
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function init(extension) {
+    _ = extension.gettext.bind(extension);
+}
+
+export function cleanGlobal() {
+    _ = null;
+}
 
 function _createWindowClone(window, size) {
     let [width, height] = window.get_size();

@@ -24,10 +24,14 @@ import * as WindowSwitcherPopup from './src/windowSwitcherPopup.js';
 import * as Actions from './src/actions.js';
 import * as Settings from './src/settings.js';
 import * as Util from './src/util.js';
+import * as SwitcherList from './src/switcherList.js';
+import * as SwitcherItems from './src/switcherItems.js';
+import * as WindowMenu from './src/windowMenu.js';
 
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 let enabled = false;
+
 
 export default class AATWS extends Extension {
     constructor(metadata) {
@@ -42,16 +46,17 @@ export default class AATWS extends Extension {
     }
 
     enable() {
+        this._options = new Settings.Options(this);
         if (enabled) {
-            let actions = new Actions.Actions();
+            let actions = new Actions.Actions(this._options);
             actions.resumeThumbnailsIfExist();
             actions = undefined;
         }
 
-        this._options = new Settings.Options(this);
-        this._options.connect('changed', this._updateSettings);
-
         WindowSwitcherPopup.init(this._options, this);
+        SwitcherList.init(this);
+        SwitcherItems.init(this);
+        WindowMenu.init(this);
 
         this._overrides = new Util.Overrides();
 
@@ -68,6 +73,7 @@ export default class AATWS extends Extension {
         this._updateHotTrigger();
         this._updateDashVisibility();
 
+        this._options.connect('changed', this._updateSettings);
         log(`${this.metadata.name}: enabled`);
         enabled = true;
     }
@@ -99,6 +105,9 @@ export default class AATWS extends Extension {
         this._updateDashVisibility(true);
 
         WindowSwitcherPopup.cleanGlobal();
+        SwitcherList.cleanGlobal();
+        SwitcherItems.cleanGlobal();
+        WindowMenu.cleanGlobal();
         this._options = null;
         log(`${this.metadata.name}: disabled`);
     }

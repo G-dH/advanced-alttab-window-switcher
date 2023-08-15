@@ -14,7 +14,6 @@ import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
 import Adw from 'gi://Adw';
 
-import { gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 export const ItemFactory = class ItemFactory {
     constructor(gOptions) {
@@ -343,13 +342,13 @@ export const AdwPrefs = class {
     static getFilledWindow(window, pages) {
         for (let page of pages) {
             const title = page.title;
-            const icon_name = page.iconName;
+            const iconName = page.iconName;
             const optionList = page.optionList;
 
             window.add(
                 this._getAdwPage(optionList, {
                     title,
-                    icon_name,
+                    icon_name: iconName,
                 })
             );
         }

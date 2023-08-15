@@ -9,23 +9,15 @@
 
 'use strict';
 
-// const { GObject, GLib, St, Shell, Gdk, Meta, Clutter } = imports.gi;
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import GObject from 'gi://GObject';
 
 import * as SwitcherPopup from 'resource:///org/gnome/shell/ui/switcherPopup.js';
-// const ExtensionUtils  = imports.misc.extensionUtils;
-// const Me              = ExtensionUtils.getCurrentExtension();
-// const { AppIcon, WindowIcon, ShowAppsIcon } = Me.imports.src.switcherItems;
 import { AppIcon, WindowIcon, ShowAppsIcon } from './switcherItems.js';
 
-// const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
-// const WindowMenu      = Me.imports.src.windowMenu;
-// const Settings        = Me.imports.src.settings;
-// const ActionLib       = Me.imports.src.actions;
-
-// const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
+// gettext
+let _;
 
 
 /* Item structure:
@@ -47,6 +39,15 @@ import { AppIcon, WindowIcon, ShowAppsIcon } from './switcherItems.js';
                         ._id
 
 */
+
+export function init(extension) {
+    _ = extension.gettext.bind(extension);
+}
+
+export function cleanGlobal() {
+    _ = null;
+}
+
 export const SwitcherList = GObject.registerClass(
 class SwitcherList extends SwitcherPopup.SwitcherList {
     _init(items, options, switcherParams) {

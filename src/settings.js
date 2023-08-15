@@ -11,19 +11,6 @@
 
 import GLib from 'gi://GLib';
 
-export let gettext;
-
-// const ExtensionUtils = imports.misc.extensionUtils;
-// const Me = ExtensionUtils.getCurrentExtension();
-
-// const Config = imports.misc.config;
-// var   shellVersion = parseFloat(Config.PACKAGE_VERSION);
-
-// const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-// var _ = Gettext.gettext;
-
-// const _schema = 'org.gnome.shell.extensions.advanced-alt-tab-window-switcher';
-
 export const Actions = {
     NONE:              0,
     SELECT_ITEM:       1,
@@ -103,9 +90,9 @@ const ColorStyleLight = {
     ARROW: 'arrow-light',
 };
 
+
 export const Options = class Options {
     constructor(extension) {
-        gettext = extension.gettext.bind(extension);
         this._connectionIds = [];
         this.colorStyle = ColorStyleDefault;
 
