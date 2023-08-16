@@ -129,6 +129,7 @@ Run following commands in the terminal (`git` needs to installed, navigate to th
 
     git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
     cd advanced-alttab-window-switcher/
+    git checkout esm-modules
     make install
 
 ## Enable installed extension
