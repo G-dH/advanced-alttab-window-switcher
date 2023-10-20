@@ -168,41 +168,30 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
         return [minHeight, natHeight];
     }
 
-    vfunc_allocate(box, flags) {
-        // no flags in GS 40+
-        const useFlags = flags !== undefined;
+    vfunc_allocate(box) {
         let themeNode = this.get_theme_node();
         let contentBox = themeNode.get_content_box(box);
         const spacing = themeNode.get_padding(St.Side.BOTTOM);
         const statusLabelHeight = this._options.STATUS ? this._statusLabel.height : spacing;
-        const totalLabelHeight =
-            statusLabelHeight;
+        const totalLabelHeight = statusLabelHeight;
 
         box.y2 -= totalLabelHeight;
-        if (useFlags)
-            super.vfunc_allocate(box, flags);
-        else
-            super.vfunc_allocate(box);
+        super.vfunc_allocate(box);
 
         // Hooking up the parent vfunc will call this.set_allocation() with
         // the height without the label height, so call it again with the
         // correct size here.
         box.y2 += totalLabelHeight;
 
-        if (useFlags)
-            this.set_allocation(box, flags);
-        else
-            this.set_allocation(box);
+
+        this.set_allocation(box);
 
         const childBox = new Clutter.ActorBox();
         childBox.x1 = contentBox.x1 + 5;
         childBox.x2 = contentBox.x2;
         childBox.y2 = contentBox.y2;
         childBox.y1 = childBox.y2 - statusLabelHeight;
-        if (useFlags)
-            this._statusLabel.allocate(childBox, flags);
-        else
-            this._statusLabel.allocate(childBox);
+        this._statusLabel.allocate(childBox);
     }
 
     _onItemMotion(item) {

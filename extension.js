@@ -30,8 +30,6 @@ import * as WindowMenu from './src/windowMenu.js';
 
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-let enabled = false;
-
 
 export default class AATWS extends Extension {
     constructor(metadata) {
@@ -61,6 +59,7 @@ export default class AATWS extends Extension {
         this._overrides = new Util.Overrides();
 
         this._overrides.addOverride('WindowSwitcherPopup', AltTab.WindowSwitcherPopup.prototype, WindowSwitcherPopup.WindowSwitcherPopup);
+        // AppSwitcherPopup is handled by the WindowSwitcherPopup
         this._overrides.addOverride('AppSwitcherPopup', AltTab.AppSwitcherPopup.prototype, WindowSwitcherPopup.WindowSwitcherPopup);
         this._overrides.addOverride('AppSwitcherPopupInit', AltTab.AppSwitcherPopup.prototype, WindowSwitcherPopup.AppSwitcherPopup);
 
@@ -75,7 +74,6 @@ export default class AATWS extends Extension {
 
         this._options.connect('changed', this._updateSettings);
         log(`${this.metadata.name}: enabled`);
-        enabled = true;
     }
 
     disable() {
@@ -94,7 +92,6 @@ export default class AATWS extends Extension {
         // } else {
         this._removeThumbnails();
         this._actions = null;
-        enabled = false;
         // }
 
         if (this._overrides)
@@ -200,7 +197,7 @@ export default class AATWS extends Extension {
     }
 
     _toggleSwitcher(mouseTriggered = false) {
-        const altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
+        const altTabPopup = new AltTab.WindowSwitcherPopup();
         if (mouseTriggered) {
             altTabPopup.KEYBOARD_TRIGGERED = false;
             altTabPopup.POPUP_POSITION = this._options.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
@@ -318,19 +315,6 @@ export default class AATWS extends Extension {
         if (!(!fsAllowed && monitor.inFullscreen))
             this._toggleSwitcher(true);
     }
-
-    /* _extensionEnabled() {
-        const shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
-        let enabled = shellSettings.get_strv('enabled-extensions');
-        enabled = enabled.indexOf(Me.metadata.uuid) > -1;
-        let disabled = shellSettings.get_strv('disabled-extensions');
-        disabled = disabled.indexOf(Me.metadata.uuid) > -1;
-        let disableUser = shellSettings.get_boolean('disable-user-extensions');
-
-        if (enabled && !disabled && !disableUser)
-            return true;
-        return false;
-    }*/
 }
 
 class PressureBarrier extends Signals.EventEmitter {

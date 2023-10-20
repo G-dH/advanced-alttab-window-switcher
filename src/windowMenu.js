@@ -187,12 +187,12 @@ export const WindowMenu = class extends PopupMenu.PopupMenu {
 
         this.addAction(_('Move to Current Workspace'), () => {
             // window.change_workspace(global.workspace_manager.get_active_workspace());
-            this._aatws._getActions().moveWindowToCurrentWs(window, this._aatws.KEYBOARD_TRIGGERED ? this._aatws._monitorIndex : -1);
+            this._aatws._actions.moveWindowToCurrentWs(window, this._aatws.KEYBOARD_TRIGGERED ? this._aatws._monitorIndex : -1);
         });
 
         item = this.addAction(_('Fullscreen on Empty Workspace'), () => {
             // window.change_workspace(global.workspace_manager.get_active_workspace());
-            this._aatws._getActions().fullscreenWinOnEmptyWs(window);
+            this._aatws._actions.fullscreenWinOnEmptyWs(window);
             this._aatws._updateSwitcher();
         });
         if (window._originalWS)
@@ -200,7 +200,7 @@ export const WindowMenu = class extends PopupMenu.PopupMenu {
 
         this.addAction(_('Create Window Thumbnail (PIP)'), () => {
             // window.change_workspace(global.workspace_manager.get_active_workspace());
-            this._aatws._getActions().makeThumbnailWindow(window);
+            this._aatws._actions.makeThumbnailWindow(window);
         });
 
         this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());

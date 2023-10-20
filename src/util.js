@@ -9,9 +9,15 @@
 
 'use strict';
 
-import GLib from 'gi://GLib';
-import Meta from 'gi://Meta';
+import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
+import St from 'gi://St';
+
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 const Gi = imports._gi;
 
@@ -133,6 +139,24 @@ function* collectFromDatadirs(subdir, includeUserDir) {
     }
 }
 
+export function shiftPressed(state) {
+    if (state === undefined)
+        state = global.get_pointer()[2];
+
+    return state & Clutter.ModifierType.SHIFT_MASK;
+}
+
+export function ctrlPressed(state) {
+    if (state === undefined)
+        state = global.get_pointer()[2];
+
+    return state & Clutter.ModifierType.CONTROL_MASK;
+}
+
+/* export function _superPressed() {
+    return global.get_pointer()[2] & Clutter.ModifierType.SUPER_MASK;
+}*/
+
 export function getWindows(workspace) {
     // We ignore skip-taskbar windows in switchers, but if they are attached
     // to their parent, their position in the MRU list may be more appropriate
@@ -144,3 +168,110 @@ export function getWindows(workspace) {
     // ... and filter out skip-taskbar windows and duplicates
     }).filter((w, i, a) => !w.skip_taskbar && a.indexOf(w) === i);
 }
+
+export function getWindowApp(metaWindow) {
+    let tracker = Shell.WindowTracker.get_default();
+    return tracker.get_window_app(metaWindow);
+}
+
+export function getCurrentMonitorGeometry() {
+    return global.display.get_monitor_geometry(global.display.get_current_monitor());
+}
+
+export function getCurrentMonitorIndex() {
+    const ws = global.workspaceManager.get_active_workspace();
+    let windows = getWindows(ws);
+    const monIndex = windows.length > 0 ? windows[0].get_monitor()
+        : global.display.get_current_monitor();
+    return monIndex;
+}
+
+export function getMonitorByIndex(monitorIndex) {
+    let monitors = Main.layoutManager.monitors;
+    for (let monitor of monitors) {
+        if (monitor.index === monitorIndex)
+            return monitor;
+    }
+
+    return -1;
+}
+
+export function isWsOrientationHorizontal() {
+    if (global.workspace_manager.layout_rows === -1)
+        return false;
+    return true;
+}
+
+export function translateDirectionToHorizontal(direction) {
+    if (isWsOrientationHorizontal()) {
+        if (direction === Meta.MotionDirection.UP)
+            direction = Meta.MotionDirection.LEFT;
+        else
+            direction = Meta.MotionDirection.RIGHT;
+    }
+    return direction;
+}
+
+export const CyclerHighlight = GObject.registerClass(
+class CyclerHighlight extends St.Widget {
+    _init() {
+        super._init({ layout_manager: new Clutter.BinLayout() });
+        this._window = null;
+
+        this._clone = new Clutter.Clone();
+        this.add_actor(this._clone);
+
+        this._highlight = new St.Widget({ style_class: 'cycler-highlight' });
+        this.add_actor(this._highlight);
+
+        let coordinate = Clutter.BindCoordinate.ALL;
+        let constraint = new Clutter.BindConstraint({ coordinate });
+        this._clone.bind_property('source', constraint, 'source', 0);
+
+        this.add_constraint(constraint);
+
+        this.connect('destroy', this._onDestroy.bind(this));
+    }
+
+    set window(w) {
+        if (this._window === w)
+            return;
+
+        this._window?.disconnectObject(this);
+
+        this._window = w;
+
+        if (this._clone.source)
+            this._clone.source.sync_visibility();
+
+        const windowActor = this._window?.get_compositor_private() ?? null;
+
+        if (windowActor)
+            windowActor.hide();
+
+        this._clone.source = windowActor;
+
+        if (this._window) {
+            this._onSizeChanged();
+            this._window.connectObject('size-changed',
+                this._onSizeChanged.bind(this), this);
+        } else {
+            this._highlight.set_size(0, 0);
+            this._highlight.hide();
+        }
+    }
+
+    _onSizeChanged() {
+        const bufferRect = this._window.get_buffer_rect();
+        const rect = this._window.get_frame_rect();
+        this._highlight.set_size(rect.width, rect.height);
+        this._highlight.set_position(
+            rect.x - bufferRect.x,
+            rect.y - bufferRect.y);
+        this._highlight.show();
+    }
+
+    _onDestroy() {
+        this.window = null;
+    }
+});

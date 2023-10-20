@@ -10,22 +10,13 @@
 'use strict';
 
 import Meta from 'gi://Meta';
-import Shell from 'gi://Shell';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as WorkspaceSwitcherPopup from 'resource:///org/gnome/shell/ui/workspaceSwitcherPopup.js';
 
 import * as WinTmb from './winTmb.js';
+import * as Util from './util.js';
 
-
-function getCurrentMonitorGeometry() {
-    return global.display.get_monitor_geometry(global.display.get_current_monitor());
-}
-
-function _getWindowApp(metaWindow) {
-    let tracker = Shell.WindowTracker.get_default();
-    return tracker.get_window_app(metaWindow);
-}
 
 export const Actions = class {
     constructor(options) {
@@ -35,30 +26,30 @@ export const Actions = class {
     }
 
     removeThumbnails() {
-        if (this._windowthumbnails) {
-            this._windowthumbnails.forEach(
+        if (this._windowThumbnails) {
+            this._windowThumbnails.forEach(
                 t => {
                     if (t)
                         t.destroy();
                 }
             );
-            this._windowthumbnails = undefined;
+            this._windowThumbnails = undefined;
         }
     }
 
     removeLastThumbnail() {
-        if (!this._windowthumbnails)
+        if (!this._windowThumbnails)
             return;
 
-        const length = this._windowthumbnails.length;
+        const length = this._windowThumbnails.length;
         if (length)
-            this._windowthumbnails[length - 1].destroy();
-        this._windowthumbnails.pop();
+            this._windowThumbnails[length - 1].destroy();
+        this._windowThumbnails.pop();
     }
 
     hideThumbnails() {
-        if (this._windowthumbnails) {
-            this._windowthumbnails.forEach(
+        if (this._windowThumbnails) {
+            this._windowThumbnails.forEach(
                 t => {
                     if (t)
                         t.hide();
@@ -68,8 +59,8 @@ export const Actions = class {
     }
 
     resumeThumbnailsIfExist() {
-        if (this._windowthumbnails) {
-            this._windowthumbnails.forEach(
+        if (this._windowThumbnails) {
+            this._windowThumbnails.forEach(
                 t => {
                     if (t)
                         t.show();
@@ -85,31 +76,6 @@ export const Actions = class {
         return this._shellSettings;
     }
 
-    _getMonitorByIndex(monitorIndex) {
-        let monitors = Main.layoutManager.monitors;
-        for (let monitor of monitors) {
-            if (monitor.index === monitorIndex)
-                return monitor;
-        }
-        return -1;
-    }
-
-    _isWsOrientationHorizontal() {
-        if (global.workspace_manager.layout_rows === -1)
-            return false;
-        return true;
-    }
-
-    _translateDirectionToHorizontal(direction) {
-        if (this._isWsOrientationHorizontal()) {
-            if (direction === Meta.MotionDirection.UP)
-                direction = Meta.MotionDirection.LEFT;
-            else
-                direction = Meta.MotionDirection.RIGHT;
-        }
-        return direction;
-    }
-
     // ///////////////////////////////////////////////////////////////////////////
 
     closeAppWindows(selected, itemList) {
@@ -117,9 +83,9 @@ export const Actions = class {
         if (selected.cachedWindows) {
             winList = selected.cachedWindows;
         } else {
-            let app = _getWindowApp(selected).get_id();
+            let app = Util.getWindowApp(selected).get_id();
             itemList.forEach(i => {
-                if (_getWindowApp(i.window).get_id() === app)
+                if (Util.getWindowApp(i.window).get_id() === app)
                     winList.push(i.window);
             });
         }
@@ -140,7 +106,7 @@ export const Actions = class {
             // move window to target monitor
             win.move_to_monitor(targetMonitorIndex);
             /* let actor = win.get_compositor_private();
-            let targetMonitor  = this._getMonitorByIndex(targetMonitorIndex);
+            let targetMonitor  = Util.getMonitorByIndex(targetMonitorIndex);
 
             let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
             let y = targetMonitor.y + Math.max(Math.floor(targetMonitor.height - actor.height) / 2, 0);
@@ -222,7 +188,6 @@ export const Actions = class {
             return;
         if (win.is_above())
             win.unmake_above();
-
         else
             win.make_above();
     }
@@ -238,7 +203,7 @@ export const Actions = class {
     }
 
     switchWorkspace(direction /* noIndicator = false */) {
-        direction = this._translateDirectionToHorizontal(direction);
+        direction = Util.translateDirectionToHorizontal(direction);
         const targetWs = global.workspaceManager.get_active_workspace().get_neighbor(direction);
         Main.wm.actionMoveWorkspace(targetWs);
     }
@@ -248,7 +213,6 @@ export const Actions = class {
             return;
         if (!wsIndex)
             wsIndex = global.workspace_manager.get_active_workspace_index();
-
 
         if (!Main.overview.visible) {
             if (Main.wm._workspaceSwitcherPopup === null) {
@@ -272,8 +236,8 @@ export const Actions = class {
     }
 
     makeThumbnailWindow(metaWindow) {
-        if (!this._windowthumbnails)
-            this._windowthumbnails = [];
+        if (!this._windowThumbnails)
+            this._windowThumbnails = [];
         let metaWin;
         if (metaWindow)
             metaWin = metaWindow;
@@ -281,11 +245,11 @@ export const Actions = class {
         if (!metaWin)
             return;
 
-        let monitorHeight = getCurrentMonitorGeometry().height;
+        let monitorHeight = Util.getCurrentMonitorGeometry().height;
         let scale = this._gOptions.get('winThumbnailScale');
-        this._windowthumbnails.push(new WinTmb.WindowThumbnail(metaWin, this._windowthumbnails, {
+        this._windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this._windowThumbnails, {
             'height': Math.floor(scale / 100 * monitorHeight),
-            'thumbnailsOnScreen': this._windowthumbnails.length,
+            'thumbnailsOnScreen': this._windowThumbnails.length,
         }));
     }
 
@@ -311,7 +275,7 @@ export const Actions = class {
     _getOpenPrefsWindow(metadata) {
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         for (let win of windows) {
-            if (win.get_title().includes(metadata.name) && _getWindowApp(win).get_name() === 'Extensions')
+            if (win.get_title().includes(metadata.name) && Util.getWindowApp(win).get_name() === 'Extensions')
                 return { metaWin: win, isMyPrefs: true };
             else if (win.wm_class.includes('org.gnome.Shell.Extensions'))
                 return { metaWin: win, isMyPrefs: false };
