@@ -11,19 +11,13 @@
 
 import Gtk from 'gi://Gtk';
 
-// const ExtensionUtils = imports.misc.extensionUtils;
-// const Me             = ExtensionUtils.getCurrentExtension();
-// const Settings       = Me.imports.src.settings;
 import * as Settings from './src/settings.js';
-// const OptionsFactory = Me.imports.src.optionsFactory;
 import * as OptionsFactory from './src/optionsFactory.js';
 
-import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 // gettext
-// let _;
-
-// const shellVersion   = Settings.shellVersion;
+let _;
 
 const Actions = Settings.Actions;
 
@@ -58,6 +52,7 @@ export default class AATWS extends ExtensionPreferences {
     constructor(metadata) {
         super(metadata);
         gOptions = new Settings.Options(this);
+        _ = this.gettext.bind(this);
     }
 
     _getPageList() {
@@ -120,29 +115,11 @@ export default class AATWS extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         OptionsFactory.AdwPrefs.getFilledWindow(window, this._getPageList());
         window.set_search_enabled(true);
-        window.set_default_size(800, 800);
+        window.set_default_size(840, 800);
         window.connect('close-request', () => {
             gOptions.destroy();
             gOptions = null;
         });
-    }
-
-    buildPrefsWidget() {
-        const prefsWidget = OptionsFactory.LegacyPrefs.getPrefsWidget(this._getPageList()());
-        prefsWidget.connect('realize', widget => {
-            const window = widget.get_root ? widget.get_root() : widget.get_toplevel();
-
-            const width = 800;
-            const height = 800;
-            window.set_default_size(width, height);
-
-            const signal = Gtk.get_major_version() === 3 ? 'destroy' : 'close-request';
-            window.connect(signal, () => {
-                gOptions.destroy();
-                gOptions = null;
-            });
-        });
-        return prefsWidget;
     }
 
     _getCommonOptionList(options) {
