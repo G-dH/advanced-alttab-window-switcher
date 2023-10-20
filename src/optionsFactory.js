@@ -67,52 +67,26 @@ export const ItemFactory = class ItemFactory {
         if (widget) {
             if (widget._isSwitch)
                 this._connectSwitch(widget, key, variable);
-            else if (widget._isSpinbutton)
+            else if (widget._isSpinButton)
                 this._connectSpinButton(widget, key, variable);
-            else if (widget._isComboBox)
-                this._connectComboBox(widget, key, variable, options);
             else if (widget._isEntry)
                 this._connectEntry(widget, key, variable);
-            /* else if (widget._isDropDown)
-                this._connectDropDown(widget, key, variable, options);*/
+            else if (widget._isDropDown)
+                this._connectDropDown(widget, key, variable, options);
         }
 
         return item;
     }
 
-    _connectSwitch(widget, key /* variable */) {
+    _connectSwitch(widget, key) {
         this._settings.bind(key, widget, 'active', Gio.SettingsBindFlags.DEFAULT);
     }
 
-    _connectSpinButton(widget, key /* variable */) {
+    _connectSpinButton(widget, key) {
         this._settings.bind(key, widget.adjustment, 'value', Gio.SettingsBindFlags.DEFAULT);
     }
 
-    _connectComboBox(widget, key, variable, options) {
-        let model = widget.get_model();
-        widget._comboMap = {};
-        for (const [label, value] of options) {
-            let iter;
-            model.set(iter = model.append(), [0, 1], [label, value]);
-            if (value === this._options.get(variable))
-                widget.set_active_iter(iter);
-
-            widget._comboMap[value] = iter;
-        }
-        this._options.connect(`changed::${key}`, () => {
-            widget.set_active_iter(widget._comboMap[this._options.get(variable, true)]);
-        });
-        widget.connect('changed', () => {
-            const [success, iter] = widget.get_active_iter();
-
-            if (!success)
-                return;
-
-            this._options.set(variable, model.get_value(iter, 1));
-        });
-    }
-
-    /* _connectDropDown(widget, key, variable, options) {
+    _connectDropDown(widget, key, variable, options) {
         const model = widget.get_model();
         const currentValue = this._options.get(variable);
         for (let i = 0; i < options.length; i++) {
@@ -149,7 +123,7 @@ export const ItemFactory = class ItemFactory {
         });
 
         widget.set_factory(factory);
-    }*/
+    }
 
     _connectEntry(widget, key, variable) {
         if (variable.startsWith('hotkey')) {
@@ -210,7 +184,7 @@ export const ItemFactory = class ItemFactory {
             xalign: 0.5,
         });
         spinButton.set_adjustment(adjustment);
-        spinButton._isSpinbutton = true;
+        spinButton._isSpinButton = true;
         return spinButton;
     }
 
@@ -230,7 +204,7 @@ export const ItemFactory = class ItemFactory {
         return comboBox;
     }
 
-    /* newDropDown() {
+    newDropDown() {
         const dropDown = new Gtk.DropDown({
             model: new Gio.ListStore({
                 item_type: DropDownItem,
@@ -241,7 +215,7 @@ export const ItemFactory = class ItemFactory {
         });
         dropDown._isDropDown = true;
         return dropDown;
-    }*/
+    }
 
     newEntry() {
         const entry = new Gtk.Entry({
@@ -301,7 +275,7 @@ export const ItemFactory = class ItemFactory {
     }
 };
 
-/* const DropDownItem = GObject.registerClass({
+const DropDownItem = GObject.registerClass({
     GTypeName: 'DropdownItem',
     Properties: {
         'text': GObject.ParamSpec.string(
@@ -316,7 +290,8 @@ export const ItemFactory = class ItemFactory {
             'Id',
             'Item id stored in settings',
             GObject.ParamFlags.READWRITE,
-            0, 100, 0
+            // min, max, default
+            -65535, 65535, 0
         ),
     },
 }, class DropDownItem extends GObject.Object {
@@ -336,7 +311,7 @@ export const ItemFactory = class ItemFactory {
         this._id = id;
     }
 }
-);*/
+);
 
 export const AdwPrefs = class {
     static getFilledWindow(window, pages) {
@@ -391,8 +366,6 @@ export const AdwPrefs = class {
                 margin_bottom: 8,
                 hexpand: true,
             });
-            /* for (let i of item) {
-                box.append(i);*/
             grid.attach(option, 0, 0, 1, 1);
             if (widget)
                 grid.attach(widget, 1, 0, 1, 1);
