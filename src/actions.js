@@ -35,30 +35,30 @@ export const Actions = class {
     }
 
     removeThumbnails() {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
+        if (this._windowthumbnails) {
+            this._windowthumbnails.forEach(
                 t => {
                     if (t)
                         t.destroy();
                 }
             );
-            global.stage.windowThumbnails = undefined;
+            this._windowthumbnails = undefined;
         }
     }
 
     removeLastThumbnail() {
-        if (!global.stage.windowThumbnails)
+        if (!this._windowthumbnails)
             return;
 
-        const length = global.stage.windowThumbnails.length;
+        const length = this._windowthumbnails.length;
         if (length)
-            global.stage.windowThumbnails[length - 1].destroy();
-        global.stage.windowThumbnails.pop();
+            this._windowthumbnails[length - 1].destroy();
+        this._windowthumbnails.pop();
     }
 
     hideThumbnails() {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
+        if (this._windowthumbnails) {
+            this._windowthumbnails.forEach(
                 t => {
                     if (t)
                         t.hide();
@@ -68,8 +68,8 @@ export const Actions = class {
     }
 
     resumeThumbnailsIfExist() {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
+        if (this._windowthumbnails) {
+            this._windowthumbnails.forEach(
                 t => {
                     if (t)
                         t.show();
@@ -272,8 +272,8 @@ export const Actions = class {
     }
 
     makeThumbnailWindow(metaWindow) {
-        if (!global.stage.windowThumbnails)
-            global.stage.windowThumbnails = [];
+        if (!this._windowthumbnails)
+            this._windowthumbnails = [];
         let metaWin;
         if (metaWindow)
             metaWin = metaWindow;
@@ -283,9 +283,9 @@ export const Actions = class {
 
         let monitorHeight = getCurrentMonitorGeometry().height;
         let scale = this._gOptions.get('winThumbnailScale');
-        global.stage.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, global.stage, {
+        this._windowthumbnails.push(new WinTmb.WindowThumbnail(metaWin, this._windowthumbnails, {
             'height': Math.floor(scale / 100 * monitorHeight),
-            'thumbnailsOnScreen': global.stage.windowThumbnails.length,
+            'thumbnailsOnScreen': this._windowthumbnails.length,
         }));
     }
 

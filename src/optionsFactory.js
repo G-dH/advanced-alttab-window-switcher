@@ -356,7 +356,7 @@ export const AdwPrefs = class {
     }
 
     static _getAdwPage(optionList, pageProperties = {}) {
-        pageProperties.width_request = 840;
+        // pageProperties.width_request = 840;
         const page = new Adw.PreferencesPage(pageProperties);
         let group;
         for (let item of optionList) {

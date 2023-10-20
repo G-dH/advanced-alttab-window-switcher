@@ -47,11 +47,11 @@ export default class AATWS extends Extension {
 
     enable() {
         this._options = new Settings.Options(this);
-        if (enabled) {
-            let actions = new Actions.Actions(this._options);
-            actions.resumeThumbnailsIfExist();
-            actions = undefined;
-        }
+
+        if (!this._actions)
+            this._actions = new Actions.Actions(this._options);
+        else
+            this._actions.resumeThumbnailsIfExist();
 
         WindowSwitcherPopup.init(this._options, this);
         SwitcherList.init(this);
@@ -82,18 +82,20 @@ export default class AATWS extends Extension {
         if (this._wmFocusToActiveHandlerId)
             global.display.disconnect(this._wmFocusToActiveHandlerId);
 
-        if (global.advancedWindowSwitcher) {
-            global.advancedWindowSwitcher.destroy();
-            global.advancedWindowSwitcher = null;
+        if (Main.layoutManager.aatws) {
+            Main.layoutManager.aatws.destroy();
+            Main.layoutManager.aatws = null;
         }
 
-        if (Main.extensionManager._getEnabledExtensions().includes(this.metadata.uuid)) {
-            const hide = true;
-            this._removeThumbnails(hide);
-        } else {
-            this._removeThumbnails();
-            enabled = false;
-        }
+        // comment out to pass ego review
+        // if (Main.extensionManager._getEnabledExtensions().includes(this.metadata.uuid)) {
+        //    const hide = true;
+        //    this._removeThumbnails(hide);
+        // } else {
+        this._removeThumbnails();
+        this._actions = null;
+        enabled = false;
+        // }
 
         if (this._overrides)
             this._overrides.removeAll();
@@ -113,18 +115,10 @@ export default class AATWS extends Extension {
     }
 
     _removeThumbnails(hide = false) {
-        if (!global.stage.windowThumbnails)
-            return;
-
-        let actions = new Actions.Actions();
-
         if (hide)
-            actions.hideThumbnails();
+            this._actions.hideThumbnails();
         else
-            actions.removeThumbnails();
-
-        actions.clean();
-        actions = undefined;
+            this._actions.removeThumbnails();
     }
 
     _updateAlwaysActivateFocusedConnection() {

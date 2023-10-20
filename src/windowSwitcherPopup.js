@@ -28,7 +28,7 @@ import * as SwitcherList from './switcherList.js';
 import * as CaptionLabel from './captionLabel.js';
 import * as WindowMenu from './windowMenu.js';
 import * as Settings from './settings.js';
-import * as ActionLib from './actions.js';
+// import * as ActionLib from './actions.js';
 
 // opt and gettext inits in extension.enable()
 let _extension;
@@ -247,7 +247,7 @@ export const WindowSwitcherPopup = {
     _init() {
         this._initTime = Date.now();
         SwitcherPopup.SwitcherPopup.prototype._init.bind(this)();
-        this._actions              = null;
+        this._actions              = _extension._actions;
         // Global options
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
@@ -314,7 +314,7 @@ export const WindowSwitcherPopup = {
         this._skipInitialSelection = false;
         opt.cancelTimeout      = false;
 
-        global.advancedWindowSwitcher = this;
+        Main.layoutManager.aatws = this;
 
         this._wsManagerConId = global.workspace_manager.connect('workspace-switched', this._onWorkspaceChanged.bind(this));
         this._newWindowConId = 0;
@@ -762,7 +762,7 @@ export const WindowSwitcherPopup = {
             this._wsTmb = null;
         }
 
-        global.advancedWindowSwitcher = null;
+        Main.layoutManager.aatws = null;
     },
 
     _destroyWinPreview() {
@@ -878,16 +878,8 @@ export const WindowSwitcherPopup = {
             const wsTmb = this._wsTmb;
 
             let height = SIZE;
-            let width;
-            if (wsTmb.get_preferred_custom_width) {
-                // custom function of Vertical Workspaces extension
-                [, width] = wsTmb.get_preferred_custom_width(height);
-            } else {
-                // in default GS this sets the size same as in the overview
-                [, width] = wsTmb.get_preferred_width(height * 2);
-                [, height] = wsTmb.get_preferred_height(width);
-            }
-
+            let [, width] = wsTmb.get_preferred_width(height);
+            [, height] = wsTmb.get_preferred_height(width);
 
             width = Math.min(width, monitor.width);
 
@@ -2339,9 +2331,10 @@ export const WindowSwitcherPopup = {
 
     _showSearchCaption(text) {
         const margin = 20;
-        const offset = this._itemCaption
-            ? this._itemCaption.height + margin + (this._wsTmb ? this._wsTmb.height : 0)
+        let offset = this._itemCaption
+            ? this._itemCaption.height + margin
             : margin;
+        offset += this._wsTmb && opt.POPUP_POSITION !== 2 ? this._wsTmb.height : 0;
 
         const fontSize = opt.CAPTIONS_SCALE * 2;
         const params = {
@@ -2622,8 +2615,8 @@ export const WindowSwitcherPopup = {
     // Actions
     // ////////////////////////////////////////
     _getActions() {
-        if (!this._actions)
-            this._actions = new ActionLib.Actions(opt);
+        // if (!this._actions)
+        //    this._actions = new ActionLib.Actions(opt);
 
         return this._actions;
     },
