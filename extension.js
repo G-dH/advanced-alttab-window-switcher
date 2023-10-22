@@ -67,12 +67,12 @@ export default class AATWS extends Extension {
             this._updateOverlayKeyHandler();
 
         this._updateAlwaysActivateFocusedConnection();
-        this._options.connect('changed::wm-always-activate-focused', this._updateAlwaysActivateFocusedConnection);
+        this._options.connect('changed::wm-always-activate-focused', this._updateAlwaysActivateFocusedConnection.bind(this));
 
         this._updateHotTrigger();
         this._updateDashVisibility();
 
-        this._options.connect('changed', this._updateSettings);
+        this._options.connect('changed', this._updateSettings.bind(this));
         log(`${this.metadata.name}: enabled`);
     }
 
