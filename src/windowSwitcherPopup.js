@@ -2178,8 +2178,7 @@ export const WindowSwitcherPopup = {
         if (this._wsTmb && this._isPointerOnWsTmb())
             return Clutter.EVENT_STOP;
 
-
-        const btn = event.button;
+        const btn = event.get_button();
         const pointerOut = this._isPointerOut();
         let action;
 
@@ -3139,7 +3138,6 @@ export const WindowSwitcherPopup = {
         /* if ((this._recentSwitchTime - Date.now() > 0) && this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
             this._select(this._next());
         }*/
-
         switch (action) {
         case Action.ACTIVATE:
             if (Util.shiftPressed() && !Util.ctrlPressed())
