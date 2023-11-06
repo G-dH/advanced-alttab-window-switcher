@@ -1560,7 +1560,7 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
         optionList.push(itemFactory.getRowWidget(
             _('Version'),
             null,
-            itemFactory.newLabel(this.metadata.version.toString())
+            itemFactory.newLabel(this.metadata['version-name'])
         ));
 
         optionList.push(itemFactory.getRowWidget(
