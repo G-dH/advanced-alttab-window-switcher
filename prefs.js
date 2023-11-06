@@ -900,8 +900,8 @@ function _getOptions(itemFactory) {
     );
 
     optDict.IncludeFavorites = itemFactory.getRowWidget(
-        _('Include Favorite Apps'),
-        _('Include Dash favorite apps even when not running so you can use the switcher as an app launcher.'),
+        _('Include Favorite (Pinned) Apps'),
+        _('Include favorite apps pinned to Dash even when not running so you can use the switcher as an app launcher.'),
         itemFactory.newSwitch(),
         'appSwitcherPopupFavoriteApps'
     );
@@ -972,15 +972,15 @@ function _getOptions(itemFactory) {
     );
 
     optDict.AppIncludeFavorites = itemFactory.getRowWidget(
-        _('Force App Switcher Include Favorites'),
-        _('Include favorite apps to the App switcher despite the App switcher settings.'),
+        _('Force App Switcher Include Favorites (Pinned)'),
+        _('Include favorite apps pinned to Dash to the App switcher despite the App switcher settings.'),
         itemFactory.newSwitch(),
         'switcherPopupExtAppFavorites'
     );
 
     optDict.AppStableOrder = itemFactory.getRowWidget(
         _('Force App Switcher Stable Sequence'),
-        _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dock. Favorite apps (if included) keep the order they have in the Dash and other open apps the order as they were launched.'),
+        _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dock. Pinned (favorite) apps (if included) keep the order they have in the Dash and other open apps the order as they were launched.'),
         itemFactory.newSwitch(),
         'switcherPopupExtAppStable'
     );
@@ -1342,8 +1342,8 @@ The current monitor is the one where the switcher pop-up is located, or where th
     );
 
     optionList.push(itemFactory.getRowWidget(
-        _('Apps Mode: Toggle Include Favorites'),
-        _('Allows to show/hide favorite applications in the App switcher list'),
+        _('Apps Mode: Toggle Include Favorites (Pinned)'),
+        _('Allows to show/hide favorite applications pinned to dash in the App switcher list'),
         itemFactory.newEntry(),
         'hotkeyFavorites'
     )
