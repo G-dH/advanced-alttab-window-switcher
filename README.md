@@ -14,7 +14,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 ![Window Switcher Popup](screenshots/screenshot.png)
 
 ## Features:
-- Supports GNOME Shell 45 
+- Supports GNOME Shell 3.36 - 45
 - Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*
 - Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed
 - Hotkeys allow to control switcher and windows, including relocations
@@ -29,7 +29,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 - Mouse control, including optional top or bottom hot edge for switcher activation
 - Configurable mouse buttons and scroll wheel
 - Supported by the *Custom Hot Corners - Extended* extension
-- Workspace Thumbnails option allows better navigation between workspaces
+- Workspace Thumbnails option allows better navigation between workspaces (GNONE 40+)
 
 
 ### Hotkeys
@@ -127,12 +127,20 @@ Install the extension (`--force` switch needs to be used only if some version of
 The most recent version in the repository is the one I'm currently running on my own systems, problems may occur, but usually nothing serious.
 Run following commands in the terminal (`git` needs to installed, navigate to the directory you want to download the source):
 
+#### GNOME 45
+
     git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
     cd advanced-alttab-window-switcher/
-    git checkout esm-modules
     make install
 
-## Enable installed extension
+#### GNOME 3.36 - 44
+
+    git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
+    cd advanced-alttab-window-switcher/
+    git checkout gnome-3.36-44
+    make install
+
+### Enable installed extension
 After installation you need to enable the extension. Only direct installation from extension.gnome.org loads the code and enables the extension immediately.
 
 - First restart GNOME Shell (`ALt` + `F2`, `r`, `Enter`, or Log Out/Log In if you use Wayland)
