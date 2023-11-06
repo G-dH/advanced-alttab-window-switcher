@@ -864,16 +864,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             const wsTmb = this._wsTmb;
 
             let height = SIZE;
-            let width;
-            if (wsTmb.get_preferred_custom_width) {
-                // custom function of Vertical Workspaces extension
-                [, width] = wsTmb.get_preferred_custom_width(height);
-            } else {
-                // in default GS this sets the size same as in the overview
-                [, width] = wsTmb.get_preferred_width(height * 2);
-                [, height] = wsTmb.get_preferred_height(width);
-            }
-
+            let [, width] = wsTmb.get_preferred_width(height);
+            [, height] = wsTmb.get_preferred_height(width);
 
             width = Math.min(width, monitor.width);
 
@@ -920,7 +912,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             actor = this._items[index];
         else
             actor = this._switcherList;
-
 
         if (actor) {
             [xPos] = actor.get_transformed_position();
@@ -2324,9 +2315,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _showSearchCaption(text) {
         const margin = 20;
-        const offset = this._itemCaption
-            ? this._itemCaption.height + margin + (this._wsTmb ? this._wsTmb.height : 0)
+        let offset = this._itemCaption
+            ? this._itemCaption.height + margin
             : margin;
+        offset += this._wsTmb && options.POPUP_POSITION !== 2 ? this._wsTmb.height : 0;
 
         const fontSize = options.CAPTIONS_SCALE * 2;
         const params = {
