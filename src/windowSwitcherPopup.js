@@ -1363,7 +1363,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     // options.skipThisFocus = true;
                 } else {
                     // in this case app is running but no window match the current filter mode
-                    selected.open_new_window(global.get_current_time());
+                    selected.open_new_window(-1);
                 }
             } else if (selected && selected._is_showAppsIcon) {
                 this._getActions().toggleAppGrid();
@@ -3140,10 +3140,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return;
 
         if (this._showingApps) {
-            selected.open_new_window(global.get_current_time());
+            selected.open_new_window(-1);
         } else {
             selected = Shell.WindowTracker.get_default().get_window_app(selected);
-            selected.open_new_window(global.get_current_time());
+            selected.open_new_window(-1);
         }
     }
 
