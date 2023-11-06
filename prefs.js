@@ -1581,7 +1581,7 @@ function getAboutOptionList(itemFactory) {
     optionList.push(itemFactory.getRowWidget(
         _('Version'),
         null,
-        itemFactory.newLabel(Me.metadata.version.toString())
+        itemFactory.newLabel(Me.metadata['version-name'])
     ));
 
     optionList.push(itemFactory.getRowWidget(
