@@ -10,7 +10,6 @@
 'use strict';
 
 import Clutter from 'gi://Clutter';
-import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
@@ -651,7 +650,6 @@ export const WindowSwitcherPopup = {
 
         if (this._searchEntry === '' && !this.SEARCH_DEFAULT)
             this._showSearchCaption('Type to search...');
-
 
         if (this._overlayKeyTriggered && opt.get('enableSuper')) {
             // do this only for the first run
@@ -1846,25 +1844,29 @@ export const WindowSwitcherPopup = {
     },
 
     _keyPressHandler(keysym, action) {
-        let keysymName = Gdk.keyval_name(keysym);
+        // cannot use Clutter.keyval_name(), it currently crashes GNOME Shell
+        // let keysymName = Clutter.keyval_name(keysym);
 
         let keyString;
-        let keyUtf = Gdk.keyval_to_unicode(keysym);
+        let keyUtf = Clutter.keysym_to_unicode(keysym);
 
         if (keyUtf === 0)
             keyString = null;
         else
             keyString = String.fromCharCode(keyUtf).toUpperCase();
 
+        let keysymName = String.fromCharCode(keyUtf);
         // direct item selection using F keys and numpad keys
         // if Shift pressed only select item, not activate it
-        if (keysymName.match(/F[1-9][0-2]?/) || (keysymName.match(/KP_[1-9]/) && this._searchEntry === null)) {
-            let index;
+        const isNumPadNumber = keysym >= Clutter.KEY_KP_1 && keysym <= Clutter.KEY_KP_9;
+        const isFKey = keysym >= Clutter.KEY_F1 && keysym <= Clutter.KEY_F19;
 
-            if (keysymName.startsWith('KP_'))
-                index = parseInt(keysymName.substring(3)) - 1;
+        if (isFKey || (isNumPadNumber && this._searchEntry === null)) {
+            let index;
+            if (isNumPadNumber)
+                index = keysym - Clutter.KEY_KP_1;
             else
-                index = parseInt(keysymName.substring(1)) - 1;
+                index = keysym - Clutter.KEY_F1;
 
             if (index < this._items.length) {
                 this._selectedIndex = index;
@@ -1873,10 +1875,12 @@ export const WindowSwitcherPopup = {
                 else
                     this._select(index);
             }
+            return Clutter.EVENT_STOP;
         // if Search Mode enabled and Shift not pressed, or number key was pressed (to allow enter numbers using Shift)
         //  use the input to build searched pattern
-        } else if (this._searchEntry !== null && (!Util.shiftPressed() || keysymName.replace('KP_', '').match(/[0-9]/))) {
-            keysymName = keysymName.replace('KP_', '');
+        } else if (this._searchEntry !== null && (!Util.shiftPressed() || isNumPadNumber)) {
+            if (isNumPadNumber)
+                keysymName = (keysym - Clutter.KEY_KP_0).toString();
 
             // don't close the popup during typing, when not triggered by a keyboard
             opt.cancelTimeout = true;
@@ -1888,22 +1892,21 @@ export const WindowSwitcherPopup = {
                 return Clutter.EVENT_STOP;
             // add character to search pattern
             } else if (!_isTabAction(action) && this._searchEntry !== null && !Util.ctrlPressed() &&
-                        ((keysymName.length === 1 && (/[a-zA-Z0-9]/).test(keysymName)) || keysym === Clutter.KEY_space)) {
-                if (keysymName === 'space')
+                       ((keysymName.length === 1 && (/[a-zA-Z0-9]/).test(keysymName)) || keysym === Clutter.KEY_space)) {
+                if (keysym === Clutter.KEY_space)
                     keysymName = ' ';
-
 
                 if (!(keysymName === ' ' && (this._searchEntry === '' || this._searchEntry[this._searchEntry.length - 1] === ' '))) {
                     this._searchEntry += keysymName.toLowerCase();
                     this.show();
-                    return Clutter.EVENT_STOP;
                 }
+                return Clutter.EVENT_STOP;
             }
         }
 
         if (keysym === Clutter.KEY_Escape && this._singleApp && !this.KEYBOARD_TRIGGERED) {
             this._toggleSingleAppMode();
-        } else if (keysymName === this._originalOverlayKey || keysymName === 'Super_L') {
+        } else if (keysymName === this._originalOverlayKey || keysym === Clutter.KEY_Super_L) {
             // if overlay-key (usually Super_L) is pressed within the timeout after AATWS was triggered - double press
             if ((!Util.ctrlPressed() && Util.shiftPressed()) || (this._timeoutIds.overlayKeyInit && opt.SUPER_DOUBLE_PRESS_ACT === DoubleSuperAction.OVERVIEW)) {
                 this.fadeAndDestroy();
@@ -2101,11 +2104,9 @@ export const WindowSwitcherPopup = {
             if (opt.SHIFT_AZ_HOTKEYS ? Util.shiftPressed() : true)
                 this._closeWinQuitApp();
 
-
         // close all listed windows that belongs to the selected app
         } else if (opt.get('hotkeyCloseAllApp').includes(keyString) && (opt.SHIFT_AZ_HOTKEYS ? Util.shiftPressed() : true)) {
             this._closeAppWindows();
-
 
         // make selected window Always on Top
         } else if (opt.get('hotkeyAbove').includes(keyString) && (opt.SHIFT_AZ_HOTKEYS ? Util.shiftPressed() : true)) {
@@ -2167,11 +2168,9 @@ export const WindowSwitcherPopup = {
                 this._openAppIconMenu();
             else
                 this._openWindowMenu();
-        } else {
-            return Clutter.EVENT_PROPAGATE;
         }
 
-        return Clutter.EVENT_STOP;
+        return Clutter.EVENT_PROPAGATE;
     },
 
     vfunc_button_press_event(event) {
