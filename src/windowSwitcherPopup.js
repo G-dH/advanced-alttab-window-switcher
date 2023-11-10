@@ -3022,7 +3022,7 @@ export const WindowSwitcherPopup = {
             return;
 
         if (this._showingApps)
-            selected.request_quit();
+            this._actions.closeAppWindows(selected);
         else if (Util.ctrlPressed() && (this.KEYBOARD_TRIGGERED && !Util.ctrlPressed(this._modifierMask)))
             _getWindowApp(selected).request_quit();
         else
