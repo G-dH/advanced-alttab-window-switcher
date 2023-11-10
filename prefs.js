@@ -21,8 +21,6 @@ let _;
 
 const Actions = Settings.Actions;
 
-let gOptions;
-
 function _getActionList() {
     return [
         [_('Do Nothing'),                      Actions.NONE],
@@ -51,12 +49,12 @@ function _getActionList() {
 export default class AATWS extends ExtensionPreferences {
     constructor(metadata) {
         super(metadata);
-        gOptions = new Settings.Options(this);
+        this.opt = new Settings.Options(this);
         _ = this.gettext.bind(this);
     }
 
     _getPageList() {
-        const itemFactory = new OptionsFactory.ItemFactory(gOptions);
+        const itemFactory = new OptionsFactory.ItemFactory(this.opt);
         const options = this._getOptions(itemFactory);
         const pageList = [
             {
@@ -117,8 +115,7 @@ export default class AATWS extends ExtensionPreferences {
         window.set_search_enabled(true);
         window.set_default_size(840, 800);
         window.connect('close-request', () => {
-            gOptions.destroy();
-            gOptions = null;
+            this.opt.destroy();
         });
     }
 
@@ -534,7 +531,7 @@ export default class AATWS extends ExtensionPreferences {
             ]
         );
 
-        superDoublePressSwitch.set_sensitive(gOptions.get('enableSuper'));
+        superDoublePressSwitch.set_sensitive(this.opt.get('enableSuper'));
         enableSuperSwitch.connect('notify::active', widget => {
             superDoublePressSwitch.set_sensitive(widget.active);
         });
@@ -714,7 +711,7 @@ export default class AATWS extends ExtensionPreferences {
         });
 
         const minimizedLastBtn = itemFactory.newSwitch();
-        minimizedLastBtn.set_sensitive(!gOptions.get('winSkipMinimized'));
+        minimizedLastBtn.set_sensitive(!this.opt.get('winSkipMinimized'));
         optDict.MinimizedLast = itemFactory.getRowWidget(
             _('Minimized Windows Last'),
             _('Moves minimized windows to the end of the list, which is the default behavior in GNOME Shell.'),
@@ -908,7 +905,7 @@ export default class AATWS extends ExtensionPreferences {
             'appSwitcherPopupHideWinCounterForSingleWindow'
         );
 
-        hideWinCounterForSingleWindowSwitch.set_sensitive(gOptions.get('appSwitcherPopupWinCounter'));
+        hideWinCounterForSingleWindowSwitch.set_sensitive(this.opt.get('appSwitcherPopupWinCounter'));
         showWinCounterSwitch.connect('notify::active', widget => {
             hideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
         });
