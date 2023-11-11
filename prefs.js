@@ -47,15 +47,10 @@ function _getActionList() {
 
 
 export default class AATWS extends ExtensionPreferences {
-    constructor(metadata) {
-        super(metadata);
-        this.opt = new Settings.Options(this);
-        _ = this.gettext.bind(this);
-    }
-
     _getPageList() {
         const itemFactory = new OptionsFactory.ItemFactory(this.opt);
         const options = this._getOptions(itemFactory);
+
         const pageList = [
             {
                 name: 'common',
@@ -111,11 +106,15 @@ export default class AATWS extends ExtensionPreferences {
     }
 
     fillPreferencesWindow(window) {
+        this.opt = new Settings.Options(this);
+        _ = this.gettext.bind(this);
+
         OptionsFactory.AdwPrefs.getFilledWindow(window, this._getPageList());
         window.set_search_enabled(true);
         window.set_default_size(840, 800);
         window.connect('close-request', () => {
             this.opt.destroy();
+            this.opt = null;
         });
     }
 

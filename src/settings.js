@@ -315,6 +315,7 @@ export const Options = class Options {
         if (this._writeTimeoutId)
             GLib.Source.remove(this._writeTimeoutId);
         this._writeTimeoutId = 0;
+        this._gsettings = null;
 
         this._intSettings.disconnect(this._intSettingsSigId);
         this._intSettings = null;
