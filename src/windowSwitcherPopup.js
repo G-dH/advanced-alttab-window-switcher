@@ -2168,9 +2168,11 @@ export const WindowSwitcherPopup = {
                 this._openAppIconMenu();
             else
                 this._openWindowMenu();
+        } else {
+            return Clutter.EVENT_PROPAGATE;
         }
 
-        return Clutter.EVENT_PROPAGATE;
+        return Clutter.EVENT_STOP;
     },
 
     vfunc_button_press_event(event) {
