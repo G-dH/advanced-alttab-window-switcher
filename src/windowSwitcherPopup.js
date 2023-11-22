@@ -1102,17 +1102,18 @@ export const WindowSwitcherPopup = {
         let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '') ||
                                     (opt.SEARCH_ALL && this._searchEntryNotEmpty());
 
-        // if no window matches the searched pattern, try to switch to a less restricted filter if possible and allowed
+        // if no window matches the filter or search pattern, try to switch to a less restricted filter if possible and allowed
+        // same for only 1 window in the single app mode, since it makes sense
         // even if the switcher is in app mode, try to search windows if no app matches the search pattern
         let mode = this._switcherMode === SwitcherMode.APPS ? this.WIN_FILTER_MODE : this.WIN_FILTER_MODE - 1;
-        if (itemList.length === 0 &&
+        if (((itemList.length === 0 && !this._singleApp) || (itemList.length === 1 && this._singleApp)) &&
             (this.WIN_FILTER_MODE !== FilterMode.ALL || this._switcherMode === SwitcherMode.APPS) &&
             filterSwitchAllowed
         ) {
             for (mode; mode > 0; mode--) {
                 this._tempFilterMode = mode;
                 itemList = this._getCustomWindowList(this._searchEntry);
-                if (itemList.length > 0) {
+                if ((itemList.length > 0 && !this._singleApp) || (itemList.length > 1 && this._singleApp)) {
                     // if on empty WS/monitor ...
                     if (this._searchEntry === null || this._searchEntry === '') {
                         // ... select first item if firstRun
@@ -2772,6 +2773,9 @@ export const WindowSwitcherPopup = {
             this.WIN_FILTER_MODE = filterMode;
             if (opt.SYNC_FILTER)
                 this.APP_FILTER_MODE = filterMode;
+        } else if (this._singleApp) {
+            this.WIN_FILTER_MODE = filterMode;
+            this.APP_FILTER_MODE = filterMode;
         } else {
             this.APP_FILTER_MODE = filterMode;
             if (opt.SYNC_FILTER)
