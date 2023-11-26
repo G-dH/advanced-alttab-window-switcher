@@ -193,6 +193,7 @@ function _getRunningAppsIds(stableSequence = false, workspace = null, monitor = 
     } else {
         Shell.AppSystem.get_default().get_running().forEach(a => running.push(a.get_id()));
     }
+
     return running;
 }
 
@@ -566,7 +567,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._firstRun || this._searchEntry !== null)
             this._initialSelection(backward, binding);
 
-        if (!this._searchEntryNotEmpty() && this._initialSelectionMode === SelectMode.NONE)
+        if (this._searchEntryIsEmpty() && this._initialSelectionMode === SelectMode.NONE)
             this._initialSelectionMode = SelectMode.ACTIVE;
 
         // There's a race condition; if the user released Alt before
@@ -1133,33 +1134,40 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             }
         }
 
-        if (this.SHOW_APPS) {
+        if (this.SHOW_APPS)
             itemList = this._getAppList(this._searchEntry);
-            if (!itemList.length && this.APP_FILTER_MODE > 1) {
+            /* if (!itemList.length && this.APP_FILTER_MODE > 1) {
                 this._tempFilterMode = FilterMode.ALL;
                 itemList = this._getAppList(this._searchEntry);
-            }
-        } else {
+            }*/
+        else
             itemList = this._getCustomWindowList(this._searchEntry);
-        }
-
-        let filterSwitchAllowed = (this._searchEntry === null || this._searchEntry === '') ||
-                                    (options.SEARCH_ALL && this._searchEntryNotEmpty());
 
         // if no window matches the filter or search pattern, try to switch to a less restricted filter if possible and allowed
-        // same for only 1 window in the single app mode, since it makes sense
+        // same for only 1 window, since it makes sense
         // even if the switcher is in app mode, try to search windows if no app matches the search pattern
-        let mode = this._switcherMode === SwitcherMode.APPS ? this.WIN_FILTER_MODE : this.WIN_FILTER_MODE - 1;
-        if (((itemList.length === 0 && !this._singleApp) || (itemList.length === 1 && this._singleApp)) &&
-            (this.WIN_FILTER_MODE !== FilterMode.ALL || this._switcherMode === SwitcherMode.APPS) &&
+        let filterSwitchAllowed = this._searchEntryIsEmpty() ||
+                                    (options.SEARCH_ALL && this._searchEntryNotEmpty());
+        const insufficientResultsLimit = this._searchEntryIsEmpty() ? 1 : 0;
+        let mode = this._switcherMode === SwitcherMode.APPS ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
+        const onlyApp = itemList.length <= 1 && this.SHOW_APPS && this._searchEntryIsEmpty();
+        const currentFilterMode = mode;
+
+        if (itemList.length <= insufficientResultsLimit &&
+            /* (currentFilterMode !== FilterMode.ALL || this._singleApp) &&*/
             filterSwitchAllowed
         ) {
             for (mode; mode > 0; mode--) {
                 this._tempFilterMode = mode;
-                itemList = this._getCustomWindowList(this._searchEntry);
-                if ((itemList.length > 0 && !this._singleApp) || (itemList.length > 1 && this._singleApp)) {
+
+                if (onlyApp)
+                    itemList = this._getAppList(this._searchEntry);
+                else
+                    itemList = this._getCustomWindowList(this._searchEntry);
+
+                if (itemList.length > insufficientResultsLimit) {
                     // if on empty WS/monitor ...
-                    if (this._searchEntry === null || this._searchEntry === '') {
+                    if (this._searchEntryIsEmpty()) {
                         // ... select first item if firstRun
                         if (this._firstRun) {
                             this._initialSelectionMode = SelectMode.FIRST;
@@ -1170,7 +1178,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             this._selectedIndex = -1;
                         }
                         // set filter mode to ALL to avoid switching it back if user creates/moves any window to this empty ws
-                        this.WIN_FILTER_MODE = this._tempFilterMode;
+                        if (onlyApp)
+                            this.APP_FILTER_MODE = this._tempFilterMode;
+                        else
+                            this.WIN_FILTER_MODE = this._tempFilterMode;
                     }
                     break;
                 }
@@ -1185,7 +1196,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // if no windows at all, show dash content to launch new app
-        if (!itemList.length && !_getWindows(null).length && !this._searchEntryNotEmpty()) {
+        if (itemList.length === 0 && !_getWindows(null).length && this._searchEntryIsEmpty()) {
             this._switcherMode = SwitcherMode.APPS;
             this.INCLUDE_FAVORITES = true;
             this.SHOW_APPS = true;
@@ -1783,6 +1794,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _searchEntryNotEmpty() {
         return this._searchEntry !== null && this._searchEntry !== '';
+    }
+
+    _searchEntryIsEmpty() {
+        return this._searchEntry === null || this._searchEntry === '';
     }
 
     // sometimes mouse hover don't select item and click/scroll on the item would activate another (previously selected) item
@@ -2783,7 +2798,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.SHOW_APPS = false;
             this._singleApp = null;
 
-            if (!this._searchEntryNotEmpty()) {
+            if (this._searchEntryIsEmpty()) {
                 let id = 0;
                 if (this._showingApps) {
                     if (selected && selected.cachedWindows && selected.cachedWindows.length)
@@ -2804,7 +2819,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.SHOW_APPS = true;
             this._singleApp = null;
 
-            if (!this._searchEntryNotEmpty()) {
+            if (this._searchEntryIsEmpty()) {
                 let id;
 
                 if (this._showingApps) {
@@ -3420,8 +3435,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         const workspace = filterMode > FilterMode.ALL
             ? global.workspace_manager.get_active_workspace()
             : null;
-        const monitor = this._monitorIndex;
+        const monitor = filterMode === FilterMode.MONITOR
+            ? this._monitorIndex
+            : null;
         const runningIds = _getRunningAppsIds(true, workspace, monitor); // true for stable sequence order
+
         running = running.filter(app => runningIds.includes(app.get_id()));
 
         let favorites = [];
@@ -3452,9 +3470,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this.APP_SORTING_MODE === SortingMode.STABLE_SEQUENCE || (!this.KEYBOARD_TRIGGERED && options.get('switcherPopupExtAppStable')))
                 running.sort((a, b) => runningIds.indexOf(a.get_id()) - runningIds.indexOf(b.get_id()));
 
-
             appList = [...running, ...appList];
-            // when triggered by a mouse, keep favorites order instead of default and also when hotkey to reordering favs was used
+
+            // when triggered by the mouse, keep favorites order instead of default and also when hotkey to reordering favs was used
             if ((!this.KEYBOARD_TRIGGERED && options.get('switcherPopupExtAppStable')) || !this._favoritesMRU || this.APP_SORTING_MODE !== SortingMode.MRU) {
                 this._favoritesMRU = false;
                 appList.sort((a, b) => {
@@ -3521,15 +3539,15 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         // let windowTracker = Shell.WindowTracker.get_default();
-        this._tempFilterMode = filterMode;
+        // this._tempFilterMode = filterMode;
         if (/* (filterMode === FilterMode.MONITOR || filterMode === FilterMode.WORKSPACE) &&*/ pattern === '') {
-            this._tempFilterMode = this.APP_FILTER_MODE;
+            if (!this._tempFilterMode)
+                this._tempFilterMode = this.APP_FILTER_MODE;
             appList = appList.filter(a => {
                 if (a.get_n_windows())
-                    a.cachedWindows = this._filterWindowsForWsMonitor(a.get_windows());
+                    a.cachedWindows = this._filterWindowsForWsMonitor(a.get_windows(), workspace ? workspace.index() : null, monitor);
                 else
                     a.cachedWindows = [];
-
 
                 // filter out non fav apps w/o windows
                 return a.cachedWindows.length > 0 || favoritesFull.indexOf(a.get_id()) > -1;
@@ -3548,21 +3566,23 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (appList.length)
             this._showingApps = true;
 
-
         return appList;
     }
 
-    _filterWindowsForWsMonitor(windows) {
+    _filterWindowsForWsMonitor(windows, workspace, monitor) {
         const filterMode = this._tempFilterMode
             ? this._tempFilterMode
             : this.APP_FILTER_MODE;
-        const currentWS = global.workspace_manager.get_active_workspace_index();
-        const currentMon = global.display.get_current_monitor();
+        workspace = workspace === undefined ? global.workspace_manager.get_active_workspace_index() : null;
+        monitor = monitor === undefined ? global.display.get_current_monitor() : null;
 
-        return windows.filter(
-            w => filterMode === FilterMode.ALL || ((filterMode === FilterMode.WORKSPACE || filterMode === FilterMode.MONITOR) && w.get_workspace().index() === currentWS)
-        ).filter(w => (filterMode === FilterMode.ALL || filterMode === FilterMode.WORKSPACE) || (filterMode === FilterMode.MONITOR && w.get_monitor() === currentMon)
-        ).filter(w => !w.skip_taskbar || (options.INCLUDE_MODALS && w.is_attached_dialog()));
+        if (filterMode >= FilterMode.WORKSPACE && workspace !== null)
+            windows = windows.filter(w => w.get_workspace().index() === workspace);
+
+        if (filterMode === FilterMode.MONITOR && monitor  !== null)
+            windows = windows.filter(w => w.get_monitor() === monitor);
+
+        return windows.filter(w => !w.skip_taskbar || (options.INCLUDE_MODALS && w.is_attached_dialog()));
     }
 
     _match(string, pattern) {
