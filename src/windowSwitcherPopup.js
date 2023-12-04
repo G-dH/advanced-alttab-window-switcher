@@ -1150,11 +1150,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                                     (options.SEARCH_ALL && this._searchEntryNotEmpty());
         const insufficientResultsLimit = this._searchEntryIsEmpty() ? 1 : 0;
         let mode = this._switcherMode === SwitcherMode.APPS ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
-        const onlyApp = itemList.length <= 1 && this.SHOW_APPS && this._searchEntryIsEmpty();
-        const currentFilterMode = mode;
+        const onlyApp = !options.INCLUDE_FAVORITES && itemList.length <= 1 && this.SHOW_APPS && this._searchEntryIsEmpty();
 
         if (itemList.length <= insufficientResultsLimit &&
-            /* (currentFilterMode !== FilterMode.ALL || this._singleApp) &&*/
             filterSwitchAllowed
         ) {
             for (mode; mode > 0; mode--) {
@@ -2334,7 +2332,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let offset = this._itemCaption
             ? this._itemCaption.height + margin
             : margin;
-        offset += this._wsTmb && options.POPUP_POSITION !== 2 ? this._wsTmb.height : 0;
+        offset += this._wsTmb && (this.POPUP_POSITION !== Position.CENTER) ? this._wsTmb.height : 0;
 
         const fontSize = options.CAPTIONS_SCALE * 2;
         const params = {
@@ -3439,7 +3437,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             ? this._monitorIndex
             : null;
         const runningIds = _getRunningAppsIds(true, workspace, monitor); // true for stable sequence order
-
         running = running.filter(app => runningIds.includes(app.get_id()));
 
         let favorites = [];
@@ -3538,11 +3535,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             appList.splice(options.APP_SEARCH_LIMIT);
         }
 
-        // let windowTracker = Shell.WindowTracker.get_default();
-        // this._tempFilterMode = filterMode;
-        if (/* (filterMode === FilterMode.MONITOR || filterMode === FilterMode.WORKSPACE) &&*/ pattern === '') {
-            if (!this._tempFilterMode)
-                this._tempFilterMode = this.APP_FILTER_MODE;
+        if (pattern === '') {
             appList = appList.filter(a => {
                 if (a.get_n_windows())
                     a.cachedWindows = this._filterWindowsForWsMonitor(a.get_windows(), workspace ? workspace.index() : null, monitor);
@@ -3573,8 +3566,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         const filterMode = this._tempFilterMode
             ? this._tempFilterMode
             : this.APP_FILTER_MODE;
-        workspace = workspace === undefined ? global.workspace_manager.get_active_workspace_index() : null;
-        monitor = monitor === undefined ? global.display.get_current_monitor() : null;
+        workspace = workspace === undefined ? global.workspace_manager.get_active_workspace_index() : workspace;
+        monitor = monitor === undefined ? global.display.get_current_monitor() : monitor;
 
         if (filterMode >= FilterMode.WORKSPACE && workspace !== null)
             windows = windows.filter(w => w.get_workspace().index() === workspace);
