@@ -31,7 +31,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 - Supported by the *Custom Hot Corners - Extended* extension
 - Workspace Thumbnails option allows better navigation between workspaces (GNONE 40+)
 
-[Video review on Linux Experience Youtube channel](https://www.youtube.com/watch?v=KtjYPMCvQ7Y&t=519s)
+[Video review on Linux Experience Youtube channel](https://youtu.be/KtjYPMCvQ7Y?t=447)
 
 ### Hotkeys
 [A-Z] hotkeys can be customized in AATWS Preferences window, for each customizable action can be set up to two hotkeys for case you need to cover a non [a-zA-Z] keystroke with and without Shift modifier. You can disable any customizable hotkey by deleting its entry. Some core hotkeys cannot be customized nor disabled.
