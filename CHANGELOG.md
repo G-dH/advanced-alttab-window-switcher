@@ -1,4 +1,23 @@
 ## Changelog
+### v45.2 (not yet released) v44.3 (not yet released)
+**Added:**
+- Single item in the filtered list automatically switch filter mode so you can directly switch to an app/window outside of the current filter scope
+
+**Fixed:**
+- Search entry label position in Dock mode
+
+**Changed:**
+- versioning changed to `latest supported GNOME major version`.`extension revision`
+
+
+### v27.45 (2023-11-11)
+**Added:**
+- Support for GNOME Shell 45
+
+**Fixed**
+- Initial selection when all windows minimized (no active window) is SECOND instead of FIRST
+
+
 ### v25/26 (2023-05-08)
 **Fixed:**
 - App switcher icons ignore mouse clicks in GNOME 44
