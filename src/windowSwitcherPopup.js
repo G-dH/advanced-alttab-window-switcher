@@ -2272,7 +2272,7 @@ export const WindowSwitcherPopup = {
         let offset = this._itemCaption
             ? this._itemCaption.height + margin
             : margin;
-        offset += this._wsTmb && opt.POPUP_POSITION !== 2 ? this._wsTmb.height : 0;
+        offset += this._wsTmb && this.POPUP_POSITION !== 2 ? this._wsTmb.height : 0;
 
         const fontSize = opt.CAPTIONS_SCALE * 2;
         const params = {
