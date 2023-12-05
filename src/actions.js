@@ -9,7 +9,7 @@
 
 'use strict';
 
-const { GObject, St, Meta, Shell } = imports.gi;
+const { GLib, GObject, St, Meta, Shell } = imports.gi;
 
 const Main                   = imports.ui.main;
 const ExtensionUtils         = imports.misc.extensionUtils;
@@ -320,31 +320,43 @@ var Actions = class {
 
     openPrefsWindow() {
         // if prefs window already exist, move it to the current WS and activate it
-        const { metaWin, isCHCE } = this._getOpenPrefsWindow();
-        if (metaWin) {
-            if (!isCHCE) {
-                metaWin.delete(global.get_current_time());
-            } else {
-                this.moveWindowToCurrentWs(metaWin);
-                metaWin.activate(global.get_current_time());
-                return;
+        const metadata = Me.metadata;
+        const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
+        let tracker = Shell.WindowTracker.get_default();
+        let metaWin, isMe = null;
+
+        for (let win of windows) {
+            const app = tracker.get_window_app(win);
+            if (win.get_title() && win.get_title().includes(metadata.name) && app.get_name() === 'Extensions') {
+            // this is our existing window
+                metaWin = win;
+                isMe = true;
+                break;
+            } else if (win.wm_class && win.wm_class.includes('org.gnome.Shell.Extensions')) {
+            // this is prefs window of another extension
+                metaWin = win;
+                isMe = false;
             }
         }
-        try {
-            Main.extensionManager.openExtensionPrefs(Me.metadata.uuid, '', {});
-        } catch (e) {
-            log(e);
-        }
-    }
 
-    _getOpenPrefsWindow() {
-        const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
-        for (let win of windows) {
-            if (win.get_title().includes(Me.metadata.name) && _getWindowApp(win).get_name() === 'Extensions')
-                return { metaWin: win, isCHCE: true };
-            else if (win.wm_class.includes('org.gnome.Shell.Extensions'))
-                return { metaWin: win, isCHCE: false };
+        if (metaWin && !isMe) {
+        // other prefs window blocks opening another prefs window, so close it
+            metaWin.delete(global.get_current_time());
+        } else if (metaWin && isMe) {
+        // if prefs window already exist, move it to the current WS and activate it
+            metaWin.change_workspace(global.workspace_manager.get_active_workspace());
+            metaWin.activate(global.get_current_time());
         }
-        return { metaWin: null, isCHCE: null };
+
+        if (!metaWin || (metaWin && !isMe)) {
+        // delay to avoid errors if previous prefs window has been colsed
+            GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                try {
+                    Main.extensionManager.openExtensionPrefs(metadata.uuid, '', {});
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+        }
     }
 };
