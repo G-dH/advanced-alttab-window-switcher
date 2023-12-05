@@ -198,6 +198,9 @@ export default class AATWS extends Extension {
     }
 
     _toggleSwitcher(mouseTriggered = false) {
+        if (Main.overview._visible)
+            return;
+
         const altTabPopup = new AltTab.WindowSwitcherPopup();
         if (mouseTriggered) {
             altTabPopup.KEYBOARD_TRIGGERED = false;
@@ -207,6 +210,12 @@ export default class AATWS extends Extension {
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
             altTabPopup._monitorIndex = global.display.get_current_monitor();
         } else {
+            altTabPopup.KEYBOARD_TRIGGERED = true;
+            let hotEdgePosition = this._options.get('hotEdgePosition');
+            if (hotEdgePosition === 2)
+                hotEdgePosition = 3;
+            const position = hotEdgePosition ?? 3;
+            altTabPopup.POPUP_POSITION = position;
             const appSwitcherMode = this._options.get('superKeyMode') === 2;
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
             altTabPopup.SHOW_APPS = !!appSwitcherMode;
