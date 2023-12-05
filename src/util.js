@@ -139,24 +139,6 @@ function* collectFromDatadirs(subdir, includeUserDir) {
     }
 }
 
-export function shiftPressed(state) {
-    if (state === undefined)
-        state = global.get_pointer()[2];
-
-    return state & Clutter.ModifierType.SHIFT_MASK;
-}
-
-export function ctrlPressed(state) {
-    if (state === undefined)
-        state = global.get_pointer()[2];
-
-    return state & Clutter.ModifierType.CONTROL_MASK;
-}
-
-/* export function _superPressed() {
-    return global.get_pointer()[2] & Clutter.ModifierType.SUPER_MASK;
-}*/
-
 export function getWindows(workspace) {
     // We ignore skip-taskbar windows in switchers, but if they are attached
     // to their parent, their position in the MRU list may be more appropriate
