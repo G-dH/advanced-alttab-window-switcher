@@ -241,8 +241,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this.POPUP_POSITION        = options.POPUP_POSITION;
         // default gaps between switcher and top/bottom screen edge
-        this.TOP_MARGIN            = 6;
-        this.BOTTOM_MARGIN         = 6;
+        this.TOP_MARGIN            = 12;
+        this.BOTTOM_MARGIN         = 12;
         // current screen scale factor that also affects margins
         const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
         this.SCALE_FACTOR          = scaleFactor;
@@ -397,7 +397,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this.APP_FILTER_MODE = this.WIN_FILTER_MODE;
         }
 
-        // you can have different setting for switcher triggered ba kbd and mouse, but both should be switchable on the fly using a hotkey
+        // you can have different setting for switcher triggered by kbd and mouse, but both should be switchable on the fly using a hotkey
         this.INCLUDE_FAVORITES = this.KEYBOARD_TRIGGERED || !this._firstRun ? this.INCLUDE_FAVORITES : options.INCLUDE_FAV_MOUSE;
 
         if (binding === 'switch-group' || binding === 'switch-group-backward') {
@@ -599,6 +599,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // disturbed by the popup briefly flashing.
         // but not when we're just overriding already shown content
         if (this._firstRun) {
+            // build ws thumbnails if enabled
+            this._showWsThumbnails();
             // timeout in which click on the switcher background acts as 'activate' despite configuration
             // for quick switch to recent window when triggered using mouse and top/bottom popup position
             this._recentSwitchTime = Date.now() + 300;
@@ -609,7 +611,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered ? delay : 0,
                 () => {
                     if (!this._doNotShowImmediately) {
-                        if (this.KEYBOARD_TRIGGERED) {
+                        if (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) {
                             if (this._itemCaption)
                                 this._itemCaption.opacity = 255;
                             this.opacity = 255;
@@ -622,19 +624,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                                 }
                             );
                         } else {
-                            this._shadeIn();
+                            this._animateIn();
                         }
                         Main.osdWindowManager.hideAll();
-                        // build ws thumbnails if enabled
-                        this._showWsThumbnails();
-                        if (this._wsTmb) {
-                            this._wsTmb.opacity = 0;
-                            this._wsTmb.ease({
-                                opacity: 255,
-                                duration: ANIMATION_TIME / 2,
-                                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                            });
-                        }
                     }
 
                     this._initialDelayTimeoutId = 0;
@@ -657,10 +649,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._searchEntry === '' && !this.SEARCH_DEFAULT)
             this._showSearchCaption('Type to search...');
 
-
-        if (this._overlayKeyTriggered && options.get('enableSuper')) {
+        if (this._overlayKeyTriggered && !this._superRemapped && options.get('enableSuper')) {
             // do this only for the first run
-            this._overlayKeyTriggered = false;
+            this._superRemapped = true;
+            // this._overlayKeyTriggered = false; // replaced with _superRemapped, we need _overlayKeyTriggered
             const _overlaySettings = ExtensionUtils.getSettings('org.gnome.mutter');
             this._originalOverlayKey = _overlaySettings.get_string('overlay-key');
             _overlaySettings.set_string('overlay-key', '');
@@ -1199,6 +1191,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.INCLUDE_FAVORITES = true;
             this.SHOW_APPS = true;
             this._initialSelectionMode = SelectMode.FIRST;
+            this._filterSwitched = false; // avoid coloring the popup border that indicates filter mode
 
             return this._getAppList();
         }
@@ -1206,44 +1199,44 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         return itemList;
     }
 
-    _shadeIn() {
-        /* let translation_y = 0;
-        let translationWsTmb_y = 0;
+    _animateIn() {
+        let translationY = 0;
         switch (this.POPUP_POSITION) {
-            case 1:
-                translation_y =  -this._switcherList.height - (Main.panel.height + 20) / this.SCALE_FACTOR;
-                if (this._wsTmb)
-                    translationWsTmb_y = -this._wsTmb.allocation.y2;
-                break;
-            case 3:
-                translation_y =  this._switcherList.height + 20;
-                translationWsTmb_y = this._wsTmb.allocation.y1;
-                break;
+        case 1:
+            translationY =  -this._switcherList.height - (Main.panel.height + 20) / this.SCALE_FACTOR;
+            break;
+        case 3:
+            translationY =  this._switcherList.height + 20;
+            break;
         }
-        this._switcherList.translation_y = translation_y;*/
-        if (this._wsTmb) {
-            // this._wsTmb.translation_y = translationWsTmb_y;
-            this._wsTmb.opacity = 0;
-        }
+        this._switcherList.translation_y = translationY;
+        if (this._wsTmb)
+            this._wsTmb.scale_y = 0;
+
         this.opacity = 255;
-        this._switcherList.opacity = 0;
+        this._switcherList.opacity = 255;
 
         if (this._itemCaption)
             this._itemCaption.opacity = 0;
 
-
         this._inAnimation = true;
         this._switcherList.ease({
-            // delay animation by the time needed for creating the popup
-            // delay: 50,
-            // translation_y: 0,
-            opacity: 255,
+            translation_y: 0,
             duration: ANIMATION_TIME,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
-                this._inAnimation = false;
-                if (this._itemCaption)
+                if (this._wsTmb) {
+                    this._wsTmb.opacity = 0;
+                    this._wsTmb.ease({
+                        opacity: 255,
+                        scale_y: 1,
+                        duration: ANIMATION_TIME / 2,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    });
+                }
+                if (this._overlayKeyTriggered && this._itemCaption)
                     this._itemCaption.opacity = 255;
+                this._inAnimation = false;
                 this._timeoutIds.setInputDelay = GLib.timeout_add(
                     GLib.PRIORITY_DEFAULT,
                     20,
@@ -1254,59 +1247,42 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 );
             },
         });
-
-        if (this._wsTmb) {
-            this._wsTmb.ease({
-                opacity: 255,
-                // translation_y: 0,
-                duration: ANIMATION_TIME,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
-        }
-
-        if (this._itemCaption) {
-            this._itemCaption.ease({
-                opacity: 255,
-                duration: ANIMATION_TIME,
-            });
-        }
     }
 
-    _shadeOut() {
+    _animateOut() {
         if (this._itemCaption)
             this._itemCaption.opacity = 0;
 
-
         this._popModal();
 
-        let translation_y = 0;
+        let translationY = 0;
         switch (this.POPUP_POSITION) {
         case 1:
-            translation_y =  -this._switcherList.height - (Main.panel.height + 6) / this.SCALE_FACTOR;
+            translationY =  -this._switcherList.height - (Main.panel.height + 6) / this.SCALE_FACTOR;
             break;
         case 3:
-            translation_y =  this._switcherList.height + 6;
+            translationY =  this._switcherList.height + 6;
             break;
         }
 
         let opacity = 255;
         if (this.POSITION_POINTER) {
-            translation_y = 0;
+            translationY = 0;
             opacity = 0;
         }
 
         this._switcherList.ease({
-            translation_y,
+            translation_y: translationY,
             opacity,
             duration: 100,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            mode: Clutter.AnimationMode.EASE_IN_QUAD,
             onComplete: () => this.destroy(),
         });
 
         if (this._wsTmb) {
             this._wsTmb.ease({
                 duration: 100,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                mode: Clutter.AnimationMode.EASE_IN_QUAD,
                 translation_y: opacity ? this._switcherList.allocation.y2 - this._wsTmb.y : 0,
                 opacity,
             });
@@ -1321,10 +1297,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._itemCaption.opacity = 0;
 
         if (this.opacity > 0) {
-            if (this.KEYBOARD_TRIGGERED)
+            if (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered)
                 this.destroy();
             else
-                this._shadeOut();
+                this._animateOut();
         } else {
             this.destroy();
         }
@@ -1479,7 +1455,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             GLib.PRIORITY_DEFAULT,
             options.NO_MODS_TIMEOUT,
             () => {
-                if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !this._isPointerOnWsTmb() && !options.cancelTimeout) {
+                if ((!this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) && this._isPointerOut() && !this._isPointerOnWsTmb() && !options.cancelTimeout) {
                     if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
                         if (this._lastShowed)
                             this._selectedIndex = this._lastShowed;
@@ -1506,9 +1482,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
                     this._noModsTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
-                } else {
-                    this._resetNoModsTimeout();
                 }
+
+                this._resetNoModsTimeout();
                 return GLib.SOURCE_CONTINUE;
             }
         );
@@ -2401,6 +2377,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._inAnimation)
             this._itemCaption.opacity = 0;
+        else
+            this._itemCaption.opacity = 255;
 
         this._itemCaption.connect('destroy', () => {
             this._itemCaption = null;

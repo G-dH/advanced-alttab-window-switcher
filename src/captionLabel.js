@@ -29,7 +29,7 @@ class CaptionLabel extends St.BoxLayout {
         super._init({
             style_class: this._options.colorStyle.CAPTION_LABEL,
             vertical: !this._search, // horizontal orientation for search label, vertical for title caption
-            style: `font-size: ${params.fontSize}em;`, // border-radius: 12px; padding: 6px; background-color: rgba(0, 0, 0, ${bgOpacity});`,
+            style: `font-size: ${params.fontSize}em;`,
         });
 
         this._label = new St.Label({
