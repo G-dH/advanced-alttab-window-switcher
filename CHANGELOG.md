@@ -7,6 +7,7 @@
 - Search entry label position in Dock mode
 
 **Changed:**
+- Animations when switcher is triggered as a dock using a mouse or by the overly-key (Super/Win)
 - versioning changed to `latest supported GNOME major version`.`extension revision`
 
 
