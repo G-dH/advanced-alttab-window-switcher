@@ -150,8 +150,8 @@ function _getCommonOptionList(options) {
         opt.ShowImmediately,
         opt.SearchModeDefault,
         opt.SyncFilter,
-        opt.UpDownArrowAction,
-        opt.HotkeysRequireShift,
+        // opt.UpDownArrowAction,
+        // opt.HotkeysRequireShift,
         opt.WraparoundSelector,
         opt.HoverSelectsItem,
         opt.DelayShowingSwitcher,
@@ -366,19 +366,6 @@ function _getOptions(itemFactory) {
         _('Type to search immediately after the switcher pop-up shows up. Hotkeys then can be used while holding down the Shift key.'),
         itemFactory.newSwitch(),
         'switcherPopupStartSearch'
-    );
-
-    optDict.UpDownArrowAction = itemFactory.getRowWidget(
-        _('Up/Down Keys Action'),
-        _('Choose what Up/Down arrow keys should do.'),
-        itemFactory.newComboBox(),
-        'switcherPopupUpDownAction',
-        [
-            [_('Nothing'), 1],
-            [_('Switch Workspace'), 2],
-            [_('Toggle Single App Mode'), 3],
-            [_('Switcher Mode/Single App Mode'), 4],
-        ]
     );
 
     optDict.HotkeysRequireShift = itemFactory.getRowWidget(
@@ -1235,6 +1222,14 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
     );
 
     optionList.push(itemFactory.getRowWidget(
+        _('Action Hotkeys Require Shift'),
+        _('Single-key action hotkeys, except for navigation and filter switching hotkeys, will require you to hold down the Shift key.'),
+        itemFactory.newSwitch(),
+        'switcherPopupShiftHotkeys'
+    )
+    );
+
+    optionList.push(itemFactory.getRowWidget(
         _('Filter mode'),
         _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
         itemFactory.newEntry(),
@@ -1415,34 +1410,32 @@ Thumbnail controls:\n\
     );
 
     optionList.push(itemFactory.getRowWidget(
-        _('Toggle Switcher Mode'),
-        _('Switch between Apps and Windows Modes.'),
-        itemFactory.newEntry(),
-        _('Ctrl + `/~')
+        _('Up/Down Keys Action'),
+        _('Choose what Up/Down arrow keys should do.'),
+        itemFactory.newComboBox(),
+        'switcherPopupUpDownAction',
+        [
+            [_('Nothing'), 1],
+            [_('Switch Workspace'), 2],
+            [_('Toggle Single App Mode'), 3],
+            [_('Switcher Mode/Single App Mode'), 4],
+        ]
     )
     );
 
-    optionList.push(itemFactory.getRowWidget(
+    /* optionList.push(itemFactory.getRowWidget(
         _('Switch Filter Mode'),
         _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
         itemFactory.newEntry(),
         _('Ctrl + Super')
     )
-    );
+    );*/
 
     optionList.push(itemFactory.getRowWidget(
         _('Select Previous/Next Item'),
         '',
         itemFactory.newEntry(),
         _('Left/Right Arrow Keys')
-    )
-    );
-
-    optionList.push(itemFactory.getRowWidget(
-        _('Switch to Previous/Next Workspace'),
-        '',
-        itemFactory.newEntry(),
-        _('Up/Down Arrow Keys')
     )
     );
 
@@ -1463,6 +1456,14 @@ Thumbnail controls:\n\
     );
 
     optionList.push(itemFactory.getRowWidget(
+        _('Toggle Switcher Mode'),
+        _('Switch between Apps and Windows Modes.'),
+        itemFactory.newEntry(),
+        _('Ctrl + `/~')
+    )
+    );
+
+    optionList.push(itemFactory.getRowWidget(
         _('Toggle Search Mode On/Off'),
         _('See the customizable hotkey above for details.'),
         itemFactory.newEntry(),
@@ -1478,13 +1479,13 @@ Thumbnail controls:\n\
     )
     );
 
-    optionList.push(itemFactory.getRowWidget(
+    /* optionList.push(itemFactory.getRowWidget(
         _('Force Quit'),
         _('Sends kill -9 signal to the selected application or application of selected window.'),
         itemFactory.newEntry(),
         _('Ctrl + Del')
     )
-    );
+    );*/
 
     optionList.push(itemFactory.getRowWidget(
         _('Toggle Preview Selected Window'),
@@ -1539,7 +1540,7 @@ Thumbnail controls:\n\
         _('In App Mode with Favorites Apps enabled you can change the position of selected Favorite app. This change is system-wide.\n\
 If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'),
         itemFactory.newEntry(),
-        _('Ctrl+Shift + Left/Right')
+        _('Ctrl + Shift + Left/Right')
     )
     );
 

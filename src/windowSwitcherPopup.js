@@ -139,22 +139,27 @@ function primaryModifier(mask) {
     return primary;
 }
 
+let shortcutModifiers;
+
 function _shiftPressed(state) {
     if (state === undefined)
         state = global.get_pointer()[2];
-
-    return state & Clutter.ModifierType.SHIFT_MASK;
+    // ignore the key if used as a modifier for the switcher shortcut
+    return !!(state & Clutter.ModifierType.SHIFT_MASK) && !(shortcutModifiers & Clutter.ModifierType.SHIFT_MASK);
 }
 
 function _ctrlPressed(state) {
     if (state === undefined)
         state = global.get_pointer()[2];
-
-    return state & Clutter.ModifierType.CONTROL_MASK;
+    // ignore the key if used as a modifier for the switcher shortcut
+    return !!(state & Clutter.ModifierType.CONTROL_MASK) && !(shortcutModifiers & Clutter.ModifierType.CONTROL_MASK);
 }
 
-function _superPressed() {
-    return global.get_pointer()[2] & Clutter.ModifierType.SUPER_MASK;
+function _superPressed(state) {
+    if (state === undefined)
+        state = global.get_pointer()[2];
+    // ignore the key if used as a modifier for the switcher shortcut
+    return !!(state & Clutter.ModifierType.SUPER_MASK) && !(shortcutModifiers & Clutter.ModifierType.SUPER_MASK);
 }
 
 function _isTabAction(action) {
@@ -223,6 +228,7 @@ function _getWindows(workspace, modals = false) {
 var   WindowSwitcherPopup = GObject.registerClass(
 class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _init() {
+        shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
         super._init();
         this._actions              = null;
@@ -2058,9 +2064,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (!_shiftPressed() && this._searchEntry !== null) {
                 this._searchEntry = '';
                 this.show();
-            } else if (_shiftPressed()) {
+            }/* else if (_shiftPressed()) {
                 this._killApp();
-            }
+            }*/
         } else if (keysym === Clutter.KEY_Left || options.get('hotkeyLeft').includes(keyString)) {
             if (_shiftPressed() && _ctrlPressed())
                 this._moveFavorites(-1);
