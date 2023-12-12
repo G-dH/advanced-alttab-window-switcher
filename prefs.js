@@ -300,7 +300,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.Position = itemFactory.getRowWidget(
             _('Placement'),
-            _('Where the switcher pop-up should appear on the screen.'),
+            _('Specifies the screen location for the switcher pop-up'),
             itemFactory.newDropDown(),
             'switcherPopupPosition',
             [
@@ -312,7 +312,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.DefaultMonitor = itemFactory.getRowWidget(
             _('Default Monitor'),
-            _('Monitor on which the switcher pop-up should appear.'),
+            _('Determines the screen on which the switcher pop-up will be displayed'),
             itemFactory.newDropDown(),
             'switcherPopupMonitor',
             [
@@ -324,14 +324,14 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SyncFilter = itemFactory.getRowWidget(
             _('Synchronize Filter Mode'),
-            _('Window and App switchers will share filter mode, meaning that switching the switcher mode will not set the filter mode to the respective default.'),
+            _('Enables shared filter mode between Window and App switchers. Switching the switcher mode will no longer reset the filter mode to the default for each'),
             itemFactory.newSwitch(),
             'switcherPopupSyncFilter'
         );
 
         optDict.ShowImmediately = itemFactory.getRowWidget(
             _('Show Selected Window'),
-            _('Allows to see selected window in its original size immediately as the item is selected in the switcher. Preview shows a clone of the window, second option raises the original window and switches to its workspace.'),
+            _('Instantly displays the selected window in its original size upon switcher selection. Choose between a preview clone or raising the original window including switching workspaces if needed'),
             itemFactory.newDropDown(),
             'switcherPopupPreviewSelected',
             [
@@ -343,28 +343,28 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SearchModeDefault = itemFactory.getRowWidget(
             _('Search Mode as Default'),
-            _('Type to search immediately after the switcher pop-up shows up. Hotkeys then can be used while holding down the Shift key.'),
+            _('Immediately enables type-to-search functionality upon switcher pop-up. Use hotkeys while holding down the Shift key'),
             itemFactory.newSwitch(),
             'switcherPopupStartSearch'
         );
 
         optDict.WraparoundSelector = itemFactory.getRowWidget(
             _('Wraparound Selector'),
-            _('Selection will continue from the last item to the first one and vice versa.'),
+            _('Selection seamlessly cycles from the last item to the first and vice versa'),
             itemFactory.newSwitch(),
             'switcherPopupWrap'
         );
 
         optDict.HoverSelectsItem = itemFactory.getRowWidget(
-            _('Hover Selects Item'),
-            _('Hovering the mouse pointer over a switcher item selects the item.'),
+            _('Hover to Select'),
+            _('Automatically selects a switcher item when the mouse pointer hovers over it'),
             itemFactory.newSwitch(),
             'switcherPopupHoverSelect'
         );
 
         optDict.InteractiveIndicators = itemFactory.getRowWidget(
             _('Interactive Indicators'),
-            _('Indicator icons can response to mouse clicks by triggering specific actions. Workspace indicator moves window to the current workspace, app icon and window counter toggle single app mode, secondary click on window app icon opens window menu, "Always on top" and "Always on visible workspace" indicators show up on hover.'),
+            _('Indicators and front icon respond to mouse clicks, enabling specific actions. The workspace indicator moves the window to the current workspace, the app icon and window counter toggle single app mode. "Always on Top", "Always on Visible Workspace" and "App Menu" icons appear upon hover'),
             itemFactory.newSwitch(),
             'switcherPopupInteractiveIndicators'
         );
@@ -375,7 +375,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.OverlayTitle = itemFactory.getRowWidget(
             _('Tooltip Titles'),
-            _('The whole title of selected item will be displayed as a caption above (or below if needed) the switcher pop-up.'),
+            _('The switcher pop-up displays the full title of the selected item as a caption, positioned above or below as needed'),
             itemFactory.newDropDown(),
             'switcherPopupTooltipTitle',
             [
@@ -401,14 +401,14 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShowDirectActivation = itemFactory.getRowWidget(
             _('Show Hotkeys F1-F12 for Direct Activation'),
-            _('The hotkeys will work independently on this option.'),
+            _('The hotkeys will work even if this option is disabled'),
             itemFactory.newSwitch(),
             'switcherPopupHotKeys'
         );
 
         optDict.ShowStatus = itemFactory.getRowWidget(
             _('Show Status'),
-            _('Show a label indicating filter, grouping and sorting modes should be displayed at the bottom left of the pop-up.'),
+            _('Displays a label at the bottom left of the pop-up, indicating the current filter, grouping, and sorting modes'),
             itemFactory.newSwitch(),
             'switcherPopupStatus'
         );
@@ -439,15 +439,15 @@ export default class AATWS extends ExtensionPreferences {
         });
 
         optDict.DelayShowingSwitcher = itemFactory.getRowWidget(
-            _('Delay Showing Switcher (ms)'),
-            _("Allows to delay showing the pop-up so that fast Alt+Tab users aren't disturbed by the pop-up briefly flashing. Note that building the switcher pop-up take some time that depends on your system and on a number of items in the switcher, therefore even if you set the delay to 0, there still be some lag."),
+            _('Delay Switcher Display (ms)'),
+            _('Introduces a delay before showing the pop-up to prevent disturbance for fast Alt+Tab users. Note that even with a delay set to 0, there may still be some lag as the switcher pop-up builds, dependent on your system and the number of items'),
             itemFactory.newSpinButton(popupTimeoutAdjustment),
             'switcherPopupTimeout'
         );
 
         optDict.WsThumbnails = itemFactory.getRowWidget(
             _('Show Workspace Thumbnails'),
-            _('AATWS can show workspace thumbnails above/below the switcher, so you can see their content and switch workspace using a mouse. You can also reorder current workspace using Ctrl/Shift+Scroll or Ctrl+Page Up/Down.'),
+            _('AATWS displays workspace thumbnails above or below the switcher, allowing you to preview their content, drag and drop windows between workspaces and switch workspaces with the mouse. Additionally, you can reorder the current workspace using (Ctrl or Shift)+Scroll or Ctrl+Page Up/Down'),
             itemFactory.newDropDown(),
             'switcherWsThumbnails',
             [
@@ -458,15 +458,15 @@ export default class AATWS extends ExtensionPreferences {
         );
 
         optDict.Theme = itemFactory.getRowWidget(
-            _('Color Theme'),
-            _('"Default" is given by the current Shell theme, "Follow System Color Scheme" switches between AATWS Dark/Light styles depending on the current GNOME color scheme (available in GNOME 42 and higher)'),
+            _('Color Style'),
+            _('The "Default" option corresponds to the current Shell theme, and "Follow System Color Style" switches between AATWS Dark and Light styles based on the current GNOME color style (available in GNOME 42 and higher)'),
             itemFactory.newDropDown(),
             'switcherPopupTheme',
             [
                 [_('Default'),                    0],
                 [_('AATWS Dark'),                 1],
                 [_('AATWS Light'),                2],
-                [_('Follow System Color Scheme'), 3],
+                [_('Follow System Color Style'),  3],
             ]
         );
 
@@ -478,7 +478,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SuperKeyMode = itemFactory.getRowWidget(
             _('Super Key Action'),
-            _("Open App switcher or Window switcher by pressing and releasing the Super key (default overlay-key, can be remapped in Gnome Tweaks). Default mode doesn't change system behavior."),
+            _('Press and release the Super key (default overlay-key, remappable in Gnome Tweaks) to open the App or Window switcher. The default mode preserves system behavior'),
             itemFactory.newDropDown(),
             'superKeyMode',
             [
@@ -490,8 +490,8 @@ export default class AATWS extends ExtensionPreferences {
 
         const enableSuperSwitch = itemFactory.newSwitch();
         optDict.EnableSuper = itemFactory.getRowWidget(
-            _('Enable Super as Hot Key (Experimental)'),
-            _('This option allows you to close the switcher by pressing the Super key and enables "Double Super Key Press" option. By enabling this option you may experience brief stuttering in animations and video during opening an closing the switcher popup, but only in case the switcher was opened using the Super key, this does not affect the usual Alt/Super+Tab experience.'),
+            _('Enable Super as Hotkey (Experimental)'),
+            _('Enables closing the switcher with a Super key press and activates "Double Super Key Press" option Note: This option may cause brief stuttering in animations/videos when using Super key to open/close the switcher. This does not affect the usual Alt/Super+Tab experience'),
             enableSuperSwitch,
             'enableSuper'
         );
@@ -499,7 +499,7 @@ export default class AATWS extends ExtensionPreferences {
         const superDoublePressSwitch = itemFactory.newDropDown();
         optDict.SuperDoublePress = itemFactory.getRowWidget(
             _('Double Super Key Press (needs previous option enabled)'),
-            _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action.'),
+            _('Initial double press of the Super key (or key set as Window Action Key) will trigger the selected action'),
             superDoublePressSwitch,
             'superDoublePressAction',
             [
@@ -523,7 +523,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.HotEdgePosition = itemFactory.getRowWidget(
             _('Hot Edge Position'),
-            _('Open App switcher or Window switcher by hitting an edge of the monitor with your mouse pointer.'),
+            _('Hot edge activates the App or Window switcher when the mouse pointer applies pressure to the edge of the monitor'),
             itemFactory.newDropDown(),
             'hotEdgePosition',
             [
@@ -535,7 +535,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.HotEdgeFullScreen = itemFactory.getRowWidget(
             _('Enable Hot Edge in Fullscreen Mode'),
-            _('Disable this option if you, for example, play fullscreen games where triggering the switcher popup is not welcome.'),
+            _('Disable this option if, for instance, you are playing fullscreen games where triggering the switcher popup is undesirable'),
             itemFactory.newSwitch(),
             'hotEdgeFullScreen'
         );
@@ -553,7 +553,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.HotEdgeMonitor = itemFactory.getRowWidget(
             _('Hot Edge Monitor'),
-            _('Set the hot edge for the primary monitor only or all active monitors.'),
+            _('Specifies whether the hot edge is set for the primary monitor only or for all active monitors'),
             itemFactory.newDropDown(),
             'hotEdgeMonitor',
             [
@@ -571,7 +571,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.HotEdgePressure = itemFactory.getRowWidget(
             _('Hot Edge Pressure Threshold'),
-            _('Adjusts a "force" the mouse pointer needs to trigger the hot edge.'),
+            _('Adjusts the pressure the mouse pointer needs to apply to trigger the hot edge'),
             itemFactory.newSpinButton(hotPressureAdjustment),
             'hotEdgePressure'
         );
@@ -585,7 +585,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.HotEdgeWidth = itemFactory.getRowWidget(
             _('Hot Edge Width (%)'),
-            _('Adjusts width of the hot edge barrier in percentage of the screen width.'),
+            _('Adjusts the width of the hot edge barrier as a percentage of the screen width'),
             itemFactory.newSpinButton(hotWidthAdjustment),
             'hotEdgeWidth'
         );
@@ -596,7 +596,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShowDash = itemFactory.getRowWidget(
             _('Dash Visibility'),
-            _('Controls visibility of the Dash in the Activities overview. You can disable the Dash if you are using AATWS instead.'),
+            _('Manages the visibility of the Dash in the Activities overview. You can disable the Dash if you are using AATWS instead'),
             itemFactory.newDropDown(),
             'showDash',
             [
@@ -612,7 +612,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.RememberInput = itemFactory.getRowWidget(
             _('Remember Keyboard'),
-            _('AATWS can remember keyboard layout that you can change using the built-in Shift + Enter shortcut. This option can noticeably slow down switching windows since switching input source is slow in GNOME Shell.'),
+            _('AATWS can remember the keyboard layout you set with the Shift + Enter shortcut. Note: This option may significantly slow down window switching, as changing the input source is slow in GNOME Shell'),
             itemFactory.newSwitch(),
             'rememberInput'
         );
@@ -626,7 +626,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShortcutWin = itemFactory.getRowWidget(
             _('Keyboard Shortcuts'),
-            _('AATWS replaces the default window switcher popups so the keyboard shortcuts can be set in GNOME Settings app > Keyboard > Keyboard Shortcuts > "Switch windows" and "Switch windows of an application"'),
+            _('AATWS replaces the default window switcher popups. Set keyboard shortcuts in GNOME Settings app > Keyboard > Keyboard Shortcuts > "Switch windows" and "Switch windows of an application."'),
             itemFactory.newLabel()
         );
 
@@ -636,7 +636,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.DefaultFilterWin = itemFactory.getRowWidget(
             _('Default Filter'),
-            _('Filter windows that should appear in the list. Filter can also be changed on the fly using a hotkey.'),
+            _('Specifies the filter for windows that should appear in the list. The filter can also be changed on the fly using a hotkey'),
             itemFactory.newDropDown(),
             'winSwitcherPopupFilter',
             [
@@ -648,7 +648,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.DefaultSortingWin = itemFactory.getRowWidget(
             _('Default Sorting'),
-            _('The order in which the list of windows should be sorted.'),
+            _('Determines the order in which the list of windows should be sorted'),
             itemFactory.newDropDown(),
             'winSwitcherPopupSorting',
             [
@@ -660,7 +660,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.DefaultGrouping = itemFactory.getRowWidget(
             _('Default Grouping'),
-            _('Group windows in the list by the selected key.'),
+            _('Groups windows in the list based on the selected key'),
             itemFactory.newDropDown(),
             'winSwitcherPopupOrder',
             [
@@ -673,7 +673,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.DistinguishMinimized = itemFactory.getRowWidget(
             _('Distinguish Minimized Windows'),
-            _('The front icon of minimized window item will be faded.'),
+            _('Fades the front icon of a minimized window item for distinction'),
             itemFactory.newSwitch(),
             'winMarkMinimized'
         );
@@ -681,7 +681,7 @@ export default class AATWS extends ExtensionPreferences {
         const skipMinimizedBtn = itemFactory.newSwitch();
         optDict.SkipMinimized = itemFactory.getRowWidget(
             _('Skip Minimized Windows'),
-            _('Removes minimized windows from the list. This option actually affects also App switcher.'),
+            _('Excludes minimized windows from the list. Note: This option also impacts the App switcher.'),
             skipMinimizedBtn,
             'winSkipMinimized'
         );
@@ -694,28 +694,28 @@ export default class AATWS extends ExtensionPreferences {
         minimizedLastBtn.set_sensitive(!this.opt.get('winSkipMinimized'));
         optDict.MinimizedLast = itemFactory.getRowWidget(
             _('Minimized Windows Last'),
-            _('Moves minimized windows to the end of the list, which is the default behavior in GNOME Shell.'),
+            _('Places minimized windows at the end of the list, aligning with the default behavior in GNOME Shell.'),
             minimizedLastBtn,
             'winMinimizedLast'
         );
 
         optDict.IncludeModals = itemFactory.getRowWidget(
             _('Include Modal Windows'),
-            _('Modal windows, such as dialogs, are usually attached to their parent windows and cannot be individually focused. The default behavior of the window switcher is to ignore modal windows and list only their parents.'),
+            _('Modal windows, such as dialogs, are usually attached to their parent window, and focusing on the parent window also focuses their modal window, but not always'),
             itemFactory.newSwitch(),
             'winIncludeModals'
         );
 
         optDict.SearchAllWindows = itemFactory.getRowWidget(
             _('Search All Windows'),
-            _('Automatically switch filter mode (if possible) when no results are found for the currently selected filter mode.'),
+            _('Automatically switches filter mode (if possible) when no results are found for the currently selected filter mode'),
             itemFactory.newSwitch(),
             'winSwitcherPopupSearchAll'
         );
 
         optDict.SearchApplications = itemFactory.getRowWidget(
             _('Search Applications'),
-            _('Search for installed applications in order to launch new ones when no window matches the specified pattern.'),
+            _('Searches for installed applications to launch new ones when no window matches the specified pattern'),
             itemFactory.newSwitch(),
             'winSwitcherPopupSearchApps'
         );
@@ -726,7 +726,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShowWindowTitle = itemFactory.getRowWidget(
             _('Show Window Titles'),
-            _('Window titles (ellipsized if needed) will be displayed under each window item in the switcher list.'),
+            _('Displays window titles (ellipsized if needed) under each window item in the switcher list'),
             itemFactory.newDropDown(),
             'winSwitcherPopupTitles',
             [
@@ -738,7 +738,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShowWorkspaceIndex = itemFactory.getRowWidget(
             _('Show Workspace Index'),
-            _('Place a label with corresponding workspace index over each window thumbnail.'),
+            _('Adds a label with the corresponding workspace index over each window thumbnail'),
             itemFactory.newSwitch(),
             'winSwitcherPopupWsIndexes'
         );
@@ -785,7 +785,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShortcutApp = itemFactory.getRowWidget(
             _('Keyboard Shortcut'),
-            _('AATWS replaces the default app switcher popup so the keyboard shortcut can be set in GNOME Settings app > Keyboard > Keyboard Shortcuts > "Switch applications"'),
+            _('AATWS replaces the default app switcher popup. Set keyboard shortcut in GNOME Settings app > Keyboard > Keyboard Shortcuts > "Switch applications"'),
             itemFactory.newLabel()
         );
 
@@ -795,7 +795,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.DefaultFilterApp = itemFactory.getRowWidget(
             _('Default Filter'),
-            _('Filter windows that should appear in the list. Filter can also be changed on the fly using a hotkey.'),
+            _('Specifies the filter for apps that should appear in the list. The filter can also be changed on the fly using a hotkey'),
             itemFactory.newDropDown(),
             'appSwitcherPopupFilter',
             [
@@ -807,7 +807,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.DefaultSortingApp = itemFactory.getRowWidget(
             _('Default Sorting'),
-            _('What key should be used to sort the app list.'),
+            _('Determines the order in which the list of apps should be sorted'),
             itemFactory.newDropDown(),
             'appSwitcherPopupSorting',
             [
@@ -818,14 +818,14 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.RaiseFirstWinOnly = itemFactory.getRowWidget(
             _('Raise First Window Only'),
-            _('If you activate a running app, only its most recently used window will be raised, instead of raising all app windows above windows of all other apps.'),
+            _('When activating a running app, only its most recently used window is raised, rather than rising all app windows above windows of other apps'),
             itemFactory.newSwitch(),
             'appSwitcherPopupRaiseFirstOnly'
         );
 
         optDict.SearchPrefRunning = itemFactory.getRowWidget(
             _('Prioritize Running Apps'),
-            _('Search engine will prioritize running applications.'),
+            _('The search engine will give priority to running applications'),
             itemFactory.newSwitch(),
             'appSwitcherPopupSearchPrefRunning'
         );
@@ -839,7 +839,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ResultsLimit = itemFactory.getRowWidget(
             _('Max Number of Search Results'),
-            _('Maximum number of results that the search provider can return.'),
+            _('Specifies the maximum number of results that can be shown in the switcher'),
             itemFactory.newSpinButton(popupAppLimitAdjustment),
             'appSwitcherPopupResultsLimit'
         );
@@ -850,21 +850,21 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShowAppTitle = itemFactory.getRowWidget(
             _('Show App Names'),
-            _('Name of the application will be displayed under each app icon in the list.'),
+            _('Displays the name of the application under each app icon in the list'),
             itemFactory.newSwitch(),
             'appSwitcherPopupTitles'
         );
 
         optDict.IncludeFavorites = itemFactory.getRowWidget(
             _('Include Favorite (Pinned) Apps'),
-            _('Include favorite apps pinned to Dash even when not running so you can use the switcher as an app launcher.'),
+            _('Include favorite apps pinned to Dash, even when not running, allowing you to use the switcher as an app launcher'),
             itemFactory.newSwitch(),
             'appSwitcherPopupFavoriteApps'
         );
 
         optDict.IncludeShowAppsIcon = itemFactory.getRowWidget(
             _('Include Show Apps Icon'),
-            _('Include button to access overview with application grid.'),
+            _('Adds a button to access application grid'),
             itemFactory.newSwitch(),
             'appSwitcherPopupIncludeShowAppsIcon'
         );
@@ -917,33 +917,33 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SingleOnActivate = itemFactory.getRowWidget(
             _('Show App Windows Instead of Direct Activation'),
-            _('If the clicked app has more than one window (for the current filter setting) and the button used for the click is set to Activate item, the switcher will not activate the recently used window of the app and switch to the Single App mode, so you can choose another window.'),
+            _('Choose between immediate activation of the clicked app (activated by a mouse button set to Activate Item) or switch to the window list to access other available windows (based on the current filter setting)'),
             itemFactory.newDropDown(),
             'appSwitcherPopupShowWinsOnActivate',
             [
                 [_('Disable'), 0],
-                [_('Focused apps'), 1],
-                [_('Multi-window apps'), 2],
+                [_('Focused Apps'), 1],
+                [_('Focused Multi-Window Apps'), 2],
             ]
         );
 
         optDict.AppIncludeFavorites = itemFactory.getRowWidget(
             _('Force App Switcher Include Favorites (Pinned)'),
-            _('Include favorite apps pinned to Dash to the App switcher despite the App switcher settings.'),
+            _('Include favorite apps pinned to Dash to the App switcher regardless the App switcher settings.'),
             itemFactory.newSwitch(),
             'switcherPopupExtAppFavorites'
         );
 
         optDict.AppStableOrder = itemFactory.getRowWidget(
             _('Force App Switcher Stable Sequence'),
-            _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dock. Pinned (favorite) apps (if included) keep the order they have in the Dash and other open apps the order as they were launched.'),
+            _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dock. Pinned (favorite) apps (if included) maintain the order they have in the Dash, and other open apps keep the order in which they were launched'),
             itemFactory.newSwitch(),
             'switcherPopupExtAppStable'
         );
 
         optDict.AutomaticallyReverseOrder = itemFactory.getRowWidget(
             _('Automatically Reverse List Order'),
-            _('List switcher items from right to left if this helps the mouse pointer be closer to the first item.'),
+            _('Displays switcher items from right to left if it brings the mouse pointer closer to the first item'),
             itemFactory.newSwitch(),
             'switcherPopupReverseAuto'
         );
@@ -964,14 +964,14 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ActivateOnHide = itemFactory.getRowWidget(
             _('Activate Selected Item on Hide'),
-            _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, selected item will be activated before the pop-up hides.'),
+            _('When you move mouse pointer outside the switcher pop-up and "Pointer out timeout" expires, the selected item will be activated before the pop-up hides.'),
             itemFactory.newSwitch(),
             'switcherPopupActivateOnHide'
         );
 
         optDict.MousePointerPosition = itemFactory.getRowWidget(
             _('Pop-up at Mouse Pointer Position'),
-            _('Only for external trigger like CHC-E extension. If the switcher was triggered using a mouse, it will be placed at the position of the mouse pointer.'),
+            _('Applies only to external triggers like CHC-E extension. If the switcher was triggered using a mouse, it will be placed at the position of the mouse pointer'),
             itemFactory.newSwitch(),
             'switcherPopupPointer'
         );
@@ -996,7 +996,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.AlwaysActivateFocused = itemFactory.getRowWidget(
             _('Always Activate Focused Window'),
-            _('For GNOME Shell version < 43. This is a hack for the window manager, it should avoid situations when the focused window is not activated and therefore does not update its position in the window switcher list. That may happen if you minimize a window, wm focuses the next window in the stack, but leaves it inactive until the user interacts with the window.'),
+            _('For GNOME Shell version < 43, this is a workaround for the window manager. It aims to prevent situations where the focused window is not activated, causing it not to update its position in the window switcher list. This can occur when you minimize a window, the window manager focuses the next window in the stack but leaves it inactive until the user interacts with the window'),
             itemFactory.newSwitch(),
             'wmAlwaysActivateFocused'
         );
@@ -1007,7 +1007,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ShowWsSwitcherPopup = itemFactory.getRowWidget(
             _('Show Workspace Switcher Pop-up'),
-            _('While switching workspaces.'),
+            _('Displays the workspace switcher pop-up while switching workspaces'),
             itemFactory.newSwitch(),
             'wsShowSwitcherPopup'
         );
@@ -1026,7 +1026,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ThumbnailScale = itemFactory.getRowWidget(
             _('Thumbnail Height Scale (%)'),
-            _('Height of the thumbnail relative to the screen height'),
+            _('Adjusts the default height of the thumbnail relative to the screen height'),
             itemFactory.newSpinButton(tmbScaleAdjustment),
             'winThumbnailScale'
         );
@@ -1039,7 +1039,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.PrimaryBackground = itemFactory.getRowWidget(
             _('Primary Click on switcher Background'),
-            _('Action to be triggered by a click of the primary (usually left) mouse button on the switcher pop-up background'),
+            _('Action triggered by a click of the primary (usually left) mouse button on the switcher pop-up background'),
             itemFactory.newDropDown(),
             'switcherPopupPrimClickIn',
             actionList
@@ -1047,7 +1047,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SecondaryBackground = itemFactory.getRowWidget(
             _('Secondary Click on switcher Background'),
-            _('Action to be triggered by a click of the secondary (usually right) mouse button on the switcher pop-up background'),
+            _('Action triggered by a click of the secondary (usually right) mouse button on the switcher pop-up background'),
             itemFactory.newDropDown(),
             'switcherPopupSecClickIn',
             actionList
@@ -1055,7 +1055,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.MiddleBackground = itemFactory.getRowWidget(
             _('Middle Click on switcher Background'),
-            _('Action to be triggered by a click of the middle mouse button on the switcher pop-up background'),
+            _('Action triggered by a click of the middle mouse button on the switcher pop-up background'),
             itemFactory.newDropDown(),
             'switcherPopupMidClickIn',
             actionList
@@ -1063,7 +1063,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ScrollBackground = itemFactory.getRowWidget(
             _('Scroll over switcher Background'),
-            _('Action to be triggered by scrolling over the switcher pop-up, but not over the switcher item'),
+            _('Action triggered by scrolling over the switcher pop-up, but not over the switcher item'),
             itemFactory.newDropDown(),
             'switcherPopupScrollIn',
             actionList
@@ -1071,7 +1071,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.PrimaryOutside = itemFactory.getRowWidget(
             _('Primary Click Outside switcher'),
-            _('Action to be triggered by a click of the primary (usually left) mouse button outside the switcher pop-up'),
+            _('Action triggered by a click of the primary (usually left) mouse button outside the switcher pop-up'),
             itemFactory.newDropDown(),
             'switcherPopupPrimClickOut',
             actionList
@@ -1079,7 +1079,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SecondaryOutside = itemFactory.getRowWidget(
             _('Secondary Click Outside switcher'),
-            _('Action to be triggered by a click of the secondary (usually right) mouse button outside the switcher pop-up'),
+            _('Action triggered by a click of the secondary (usually right) mouse button outside the switcher pop-up'),
             itemFactory.newDropDown(),
             'switcherPopupSecClickOut',
             actionList
@@ -1087,7 +1087,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.MiddleOutside = itemFactory.getRowWidget(
             _('Middle Click Outside switcher'),
-            _('Action to be triggered by a click of the middle mouse button outside the switcher pop-up'),
+            _('Action triggered by a click of the middle mouse button outside the switcher pop-up'),
             itemFactory.newDropDown(),
             'switcherPopupMidClickOut',
             actionList
@@ -1095,7 +1095,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ScrollOutside = itemFactory.getRowWidget(
             _('Scroll Outside switcher'),
-            _('Action to be triggered by scrolling outside of the switcher pop-up'),
+            _('Action triggered by scrolling outside of the switcher pop-up'),
             itemFactory.newDropDown(),
             'switcherPopupScrollOut',
             actionList
@@ -1109,7 +1109,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ScrollWinItem = itemFactory.getRowWidget(
             _('Scroll Over Item'),
-            _('Action to be triggered by scrolling over any switcher item (window icon)'),
+            _('Action triggered by scrolling over any switcher item (window icon)'),
             itemFactory.newDropDown(),
             'winSwitcherPopupScrollItem',
             actionList
@@ -1121,7 +1121,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.PrimaryWinItem = itemFactory.getRowWidget(
             _('Primary Click on Item'),
-            _('Action to be triggered by a click of the primary (usually left) mouse button on any switcher item (window icon)'),
+            _('Action triggered by a click of the primary (usually left) mouse button on any switcher item (window icon)'),
             itemFactory.newDropDown(),
             'winSwitcherPopupPrimClickItem',
             winActionList
@@ -1129,7 +1129,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SecondaryWinItem = itemFactory.getRowWidget(
             _('Secondary Click on Item'),
-            _('Action to be triggered by a click of the secondary (usually right) mouse button on any switcher item (window icon)'),
+            _('Action triggered by a click of the secondary (usually right) mouse button on any switcher item (window icon)'),
             itemFactory.newDropDown(),
             'winSwitcherPopupSecClickItem',
             winActionList
@@ -1137,7 +1137,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.MiddleWinItem = itemFactory.getRowWidget(
             _('Middle Click on Item'),
-            _('Action to be triggered by a click of the middle mouse button on any switcher item (window icon)'),
+            _('Action triggered by a click of the middle mouse button on any switcher item (window icon)'),
             itemFactory.newDropDown(),
             'winSwitcherPopupMidClickItem',
             winActionList
@@ -1155,7 +1155,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.ScrollAppItem = itemFactory.getRowWidget(
             _('Scroll Over Item'),
-            _('Action to be triggered by scrolling over any switcher item (window icon)'),
+            _('Action triggered by scrolling over any switcher item (window icon)'),
             itemFactory.newDropDown(),
             'appSwitcherPopupScrollItem',
             appActionList
@@ -1165,7 +1165,7 @@ export default class AATWS extends ExtensionPreferences {
         // appActionList.splice(1,1);
         optDict.PrimaryAppItem = itemFactory.getRowWidget(
             _('Primary Click on Item'),
-            _('Action to be triggered by a click of the primary (usually left) mouse button on any switcher item (app icon)'),
+            _('Action triggered by a click of the primary (usually left) mouse button on any switcher item (app icon)'),
             itemFactory.newDropDown(),
             'appSwitcherPopupPrimClickItem',
             appActionList
@@ -1173,7 +1173,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SecondaryAppItem = itemFactory.getRowWidget(
             _('Secondary Click on Item'),
-            _('Action to be triggered by a click of the secondary (usually right) mouse button on any switcher item (app icon)'),
+            _('Action triggered by a click of the secondary (usually right) mouse button on any switcher item (app icon)'),
             itemFactory.newDropDown(),
             'appSwitcherPopupSecClickItem',
             appActionList
@@ -1181,7 +1181,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.MiddleAppItem = itemFactory.getRowWidget(
             _('Middle Click on Item'),
-            _('Action to be triggered by a click of the middle mouse button on any switcher item (app icon)'),
+            _('Action triggered by a click of the middle mouse button on any switcher item (app icon)'),
             itemFactory.newDropDown(),
             'appSwitcherPopupMidClickItem',
             appActionList
@@ -1197,15 +1197,15 @@ export default class AATWS extends ExtensionPreferences {
 
         optionList.push(itemFactory.getRowWidget(
             _('Custom hotkeys (you can assign up to 2 characters (keys) to each action)'),
-            "You can enter up to two hotkeys for each action, the second one is primarily dedicated to include non [a-zA-Z] keys with Shift pressed.\n\
-Delete hotkey to disable the action.\n\
+            "You can enter up to two hotkeys for each action, the second one is primarily dedicated to include non [a-zA-Z] characters with Shift pressed.\n\
+Clear entry to disable the action.\n\
 All hotkeys work directly or with Shift key pressed, if it's set in Preferences or if the Search mode is turned on."
         )
         );
 
         optionList.push(itemFactory.getRowWidget(
-            _('Action Hotkeys Require Shift'),
-            _('Single-key action hotkeys, except for navigation and filter switching hotkeys, will require you to hold down the Shift key.'),
+            _('Shift for Action Hotkeys'),
+            _('Single-key action hotkeys, excluding navigation and filter switching, now require holding down the Shift key'),
             itemFactory.newSwitch(),
             'switcherPopupShiftHotkeys'
         )
@@ -1213,7 +1213,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
         optionList.push(itemFactory.getRowWidget(
             _('Filter mode'),
-            _('Switches the window filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
+            _('Switches the window/app filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
             itemFactory.newEntry(),
             'hotkeySwitchFilter'
         )
@@ -1221,7 +1221,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
         optionList.push(itemFactory.getRowWidget(
             _('Search Mode'),
-            _("In the search mode you can enter multiple patterns separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, description, categories, keywords, and app executables, so you can find most of editor apps by typing 'edit', games by typing 'game' and so on. You can even search for sections in the GNOME Settings app."),
+            _('In the search mode, you can enter multiple patterns separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, description, categories, keywords, and app executables. This allows you to find most editor apps by typing "edit", games by typing "game", and so on. You can even search for sections in the GNOME Settings app'),
             itemFactory.newEntry(),
             'hotkeySearch'
         )
@@ -1278,7 +1278,7 @@ The current monitor is the one where the switcher pop-up is located, or where th
 
         optionList.push(itemFactory.getRowWidget(
             _('Always on Top'),
-            _('Window will be raised and will stay above all other windows, even if it lose focus. This state is indicated by an icon over the window preview.'),
+            _('Selected window will be raised to stay above all other windows, even if it lose focus. This state is indicated by an icon over the window preview.'),
             itemFactory.newEntry(),
             'hotkeyAbove'
         )
@@ -1304,7 +1304,7 @@ Next use of this hotkey on the same window moves the window back to its original
         optionList.push(itemFactory.getRowWidget(
             _('Maximize on Current Workspace/Monitor'),
             _('Selected window will be maximized on the current workspace and monitor.\
-The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently located if the switcher was triggered by a mouse.'),
+The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently positioned if the switcher was triggered by a mouse.'),
             itemFactory.newEntry(),
             'hotkeyMaximize'
         )
@@ -1354,7 +1354,7 @@ Thumbnail controls:\n\
 
         optionList.push(itemFactory.getRowWidget(
             _('Left'),
-            _('Has the same functionality as arrow Left. Selects previous item, if Search mode is off.'),
+            _('Has the same functionality as arrow Left key. Selects previous item, if Search mode is off.'),
             itemFactory.newEntry(),
             'hotkeyLeft'
         )
@@ -1362,7 +1362,7 @@ Thumbnail controls:\n\
 
         optionList.push(itemFactory.getRowWidget(
             _('Down'),
-            _('Has the same functionality as arrow Down. Switches to next workspace, if Search mode is off.'),
+            _('Has the same functionality as arrow Down key. Switches to next workspace, if Search mode is off.'),
             itemFactory.newEntry(),
             'hotkeyDown'
         )
@@ -1370,7 +1370,7 @@ Thumbnail controls:\n\
 
         optionList.push(itemFactory.getRowWidget(
             _('Up'),
-            _('Has the same functionality as arrow Up. Switches to previous workspace, if Search mode is off.'),
+            _('Has the same functionality as arrow Up key. Switches to previous workspace, if Search mode is off.'),
             itemFactory.newEntry(),
             'hotkeyUp'
         )
@@ -1378,7 +1378,7 @@ Thumbnail controls:\n\
 
         optionList.push(itemFactory.getRowWidget(
             _('Right'),
-            _('Has the same functionality as arrow Right. Selects next item, if Search mode is off.'),
+            _('Has the same functionality as arrow Right key. Selects next item, if Search mode is off.'),
             itemFactory.newEntry(),
             'hotkeyRight'
         )
