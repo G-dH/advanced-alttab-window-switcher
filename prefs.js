@@ -949,13 +949,13 @@ function _getOptions(itemFactory) {
 
     optDict.SingleOnActivate = itemFactory.getRowWidget(
         _('Show App Windows Instead of Direct Activation'),
-        _('If the clicked app has more than one window (for the current filter setting) and the button used for the click is set to Activate item, the switcher will not activate the recently used window of the app and switch to the Single App mode, so you can choose another window.'),
+        _('Choose between immediate activation of the clicked app (activated by a mouse button set to Activate Item) or switch to the window list to access other available windows (based on the current filter setting)'),
         itemFactory.newComboBox(),
         'appSwitcherPopupShowWinsOnActivate',
         [
             [_('Disable'), 0],
-            [_('Focused apps'), 1],
-            [_('Multi-window apps'), 2],
+            [_('Focused Apps'), 1],
+            [_('Focused Multi-Window Apps'), 2],
         ]
     );
 
