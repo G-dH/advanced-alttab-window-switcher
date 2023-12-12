@@ -1,14 +1,17 @@
 ## Changelog
 ### v45.2 (not yet released) v44.3 (not yet released)
 **Added:**
-- Single item in the filtered list automatically switch filter mode so you can directly switch to an app/window outside of the current filter scope
+- Single item in the filtered list automatically switches filter mode so you can directly switch to an app/window outside of the current filter scope
+- Option *Animation speed (%)* allows adjusting speed of showing and hiding the switcher if used in Dock mode or triggered using the Super key
 
 **Fixed:**
-- Search entry label position in Dock mode
+- Search entry position in Dock mode
+- Ctrl used as a modifier key for the shortcut that triggers the switcher conflicts with the built-in hotkeys. Solution - if the shortcut includes Ctrl and/or Shift, internal hotkeys based on these keys won't function.
 
 **Changed:**
-- Animations when switcher is triggered as a dock using a mouse or by the overly-key (Super/Win)
-- versioning changed to `latest supported GNOME major version`.`extension revision`
+- Animations when the switcher is triggered as a dock using a mouse or by the overly-key (Super/Win)
+- Versioning changed to `latest supported GNOME major version`.`extension revision`
+- Option descriptions in the Settings window have been updated
 
 
 ### v27.45 (2023-11-11)
