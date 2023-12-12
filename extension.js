@@ -38,40 +38,32 @@ function init() {
 }
 
 function enable() {
-    _delayId = GLib.timeout_add(
-        GLib.PRIORITY_DEFAULT,
-        300,
-        () => {
-            _delayId = 0;
-            if (enabled) {
-                let actions = new Actions.Actions();
-                actions.resumeThumbnailsIfExist();
-                actions = undefined;
-            }
-            _options = new Settings.Options();
-            WindowSwitcherPopup.options = _options;
-            // _options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
-            _options.connect('changed', _updateSettings);
-            _origAltTabWSP = AltTab.WindowSwitcherPopup;
-            _origAltTabASP = AltTab.AppSwitcherPopup;
-            AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
-            AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
+    if (enabled) {
+        let actions = new Actions.Actions();
+        actions.resumeThumbnailsIfExist();
+        actions = undefined;
+    }
+    _options = new Settings.Options();
+    WindowSwitcherPopup.options = _options;
+    // _options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
+    _options.connect('changed', _updateSettings);
+    _origAltTabWSP = AltTab.WindowSwitcherPopup;
+    _origAltTabASP = AltTab.AppSwitcherPopup;
+    AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
+    AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
 
-            if (_options.get('superKeyMode') > 1)
-                _updateOverlayKeyHandler();
+    if (_options.get('superKeyMode') > 1)
+        _updateOverlayKeyHandler();
 
-            _updateAlwaysActivateFocusedConnection();
-            _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
+    _updateAlwaysActivateFocusedConnection();
+    _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
 
-            _updateHotTrigger();
-            _updateDashVisibility();
+    _updateHotTrigger();
+    _updateDashVisibility();
 
-            log(`${Me.metadata.name}: enabled`);
-            enabled = true;
-            _delayId = 0;
-            return GLib.SOURCE_REMOVE;
-        }
-    );
+    log(`${Me.metadata.name}: enabled`);
+    enabled = true;
+    return GLib.SOURCE_REMOVE;
 }
 
 function disable() {
@@ -85,13 +77,13 @@ function disable() {
     if (_delayId)
         GLib.source_remove(_delayId);
 
-    if (_extensionEnabled()) {
-        const hide = true;
-        _removeThumbnails(hide);
-    } else {
-        _removeThumbnails();
-        enabled = false;
-    }
+    // if (_extensionEnabled()) {
+    //    const hide = true;
+    //    _removeThumbnails(hide);
+    // } else {
+    _removeThumbnails();
+    enabled = false;
+    // }
 
     if (_origAltTabWSP)
         AltTab.WindowSwitcherPopup = _origAltTabWSP;
@@ -332,13 +324,13 @@ function _onPressureTriggered(monitor) {
 
 function _extensionEnabled() {
     const shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
-    let enabled = shellSettings.get_strv('enabled-extensions');
-    enabled = enabled.indexOf(Me.metadata.uuid) > -1;
-    let disabled = shellSettings.get_strv('disabled-extensions');
-    disabled = disabled.indexOf(Me.metadata.uuid) > -1;
+    let enabledE = shellSettings.get_strv('enabled-extensions');
+    enabledE = enabledE.indexOf(Me.metadata.uuid) > -1;
+    let disabledE = shellSettings.get_strv('disabled-extensions');
+    disabledE = disabledE.indexOf(Me.metadata.uuid) > -1;
     let disableUser = shellSettings.get_boolean('disable-user-extensions');
 
-    if (enabled && !disabled && !disableUser)
+    if (enabledE && !disabledE && !disableUser)
         return true;
     return false;
 }
