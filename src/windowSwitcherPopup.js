@@ -1228,7 +1228,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._inAnimation = true;
         this._switcherList.ease({
             translation_y: 0,
-            duration: ANIMATION_TIME,
+            duration: ANIMATION_TIME * options.ANIMATION_TIME_FACTOR,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
                 if (this._wsTmb) {
@@ -1236,7 +1236,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                     this._wsTmb.ease({
                         opacity: 255,
                         scale_y: 1,
-                        duration: ANIMATION_TIME / 2,
+                        duration: ANIMATION_TIME * options.ANIMATION_TIME_FACTOR / 2,
                         mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                     });
                 }
@@ -1280,14 +1280,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._switcherList.ease({
             translation_y: translationY,
             opacity,
-            duration: 100,
+            duration: ANIMATION_TIME / 2 * options.ANIMATION_TIME_FACTOR,
             mode: Clutter.AnimationMode.EASE_IN_QUAD,
             onComplete: () => this.destroy(),
         });
 
         if (this._wsTmb) {
             this._wsTmb.ease({
-                duration: 100,
+                duration: ANIMATION_TIME / 2 * options.ANIMATION_TIME_FACTOR,
                 mode: Clutter.AnimationMode.EASE_IN_QUAD,
                 translation_y: opacity ? this._switcherList.allocation.y2 - this._wsTmb.y : 0,
                 opacity,
