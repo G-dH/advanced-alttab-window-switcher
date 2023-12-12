@@ -229,6 +229,7 @@ export default class AATWS extends ExtensionPreferences {
             opt.PointerOutTimeout,
             opt.ActivateOnHide,
             opt.MousePointerPosition,
+            opt.AnimationTimeFactor,
             // ---------------
             opt.Dash,
             opt.ShowDash,
@@ -973,6 +974,20 @@ export default class AATWS extends ExtensionPreferences {
             _('Only for external trigger like CHC-E extension. If the switcher was triggered using a mouse, it will be placed at the position of the mouse pointer.'),
             itemFactory.newSwitch(),
             'switcherPopupPointer'
+        );
+
+        let animationFactorAdjustment = new Gtk.Adjustment({
+            upper: 200,
+            lower: 0,
+            step_increment: 10,
+            page_increment: 100,
+        });
+
+        optDict.AnimationTimeFactor = itemFactory.getRowWidget(
+            _('Animation Speed (%)'),
+            _('Adjusts speed of an show/hide animation.'),
+            itemFactory.newSpinButton(animationFactorAdjustment),
+            'animationTimeFactor'
         );
 
         optDict.WindowManager = itemFactory.getRowWidget(

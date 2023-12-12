@@ -131,6 +131,7 @@ export const Options = class Options {
             showDash: ['int', 'show-dash'],
             inputSourceId: ['string', 'input-source-id'],
             rememberInput: ['boolean', 'remember-input'],
+            animationTimeFactor: ['int', 'animation-time-factor'],
 
             switcherPopupPosition: ['int', 'switcher-popup-position'],
             switcherPopupMonitor: ['int', 'switcher-popup-monitor'],
@@ -345,6 +346,7 @@ export const Options = class Options {
         this.INPUT_SOURCE_ID       = this.get('inputSourceId');
         this.REMEMBER_INPUT        = this.get('rememberInput');
         this.WS_THUMBNAILS         = this.get('switcherWsThumbnails');
+        this.ANIMATION_TIME_FACTOR = this.get('animationTimeFactor') / 100;
 
         // Window switcher
         this.WIN_FILTER_MODE       = this.get('winSwitcherPopupFilter');
