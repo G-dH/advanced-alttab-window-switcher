@@ -1,5 +1,10 @@
 ## Changelog
-### v44.3 (2023-12-13)
+### v45.3 (2023-12-15) v44.5 (2023-12-15)
+**Fixed:**
+- Access to destroyed actors exceptions
+
+
+### v44.4 (2023-12-13)
 **Fixed:**
 - Duplicated option
 
