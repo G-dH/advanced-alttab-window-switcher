@@ -1,5 +1,10 @@
 ## Changelog
-### v45.2 (not yet released) v44.3 (not yet released)
+### v45.3 (2023-12-15) v44.5 (2023-12-15)
+**Fixed:**
+- Access to destroyed actors exceptions
+
+
+### v45.2 (2023-12-12) v44.4 (2023-12-12)
 **Added:**
 - Single item in the filtered list automatically switches filter mode so you can directly switch to an app/window outside of the current filter scope
 - Option *Animation speed (%)* allows adjusting speed of showing and hiding the switcher if used in Dock mode or triggered using the Super key
