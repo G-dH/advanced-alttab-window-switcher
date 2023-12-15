@@ -471,9 +471,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._switcherList) {
                 this._switcherList.destroy();
                 this._switcherList = null;
+                this._items = [];
             }
 
             this._switcherList = new SwitcherList(itemList, options, switcherParams);
+            this._switcherList.connect('destroy', () => {
+                this.switcherList = null;
+            });
+
             this._connectShowAppsIcon();
 
             if (!options.HOVER_SELECT && this.KEYBOARD_TRIGGERED)
@@ -711,8 +716,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // Make sure the SwitcherList is always destroyed, it may not be
         // a child of the actor at this point.
-        if (this._switcherList)
+        if (this._switcherList) {
             this._switcherList.destroy();
+            this._switcherList = null;
+            this._items = [];
+        }
 
         // remove all local timeouts
         Object.values(this._timeoutIds).forEach(id => {
@@ -1368,7 +1376,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         // don't close the switcher if there is higher possibility that user wants to continue using it
         if (!this._showingApps || (this.KEYBOARD_TRIGGERED || options.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !options.SHOW_WINS_ON_ACTIVATE) || selected._is_showAppsIcon))
-            super._finish();
+            this.fadeAndDestroy();
         else
             this._doNotUpdateOnNewWindow = false;
     }
