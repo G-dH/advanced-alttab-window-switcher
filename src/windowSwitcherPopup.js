@@ -1277,7 +1277,7 @@ export const WindowSwitcherPopup = {
             this._itemCaption.opacity = 0;
 
         if (this.opacity > 0) {
-            if (this.KEYBOARD_TRIGGERED)
+            if (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered)
                 this.destroy();
             else
                 this._animateOut();
@@ -1435,7 +1435,7 @@ export const WindowSwitcherPopup = {
             GLib.PRIORITY_DEFAULT,
             opt.NO_MODS_TIMEOUT,
             () => {
-                if (!this.KEYBOARD_TRIGGERED && this._isPointerOut() && !this._isPointerOnWsTmb() && !opt.cancelTimeout) {
+                if ((!this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) && this._isPointerOut() && !this._isPointerOnWsTmb() && !opt.cancelTimeout) {
                     if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
                         if (this._lastShowed)
                             this._selectedIndex = this._lastShowed;
@@ -2272,7 +2272,7 @@ export const WindowSwitcherPopup = {
         let offset = this._itemCaption
             ? this._itemCaption.height + margin
             : margin;
-        offset += this._wsTmb && this.POPUP_POSITION !== 2 ? this._wsTmb.height : 0;
+        offset += this._wsTmb && this.POPUP_POSITION !== Position.CENTER ? this._wsTmb.height : 0;
 
         const fontSize = opt.CAPTIONS_SCALE * 2;
         const params = {
