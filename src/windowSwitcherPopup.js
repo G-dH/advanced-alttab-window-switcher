@@ -480,7 +480,7 @@ export const WindowSwitcherPopup = {
 
             this._switcherList = new SwitcherList.SwitcherList(itemList, opt, switcherParams);
             this._switcherList.connect('destroy', () => {
-                this.switcherList = null;
+                this._switcherList = null;
             });
 
             this._connectShowAppsIcon();
