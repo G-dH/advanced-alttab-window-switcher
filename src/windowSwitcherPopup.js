@@ -496,7 +496,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (!this._newWindowConId)
             this._connectNewWindows();
 
-
         this._updateInProgress = false;
         return true;
     }
@@ -604,7 +603,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // avoid showing overlay label before the switcher popup
         if (this._firstRun && this._itemCaption)
             this._itemCaption.opacity = 0;
+        else if (this._itemCaption)
+            this._itemCaption.opacity = 255;
 
+        // for case the animation hasn't completed before the switcher is recreated
+        if (!this._firstRun && this._wsTmb && this._wsTmb.scale_y !== 1)
+            this._wsTmb.scale_y = 1;
 
         // We delay showing the popup so that fast Alt+Tab users aren't
         // disturbed by the popup briefly flashing.
