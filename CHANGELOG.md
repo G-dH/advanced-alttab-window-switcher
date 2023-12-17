@@ -1,4 +1,9 @@
 ## Changelog
+### v45.5 (2023-12-17) v44.7 (2023-12-17)
+**Fixed:**
+- Title labels and workspace thumbnails stay invisible when search is activated before the slide-in animation completes
+
+
 ### v45.4 (2023-12-17) v44.6 (2023-12-17)
 **Fixed:**
 - Access to destroyed actors exceptions - typo in previous fix
