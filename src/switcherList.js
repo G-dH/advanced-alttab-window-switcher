@@ -14,7 +14,7 @@ import St from 'gi://St';
 import GObject from 'gi://GObject';
 
 import * as SwitcherPopup from 'resource:///org/gnome/shell/ui/switcherPopup.js';
-import { AppIcon, WindowIcon, ShowAppsIcon } from './switcherItems.js';
+import { AppIcon, WindowIcon, SysActionIcon, ShowAppsIcon } from './switcherItems.js';
 
 // gettext
 let _;
@@ -86,7 +86,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
                 /* if (switcherParams.mouseControl && item === global.display.get_tab_list(0, null)[0]) {
                     icon._is_focused = true;
                 }*/
-            } else {
+            } else if (item.get_app_info) {
                 icon = new AppIcon(item, i, this._switcherParams, this._options);
                 /* if (switcherParams.mouseControl && item.cachedWindows.length && (item.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) {
                     icon._is_focused = true;
@@ -96,6 +96,8 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
                         this._options.cancelTimeout = open;
                     }
                 );
+            } else {
+                icon = new SysActionIcon(item, i, this._switcherParams, this._options);
             }
 
             this.icons.push(icon);
