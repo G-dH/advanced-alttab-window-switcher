@@ -1569,10 +1569,14 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
             this.metadata.name
         ));
 
+        const versionName = this.metadata['version-name'] ?? '';
+        let version = this.metadata['version'] ?? '';
+        version = versionName && version ? `/${version}` : version;
+        const versionStr = `${versionName}${version}`;
         optionList.push(itemFactory.getRowWidget(
             _('Version'),
             null,
-            itemFactory.newLabel(this.metadata['version-name'])
+            itemFactory.newLabel(versionStr)
         ));
 
         optionList.push(itemFactory.getRowWidget(
