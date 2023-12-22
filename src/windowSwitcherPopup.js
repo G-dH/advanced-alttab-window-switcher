@@ -19,14 +19,13 @@ const Dash            = imports.ui.dash;
 const PopupMenu       = imports.ui.popupMenu;
 const Keyboard        = imports.ui.status.keyboard;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
+const SystemActions   = imports.misc.systemActions;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
 
 const SwitcherList    = Me.imports.src.switcherList.SwitcherList;
 const AppSwitcher     = Me.imports.src.switcherList.AppSwitcher;
-const AppIcon         = Me.imports.src.switcherItems.AppIcon;
-const WindowIcon      = Me.imports.src.switcherItems.WindowIcon;
 const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
 const WindowMenu      = Me.imports.src.windowMenu;
 const Settings        = Me.imports.src.settings;
@@ -1034,9 +1033,11 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this._doNotUpdateOnNewWindow)
                 return;
 
-            // new window was created but maybe not realized yet, so we will wait before updating content of the switcher
+            // new window was created but maybe not yet realized
             const winActor = win.get_compositor_private();
             if (!winActor.realized) {
+                // avoid updating switcher while waiting for window's realize signal
+                this._updateInProgress = true;
                 this._awaitingWin = win;
                 const realizeId = winActor.connect('realize', () => {
                     // update switcher only if no newer window is waiting for realization
@@ -1050,25 +1051,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 this._updateSwitcher();
             }
         });
-
-        /* this._newWindowConId = global.display.connect_after('window-created', (w, win) => {
-            if (this._doNotUpdateOnNewWindow || this._newWindowConId)
-                return;
-
-            // new window was created but maybe not realized yet, so we will wait before updating content of the switcher
-            // delay is easier to handle than many 'realize' signal connections, if user spawn many new windows quickly
-            if (this._newWindowConId) {
-                GLib.source_remove(this._newWindowConId);
-            }
-
-            this._newWindowConId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                200, () => {
-                this._newWindowConId = 0;
-                this._updateSwitcher();
-                return;
-            });
-        });*/
     }
 
     // Set keyboard layout stored in AATWS settings if available and needed.
@@ -1274,36 +1256,40 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._popModal();
 
         let translationY = 0;
-        switch (this.POPUP_POSITION) {
-        case 1:
-            translationY =  -this._switcherList.height - (Main.panel.height + 6) / this.SCALE_FACTOR;
-            break;
-        case 3:
-            translationY =  this._switcherList.height + 6;
-            break;
-        }
-
         let opacity = 255;
         if (this.POSITION_POINTER) {
             translationY = 0;
             opacity = 0;
         }
 
-        this._switcherList.ease({
-            translation_y: translationY,
-            opacity,
-            duration: ANIMATION_TIME / 2 * options.ANIMATION_TIME_FACTOR,
-            mode: Clutter.AnimationMode.EASE_IN_QUAD,
-            onComplete: () => this.destroy(),
-        });
+        if (this._switcherList) {
+            switch (this.POPUP_POSITION) {
+            case 1:
+                translationY =  -this._switcherList.height - (Main.panel.height + 6) / this.SCALE_FACTOR;
+                break;
+            case 3:
+                translationY =  this._switcherList.height + 6;
+                break;
+            }
 
-        if (this._wsTmb) {
-            this._wsTmb.ease({
+            this._switcherList.ease({
+                translation_y: translationY,
+                opacity,
                 duration: ANIMATION_TIME / 2 * options.ANIMATION_TIME_FACTOR,
                 mode: Clutter.AnimationMode.EASE_IN_QUAD,
-                translation_y: opacity ? this._switcherList.allocation.y2 - this._wsTmb.y : 0,
-                opacity,
+                onComplete: () => this.destroy(),
             });
+
+            if (this._wsTmb) {
+                this._wsTmb.ease({
+                    duration: ANIMATION_TIME / 2 * options.ANIMATION_TIME_FACTOR,
+                    mode: Clutter.AnimationMode.EASE_IN_QUAD,
+                    translation_y: opacity ? this._switcherList.allocation.y2 - this._wsTmb.y : 0,
+                    opacity,
+                });
+            }
+        } else {
+            this.destroy();
         }
     }
 
@@ -1371,6 +1357,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 }
             } else if (selected && selected._is_showAppsIcon) {
                 this._getActions().toggleAppGrid();
+            } else if (selected && selected._is_sysActionIcon) {
+                selected.activate();
             }
         } else if (selected) {
             this._setInput('reset');
@@ -1704,6 +1692,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             else if (it && it._is_app)
                 selected = it.app;
             else if (it && it._is_showAppsIcon)
+                selected = it;
+            else if (it && it._is_sysActionIcon)
                 selected = it;
         }
 
@@ -3527,6 +3517,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (options.SEARCH_PREF_RUNNING)
                 appList.sort((a, b) => b.get_n_windows() > 0 && a.get_n_windows() === 0);
 
+            const sysActions = SystemActions.getDefault();
+            let actionList = Array.from(sysActions._actions.keys()); // getMatchingActions(pattern.split(/ +/));
+            actionList = actionList.filter(action => this._match(`qq ${action} ${sysActions._actions.get(action).keywords.join(' ')}`, pattern));
+
+            appList = appList.concat(actionList);
+
             // limit the app list size
             appList.splice(options.APP_SEARCH_LIMIT);
         }
@@ -3544,9 +3540,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         } else {
             appList.forEach(
                 a => {
-                    if (a.get_n_windows())
+                    if (a.get_n_windows && a.get_n_windows())
                         a.cachedWindows = this._filterWindowsForWsMonitor(a.get_windows());
-                    else
+                    else if (a.get_n_windows)
                         a.cachedWindows = [];
                 }
             );

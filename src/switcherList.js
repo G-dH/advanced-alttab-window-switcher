@@ -20,7 +20,7 @@ const PopupMenu       = imports.ui.popupMenu;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
-const { AppIcon, WindowIcon, ShowAppsIcon } = Me.imports.src.switcherItems;
+const { AppIcon, WindowIcon, SysActionIcon, ShowAppsIcon } = Me.imports.src.switcherItems;
 const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
 const WindowMenu      = Me.imports.src.windowMenu;
 const Settings        = Me.imports.src.settings;
@@ -86,7 +86,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
                 /* if (switcherParams.mouseControl && item === global.display.get_tab_list(0, null)[0]) {
                     icon._is_focused = true;
                 }*/
-            } else {
+            } else if (item.get_app_info) {
                 icon = new AppIcon(item, i, this._switcherParams, this._options);
                 /* if (switcherParams.mouseControl && item.cachedWindows.length && (item.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) {
                     icon._is_focused = true;
@@ -96,6 +96,8 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
                         this._options.cancelTimeout = open;
                     }
                 );
+            } else {
+                icon = new SysActionIcon(item, i, this._switcherParams, this._options);
             }
 
             this.icons.push(icon);

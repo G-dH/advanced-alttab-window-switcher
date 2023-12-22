@@ -9,11 +9,13 @@
 
 'use strict';
 
-const { GObject, St, Shell, Clutter } = imports.gi;
+const { GObject, GLib, St, Shell, Clutter } = imports.gi;
 
 const AltTab          = imports.ui.altTab;
 const AppDisplay      = imports.ui.appDisplay;
 const IconGrid        = imports.ui.iconGrid;
+const SystemActions   = imports.misc.systemActions;
+const Screenshot      = imports.ui.screenshot;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
 const Me              = ExtensionUtils.getCurrentExtension();
@@ -399,6 +401,56 @@ class AppIcon extends AppDisplay.AppIcon {
 
     vfunc_button_press_event() {
         return Clutter.EVENT_PROPAGATE;
+    }
+});
+
+var SysActionIcon = GObject.registerClass(
+class SysActionIcon extends St.Widget {
+    _init(app, iconIndex, switcherParams, options) {
+        super._init({ reactive: true });
+
+        this._id = app;
+        this._options = options;
+        this._systemActions = SystemActions.getDefault();
+
+        const actionName = this._systemActions.getName(this._id);
+        const showLabel = this._options.SHOW_APP_TITLES;
+        const iconSize = this._options.APP_MODE_ICON_SIZE;
+
+        this._is_sysActionIcon = true;
+
+        this.icon = new IconGrid.BaseIcon(actionName, {
+            setSizeManually: true,
+            showLabel,
+            createIcon: this._createIcon.bind(this),
+        });
+
+        this.icon.setIconSize(iconSize);
+        this.icon.add_style_class_name(this._options.colorStyle.TITLE_LABEL);
+
+        this.titleLabel = new St.Label({
+            text: actionName,
+        });
+
+        this.add_child(this.icon);
+    }
+
+    _createIcon() {
+        const size = this._options.APP_MODE_ICON_SIZE;
+        const iconName = this._systemActions.getIconName(this._id);
+        return new St.Icon({
+            icon_name: iconName,
+            width: size,
+            height: size,
+            style: 'color: grey;',
+        });
+    }
+
+    activate() {
+        if (this._id === 'open-screenshot-ui')
+            Screenshot.showScreenshotUI();
+        else
+            this._systemActions.activateAction(this._id);
     }
 });
 
