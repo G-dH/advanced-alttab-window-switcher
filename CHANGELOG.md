@@ -1,4 +1,12 @@
 ## Changelog
+### v45.6 (2023-12-17) v44.8 (2023-12-23)
+**Added:**
+- System actions like Power Off, Suspend, ... were added to app search results. For quick access to available actions, you can use 'qq' as the search pattern
+
+**Fixed:**
+- Access to destroyed actors exceptions when a new window is created
+
+
 ### v45.5 (2023-12-17) v44.7 (2023-12-17)
 **Fixed:**
 - Title labels and workspace thumbnails stay invisible when search is activated before the slide-in animation completes
