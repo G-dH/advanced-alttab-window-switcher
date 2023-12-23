@@ -74,7 +74,7 @@ export default class AATWS extends Extension {
         this._updateDashVisibility();
 
         this._options.connect('changed', this._updateSettings.bind(this));
-        log(`${this.metadata.name}: enabled`);
+        console.debug(`${this.metadata.name}: enabled`);
     }
 
     disable() {
@@ -86,14 +86,8 @@ export default class AATWS extends Extension {
             Main.layoutManager.aatws = null;
         }
 
-        // comment out to pass ego review
-        // if (Main.extensionManager._getEnabledExtensions().includes(this.metadata.uuid)) {
-        //    const hide = true;
-        //    this._removeThumbnails(hide);
-        // } else {
         this._removeThumbnails();
         this._actions = null;
-        // }
 
         if (this._overrides)
             this._overrides.removeAll();
@@ -109,7 +103,7 @@ export default class AATWS extends Extension {
         SwitcherItems.cleanGlobal();
         WindowMenu.cleanGlobal();
         this._options = null;
-        log(`${this.metadata.name}: disabled`);
+        console.debug(`${this.metadata.name}: disabled`);
     }
 
     _removeThumbnails(hide = false) {
