@@ -3584,8 +3584,7 @@ export const WindowSwitcherPopup = {
 // ////////////////////////////////////////////////////////////////////////////////
 
 export const AppSwitcherPopup = {
-    after__init(/* switcherParams*/) {
-        // super._init(switcherParams);
+    after__init() {
         this._switcherMode = SwitcherMode.APPS;
         this.SHOW_APPS = true;
     },

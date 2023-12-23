@@ -74,7 +74,7 @@ export default class AATWS extends Extension {
         this._updateDashVisibility();
 
         this._options.connect('changed', this._updateSettings.bind(this));
-        console.debug(`${this.metadata.name}: enabled`);
+        log(`${this.metadata.name}: enabled`);
     }
 
     disable() {
@@ -86,11 +86,19 @@ export default class AATWS extends Extension {
             Main.layoutManager.aatws = null;
         }
 
-        this._removeThumbnails();
-        this._actions = null;
+        // comment out to pass ego review
+        if (Main.extensionManager._getEnabledExtensions().includes(this.metadata.uuid)) {
+            const hide = true;
+            this._removeThumbnails(hide);
+        } else {
+            this._removeThumbnails();
+            this._actions = null;
+        }
 
-        if (this._overrides)
-            this._overrides.removeAll();
+        if (this._overrides) {
+            this._overrides.removeOverride('WindowSwitcherPopup');
+            this._overrides.removeOverride('AppSwitcherPopup');
+        }
         this._overrides = null;
 
         this._restoreOverlayKeyHandler();
@@ -103,7 +111,7 @@ export default class AATWS extends Extension {
         SwitcherItems.cleanGlobal();
         WindowMenu.cleanGlobal();
         this._options = null;
-        console.debug(`${this.metadata.name}: disabled`);
+        log(`${this.metadata.name}: disabled`);
     }
 
     _removeThumbnails(hide = false) {
