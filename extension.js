@@ -89,8 +89,10 @@ export default class AATWS extends Extension {
         this._removeThumbnails();
         this._actions = null;
 
-        if (this._overrides)
-            this._overrides.removeAll();
+        if (this._overrides) {
+            this._overrides.removeOverride('WindowSwitcherPopup');
+            this._overrides.removeOverride('AppSwitcherPopup');
+        }
         this._overrides = null;
 
         this._restoreOverlayKeyHandler();
