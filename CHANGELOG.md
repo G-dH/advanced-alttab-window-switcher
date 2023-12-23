@@ -5,6 +5,7 @@
 
 **Fixed:**
 - Access to destroyed actors exceptions when a new window is created
+- App switcher error after disabling AATWS in GNOME 45
 
 
 ### v45.5 (2023-12-17) v44.7 (2023-12-17)
