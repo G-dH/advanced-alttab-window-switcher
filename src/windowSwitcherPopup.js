@@ -474,15 +474,11 @@ export const WindowSwitcherPopup = {
             };
 
             if (this._switcherList) {
+                this._switcherList._items = [];
                 this._switcherList.destroy();
-                this._items = [];
-                this._switcherList = null;
             }
 
             this._switcherList = new SwitcherList.SwitcherList(itemList, opt, switcherParams);
-            this._switcherList.connect('destroy', () => {
-                this._switcherList = null;
-            });
 
             this._connectShowAppsIcon();
 
@@ -726,11 +722,8 @@ export const WindowSwitcherPopup = {
 
         // Make sure the SwitcherList is always destroyed, it may not be
         // a child of the actor at this point.
-        if (this._switcherList) {
+        if (this._switcherList)
             this._switcherList.destroy();
-            this._switcherList = null;
-            this._items = [];
-        }
 
         // remove all local timeouts
         Object.values(this._timeoutIds).forEach(id => {
@@ -740,7 +733,6 @@ export const WindowSwitcherPopup = {
 
         if (this._wsManagerConId)
             global.workspace_manager.disconnect(this._wsManagerConId);
-
 
         if (this._newWindowConId)
             global.display.disconnect(this._newWindowConId);
@@ -823,6 +815,9 @@ export const WindowSwitcherPopup = {
     },
 
     vfunc_allocate(box) {
+        if (this._updateInProgress)
+            return;
+
         let monitor = Util.getMonitorByIndex(this._monitorIndex);
         box.set_size(monitor.width, monitor.height);
 
@@ -1020,11 +1015,10 @@ export const WindowSwitcherPopup = {
             if (this._doNotUpdateOnNewWindow)
                 return;
 
-            // new window was created but maybe not yet realized
+            // new window has been created but maybe not yet realized
             const winActor = win.get_compositor_private();
             if (!winActor.realized) {
                 // avoid updating switcher while waiting for window's realize signal
-                this._updateInProgress = true;
                 this._awaitingWin = win;
                 const realizeId = winActor.connect('realize', () => {
                     // update switcher only if no newer window is waiting for realization
@@ -1127,7 +1121,7 @@ export const WindowSwitcherPopup = {
         // even if the switcher is in app mode, try to search windows if no app matches the search pattern
         let filterSwitchAllowed = this._searchEntryIsEmpty() ||
                                     (opt.SEARCH_ALL && this._searchEntryNotEmpty());
-        const insufficientResultsLimit = this._searchEntryIsEmpty() ? 1 : 0;
+        const insufficientResultsLimit = this._searchEntryIsEmpty() && this.KEYBOARD_TRIGGERED ? 1 : 0;
         let mode = this._switcherMode === SwitcherMode.APPS ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
         const onlyApp = itemList.length <= 1 && this.SHOW_APPS && this._searchEntryIsEmpty();
 
@@ -3584,8 +3578,7 @@ export const WindowSwitcherPopup = {
 // ////////////////////////////////////////////////////////////////////////////////
 
 export const AppSwitcherPopup = {
-    after__init(/* switcherParams*/) {
-        // super._init(switcherParams);
+    after__init() {
         this._switcherMode = SwitcherMode.APPS;
         this.SHOW_APPS = true;
     },
