@@ -722,8 +722,10 @@ export const WindowSwitcherPopup = {
 
         // Make sure the SwitcherList is always destroyed, it may not be
         // a child of the actor at this point.
-        if (this._switcherList)
+        if (this._switcherList) {
+            this._switcherList._items = [];
             this._switcherList.destroy();
+        }
 
         // remove all local timeouts
         Object.values(this._timeoutIds).forEach(id => {
