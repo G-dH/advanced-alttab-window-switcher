@@ -45,14 +45,14 @@ export default class AATWS extends Extension {
     }
 
     enable() {
-        this._options = new Settings.Options(this);
+        this._opt = new Settings.Options(this);
 
         if (!this._actions)
-            this._actions = new Actions.Actions(this._options);
+            this._actions = new Actions.Actions(this._opt);
         else
             this._actions.resumeThumbnailsIfExist();
 
-        WindowSwitcherPopup.init(this._options, this);
+        WindowSwitcherPopup.init(this._opt, this);
         SwitcherList.init(this);
         SwitcherItems.init(this);
         WindowMenu.init(this);
@@ -64,16 +64,16 @@ export default class AATWS extends Extension {
         this._overrides.addOverride('AppSwitcherPopup', AltTab.AppSwitcherPopup.prototype, WindowSwitcherPopup.WindowSwitcherPopup);
         this._overrides.addOverride('AppSwitcherPopupInit', AltTab.AppSwitcherPopup.prototype, WindowSwitcherPopup.AppSwitcherPopup);
 
-        if (this._options.get('superKeyMode') > 1)
+        if (this._opt.get('superKeyMode') > 1)
             this._updateOverlayKeyHandler();
 
         this._updateAlwaysActivateFocusedConnection();
-        this._options.connect('changed::wm-always-activate-focused', this._updateAlwaysActivateFocusedConnection.bind(this));
+        this._opt.connect('changed::wm-always-activate-focused', this._updateAlwaysActivateFocusedConnection.bind(this));
 
         this._updateHotTrigger();
         this._updateDashVisibility();
 
-        this._options.connect('changed', this._updateSettings.bind(this));
+        this._opt.connect('changed', this._updateSettings.bind(this));
         log(`${this.metadata.name}: enabled`);
     }
 
@@ -110,7 +110,7 @@ export default class AATWS extends Extension {
         SwitcherList.cleanGlobal();
         SwitcherItems.cleanGlobal();
         WindowMenu.cleanGlobal();
-        this._options = null;
+        this._opt = null;
         log(`${this.metadata.name}: disabled`);
     }
 
@@ -123,7 +123,7 @@ export default class AATWS extends Extension {
 
     _updateAlwaysActivateFocusedConnection() {
         // GS 43 activates focused windows immediately by default and this can lead to problems with refocusing window you're switching from
-        /* if (this._options.get('wmAlwaysActivateFocused', true) && Settings.shellVersion < 43 && !this._wmFocusToActiveHandlerId) {
+        /* if (this._opt.get('wmAlwaysActivateFocused', true) && Settings.shellVersion < 43 && !this._wmFocusToActiveHandlerId) {
             this._wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', () => {
                 if (!Main.overview._shown) {
                     let win = global.display.get_focus_window();
@@ -153,7 +153,7 @@ export default class AATWS extends Extension {
     }
 
     _updateDashVisibility(reset) {
-        const visible = this._options.get('showDash', true);
+        const visible = this._opt.get('showDash', true);
         if (!visible) {
         // pass
         } else if (reset || visible === 1) {
@@ -167,7 +167,7 @@ export default class AATWS extends Extension {
     // Block original overlay key handler
         this._restoreOverlayKeyHandler();
 
-        if (this._options.get('superKeyMode', true) === 1)
+        if (this._opt.get('superKeyMode', true) === 1)
             return;
 
 
@@ -206,18 +206,18 @@ export default class AATWS extends Extension {
         const altTabPopup = new AltTab.WindowSwitcherPopup();
         if (mouseTriggered) {
             altTabPopup.KEYBOARD_TRIGGERED = false;
-            altTabPopup.POPUP_POSITION = this._options.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
-            const appSwitcherMode = this._options.get('hotEdgeMode') === 0;
+            altTabPopup.POPUP_POSITION = this._opt.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
+            const appSwitcherMode = this._opt.get('hotEdgeMode') === 0;
             altTabPopup.SHOW_APPS = !!appSwitcherMode;
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
             altTabPopup._monitorIndex = global.display.get_current_monitor();
         } else {
             altTabPopup.KEYBOARD_TRIGGERED = true;
-            const hotEdgePosition = this._options.get('hotEdgePosition');
+            const hotEdgePosition = this._opt.get('hotEdgePosition');
             let position = hotEdgePosition ? hotEdgePosition : null;
             if (position)
                 altTabPopup.POPUP_POSITION = position === 1 ? 1 : 3;
-            const appSwitcherMode = this._options.get('superKeyMode') === 2;
+            const appSwitcherMode = this._opt.get('superKeyMode') === 2;
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
             altTabPopup.SHOW_APPS = !!appSwitcherMode;
             altTabPopup._overlayKeyTriggered = true;
@@ -230,7 +230,7 @@ export default class AATWS extends Extension {
     _updateHotTrigger() {
         this._removePressureBarrier();
 
-        const position = this._options.get('hotEdgePosition', true);
+        const position = this._opt.get('hotEdgePosition', true);
 
         if (!position)
             return;
@@ -239,7 +239,7 @@ export default class AATWS extends Extension {
         const primaryMonitor = global.display.get_primary_monitor();
 
         for (let i = 0; i < Main.layoutManager.monitors.length; ++i) {
-            if (!this._options.get('hotEdgeMonitor', true) && i !== primaryMonitor)
+            if (!this._opt.get('hotEdgeMonitor', true) && i !== primaryMonitor)
                 continue;
             // Use code of parent class to remove old barriers but new barriers
             // must be created here since the properties are construct only.
@@ -254,7 +254,7 @@ export default class AATWS extends Extension {
             // ...and block opposite directions. Neither with X nor with Wayland
             // ...such barriers work.
 
-            const scale = this._options.get('hotEdgeWidth', true) / 100;
+            const scale = this._opt.get('hotEdgeWidth', true) / 100;
             const offset = Math.round(geometry.width * (1 - scale) / 2);
             const x1 = geometry.x + offset;
             const x2 = geometry.x + geometry.width - offset;
@@ -271,7 +271,7 @@ export default class AATWS extends Extension {
             });
 
             const pressureBarrier = new Layout.PressureBarrier(
-                this._options.get('hotEdgePressure', true), // pressure threshold
+                this._opt.get('hotEdgePressure', true), // pressure threshold
                 HOT_CORNER_PRESSURE_TIMEOUT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
             );
@@ -322,7 +322,7 @@ export default class AATWS extends Extension {
     }
 
     _onPressureTriggered(monitor) {
-        const fsAllowed = this._options.get('hotEdgeFullScreen');
+        const fsAllowed = this._opt.get('hotEdgeFullScreen');
         if (!(!fsAllowed && monitor.inFullscreen))
             this._toggleSwitcher(true);
     }

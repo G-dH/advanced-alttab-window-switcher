@@ -22,9 +22,9 @@ import * as Util from './util.js';
 
 export const Actions = class {
     constructor(options) {
-        this._gOptions = options;
-        this.WIN_SKIP_MINIMIZED = this._gOptions.get('winSkipMinimized');
-        this.WS_SHOW_POPUP = this._gOptions.get('wsShowSwitcherPopup');
+        this._opt = options;
+        this.WIN_SKIP_MINIMIZED = this._opt.get('winSkipMinimized');
+        this.WS_SHOW_POPUP = this._opt.get('wsShowSwitcherPopup');
     }
 
     removeThumbnails() {
@@ -248,7 +248,7 @@ export const Actions = class {
             return;
 
         let monitorHeight = Util.getCurrentMonitorGeometry().height;
-        let scale = this._gOptions.get('winThumbnailScale');
+        let scale = this._opt.get('winThumbnailScale');
         this._windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this._windowThumbnails, {
             'height': Math.floor(scale / 100 * monitorHeight),
             'thumbnailsOnScreen': this._windowThumbnails.length,

@@ -16,9 +16,9 @@ import Adw from 'gi://Adw';
 
 
 export const ItemFactory = class ItemFactory {
-    constructor(gOptions) {
-        this._options = gOptions;
-        this._settings = gOptions._gsettings;
+    constructor(opt) {
+        this._opt = opt;
+        this._settings = opt._gsettings;
     }
 
     getRowWidget(text, caption, widget, variable, options = []) {
@@ -59,8 +59,8 @@ export const ItemFactory = class ItemFactory {
 
         let key;
 
-        if (variable && this._options.options[variable]) {
-            const opt = this._options.options[variable];
+        if (variable && this._opt.options[variable]) {
+            const opt = this._opt.options[variable];
             key = opt[1];
         }
 
@@ -88,7 +88,7 @@ export const ItemFactory = class ItemFactory {
 
     _connectDropDown(widget, key, variable, options) {
         const model = widget.get_model();
-        const currentValue = this._options.get(variable);
+        const currentValue = this._opt.get(variable);
         for (let i = 0; i < options.length; i++) {
             const text = options[i][0];
             const id = options[i][1];
@@ -110,11 +110,11 @@ export const ItemFactory = class ItemFactory {
 
         widget.connect('notify::selected-item', dropDown => {
             const item = dropDown.get_selected_item();
-            this._options.set(variable, item.id);
+            this._opt.set(variable, item.id);
         });
 
-        this._options.connect(`changed::${key}`, () => {
-            const newId = this._options.get(variable, true);
+        this._opt.connect(`changed::${key}`, () => {
+            const newId = this._opt.get(variable, true);
             for (let i = 0; i < options.length; i++) {
                 const id = options[i][1];
                 if (id === newId)
@@ -146,7 +146,7 @@ export const ItemFactory = class ItemFactory {
                 txt = txt.slice(0, 2);
                 entry.set_text(txt);
                 entry._doNotEdit = false;
-                this._options.set(variable, txt);
+                this._opt.set(variable, txt);
             });
 
             widget.set_icon_from_icon_name(Gtk.EntryIconPosition.SECONDARY, 'edit-clear-symbolic');
