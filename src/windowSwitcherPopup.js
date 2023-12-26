@@ -720,13 +720,6 @@ export const WindowSwitcherPopup = {
         if (this._noModsTimeoutId)
             GLib.source_remove(this._noModsTimeoutId);
 
-        // Make sure the SwitcherList is always destroyed, it may not be
-        // a child of the actor at this point.
-        if (this._switcherList) {
-            this._switcherList._items = [];
-            this._switcherList.destroy();
-        }
-
         // remove all local timeouts
         Object.values(this._timeoutIds).forEach(id => {
             if (id)
@@ -754,6 +747,13 @@ export const WindowSwitcherPopup = {
         if (this._wsTmb) {
             this.remove_child(this._wsTmb);
             this._wsTmb = null;
+        }
+
+        // Make sure the SwitcherList is always destroyed, it may not be
+        // a child of the actor at this point.
+        if (this._switcherList) {
+            this._switcherList._items = [];
+            this._switcherList.destroy();
         }
 
         Main.layoutManager.aatws = null;
@@ -1825,7 +1825,7 @@ export const WindowSwitcherPopup = {
         // the action is an integer which is bind to the registered shortcut
         // but custom shortcuts are not stable
         let action = global.display.get_keybinding_action(
-            keyEvent.hardware_keycode, keyEvent.modifier_state);
+            keyEvent.get_key_code(), keyEvent.get_state());
         this._disableHover();
         if (this._keyPressHandler(keysym, action) !== Clutter.EVENT_PROPAGATE) {
             this._showImmediately();
