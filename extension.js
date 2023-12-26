@@ -61,7 +61,6 @@ function enable() {
     _updateHotTrigger();
     _updateDashVisibility();
 
-    log(`${Me.metadata.name}: enabled`);
     enabled = true;
     return GLib.SOURCE_REMOVE;
 }
@@ -98,7 +97,6 @@ function disable() {
     _updateDashVisibility(true);
 
     _options = null;
-    log(`${Me.metadata.name}: disabled`);
 }
 
 function _removeThumbnails(hide = false) {
