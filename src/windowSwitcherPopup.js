@@ -717,11 +717,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._noModsTimeoutId)
             GLib.source_remove(this._noModsTimeoutId);
 
-        // Make sure the SwitcherList is always destroyed, it may not be
-        // a child of the actor at this point.
-        if (this._switcherList)
-            this._switcherList.destroy();
-
         // remove all local timeouts
         Object.values(this._timeoutIds).forEach(id => {
             if (id)
@@ -751,6 +746,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         if (this._wsTmb) {
             this.remove_child(this._wsTmb);
             this._wsTmb = null;
+        }
+
+        // Make sure the SwitcherList is always destroyed, it may not be
+        // a child of the actor at this point.
+        if (this._switcherList) {
+            this._switcherList._items = [];
+            this._switcherList.destroy();
         }
 
         global.advancedWindowSwitcher = null;
