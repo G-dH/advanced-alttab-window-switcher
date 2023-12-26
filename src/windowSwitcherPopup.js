@@ -1823,7 +1823,7 @@ export const WindowSwitcherPopup = {
         // the action is an integer which is bind to the registered shortcut
         // but custom shortcuts are not stable
         let action = global.display.get_keybinding_action(
-            keyEvent.hardware_keycode, keyEvent.modifier_state);
+            keyEvent.get_key_code(), keyEvent.get_state());
         this._disableHover();
         if (this._keyPressHandler(keysym, action) !== Clutter.EVENT_PROPAGATE) {
             this._showImmediately();
