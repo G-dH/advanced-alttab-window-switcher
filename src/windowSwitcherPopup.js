@@ -816,7 +816,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     vfunc_allocate(box, flags) {
-        if (this._updateInProgress)
+        if (this._updateInProgress && !this._firstRun)
             return;
 
         let monitor = this._getMonitorByIndex(this._monitorIndex);
