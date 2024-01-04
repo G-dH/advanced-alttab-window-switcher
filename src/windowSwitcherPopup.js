@@ -817,7 +817,7 @@ export const WindowSwitcherPopup = {
     },
 
     vfunc_allocate(box) {
-        if (this._updateInProgress)
+        if (this._updateInProgress && !this._firstRun)
             return;
 
         let monitor = Util.getMonitorByIndex(this._monitorIndex);
