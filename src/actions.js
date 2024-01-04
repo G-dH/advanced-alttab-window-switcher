@@ -9,7 +9,7 @@
 
 'use strict';
 
-const { GLib, GObject, St, Meta, Shell } = imports.gi;
+const { GLib, GObject, St, Meta, Shell, Clutter } = imports.gi;
 
 const Main                   = imports.ui.main;
 const ExtensionUtils         = imports.misc.extensionUtils;
@@ -32,42 +32,56 @@ function _getWindowApp(metaWindow) {
 }
 
 var Actions = class {
-    constructor() {
-        this._gOptions = new Settings.Options();
-        this.WIN_SKIP_MINIMIZED = this._gOptions.get('winSkipMinimized');
-        this.WS_SHOW_POPUP = this._gOptions.get('wsShowSwitcherPopup');
+    constructor(opt) {
+        this._opt = opt;
+        this.WIN_SKIP_MINIMIZED = this._opt.get('winSkipMinimized');
+        this.WS_SHOW_POPUP = this._opt.get('wsShowSwitcherPopup');
     }
 
     clean() {
-        this._gOptions = null;
+        this.removeThumbnails();
+        this._opt = null;
         this._shellSettings = null;
+        this._windowThumbnails = null;
     }
 
     removeThumbnails() {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
+        if (this._windowThumbnails) {
+            this._windowThumbnails.forEach(
                 t => {
                     if (t)
                         t.destroy();
                 }
             );
-            global.stage.windowThumbnails = undefined;
+            this._windowThumbnails = [];
+        }
+        this._disconnectThumbnails();
+    }
+
+    _disconnectThumbnails() {
+        if (this._showingConId) {
+            Main.overview.disconnect(this._showingConId);
+            this._showingConId = 0;
+        }
+        if (this._hidingConId) {
+            Main.overview.disconnect(this._hidingConId);
+            this._hidingConId = 0;
         }
     }
 
     removeLastThumbnail() {
-        if (!global.stage.windowThumbnails)
+        if (!this._windowThumbnails)
             return;
 
-        const length = global.stage.windowThumbnails.length;
+        const length = this._windowThumbnails.length;
         if (length)
-            global.stage.windowThumbnails[length - 1].destroy();
-        global.stage.windowThumbnails.pop();
+            this._windowThumbnails[length - 1].destroy();
+        this._windowThumbnails.pop();
     }
 
     hideThumbnails() {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
+        if (this._windowThumbnails) {
+            this._windowThumbnails.forEach(
                 t => {
                     if (t)
                         t.hide();
@@ -77,8 +91,8 @@ var Actions = class {
     }
 
     resumeThumbnailsIfExist() {
-        if (global.stage.windowThumbnails) {
-            global.stage.windowThumbnails.forEach(
+        if (this._windowThumbnails) {
+            this._windowThumbnails.forEach(
                 t => {
                     if (t)
                         t.show();
@@ -301,8 +315,8 @@ var Actions = class {
     }
 
     makeThumbnailWindow(metaWindow) {
-        if (!global.stage.windowThumbnails)
-            global.stage.windowThumbnails = [];
+        if (!this._windowThumbnails)
+            this._windowThumbnails = [];
         let metaWin;
         if (metaWindow)
             metaWin = metaWindow;
@@ -311,11 +325,38 @@ var Actions = class {
             return;
 
         let monitorHeight = getCurrentMonitorGeometry().height;
-        let scale = this._gOptions.get('winThumbnailScale');
-        global.stage.windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, global.stage, {
+        let scale = this._opt.get('winThumbnailScale');
+        this._windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this._windowThumbnails, {
             'height': Math.floor(scale / 100 * monitorHeight),
-            'thumbnailsOnScreen': global.stage.windowThumbnails.length,
+            'thumbnailsOnScreen': this._windowThumbnails.length,
         }));
+
+        this._hidingConId = Main.overview.connect('hiding', () => this._showThumbnails());
+        this._showingConId = Main.overview.connect('showing', () => this._hideThumbnails());
+    }
+
+    _hideThumbnails() {
+        this._windowThumbnails.forEach(tmb => {
+            tmb.ease({
+                opacity: 0,
+                duration: 200,
+                mode: Clutter.AnimationMode.LINEAR,
+                onComplete: () => tmb.hide(),
+            });
+        });
+        this._thumbnailsHidden = true;
+    }
+
+    _showThumbnails() {
+        this._windowThumbnails.forEach(tmb => {
+            tmb.show();
+            tmb.ease({
+                opacity: 255,
+                duration: 100,
+                mode: Clutter.AnimationMode.LINEAR,
+            });
+        });
+        this._thumbnailsHidden = false;
     }
 
     openPrefsWindow() {

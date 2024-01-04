@@ -22,7 +22,7 @@ const CLOSE_BTN_OPACITY = 240;
 
 var   WindowThumbnail = GObject.registerClass(
 class WindowThumbnail extends St.BoxLayout {
-    _init(metaWin, parent, args) {
+    _init(metaWin, tmbCollector, args) {
         this._hoverShowsPreview = false;
         this._customOpacity = 255;
         this._initTmbHeight = args.height;
@@ -32,7 +32,7 @@ class WindowThumbnail extends St.BoxLayout {
         this._reverseTmbWheelFunc = false;
         this._click_count = 1;
         this._prevBtnPressTime = 0;
-        this._parent = parent;
+        this._tmbCollector = tmbCollector;
         this.w = metaWin;
         super._init({ visible: true, reactive: true, can_focus: true, track_hover: true });
         this.connect('button-release-event', this._onBtnReleased.bind(this));
@@ -219,7 +219,7 @@ class WindowThumbnail extends St.BoxLayout {
         if (this._winPreview)
             this._destroyWindowPreview();
 
-        this._parent.windowThumbnails.splice(this._parent.windowThumbnails.indexOf(this), 1);
+        this._tmbCollector.splice(this._tmbCollector.indexOf(this), 1);
         this.destroy();
     }
 

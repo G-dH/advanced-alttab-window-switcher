@@ -21,315 +21,302 @@ const Settings             = Me.imports.src.settings;
 const WindowSwitcherPopup  = Me.imports.src.windowSwitcherPopup;
 const Actions              = Me.imports.src.actions;
 
-let _delayId;
-let enabled = false;
-let _options;
-let _origAltTabWSP;
-let _origAltTabASP;
-let _originalOverlayKeyHandlerId = null;
-let _signalOverlayKey = null;
-let _wmFocusToActiveHandlerId = 0;
-let _monitorsChangedSigId = 0;
-let _monitorsChangedDelayId = 0;
-let _pressureBarriers = null;
 
-function init() {
-    ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
+function init(me) {
+    // me === Me
+    ExtensionUtils.initTranslations(me.metadata['gettext-domain']);
+    return new AATWS();
 }
 
-function enable() {
-    if (enabled) {
-        let actions = new Actions.Actions();
-        actions.resumeThumbnailsIfExist();
-        actions = undefined;
+class AATWS {
+    constructor() {
+        this._originalOverlayKeyHandlerId = null;
+        this._signalOverlayKey = null;
+        this._wmFocusToActiveHandlerId = 0;
+        this._monitorsChangedConId = 0;
+        this._monitorsChangedDelayId = 0;
+        this._pressureBarriers = null;
+        this._actions = null;
     }
-    _options = new Settings.Options();
-    WindowSwitcherPopup.options = _options;
-    // _options.connect('changed::super-key-mode', _updateOverlayKeyHandler);
-    _options.connect('changed', _updateSettings);
-    _origAltTabWSP = AltTab.WindowSwitcherPopup;
-    _origAltTabASP = AltTab.AppSwitcherPopup;
-    AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
-    AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
 
-    if (_options.get('superKeyMode') > 1)
-        _updateOverlayKeyHandler();
+    enable() {
+        this._opt = new Settings.Options();
+        WindowSwitcherPopup.opt = this._opt;
 
-    _updateAlwaysActivateFocusedConnection();
-    _options.connect('changed::wm-always-activate-focused', _updateAlwaysActivateFocusedConnection);
+        if (!this._actions)
+            this._actions = new Actions.Actions(this._opt);
+        else
+            this._actions.resumeThumbnailsIfExist();
+        WindowSwitcherPopup.actions = this._actions;
 
-    _updateHotTrigger();
-    _updateDashVisibility();
+        // this._opt.connect('changed::super-key-mode', this._updateOverlayKeyHandler);
+        this._opt.connect('changed', this._updateSettings.bind(this));
 
-    log(`${Me.metadata.name}: enabled`);
-    enabled = true;
-    return GLib.SOURCE_REMOVE;
-}
+        this._origAltTabWSP = AltTab.WindowSwitcherPopup;
+        this._origAltTabASP = AltTab.AppSwitcherPopup;
+        AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
+        AltTab.AppSwitcherPopup = WindowSwitcherPopup.AppSwitcherPopup;
 
-function disable() {
-    if (_wmFocusToActiveHandlerId)
-        global.display.disconnect(_wmFocusToActiveHandlerId);
+        if (this._opt.get('superKeyMode') > 1)
+            this._updateOverlayKeyHandler();
 
-    if (global.advancedWindowSwitcher) {
-        global.advancedWindowSwitcher.destroy();
-        global.advancedWindowSwitcher = null;
+        this._updateAlwaysActivateFocusedConnection();
+        this._opt.connect('changed::wm-always-activate-focused', this._updateAlwaysActivateFocusedConnection.bind(this));
+
+        this._updateHotTrigger();
+        this._updateDashVisibility();
+
+        // console.debug(`${Me.metadata.name}: enabled`);
+        return GLib.SOURCE_REMOVE;
     }
-    if (_delayId)
-        GLib.source_remove(_delayId);
 
-    // if (_extensionEnabled()) {
-    //    const hide = true;
-    //    _removeThumbnails(hide);
-    // } else {
-    _removeThumbnails();
-    enabled = false;
-    // }
+    disable() {
+        if (this._wmFocusToActiveHandlerId)
+            global.display.disconnect(this._wmFocusToActiveHandlerId);
 
-    if (_origAltTabWSP)
-        AltTab.WindowSwitcherPopup = _origAltTabWSP;
-    if (_origAltTabASP)
-        AltTab.AppSwitcherPopup = _origAltTabASP;
-    _origAltTabWSP = null;
-    _origAltTabASP = null;
-    _restoreOverlayKeyHandler();
-    WindowSwitcherPopup.options = null;
+        if (this.popup) {
+            this.popup.destroy();
+            this.popup = null;
+        }
 
-    _removePressureBarrier();
-    _updateDashVisibility(true);
+        if (Main.sessionMode.isLocked && this._extensionEnabled()) {
+            this._actions.hideThumbnails();
+        } else {
+            this._actions.clean();
+            this._actions = null;
+        }
 
-    _options = null;
-    log(`${Me.metadata.name}: disabled`);
-}
+        if (this._origAltTabWSP)
+            AltTab.WindowSwitcherPopup = this._origAltTabWSP;
+        if (this._origAltTabASP)
+            AltTab.AppSwitcherPopup = this._origAltTabASP;
+        this._origAltTabWSP = null;
+        this._origAltTabASP = null;
+        this._restoreOverlayKeyHandler();
+        WindowSwitcherPopup.options = null;
 
-function _removeThumbnails(hide = false) {
-    if (!global.stage.windowThumbnails)
-        return;
+        this._removePressureBarrier();
+        this._updateDashVisibility(true);
 
-    let actions = new Actions.Actions();
+        this._opt = null;
+        // console.debug(`${Me.metadata.name}: disabled`);
+    }
 
-    if (hide)
-        actions.hideThumbnails();
-    else
-        actions.removeThumbnails();
-
-    actions.clean();
-    actions = undefined;
-}
-
-function _updateAlwaysActivateFocusedConnection() {
+    _updateAlwaysActivateFocusedConnection() {
     // GS 43 activates focused windows immediately by default and this can lead to problems with refocusing window you're switching from
-    if (_options.get('wmAlwaysActivateFocused', true) && Settings.shellVersion < 43 && !_wmFocusToActiveHandlerId) {
-        _wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', () => {
-            if (!Main.overview._shown) {
-                let win = global.display.get_focus_window();
-                if (win)
-                    Main.activateWindow(win);
-            }
-        });
-    } else if (_wmFocusToActiveHandlerId) {
-        global.display.disconnect(_wmFocusToActiveHandlerId);
-        _wmFocusToActiveHandlerId = 0;
-    }
-}
-
-function _updateSettings(settings, key) {
-    if (key === 'super-key-mode')
-        _updateOverlayKeyHandler();
-
-
-    if (key === 'hot-edge-position' || key === 'hot-edge-monitor' ||
-        key === 'hot-edge-pressure' || key === 'hot-edge-width')
-        _updateHotTrigger();
-
-
-    if (key === 'show-dash')
-        _updateDashVisibility();
-}
-
-function _updateDashVisibility(reset) {
-    const visible = _options.get('showDash', true);
-    if (!visible) {
-        // pass
-    } else if (reset || visible === 1) {
-        Main.overview.dash.visible = true;
-    } else {
-        Main.overview.dash.visible = false;
-    }
-}
-
-function _updateOverlayKeyHandler() {
-    // Block original overlay key handler
-    _restoreOverlayKeyHandler();
-
-    if (_options.get('superKeyMode', true) === 1)
-        return;
-
-
-    _originalOverlayKeyHandlerId = GObject.signal_handler_find(global.display, { signalId: 'overlay-key' });
-    if (_originalOverlayKeyHandlerId !== null)
-        global.display.block_signal_handler(_originalOverlayKeyHandlerId);
-
-
-    // Connect modified overlay key handler
-    let _a11ySettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.a11y.keyboard' });
-    _signalOverlayKey = global.display.connect('overlay-key', () => {
-        if (_a11ySettings.get_boolean('stickykeys-enable'))
-            return;
-        _toggleSwitcher();
-    });
-}
-
-function _restoreOverlayKeyHandler() {
-    // Disconnect modified overlay key handler
-    if (_signalOverlayKey !== null) {
-        global.display.disconnect(_signalOverlayKey);
-        _signalOverlayKey = null;
-    }
-
-    // Unblock original overlay key handler
-    if (_originalOverlayKeyHandlerId !== null) {
-        global.display.unblock_signal_handler(_originalOverlayKeyHandlerId);
-        _originalOverlayKeyHandlerId = null;
-    }
-}
-
-function _toggleSwitcher(mouseTriggered = false) {
-    if (Main.overview._visible)
-        return;
-
-    const altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
-    if (mouseTriggered) {
-        altTabPopup.KEYBOARD_TRIGGERED = false;
-        altTabPopup.POPUP_POSITION = _options.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
-        const appSwitcherMode = _options.get('hotEdgeMode') === 0;
-        altTabPopup.SHOW_APPS = !!appSwitcherMode;
-        altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
-        altTabPopup._monitorIndex = global.display.get_current_monitor();
-    } else {
-        altTabPopup.KEYBOARD_TRIGGERED = true;
-        const hotEdgePosition = _options.get('hotEdgePosition');
-        let position = hotEdgePosition ? hotEdgePosition : null;
-        if (position)
-            altTabPopup.POPUP_POSITION = position === 1 ? 1 : 3;
-        const appSwitcherMode = _options.get('superKeyMode') === 2;
-        altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
-        altTabPopup.SHOW_APPS = !!appSwitcherMode;
-        altTabPopup._overlayKeyTriggered = true;
-    }
-    altTabPopup._modifierMask = 0;
-    altTabPopup.POSITION_POINTER = false;
-    altTabPopup.show();
-}
-
-function _updateHotTrigger() {
-    _removePressureBarrier();
-
-    const position = _options.get('hotEdgePosition', true);
-
-    if (!position)
-        return;
-
-    _pressureBarriers = [];
-    const primaryMonitor = global.display.get_primary_monitor();
-
-    for (let i = 0; i < Main.layoutManager.monitors.length; ++i) {
-        if (!_options.get('hotEdgeMonitor', true) && i !== primaryMonitor)
-            continue;
-        // Use code of parent class to remove old barriers but new barriers
-        // must be created here since the properties are construct only.
-        // super.setBarrierSize(0);
-        const geometry = global.display.get_monitor_geometry(i);
-        const BD = Meta.BarrierDirection;
-        // for X11 session:
-        //  right vertical and bottom horizontal pointer barriers must be 1px further to match the screen edge
-        // ...because barriers are actually placed between pixels, along the top/left edge of the addressed pixels
-        // ...Wayland behave differently and addressed pixel means the one behind which pointer can't go
-        // but avoid barriers that are at the same position
-        // ...and block opposite directions. Neither with X nor with Wayland
-        // ...such barriers work.
-
-        const scale = _options.get('hotEdgeWidth', true) / 100;
-        const offset = Math.round(geometry.width * (1 - scale) / 2);
-        const x1 = geometry.x + offset;
-        const x2 = geometry.x + geometry.width - offset;
-        let y = position === 1 ? geometry.y : geometry.y + geometry.height;
-        y -= Meta.is_wayland_compositor() ? 1 : 0;
-
-        const horizontalBarrier = new Meta.Barrier({
-            display: global.display,
-            x1,
-            x2,
-            y1: y,
-            y2: y,
-            directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
-        });
-
-        const pressureBarrier = new Layout.PressureBarrier(
-            _options.get('hotEdgePressure', true), // pressure threshold
-            Layout.HOT_CORNER_PRESSURE_TIMEOUT,
-            Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
-        );
-
-        pressureBarrier.connect('trigger', _onPressureTriggered.bind(this, Main.layoutManager.monitors[i]));
-        pressureBarrier.addBarrier(horizontalBarrier);
-
-        _pressureBarriers.push([pressureBarrier, horizontalBarrier]);
-        if (!_monitorsChangedSigId) {
-            _monitorsChangedSigId = Main.layoutManager.connect('monitors-changed', () => {
-            // avoid unnecessary executions, the signal is being emitted multiple times
-                if (!_monitorsChangedDelayId) {
-                    _monitorsChangedDelayId = GLib.timeout_add_seconds(
-                        GLib.PRIORITY_DEFAULT,
-                        1,
-                        () => {
-                            _updateHotTrigger();
-                            _monitorsChangedDelayId = 0;
-                            return GLib.SOURCE_REMOVE;
-                        }
-                    );
+        if (this._opt.get('wmAlwaysActivateFocused', true) && Settings.shellVersion < 43 && !this._wmFocusToActiveHandlerId) {
+            this._wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', () => {
+                if (!Main.overview._shown) {
+                    let win = global.display.get_focus_window();
+                    if (win)
+                        Main.activateWindow(win);
                 }
-                return GLib.SOURCE_CONTINUE;
             });
+        } else if (this._wmFocusToActiveHandlerId) {
+            global.display.disconnect(this._wmFocusToActiveHandlerId);
+            this._wmFocusToActiveHandlerId = 0;
         }
     }
-}
 
-function _removePressureBarrier() {
-    if (_pressureBarriers !== null) {
-        _pressureBarriers.forEach(barrier => {
-            barrier[0].removeBarrier(barrier[1]);
-            barrier[1].destroy();
-            barrier[0].destroy();
+    _updateSettings(settings, key) {
+        if (key === 'super-key-mode')
+            this._updateOverlayKeyHandler();
+
+
+        if (key === 'hot-edge-position' || key === 'hot-edge-monitor' ||
+        key === 'hot-edge-pressure' || key === 'hot-edge-width')
+            this._updateHotTrigger();
+
+
+        if (key === 'show-dash')
+            this._updateDashVisibility();
+    }
+
+    _updateDashVisibility(reset) {
+        const visible = this._opt.get('showDash', true);
+        if (!visible) {
+        // pass
+        } else if (reset || visible === 1) {
+            Main.overview.dash.visible = true;
+        } else {
+            Main.overview.dash.visible = false;
+        }
+    }
+
+    _updateOverlayKeyHandler() {
+    // Block original overlay key handler
+        this._restoreOverlayKeyHandler();
+
+        if (this._opt.get('superKeyMode', true) === 1)
+            return;
+
+
+        this._originalOverlayKeyHandlerId = GObject.signal_handler_find(global.display, { signalId: 'overlay-key' });
+        if (this._originalOverlayKeyHandlerId !== null)
+            global.display.block_signal_handler(this._originalOverlayKeyHandlerId);
+
+
+        // Connect modified overlay key handler
+        let _a11ySettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.a11y.keyboard' });
+        this._signalOverlayKey = global.display.connect('overlay-key', () => {
+            if (_a11ySettings.get_boolean('stickykeys-enable'))
+                return;
+            this._toggleSwitcher();
         });
-
-        _pressureBarriers = null;
     }
 
-    if (_monitorsChangedSigId) {
-        Main.layoutManager.disconnect(_monitorsChangedSigId);
-        _monitorsChangedSigId = 0;
+    _restoreOverlayKeyHandler() {
+    // Disconnect modified overlay key handler
+        if (this._signalOverlayKey !== null) {
+            global.display.disconnect(this._signalOverlayKey);
+            this._signalOverlayKey = null;
+        }
+
+        // Unblock original overlay key handler
+        if (this._originalOverlayKeyHandlerId !== null) {
+            global.display.unblock_signal_handler(this._originalOverlayKeyHandlerId);
+            this._originalOverlayKeyHandlerId = null;
+        }
     }
-    if (_monitorsChangedDelayId) {
-        GLib.source_remove(_monitorsChangedDelayId);
-        _monitorsChangedDelayId = 0;
+
+    _toggleSwitcher(mouseTriggered = false) {
+        if (Main.overview._visible)
+            return;
+
+        const altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
+        if (mouseTriggered) {
+            altTabPopup.KEYBOARD_TRIGGERED = false;
+            altTabPopup.POPUP_POSITION = this._opt.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
+            const appSwitcherMode = this._opt.get('hotEdgeMode') === 0;
+            altTabPopup.SHOW_APPS = !!appSwitcherMode;
+            altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
+            altTabPopup._monitorIndex = global.display.get_current_monitor();
+        } else {
+            altTabPopup.KEYBOARD_TRIGGERED = true;
+            const hotEdgePosition = this._opt.get('hotEdgePosition');
+            let position = hotEdgePosition ? hotEdgePosition : null;
+            if (position)
+                altTabPopup.POPUP_POSITION = position === 1 ? 1 : 3;
+            const appSwitcherMode = this._opt.get('superKeyMode') === 2;
+            altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
+            altTabPopup.SHOW_APPS = !!appSwitcherMode;
+            altTabPopup._overlayKeyTriggered = true;
+        }
+        altTabPopup._modifierMask = 0;
+        altTabPopup.POSITION_POINTER = false;
+        altTabPopup.show();
     }
-}
 
-function _onPressureTriggered(monitor) {
-    const fsAllowed = _options.get('hotEdgeFullScreen');
-    if (!(!fsAllowed && monitor.inFullscreen))
-        _toggleSwitcher(true);
-}
+    _updateHotTrigger() {
+        this._removePressureBarrier();
 
-function _extensionEnabled() {
-    const shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
-    let enabledE = shellSettings.get_strv('enabled-extensions');
-    enabledE = enabledE.indexOf(Me.metadata.uuid) > -1;
-    let disabledE = shellSettings.get_strv('disabled-extensions');
-    disabledE = disabledE.indexOf(Me.metadata.uuid) > -1;
-    let disableUser = shellSettings.get_boolean('disable-user-extensions');
+        const position = this._opt.get('hotEdgePosition', true);
 
-    if (enabledE && !disabledE && !disableUser)
-        return true;
-    return false;
+        if (!position)
+            return;
+
+        this._pressureBarriers = [];
+        const primaryMonitor = global.display.get_primary_monitor();
+
+        for (let i = 0; i < Main.layoutManager.monitors.length; ++i) {
+            if (!this._opt.get('hotEdgeMonitor', true) && i !== primaryMonitor)
+                continue;
+            // Use code of parent class to remove old barriers but new barriers
+            // must be created here since the properties are construct only.
+            // super.setBarrierSize(0);
+            const geometry = global.display.get_monitor_geometry(i);
+            const BD = Meta.BarrierDirection;
+            // for X11 session:
+            //  right vertical and bottom horizontal pointer barriers must be 1px further to match the screen edge
+            // ...because barriers are actually placed between pixels, along the top/left edge of the addressed pixels
+            // ...Wayland behave differently and addressed pixel means the one behind which pointer can't go
+            // but avoid barriers that are at the same position
+            // ...and block opposite directions. Neither with X nor with Wayland
+            // ...such barriers work.
+
+            const scale = this._opt.get('hotEdgeWidth', true) / 100;
+            const offset = Math.round(geometry.width * (1 - scale) / 2);
+            const x1 = geometry.x + offset;
+            const x2 = geometry.x + geometry.width - offset;
+            let y = position === 1 ? geometry.y : geometry.y + geometry.height;
+            y -= Meta.is_wayland_compositor() ? 1 : 0;
+
+            const horizontalBarrier = new Meta.Barrier({
+                display: global.display,
+                x1,
+                x2,
+                y1: y,
+                y2: y,
+                directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
+            });
+
+            const pressureBarrier = new Layout.PressureBarrier(
+                this._opt.get('hotEdgePressure', true), // pressure threshold
+                Layout.HOT_CORNER_PRESSURE_TIMEOUT,
+                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
+            );
+
+            pressureBarrier.connect('trigger', this._onPressureTriggered.bind(this, Main.layoutManager.monitors[i]));
+            pressureBarrier.addBarrier(horizontalBarrier);
+
+            this._pressureBarriers.push([pressureBarrier, horizontalBarrier]);
+            if (!this._monitorsChangedConId) {
+                this._monitorsChangedConId = Main.layoutManager.connect('monitors-changed', () => {
+                    // avoid unnecessary executions, the signal is being emitted multiple times
+                    if (!this._monitorsChangedDelayId) {
+                        this._monitorsChangedDelayId = GLib.timeout_add_seconds(
+                            GLib.PRIORITY_DEFAULT,
+                            1,
+                            () => {
+                                this._updateHotTrigger();
+                                this._monitorsChangedDelayId = 0;
+                                return GLib.SOURCE_REMOVE;
+                            }
+                        );
+                    }
+                    return GLib.SOURCE_CONTINUE;
+                });
+            }
+        }
+    }
+
+    _removePressureBarrier() {
+        if (this._pressureBarriers !== null) {
+            this._pressureBarriers.forEach(barrier => {
+                barrier[0].removeBarrier(barrier[1]);
+                barrier[1].destroy();
+                barrier[0].destroy();
+            });
+
+            this._pressureBarriers = null;
+        }
+
+        if (this._monitorsChangedConId) {
+            Main.layoutManager.disconnect(this._monitorsChangedConId);
+            this._monitorsChangedConId = 0;
+        }
+        if (this._monitorsChangedDelayId) {
+            GLib.source_remove(this._monitorsChangedDelayId);
+            this._monitorsChangedDelayId = 0;
+        }
+    }
+
+    _onPressureTriggered(monitor) {
+        const fsAllowed = this._opt.get('hotEdgeFullScreen');
+        if (!(!fsAllowed && monitor.inFullscreen))
+            this._toggleSwitcher(true);
+    }
+
+    _extensionEnabled() {
+        const shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
+        let enabledE = shellSettings.get_strv('enabled-extensions');
+        enabledE = enabledE.indexOf(Me.metadata.uuid) > -1;
+        let disabledE = shellSettings.get_strv('disabled-extensions');
+        disabledE = disabledE.indexOf(Me.metadata.uuid) > -1;
+        let disableUser = shellSettings.get_boolean('disable-user-extensions');
+
+        if (enabledE && !disabledE && !disableUser)
+            return true;
+        return false;
+    }
 }

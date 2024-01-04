@@ -23,7 +23,7 @@ const shellVersion   = Settings.shellVersion;
 
 const Actions = Settings.Actions;
 
-let gOptions;
+let opt;
 
 function _getActionList() {
     return [
@@ -51,11 +51,11 @@ function _getActionList() {
 
 function init() {
     ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    gOptions = new Settings.Options();
+    opt = new Settings.Options();
 }
 
 function _getPageList() {
-    const itemFactory = new OptionsFactory.ItemFactory(gOptions);
+    const itemFactory = new OptionsFactory.ItemFactory(opt);
     const options = _getOptions(itemFactory);
     const pageList = [
         {
@@ -116,8 +116,8 @@ function fillPreferencesWindow(window) {
     window.set_search_enabled(true);
     window.set_default_size(800, 800);
     window.connect('close-request', () => {
-        gOptions.destroy();
-        gOptions = null;
+        opt.destroy();
+        opt = null;
     });
 }
 
@@ -132,8 +132,8 @@ function buildPrefsWidget() {
 
         const signal = Gtk.get_major_version() === 3 ? 'destroy' : 'close-request';
         window.connect(signal, () => {
-            gOptions.destroy();
-            gOptions = null;
+            opt.destroy();
+            opt = null;
         });
     });
     return prefsWidget;
@@ -536,7 +536,7 @@ function _getOptions(itemFactory) {
         ]
     );
 
-    superDoublePressSwitch.set_sensitive(gOptions.get('enableSuper'));
+    superDoublePressSwitch.set_sensitive(opt.get('enableSuper'));
     enableSuperSwitch.connect('notify::active', widget => {
         superDoublePressSwitch.set_sensitive(widget.active);
     });
@@ -716,7 +716,7 @@ function _getOptions(itemFactory) {
     });
 
     const minimizedLastBtn = itemFactory.newSwitch();
-    minimizedLastBtn.set_sensitive(!gOptions.get('winSkipMinimized'));
+    minimizedLastBtn.set_sensitive(!opt.get('winSkipMinimized'));
     optDict.MinimizedLast = itemFactory.getRowWidget(
         _('Minimized Windows Last'),
         _('Places minimized windows at the end of the list, aligning with the default behavior in GNOME Shell.'),
@@ -910,7 +910,7 @@ function _getOptions(itemFactory) {
         'appSwitcherPopupHideWinCounterForSingleWindow'
     );
 
-    hideWinCounterForSingleWindowSwitch.set_sensitive(gOptions.get('appSwitcherPopupWinCounter'));
+    hideWinCounterForSingleWindowSwitch.set_sensitive(opt.get('appSwitcherPopupWinCounter'));
     showWinCounterSwitch.connect('notify::active', widget => {
         hideWinCounterForSingleWindowSwitch.set_sensitive(widget.active);
     });
@@ -1587,8 +1587,8 @@ function getAboutOptionList(itemFactory) {
         Me.metadata.name
     ));
 
-    const versionName = Me.metadata['version-name'] ?? '';
-    let version = Me.metadata['version'] ?? '';
+    const versionName = Me.metadata['version-name'] ? Me.metadata['version-name'] : '';
+    let version = Me.metadata['version'] ? Me.metadata['version'] : '';
     version = versionName && version ? `/${version}` : version;
     const versionStr = `${versionName}${version}`;
     optionList.push(itemFactory.getRowWidget(
