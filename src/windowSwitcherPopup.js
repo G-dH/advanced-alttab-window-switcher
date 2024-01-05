@@ -452,7 +452,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN && !this._showingApps && !this.KEYBOARD_TRIGGERED && this.WIN_SORTING_MODE === SortingMode.MRU)
                 this._initialSelectionMode = SelectMode.FIRST;
 
-
             let showWinTitles = opt.WINDOW_TITLES === 1 || (opt.WINDOW_TITLES === 3 && this._singleApp);
             let switcherParams = {
                 mouseControl: !this.KEYBOARD_TRIGGERED,
@@ -469,21 +468,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             };
 
             if (this._switcherList) {
-                this._switcherList._items = [];
+                this._switcherListExists = false;
                 this._switcherList.destroy();
-                this._switcherList = null;
             }
 
             this._switcherList = new SwitcherList(itemList, opt, switcherParams);
-            this._switcherList.connect('destroy', () => {
-                this._switcherList = null;
-            });
+            this._switcherListExists = true;
 
             this._connectShowAppsIcon();
 
             if (!opt.HOVER_SELECT && this.KEYBOARD_TRIGGERED)
                 this._switcherList._itemEntered = function () {};
-
 
             this._items = this._switcherList.icons;
             this._connectIcons();
@@ -740,7 +735,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // Make sure the SwitcherList is always destroyed, it may not be
         // a child of the actor at this point.
         if (this._switcherList) {
-            this._switcherList._items = [];
+            this._switcherListExists = false;
             this._switcherList.destroy();
         }
 
@@ -811,7 +806,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     vfunc_allocate(box, flags) {
-        if (this._updateInProgress && !this._firstRun)
+        // Prevent updating the allocation if switcherList is being destroyed
+        if (!this._switcherListExists)
             return;
 
         let monitor = this._getMonitorByIndex(this._monitorIndex);
@@ -824,6 +820,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this.set_allocation(box, flags);
         else
             this.set_allocation(box);
+
         let childBox = new Clutter.ActorBox();
         // Allocate the switcherList
         // We select a size based on an icon size that does not overflow the screen
