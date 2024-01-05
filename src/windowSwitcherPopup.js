@@ -474,11 +474,12 @@ export const WindowSwitcherPopup = {
             };
 
             if (this._switcherList) {
-                this._switcherList._items = [];
+                this._switcherListExists = false;
                 this._switcherList.destroy();
             }
 
             this._switcherList = new SwitcherList.SwitcherList(itemList, opt, switcherParams);
+            this._switcherListExists = true;
 
             this._connectShowAppsIcon();
 
@@ -750,7 +751,7 @@ export const WindowSwitcherPopup = {
         }
 
         if (this._switcherList) {
-            this._switcherList._items = [];
+            this._switcherListExists = false;
             this._switcherList.destroy();
         }
 
@@ -815,7 +816,8 @@ export const WindowSwitcherPopup = {
     },
 
     vfunc_allocate(box) {
-        if (this._updateInProgress && !this._firstRun)
+        // Prevent updating the allocation if switcherList is being destroyed
+        if (!this._switcherListExists)
             return;
 
         let monitor = Util.getMonitorByIndex(this._monitorIndex);
