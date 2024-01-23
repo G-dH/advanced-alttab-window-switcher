@@ -287,7 +287,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._initialSelectionMode = this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE ? SelectMode.ACTIVE : SelectMode.SECOND;
         this._switcherMode         = SwitcherMode.WINDOWS;
         this._singleApp            = null;
-
         this._selectedIndex        = -1;    // deselect
         this._tempFilterMode       = null;
         this._firstRun             = true;
@@ -296,6 +295,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._updateInProgress     = false;
         // _skipInitialSelection allows to avoid double selection when re-showing switcher followed by custom selection
         this._skipInitialSelection = false;
+        this._switcherListExists   = false;
+        this._allowFilterSwitchOnOnlyItem = false;
+
         opt.cancelTimeout          = false;
 
         opt.popup                  = this;
@@ -1131,7 +1133,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // even if the switcher is in app mode, try to search windows if no app matches the search pattern
         let filterSwitchAllowed = this._searchEntryIsEmpty() ||
                                     (opt.SEARCH_ALL && this._searchEntryNotEmpty());
-        const insufficientResultsLimit = this._searchEntryIsEmpty() && this.KEYBOARD_TRIGGERED ? 1 : 0;
+        const insufficientResultsLimit = this._searchEntryIsEmpty() && this.KEYBOARD_TRIGGERED && this._allowFilterSwitchOnOnlyItem ? 1 : 0;
         let mode = this._switcherMode === SwitcherMode.APPS ? this.APP_FILTER_MODE : this.WIN_FILTER_MODE;
         const onlyApp = !opt.INCLUDE_FAVORITES && itemList.length <= 1 && this.SHOW_APPS && this._searchEntryIsEmpty();
 
@@ -1268,7 +1270,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 opacity,
                 duration: ANIMATION_TIME / 2 * opt.ANIMATION_TIME_FACTOR,
                 mode: Clutter.AnimationMode.EASE_IN_QUAD,
-                onComplete: () => this.destroy(),
+                onComplete: () => {
+                    this._switcherListExists = false;
+                    this.destroy();
+                },
             });
 
             if (this._wsTmb) {
@@ -1292,11 +1297,14 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._itemCaption.opacity = 0;
 
         if (this.opacity > 0) {
-            if (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered)
+            if (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) {
+                this._switcherListExists = false;
                 this.destroy();
-            else
+            } else {
                 this._animateOut();
+            }
         } else {
+            this._switcherListExists = false;
             this.destroy();
         }
     }
@@ -1995,10 +2003,17 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 )) {
             if (this._singleApp)
                 this._toggleSingleAppMode();
-            else if (_shiftPressed() || _isTabBackwardAction(action))
+
+            if (!this._allowFilterSwitchOnOnlyItem && this._items.length === 1) {
+                this._allowFilterSwitchOnOnlyItem = true;
+                this._updateSwitcher();
+            }
+
+            if (!this._singleApp && _shiftPressed() || _isTabBackwardAction(action))
                 this._select(this._previous());
-            else
+            else if (!this._singleApp)
                 this._select(this._next());
+
         // else if (keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) { // 96 is grave, 126 ascii tilde, 65112 dead_abovering. I didn't find Clutter constants.
         } else if (action === Meta.KeyBindingAction.SWITCH_GROUP || action === Meta.KeyBindingAction.SWITCH_GROUP_BACKWARD ||
                  keysym === Clutter.KEY_semicolon || keysym === 96 || keysym === 126 || keysym === 65112) {
