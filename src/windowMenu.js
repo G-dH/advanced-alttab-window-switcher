@@ -36,7 +36,7 @@ export const WindowMenu = class extends PopupMenu.PopupMenu {
         this._aatws = aatws;
         this.actor.add_style_class_name('window-menu');
 
-        Main.layoutManager.uiGroup.add_actor(this.actor);
+        Main.layoutManager.uiGroup.add_child(this.actor);
         this.actor.hide();
 
         this._buildMenu(window);

@@ -360,7 +360,7 @@ class WindowThumbnail extends St.BoxLayout {
 
         if (!this._winPreview) {
             this._winPreview = new CyclerHighlight();
-            global.window_group.add_actor(this._winPreview);
+            global.window_group.add_child(this._winPreview);
             [this._winPreview._xPointer, this._winPreview._yPointer] = global.get_pointer();
         }
 
@@ -413,10 +413,10 @@ const CyclerHighlight = GObject.registerClass(
             this._window = null;
 
             this._clone = new Clutter.Clone();
-            this.add_actor(this._clone);
+            this.add_child(this._clone);
 
             this._highlight = new St.Widget({ style_class: 'cycler-highlight' });
-            this.add_actor(this._highlight);
+            this.add_child(this._highlight);
 
             let coordinate = Clutter.BindCoordinate.ALL;
             let constraint = new Clutter.BindConstraint({ coordinate });

@@ -201,10 +201,10 @@ class CyclerHighlight extends St.Widget {
         this._window = null;
 
         this._clone = new Clutter.Clone();
-        this.add_actor(this._clone);
+        this.add_child(this._clone);
 
         this._highlight = new St.Widget({ style_class: 'cycler-highlight' });
-        this.add_actor(this._highlight);
+        this.add_child(this._highlight);
 
         let coordinate = Clutter.BindCoordinate.ALL;
         let constraint = new Clutter.BindConstraint({ coordinate });
