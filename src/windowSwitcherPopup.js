@@ -2759,7 +2759,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _toggleSearchMode() {
-        if (this._searchEntry !== null) {
+        // on the first toggle reactivate the search even if it's already active by default
+        // since it allows the user to release a modifier key and type freely
+        if (this._searchEntry !== null && this._secondarySearchToggle) {
             this._searchEntry = null;
             opt.cancelTimeout = false;
             if (this._searchCaption)
@@ -2770,7 +2772,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             opt.cancelTimeout = true;
             this.SEARCH_DEFAULT = false;
         }
-
+        this._secondarySearchToggle = true;
         this.show();
     }
 
