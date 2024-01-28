@@ -233,7 +233,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
 
         this._highlighted = index;
 
-        let adjustment = this._scrollView.hscroll.adjustment;
+        let adjustment = this._scrollView.get_hscroll_bar().adjustment;
         let [value] = adjustment.get_values();
         let [absItemX] = this._items[index].get_transformed_position();
         let [, posX] = this.transform_stage_point(absItemX, 0);

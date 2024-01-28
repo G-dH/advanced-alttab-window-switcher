@@ -540,7 +540,7 @@ export const WindowSwitcherPopup = {
             const activeWidth = 5;
             this._switcherList.reactive = true;
             this._switcherList.connect('motion-event', () => {
-                if (this._switcherList._scrollView.hscroll.adjustment.get_transition('value'))
+                if (this._switcherList._scrollView.get_hscroll_bar().adjustment.get_transition('value'))
                     return;
 
                 const pointerX = global.get_pointer()[0];
