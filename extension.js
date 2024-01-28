@@ -74,7 +74,8 @@ export default class AATWS extends Extension {
         this._updateDashVisibility();
 
         this._opt.connect('changed', this._updateSettings.bind(this));
-        log(`${this.metadata.name}: enabled`);
+
+        console.debug(`${this.metadata.name}: enabled`);
     }
 
     disable() {
@@ -111,7 +112,8 @@ export default class AATWS extends Extension {
         SwitcherItems.cleanGlobal();
         WindowMenu.cleanGlobal();
         this._opt = null;
-        log(`${this.metadata.name}: disabled`);
+
+        console.debug(`${this.metadata.name}: enabled`);
     }
 
     _removeThumbnails(hide = false) {
