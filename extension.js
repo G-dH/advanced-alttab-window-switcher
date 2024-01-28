@@ -87,14 +87,8 @@ export default class AATWS extends Extension {
             Main.layoutManager.aatws = null;
         }
 
-        // comment out to pass ego review
-        if (Main.extensionManager._getEnabledExtensions().includes(this.metadata.uuid)) {
-            const hide = true;
-            this._removeThumbnails(hide);
-        } else {
-            this._removeThumbnails();
-            this._actions = null;
-        }
+        this._removeThumbnails();
+        this._actions = null;
 
         if (this._overrides) {
             this._overrides.removeOverride('WindowSwitcherPopup');
