@@ -564,8 +564,20 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this._switcherList.set_style(`margin-top: ${this.TOP_MARGIN}px; margin-bottom: ${this.BOTTOM_MARGIN}px; padding-bottom: ${padding}px;`);
 
-        if (this._searchEntryNotEmpty())
-            this._initialSelectionMode = SelectMode.FIRST;
+        if (this._searchEntryNotEmpty()) {
+            if (!this._showingApps) {
+                // if the first window in the list is the current one, select the second window
+                const firstWindow = this._reverseOrder ? this._items[this._items.length - 1].window : this._items[0].window;
+                const recentWindow = _getWindows(null)[0];
+                if (firstWindow && firstWindow.get_id() === recentWindow.get_id())
+                    this._initialSelectionMode = SelectMode.SECOND;
+                else
+                    this._initialSelectionMode = SelectMode.FIRST;
+            } else {
+                this._initialSelectionMode = SelectMode.FIRST;
+            }
+        }
+
 
         // if all windows are minimized, the first on the list is the previously used
         if (this._firstRun && this._items[0].window && this._items[0].window.minimized)
