@@ -14,7 +14,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 ![Window Switcher Popup](screenshots/screenshot.png)
 
 ## Features:
-- Supports GNOME Shell 3.36 - 45
+- Supports GNOME Shell 3.36 - 46
 - Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*
 - Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed
 - Hotkeys allow to control switcher and windows, including relocations
