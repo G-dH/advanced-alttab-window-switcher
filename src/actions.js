@@ -23,8 +23,6 @@ import * as Util from './util.js';
 export const Actions = class {
     constructor(options) {
         this._opt = options;
-        this.WIN_SKIP_MINIMIZED = this._opt.get('winSkipMinimized');
-        this.WS_SHOW_POPUP = this._opt.get('wsShowSwitcherPopup');
     }
 
     removeThumbnails() {
@@ -211,7 +209,7 @@ export const Actions = class {
     }
 
     showWsSwitcherPopup(direction, wsIndex) {
-        if (!this.WS_SHOW_POPUP)
+        if (!this._opt.get('wsShowSwitcherPopup'))
             return;
         if (!wsIndex)
             wsIndex = global.workspace_manager.get_active_workspace_index();
