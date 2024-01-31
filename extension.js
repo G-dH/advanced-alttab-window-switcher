@@ -25,11 +25,12 @@ const Actions              = Me.imports.src.actions;
 function init(me) {
     // me === Me
     ExtensionUtils.initTranslations(me.metadata['gettext-domain']);
-    return new AATWS();
+    return new AATWS(me);
 }
 
 class AATWS {
-    constructor() {
+    constructor(me) {
+        this._metadata = me.metadata;
         this._originalOverlayKeyHandlerId = null;
         this._signalOverlayKey = null;
         this._wmFocusToActiveHandlerId = 0;
@@ -66,8 +67,7 @@ class AATWS {
         this._updateHotTrigger();
         this._updateDashVisibility();
 
-        // console.debug(`${Me.metadata.name}: enabled`);
-        return GLib.SOURCE_REMOVE;
+        console.debug(`${this._metadata.name}: enabled`);
     }
 
     disable() {
@@ -98,8 +98,10 @@ class AATWS {
         this._removePressureBarrier();
         this._updateDashVisibility(true);
 
+        this._opt.destroy();
         this._opt = null;
-        // console.debug(`${Me.metadata.name}: disabled`);
+
+        console.debug(`${this._metadata.name}: disabled`);
     }
 
     _updateAlwaysActivateFocusedConnection() {
