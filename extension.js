@@ -44,10 +44,7 @@ class AATWS {
         this._opt = new Settings.Options();
         WindowSwitcherPopup.opt = this._opt;
 
-        if (!this._actions)
-            this._actions = new Actions.Actions(this._opt);
-        else
-            this._actions.resumeThumbnailsIfExist();
+        this._actions = new Actions.Actions(this._opt);
         WindowSwitcherPopup.actions = this._actions;
 
         // this._opt.connect('changed::super-key-mode', this._updateOverlayKeyHandler);
@@ -79,12 +76,8 @@ class AATWS {
             this.popup = null;
         }
 
-        if (Main.sessionMode.isLocked && this._extensionEnabled()) {
-            this._actions.hideThumbnails();
-        } else {
-            this._actions.clean();
-            this._actions = null;
-        }
+        this._actions.clean();
+        this._actions = null;
 
         if (this._origAltTabWSP)
             AltTab.WindowSwitcherPopup = this._origAltTabWSP;
