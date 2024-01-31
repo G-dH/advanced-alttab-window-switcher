@@ -1616,7 +1616,7 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
 
         optionList.push(itemFactory.getRowWidget(
             _('Buy Me a Coffee'),
-            _('If you like this extension, you can help me with my coffee expenses.'),
+            _('Enjoying AATWS? Consider supporting it by buying me a coffee!'),
             itemFactory.newLinkButton('https://buymeacoffee.com/georgdh')
         ));
 

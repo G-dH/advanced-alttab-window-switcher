@@ -209,7 +209,7 @@ export const Actions = class {
     }
 
     showWsSwitcherPopup(direction, wsIndex) {
-        if (!this._opt.get('wsShowSwitcherPopup'))
+        if (!this._opt.SHOW_WS_SWITCHER_POPUP)
             return;
         if (!wsIndex)
             wsIndex = global.workspace_manager.get_active_workspace_index();
