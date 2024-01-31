@@ -111,6 +111,8 @@ export default class AATWS extends Extension {
         SwitcherList.cleanGlobal();
         SwitcherItems.cleanGlobal();
         WindowMenu.cleanGlobal();
+
+        this._opt.destroy();
         this._opt = null;
 
         console.debug(`${this.metadata.name}: enabled`);
