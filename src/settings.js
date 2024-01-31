@@ -206,7 +206,6 @@ var Options = class Options {
             appSwitcherPopupMidClickItem: ['int', 'app-switcher-popup-mid-click-item'],
             wsSwitchIgnoreLast: ['boolean', 'ws-switch-ignore-last'],
             wsSwitchWrap: ['boolean', 'ws-switch-wrap'],
-            wsSwitchPopup: ['boolean', 'ws-switch-popup'],
             wsShowSwitcherPopup: ['boolean', 'ws-switch-popup'],
             switcherPopupPointer: ['boolean', 'switcher-popup-pointer'],
             switcherPopupExtAppFavorites: ['boolean', 'switcher-popup-ext-app-favorites'],
@@ -358,6 +357,7 @@ var Options = class Options {
         this.REMEMBER_INPUT        = this.get('rememberInput');
         this.WS_THUMBNAILS         = this.get('switcherWsThumbnails');
         this.ANIMATION_TIME_FACTOR = this.get('animationTimeFactor') / 100;
+        this.SHOW_WS_SWITCHER_POPUP = this.get('wsShowSwitcherPopup');
 
         // Window switcher
         this.WIN_FILTER_MODE       = this.get('winSwitcherPopupFilter');
