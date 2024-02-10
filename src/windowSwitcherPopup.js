@@ -29,7 +29,6 @@ const AppSwitcher     = Me.imports.src.switcherList.AppSwitcher;
 const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
 const WindowMenu      = Me.imports.src.windowMenu;
 const Settings        = Me.imports.src.settings;
-const ActionLib       = Me.imports.src.actions;
 
 // gettext
 const _               = Settings._;
