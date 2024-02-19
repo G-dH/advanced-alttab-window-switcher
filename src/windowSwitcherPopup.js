@@ -727,10 +727,12 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             GLib.source_remove(this._noModsTimeoutId);
 
         // remove all local timeouts
-        Object.values(this._timeoutIds).forEach(id => {
-            if (id)
-                GLib.source_remove(id);
-        });
+        if (this._timeoutIds) { // Test for compatibility with the Tiling Assistant
+            Object.values(this._timeoutIds).forEach(id => {
+                if (id)
+                    GLib.source_remove(id);
+            });
+        }
 
         if (this._wsManagerConId)
             global.workspace_manager.disconnect(this._wsManagerConId);
@@ -2354,7 +2356,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _showTitleCaption() {
         let selected = this._items[this._selectedIndex];
 
-        if (!selected)
+        //              for better compatibility with the Tiling Assistant extension
+        if (!selected || !(!selected._is_window && selected.titleLabel))
             return;
 
         let title;
