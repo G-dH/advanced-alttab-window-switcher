@@ -364,7 +364,10 @@ class AppIcon extends AppDisplay.AppIcon {
             else if (winCounterIndicator && !this._options.SHOW_APP_TITLES)
                 winCounterIndicator.set_style('margin-bottom: 7px;');
 
+            // ensure the bottom-margin is always 0
+            this._dot.remove_style_class_name('running-dot');
             this._dot.add_style_class_name('running-dot');
+
             // change dot color to be visible on light bg cause Adwaita uses white color
             if (this._options.colorStyle.RUNNING_DOT_COLOR)
                 this._dot.add_style_class_name(this._options.colorStyle.RUNNING_DOT_COLOR);
