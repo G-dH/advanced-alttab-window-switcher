@@ -265,14 +265,27 @@ export default class AATWS extends Extension {
             let y = position === 1 ? geometry.y : geometry.y + geometry.height;
             y -= Meta.is_wayland_compositor() ? 1 : 0;
 
-            const horizontalBarrier = new Meta.Barrier({
-                display: global.display,
-                x1,
-                x2,
-                y1: y,
-                y2: y,
-                directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
-            });
+            let horizontalBarrier;
+            // GS 46+ replaced the Meta.Barrier.display property with backend
+            if (Meta.Barrier.prototype.backend) {
+                horizontalBarrier = new Meta.Barrier({
+                    backend: global.backend,
+                    x1,
+                    x2,
+                    y1: y,
+                    y2: y,
+                    directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
+                });
+            } else {
+                horizontalBarrier = new Meta.Barrier({
+                    display: global.display,
+                    x1,
+                    x2,
+                    y1: y,
+                    y2: y,
+                    directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
+                });
+            }
 
             const pressureBarrier = new Layout.PressureBarrier(
                 this._opt.get('hotEdgePressure', true), // pressure threshold

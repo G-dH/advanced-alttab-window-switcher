@@ -39,11 +39,11 @@ export const Actions = {
 };
 
 const ColorStyleDefault = {
-    STYLE: '',
-    SWITCHER_LIST: '',
+    STYLE: ' ',
+    SWITCHER_LIST: ' ',
     CAPTION_LABEL: 'dash-label',
-    TITLE_LABEL: '',
-    SELECTED: '',
+    TITLE_LABEL: ' ',
+    SELECTED: ' ',
     FOCUSED: 'focused-dark',
     INDICATOR_OVERLAY: 'indicator-overlay-dark',
     INDICATOR_OVERLAY_HIGHLIGHTED: 'indicator-overlay-highlight-dark',
@@ -51,8 +51,8 @@ const ColorStyleDefault = {
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
     RUNNING_COUNTER: 'running-counter-dark',
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
-    RUNNING_DOT_COLOR: '',
-    ARROW: '',
+    RUNNING_DOT_COLOR: ' ',
+    ARROW: ' ',
 };
 
 const ColorStyleDark = {
@@ -68,7 +68,7 @@ const ColorStyleDark = {
     INDICATOR_OVERLAY_INACTIVE: 'indicator-overlay-inactive-dark',
     RUNNING_COUNTER: 'running-counter-dark',
     RUNNING_COUNTER_HOVER: 'running-counter-hover',
-    RUNNING_DOT_COLOR: '',
+    RUNNING_DOT_COLOR: ' ',
     ARROW: 'arrow-dark',
 };
 
