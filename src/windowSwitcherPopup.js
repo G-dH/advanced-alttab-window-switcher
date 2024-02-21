@@ -2357,7 +2357,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         let selected = this._items[this._selectedIndex];
 
         //              for better compatibility with the Tiling Assistant extension
-        if (!selected || !(!selected._is_window && selected.titleLabel))
+        if (!selected || (!selected._is_window && !selected.titleLabel))
             return;
 
         let title;
