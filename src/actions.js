@@ -3,12 +3,13 @@
  * Actions
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
 'use strict';
 
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
@@ -16,62 +17,26 @@ import Shell from 'gi://Shell';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as WorkspaceSwitcherPopup from 'resource:///org/gnome/shell/ui/workspaceSwitcherPopup.js';
 
-import * as WinTmb from './winTmb.js';
 import * as Util from './util.js';
 
+// gettext
+let _;
 
 export const Actions = class {
-    constructor(options) {
-        this._opt = options;
+    constructor(me) {
+        this._opt = me.opt;
+        _ = me._;
     }
 
-    removeThumbnails() {
-        if (this._windowThumbnails) {
-            this._windowThumbnails.forEach(
-                t => {
-                    if (t)
-                        t.destroy();
-                }
-            );
-            this._windowThumbnails = undefined;
-        }
-    }
-
-    removeLastThumbnail() {
-        if (!this._windowThumbnails)
-            return;
-
-        const length = this._windowThumbnails.length;
-        if (length)
-            this._windowThumbnails[length - 1].destroy();
-        this._windowThumbnails.pop();
-    }
-
-    hideThumbnails() {
-        if (this._windowThumbnails) {
-            this._windowThumbnails.forEach(
-                t => {
-                    if (t)
-                        t.hide();
-                }
-            );
-        }
-    }
-
-    resumeThumbnailsIfExist() {
-        if (this._windowThumbnails) {
-            this._windowThumbnails.forEach(
-                t => {
-                    if (t)
-                        t.show();
-                }
-            );
-        }
+    clean() {
+        this._opt = null;
+        this._shellSettings = null;
+        _ = null;
     }
 
     _getShellSettings() {
         if (!this._shellSettings)
-            this._shellSettings = this.getSettings('org.gnome.shell');
+            this._shellSettings = new Gio.Settings({ schema_id: 'org.gnome.shell' });
 
         return this._shellSettings;
     }
@@ -236,21 +201,23 @@ export const Actions = class {
     }
 
     makeThumbnailWindow(metaWindow) {
-        if (!this._windowThumbnails)
-            this._windowThumbnails = [];
-        let metaWin;
-        if (metaWindow)
-            metaWin = metaWindow;
-
-        if (!metaWin)
+        if (!metaWindow)
             return;
 
-        let monitorHeight = Util.getCurrentMonitorGeometry().height;
-        let scale = this._opt.get('winThumbnailScale');
-        this._windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this._windowThumbnails, {
-            'height': Math.floor(scale / 100 * monitorHeight),
-            'thumbnailsOnScreen': this._windowThumbnails.length,
-        }));
+        if (global.windowThumbnails)
+            global.windowThumbnails.createThumbnail(metaWindow);
+        else
+            Main.notify(_('Create Window Thumbnail'), _('This action requires the Window Thumbnails extension installed on your system'));
+    }
+
+    removeLastThumbnail() {
+        if (global.windowThumbnails)
+            global.windowThumbnails.removeLast();
+    }
+
+    removeAllThumbnails() {
+        if (global.windowThumbnails)
+            global.windowThumbnails.removeAll();
     }
 
     openPrefsWindow(metadata) {

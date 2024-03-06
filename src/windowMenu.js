@@ -21,8 +21,8 @@ import * as Screenshot from 'resource:///org/gnome/shell/ui/screenshot.js';
 let _;
 
 
-export function init(extension) {
-    _ = extension.gettext.bind(extension);
+export function init(me) {
+    _ = me._;
 }
 
 export function cleanGlobal() {

@@ -13,7 +13,7 @@
     </key>
 
     <key name='hot-edge-position' type='i'>
-      <default>2</default>
+      <default>0</default>
     </key>
     <key name='hot-edge-fullscreen' type='b'>
       <default>true</default>
@@ -81,7 +81,7 @@
       <default>true</default>
     </key>
     <key name='switcher-popup-position' type='i'>
-      <default>3</default>
+      <default>2</default>
     </key>
     <key name='switcher-popup-monitor' type='i'>
       <default>1</default>
@@ -216,9 +216,6 @@
     </key>
     <key name='switcher-popup-wrap' type='b'>
       <default>true</default>
-    </key>
-    <key name='win-thumbnail-scale' type='i'>
-      <default>15</default>
     </key>
     <key name='ws-switch-ignore-last' type='b'>
       <default>false</default>

@@ -3,12 +3,13 @@
  * Settings
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
 'use strict';
 
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
 export const Actions = {
@@ -92,16 +93,17 @@ const ColorStyleLight = {
 
 
 export const Options = class Options {
-    constructor(extension) {
+    constructor(me) {
+        this._gSettings = me.gSettings;
+
         this._connectionIds = [];
         this.colorStyle = ColorStyleDefault;
 
         this.cancelTimeout = false; // state variable used by the switcher popup and needs to be available for other modules
 
-        this._gsettings = extension.getSettings();
         // delay write to backend to avoid excessive disk writes when adjusting scales and spinbuttons
         this._writeTimeoutId = 0;
-        this._gsettings.delay();
+        this._gSettings.delay();
         this.connect('changed', () => {
             if (this._writeTimeoutId)
                 GLib.Source.remove(this._writeTimeoutId);
@@ -110,7 +112,7 @@ export const Options = class Options {
                 GLib.PRIORITY_DEFAULT,
                 100,
                 () => {
-                    this._gsettings.apply();
+                    this._gSettings.apply();
                     this._updateCachedSettings();
                     this._writeTimeoutId = 0;
                     return GLib.SOURCE_REMOVE;
@@ -204,7 +206,6 @@ export const Options = class Options {
             switcherPopupPointerTimeout: ['int', 'switcher-popup-pointer-timeout'],
             switcherPopupActivateOnHide: ['boolean', 'switcher-popup-activate-on-hide'],
             wmAlwaysActivateFocused: ['boolean', 'wm-always-activate-focused'],
-            winThumbnailScale: ['int', 'win-thumbnail-scale'],
             hotkeySwitchFilter: ['string', 'hotkey-switch-filter'],
             hotkeySingleApp: ['string', 'hotkey-single-app'],
             hotkeyCloseQuit: ['string', 'hotkey-close-quit'],
@@ -230,7 +231,7 @@ export const Options = class Options {
 
         this._setOptionConstants();
 
-        this._intSettings = extension.getSettings('org.gnome.desktop.interface');
+        this._intSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
         this._updateColorScheme();
         this._intSettingsSigId = this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this));
     }
@@ -275,7 +276,7 @@ export const Options = class Options {
             if (settings !== undefined)
                 gSettings = settings();
             else
-                gSettings = this._gsettings;
+                gSettings = this._gSettings;
 
 
             this.cachedOptions[option] = gSettings.get_value(key).deep_unpack();
@@ -288,34 +289,34 @@ export const Options = class Options {
         const [format, key] = this.options[option];
         switch (format) {
         case 'string':
-            this._gsettings.set_string(key, value);
+            this._gSettings.set_string(key, value);
             break;
         case 'int':
-            this._gsettings.set_int(key, value);
+            this._gSettings.set_int(key, value);
             break;
         case 'boolean':
-            this._gsettings.set_boolean(key, value);
+            this._gSettings.set_boolean(key, value);
             break;
         }
     }
 
     getDefault(option) {
         const [, key] = this.options[option];
-        return this._gsettings.get_default_value(key).deep_unpack();
+        return this._gSettings.get_default_value(key).deep_unpack();
     }
 
     connect(name, callback) {
-        const id = this._gsettings.connect(name, callback);
+        const id = this._gSettings.connect(name, callback);
         this._connectionIds.push(id);
         return id;
     }
 
     destroy() {
-        this._connectionIds.forEach(id => this._gsettings.disconnect(id));
+        this._connectionIds.forEach(id => this._gSettings.disconnect(id));
         if (this._writeTimeoutId)
             GLib.Source.remove(this._writeTimeoutId);
         this._writeTimeoutId = 0;
-        this._gsettings = null;
+        this._gSettings = null;
 
         this._intSettings.disconnect(this._intSettingsSigId);
         this._intSettings = null;
@@ -378,5 +379,6 @@ export const Options = class Options {
         this.INCLUDE_SHOW_APPS_ICON = this.get('appSwitcherPopupIncludeShowAppsIcon');
         this.SHOW_WINS_ON_ACTIVATE = this.get('appSwitcherPopupShowWinsOnActivate');
         this.INCLUDE_FAV_MOUSE     = this.get('switcherPopupExtAppFavorites');
+        this.COLOR_STYLE_DEFAULT   = !this.get('switcherPopupTheme');
     }
 };

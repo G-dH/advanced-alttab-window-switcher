@@ -3,7 +3,7 @@
  * WindowSwitcherPopup
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -23,14 +23,13 @@ import * as Keyboard from 'resource:///org/gnome/shell/ui/keyboard.js';
 import * as WorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
 
+import * as Settings from './settings.js';
 import * as SwitcherList from './switcherList.js';
 import * as CaptionLabel from './captionLabel.js';
 import * as WindowMenu from './windowMenu.js';
-import * as Settings from './settings.js';
 import * as Util from './util.js';
 
-// opt and gettext inits in extension.enable()
-let _extension;
+let Me;
 let opt;
 // gettext
 let _;
@@ -115,17 +114,16 @@ const DoubleSuperAction = {
     CENTER: 3,
 };*/
 
-export const ANIMATION_TIME = 200;
-
 const Action = Settings.Actions;
 
+export const ANIMATION_TIME = 200;
 const SCROLL_TIMEOUT = 200;
 const SCROLL_SELECTION_TIMEOUT = 20;
 
-export function init(options, extension/* , gettext*/) {
-    opt = options;
-    _extension = extension;
-    _ = _extension.gettext.bind(extension);
+export function init(me) {
+    Me = me;
+    opt = Me.opt;
+    _ = Me._;
 
     FilterModeLabel = ['',
         _('ALL'),
@@ -144,7 +142,7 @@ export function init(options, extension/* , gettext*/) {
 
 export function cleanGlobal() {
     opt = null;
-    _extension = null;
+    Me = null;
     _ = null;
 }
 
@@ -242,7 +240,7 @@ export const WindowSwitcherPopup = {
         shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
         SwitcherPopup.SwitcherPopup.prototype._init.bind(this)();
-        this._actions              = _extension._actions;
+        this._actions              = Me.actions;
         // Global options
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
@@ -711,7 +709,7 @@ export const WindowSwitcherPopup = {
                 Main.overview.toggle();
                 return Clutter.EVENT_STOP;
             } else if (btn === Clutter.BUTTON_MIDDLE) {
-                this._openPrefsWindow(_extension.metadata.uuid);
+                this._openPrefsWindow(Me.metadata.uuid);
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
@@ -2205,7 +2203,7 @@ export const WindowSwitcherPopup = {
             if ((opt.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true) && !_ctrlPressed())
                 this._createWinThumbnail();
             else if (_ctrlPressed() && _shiftPressed())
-                this._actions.removeThumbnails();
+                this._actions.removeAllThumbnails();
             else if (_ctrlPressed())
                 this._actions.removeLastThumbnail();
         } else if (opt.get('hotkeyPrefs').includes(keyString) && (opt.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
@@ -2656,7 +2654,7 @@ export const WindowSwitcherPopup = {
         }
 
         if (!this._winPreview) {
-            this._winPreview = new Util.CyclerHighlight();
+            this._winPreview = new Util.WindowPreview();
             global.window_group.add_child(this._winPreview);
             global.window_group.set_child_above_sibling(this._winPreview, null);
         }
@@ -3168,7 +3166,7 @@ export const WindowSwitcherPopup = {
     },
 
     _openPrefsWindow() {
-        this._actions.openPrefsWindow(_extension.metadata);
+        this._actions.openPrefsWindow(Me.metadata);
     },
 
     _showWsThumbnails() {

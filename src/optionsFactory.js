@@ -3,7 +3,7 @@
  * optionsFactory
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -18,7 +18,7 @@ import Adw from 'gi://Adw';
 export const ItemFactory = class ItemFactory {
     constructor(opt) {
         this._opt = opt;
-        this._settings = opt._gsettings;
+        this._settings = opt._gSettings;
     }
 
     getRowWidget(text, caption, widget, variable, options = []) {

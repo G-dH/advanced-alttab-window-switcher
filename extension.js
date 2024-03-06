@@ -3,7 +3,7 @@
  * Extension
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -45,17 +45,21 @@ export default class AATWS extends Extension {
     }
 
     enable() {
-        this._opt = new Settings.Options(this);
+        const Me = {
+            metadata: this.metadata,
+            gSettings: this.getSettings(),
+            _: this.gettext.bind(this),
+        };
+        Me.opt = new Settings.Options(Me);
+        this._opt = Me.opt;
+        this.Me = Me;
 
-        if (!this._actions)
-            this._actions = new Actions.Actions(this._opt);
-        else
-            this._actions.resumeThumbnailsIfExist();
+        Me.actions = new Actions.Actions(Me);
 
-        WindowSwitcherPopup.init(this._opt, this);
-        SwitcherList.init(this);
-        SwitcherItems.init(this);
-        WindowMenu.init(this);
+        WindowSwitcherPopup.init(Me);
+        SwitcherList.init(Me);
+        SwitcherItems.init(Me);
+        WindowMenu.init(Me);
 
         this._overrides = new Util.Overrides();
 
@@ -87,14 +91,8 @@ export default class AATWS extends Extension {
             Main.layoutManager.aatws = null;
         }
 
-        // comment out to pass ego review
-        if (Main.extensionManager._getEnabledExtensions().includes(this.metadata.uuid)) {
-            const hide = true;
-            this._removeThumbnails(hide);
-        } else {
-            this._removeThumbnails();
-            this._actions = null;
-        }
+        this.Me.actions.clean();
+        this.Me.actions = null;
 
         if (this._overrides) {
             this._overrides.removeOverride('WindowSwitcherPopup');
@@ -114,15 +112,9 @@ export default class AATWS extends Extension {
 
         this._opt.destroy();
         this._opt = null;
+        this.Me = null;
 
         console.debug(`${this.metadata.name}: enabled`);
-    }
-
-    _removeThumbnails(hide = false) {
-        if (hide)
-            this._actions.hideThumbnails();
-        else
-            this._actions.removeThumbnails();
     }
 
     _updateAlwaysActivateFocusedConnection() {

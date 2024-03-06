@@ -173,7 +173,7 @@
   margin-top: 6px; /* can be overridden in code - position top */
   margin-bottom: 6px; /* can be overridden in code - position bottom */
   padding: 8px;
-  /*border-radius: 24px;*/
+  border-radius: 24px;
 }
 
 .switcher-list-all {
@@ -189,6 +189,10 @@
 .switcher-list-monitor {
   border-color: rgba(160, 0, 0, 0.8);
   border-width: 2px;
+}
+
+.item-box-custom {
+  background-color: transparent;
 }
 
 .selected-dark {

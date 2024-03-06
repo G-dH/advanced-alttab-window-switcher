@@ -3,7 +3,7 @@
  * Prefs
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -40,7 +40,7 @@ function _getActionList() {
         [_('Toggle Fullscreen on Empty WS'),   Actions.FS_ON_NEW_WS],
         [_('Sort Windows by Applications'),    Actions.GROUP_APP],
         [_('Sort Current Monitor First'),      Actions.CURRENT_MON_FIRST],
-        [_('Create Window Thumbnail'),         Actions.THUMBNAIL],
+        [_('Create Window Thumbnail (requires WTMB extension)'), Actions.THUMBNAIL],
         [_('Open Preferences'),                Actions.PREFS],
     ];
 }
@@ -53,49 +53,41 @@ export default class AATWS extends ExtensionPreferences {
 
         const pageList = [
             {
-                name: 'common',
                 title: _('Common'),
                 iconName: 'preferences-system-symbolic',
                 optionList: this._getCommonOptionList(options),
             },
             {
-                name: 'windows',
                 title: _('Window Switcher'),
                 iconName: 'focus-windows-symbolic',
                 optionList: this._getWindowOptionList(options),
             },
             {
-                name: 'apps',
                 title: _('App Switcher'),
                 iconName: 'view-app-grid-symbolic',
                 optionList: this._getAppOptionList(options),
             },
             {
-                name: 'dock',
-                title: _('Dock Mode'),
+                title: _('Dash Mode'),
                 iconName: 'user-bookmarks-symbolic',
                 optionList: this._getDockOptionList(options),
             },
             {
-                name: 'hotkeys',
                 title: _('Hotkeys'),
                 iconName: 'input-keyboard-symbolic',
                 optionList: this._getHotkeysOptionList(itemFactory),
             },
             {
-                name: 'mouse',
                 title: _('Mouse'),
                 iconName: 'input-mouse-symbolic',
                 optionList: this._getMouseOptionList(options),
             },
             {
-                name: 'misc',
                 title: _('Misc'),
                 iconName: 'preferences-other-symbolic',
                 optionList: this._getMiscOptionList(options),
             },
             {
-                name: 'about',
                 title: _('About'),
                 iconName: 'preferences-system-details-symbolic',
                 optionList: this._getAboutOptionList(itemFactory),
@@ -106,8 +98,15 @@ export default class AATWS extends ExtensionPreferences {
     }
 
     fillPreferencesWindow(window) {
-        this.opt = new Settings.Options(this);
-        _ = this.gettext.bind(this);
+        const Me = {
+            metadata: this.metadata,
+            gSettings: this.getSettings(),
+            _: this.gettext.bind(this),
+        };
+        Me.opt = new Settings.Options(Me);
+
+        this.opt = Me.opt;
+        _ = Me._;
 
         OptionsFactory.AdwPrefs.getFilledWindow(window, this._getPageList());
         window.set_search_enabled(true);
@@ -119,167 +118,162 @@ export default class AATWS extends ExtensionPreferences {
     }
 
     _getCommonOptionList(options) {
-        const opt = options;
+        const o = options;
 
         const optionList = [
-            opt.Behavior,
+            o.Behavior,
             // ---------------
-            opt.Position,
-            opt.DefaultMonitor,
-            opt.ShowImmediately,
-            opt.SearchModeDefault,
-            opt.SyncFilter,
-            // opt.UpDownArrowAction,
-            // opt.HotkeysRequireShift,
-            opt.WraparoundSelector,
-            opt.HoverSelectsItem,
-            opt.DelayShowingSwitcher,
-            opt.InteractiveIndicators,
+            o.Position,
+            o.DefaultMonitor,
+            o.ShowImmediately,
+            o.SearchModeDefault,
+            o.SyncFilter,
+            o.WraparoundSelector,
+            o.HoverSelectsItem,
+            o.DelayShowingSwitcher,
+            o.InteractiveIndicators,
             // ---------------
-            opt.AppearanceCommon,
-            opt.WsThumbnails,
-            opt.Theme,
-            opt.OverlayTitle,
-            opt.TooltipLabelScale,
-            opt.ShowDirectActivation,
-            opt.ShowStatus,
-            opt.SingleAppPreviewSize,
+            o.AppearanceCommon,
+            o.WsThumbnails,
+            o.Theme,
+            o.OverlayTitle,
+            o.TooltipLabelScale,
+            o.ShowDirectActivation,
+            o.ShowStatus,
+            o.SingleAppPreviewSize,
             // ---------------
-            opt.Super,
-            opt.SuperKeyMode,
-            opt.EnableSuper,
-            opt.SuperDoublePress,
+            o.Super,
+            o.SuperKeyMode,
+            o.EnableSuper,
+            o.SuperDoublePress,
             // ---------------
-            opt.Input,
-            opt.RememberInput,
+            o.Input,
+            o.RememberInput,
         ];
 
         return optionList;
     }
 
     _getWindowOptionList(options) {
-        const opt = options;
+        const o = options;
 
         const optionList = [
-            opt.Controls,
-            opt.ShortcutWin,
-            opt.Behavior,
-            opt.DefaultFilterWin,
-            opt.DefaultSortingWin,
-            opt.DefaultGrouping,
-            opt.DistinguishMinimized,
-            opt.SkipMinimized,
-            opt.MinimizedLast,
-            opt.IncludeModals,
-            opt.SearchAllWindows,
-            opt.SearchApplications,
+            o.Controls,
+            o.ShortcutWin,
+            o.Behavior,
+            o.DefaultFilterWin,
+            o.DefaultSortingWin,
+            o.DefaultGrouping,
+            o.DistinguishMinimized,
+            o.SkipMinimized,
+            o.MinimizedLast,
+            o.IncludeModals,
+            o.SearchAllWindows,
+            o.SearchApplications,
             // ---------------
-            opt.AppearanceWin,
-            opt.ShowWindowTitle,
-            opt.ShowWorkspaceIndex,
-            opt.WindowPreviewSize,
-            opt.WindowIconSize,
+            o.AppearanceWin,
+            o.ShowWindowTitle,
+            o.ShowWorkspaceIndex,
+            o.WindowPreviewSize,
+            o.WindowIconSize,
         ];
 
         return optionList;
     }
 
     _getAppOptionList(options) {
-        const opt = options;
+        const o = options;
 
         const optionList = [
-            opt.Controls,
-            opt.ShortcutApp,
-            opt.Behavior,
-            opt.DefaultFilterApp,
-            opt.DefaultSortingApp,
-            opt.RaiseFirstWinOnly,
-            opt.ResultsLimit,
-            opt.SearchPrefRunning,
-            opt.IncludeFavorites,
-            opt.IncludeShowAppsIcon,
+            o.Controls,
+            o.ShortcutApp,
+            o.Behavior,
+            o.DefaultFilterApp,
+            o.DefaultSortingApp,
+            o.RaiseFirstWinOnly,
+            o.ResultsLimit,
+            o.SearchPrefRunning,
+            o.IncludeFavorites,
+            o.IncludeShowAppsIcon,
             // ---------------
-            opt.AppearanceApp,
-            opt.ShowAppTitle,
-            opt.ShowWinCounter,
-            opt.HideWinCounterForSingleWindow,
-            opt.AppIconSize,
+            o.AppearanceApp,
+            o.ShowAppTitle,
+            o.ShowWinCounter,
+            o.HideWinCounterForSingleWindow,
+            o.AppIconSize,
         ];
 
         return optionList;
     }
 
     _getDockOptionList(options) {
-        const opt = options;
+        const o = options;
 
         const optionList = [
-            opt.HotEdge,
-            opt.HotEdgePosition,
-            opt.HotEdgeFullScreen,
-            opt.HotEdgeMode,
-            opt.HotEdgeMonitor,
-            opt.HotEdgePressure,
-            opt.HotEdgeWidth,
+            o.HotEdge,
+            o.HotEdgePosition,
+            o.HotEdgeFullScreen,
+            o.HotEdgeMode,
+            o.HotEdgeMonitor,
+            o.HotEdgePressure,
+            o.HotEdgeWidth,
             // ---------------
-            opt.ExternalTrigger,
-            opt.SingleOnActivate,
-            opt.AppStableOrder,
-            opt.AppIncludeFavorites,
-            opt.AutomaticallyReverseOrder,
-            opt.PointerOutTimeout,
-            opt.ActivateOnHide,
-            opt.MousePointerPosition,
-            opt.AnimationTimeFactor,
+            o.ExternalTrigger,
+            o.SingleOnActivate,
+            o.AppStableOrder,
+            o.AppIncludeFavorites,
+            o.AutomaticallyReverseOrder,
+            o.PointerOutTimeout,
+            o.ActivateOnHide,
+            o.MousePointerPosition,
+            o.AnimationTimeFactor,
             // ---------------
-            opt.Dash,
-            opt.ShowDash,
+            o.Dash,
+            o.ShowDash,
         ];
 
         return optionList;
     }
 
     _getMiscOptionList(options) {
-        const opt = options;
+        const o = options;
 
         const optionList = [
-            opt.WindowManager,
-            opt.AlwaysActivateFocused,
+            o.WindowManager,
+            o.AlwaysActivateFocused,
             // ---------------
-            opt.Workspace,
-            opt.ShowWsSwitcherPopup,
-            // ---------------
-            opt.Thumbnails,
-            opt.ThumbnailScale,
+            o.Workspace,
+            o.ShowWsSwitcherPopup,
         ];
 
         return optionList;
     }
 
     _getMouseOptionList(options) {
-        const opt = options;
+        const o = options;
 
         const optionList = [
-            opt.Common,
-            opt.PrimaryBackground,
-            opt.SecondaryBackground,
-            opt.MiddleBackground,
-            opt.ScrollBackground,
-            opt.PrimaryOutside,
-            opt.SecondaryOutside,
-            opt.MiddleOutside,
-            opt.ScrollOutside,
+            o.Common,
+            o.PrimaryBackground,
+            o.SecondaryBackground,
+            o.MiddleBackground,
+            o.ScrollBackground,
+            o.PrimaryOutside,
+            o.SecondaryOutside,
+            o.MiddleOutside,
+            o.ScrollOutside,
             // ---------------
-            opt.WindowSwitcher,
-            opt.ScrollWinItem,
-            opt.PrimaryWinItem,
-            opt.SecondaryWinItem,
-            opt.MiddleWinItem,
+            o.WindowSwitcher,
+            o.ScrollWinItem,
+            o.PrimaryWinItem,
+            o.SecondaryWinItem,
+            o.MiddleWinItem,
             // ---------------
-            opt.AppSwitcher,
-            opt.ScrollAppItem,
-            opt.PrimaryAppItem,
-            opt.SecondaryAppItem,
-            opt.MiddleAppItem,
+            o.AppSwitcher,
+            o.ScrollAppItem,
+            o.PrimaryAppItem,
+            o.SecondaryAppItem,
+            o.MiddleAppItem,
         ];
 
         return optionList;
@@ -453,7 +447,7 @@ export default class AATWS extends ExtensionPreferences {
             [
                 [_('Disable'),                0],
                 [_('Show'),                   1],
-                [_('Show in Dock Mode Only'), 2],
+                [_('Show in Dash Mode Only'), 2],
             ]
         );
 
@@ -1012,25 +1006,6 @@ export default class AATWS extends ExtensionPreferences {
             'wsShowSwitcherPopup'
         );
 
-        optDict.Thumbnails = itemFactory.getRowWidget(
-            _('DND Window Thumbnails')
-        );
-
-        let tmbScaleAdjustment = new Gtk.Adjustment({
-            lower: 5,
-            upper: 50,
-            step_increment: 1,
-            page_increment: 10,
-        }
-        );
-
-        optDict.ThumbnailScale = itemFactory.getRowWidget(
-            _('Thumbnail Height Scale (%)'),
-            _('Adjusts the default height of the thumbnail relative to the screen height'),
-            itemFactory.newSpinButton(tmbScaleAdjustment),
-            'winThumbnailScale'
-        );
-
         // /////////////////////////////////////////////////////////////////////
 
         optDict.Common = itemFactory.getRowWidget(
@@ -1328,17 +1303,7 @@ The current monitor is the one where the switcher pop-up is located, or where th
 
         optionList.push(itemFactory.getRowWidget(
             _('Create Window Thumbnail'),
-            _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. \
-You can move the thumbnail anywhere on the screen using a mouse drag & drop and you can make as many thumbnails as you want.\n\
-To remove lastly created thumbnail, use this hotkey while pressing Ctrl key, or click on the close button inside thumbnail.\n\
-To remove all created thumbnails, use this hotkey while pressing Shift and Ctrl keys.\n\
-Thumbnail controls:\n\
-    Double click:    \t\t activates the source window\n\
-    Primary click:     \t\t toggles scroll wheel function (resize / source)\n\
-    Secondary click:    \t\t window preview\n\
-    Scroll wheel:       \t\t resizes or changes the source window\n\
-    Ctrl + Scroll wheel:  \t changes source window or resize\n\
-    Shift + Scroll wheel: \t adjusts opacity'),
+            _('Creates a thumbnail preview of the selected window using the "WTMB (Window Thumbnails)" extension if installed on your system. Hold down Ctrl to remove the last-created thumbnail, and hold down Ctrl+Shift to remove all thumbnails'),
             itemFactory.newEntry(),
             'hotkeyThumbnail'
         )
@@ -1581,7 +1546,7 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
 
         optionList.push(itemFactory.getRowWidget(
             _('Reset all options'),
-            _('Set all options to default values.'),
+            _('Reset all options to their default values'),
             itemFactory.newOptionsResetButton()
         ));
 
@@ -1616,7 +1581,7 @@ If apps are ordered by MRU, first pres of the hotkey reorders apps by Favorites'
 
         optionList.push(itemFactory.getRowWidget(
             _('Buy Me a Coffee'),
-            _('Enjoying AATWS? Consider supporting it by buying me a coffee!'),
+            _('Enjoying this extension? Consider supporting it by buying me a coffee!'),
             itemFactory.newLinkButton('https://buymeacoffee.com/georgdh')
         ));
 
