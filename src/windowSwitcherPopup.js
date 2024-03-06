@@ -239,6 +239,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._initTime = Date.now();
         super._init();
         this._actions              = Me.actions;
+
         // Global options
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
@@ -254,8 +255,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         this.POPUP_POSITION        = opt.POPUP_POSITION;
         // default gaps between switcher and top/bottom screen edge
-        this.TOP_MARGIN            = 12;
-        this.BOTTOM_MARGIN         = 12;
+        const panelBox = Main.layoutManager.panelBox;
+        const panelVisible = Main.panel.visible && panelBox.visible && panelBox.get_parent() === Main.layoutManager.uiGroup;
+        this._monitorGeometry      = global.display.get_monitor_geometry(this._monitorIndex);
+        this.PANEL_TOP             = panelVisible && panelBox.y === this._monitorGeometry.y;
+        this.PANEL_BOTTOM          = panelVisible && panelBox.allocation.y2 === (this._monitorGeometry.y + this._monitorGeometry.height);
+        this.MARGIN_TOP            = 12;
+        this.MARGIN_BOTTOM         = 12;
         // current screen scale factor that also affects margins
         const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
         this.SCALE_FACTOR          = scaleFactor;
@@ -562,14 +568,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._firstRun) {
             if (this.CHCE_TRIGGERED && this.POSITION_POINTER && !this.KEYBOARD_TRIGGERED) {
-                this.TOP_MARGIN = 2;
-                this.BOTTOM_MARGIN = 2;
+                this.MARGIN_TOP = 2;
+                this.MARGIN_BOTTOM = 2;
             } else if (this.POPUP_POSITION === Position.TOP) {
-                this.TOP_MARGIN = Math.round(Main.panel.height / this.SCALE_FACTOR + 4);
+                if (this.PANEL_TOP)
+                    this.MARGIN_TOP = Math.round(Main.panel.height / this.SCALE_FACTOR + 4);
+            } else if (this.POPUP_POSITION === Position.BOTTOM) {
+                if (this.PANEL_BOTTOM)
+                    this.MARGIN_BOTTOM = Math.round(Main.panel.height / this.SCALE_FACTOR + 4);
             }
         }
 
-        this._switcherList.set_style(`margin-top: ${this.TOP_MARGIN}px; margin-bottom: ${this.BOTTOM_MARGIN}px; padding-bottom: ${padding}px;`);
+        this._switcherList.set_style(`margin-top: ${this.MARGIN_TOP}px; margin-bottom: ${this.MARGIN_BOTTOM}px; padding-bottom: ${padding}px;`);
 
         if (this._searchEntryNotEmpty()) {
             if (!this._showingApps) {
@@ -1216,11 +1226,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _animateIn() {
         let translationY = 0;
         switch (this.POPUP_POSITION) {
-        case 1:
-            translationY =  -this._switcherList.height - (Main.panel.height + 20) / this.SCALE_FACTOR;
+        case Position.TOP:
+            translationY -= this._switcherList.height +
+                            (this.PANEL_TOP ? (Main.panel.height + this.MARGIN_TOP) / this.SCALE_FACTOR : this.MARGIN_TOP);
             break;
-        case 3:
-            translationY =  this._switcherList.height + 20;
+        case Position.BOTTOM:
+            translationY = this._switcherList.height +
+                            (this.PANEL_TOP ? (Main.panel.height + this.MARGIN_BOTTOM) / this.SCALE_FACTOR : this.MARGIN_BOTTOM);
             break;
         }
         this._switcherList.translation_y = translationY;
@@ -1278,11 +1290,13 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         if (this._switcherList) {
             switch (this.POPUP_POSITION) {
-            case 1:
-                translationY =  -this._switcherList.height - (Main.panel.height + 6) / this.SCALE_FACTOR;
+            case Position.TOP:
+                translationY -= this._switcherList.height +
+                                (this.PANEL_TOP ? (Main.panel.height + this.MARGIN_TOP) / this.SCALE_FACTOR : this.MARGIN_TOP);
                 break;
-            case 3:
-                translationY =  this._switcherList.height + 6;
+            case Position.BOTTOM:
+                translationY = this._switcherList.height +
+                                (this.PANEL_BOTTOM ? (Main.panel.height + this.MARGIN_BOTTOM) / this.SCALE_FACTOR : this.MARGIN_BOTTOM);
                 break;
             }
 
@@ -1733,8 +1747,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         const switcher = this._switcherList;
         // margin expands the "inside" area around the popup to cover gap between the popup and the edge of screen (Top/Bottom position), plus small overlap
         let result = false;
-        const margin = this.BOTTOM_MARGIN * this.SCALE_FACTOR - 1;
-        const marginTop = this.TOP_MARGIN * this.SCALE_FACTOR;
+        const margin = this.MARGIN_BOTTOM * this.SCALE_FACTOR - 1;
+        const marginTop = this.MARGIN_TOP * this.SCALE_FACTOR;
 
         if (x < (switcher.allocation.x1 - margin) || x > (switcher.allocation.x1 + switcher.width + margin)) {
             // return true if the pointer is horizontally outside the switcher and cannot be at the top or bottom of the screen
@@ -3636,7 +3650,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             return true;
 
 
-        let geometry = global.display.get_monitor_geometry(this._monitorIndex);
+        let geometry = this._monitorGeometry;
         let mousePointerX = global.get_pointer()[0];
         let diff = geometry.x + geometry.width - mousePointerX;
         let reverse = diff < 100;
