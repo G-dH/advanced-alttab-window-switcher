@@ -3,56 +3,62 @@
  * Extension
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
 'use strict';
 
-const { GObject, GLib, Gio, Meta, Shell }    = imports.gi;
+const { GObject, GLib, Gio, Meta, Shell } = imports.gi;
 
 const Main                 = imports.ui.main;
 const AltTab               = imports.ui.altTab;
-const Layout                 = imports.ui.layout;
+const Layout               = imports.ui.layout;
 
 const ExtensionUtils       = imports.misc.extensionUtils;
-const Me                   = ExtensionUtils.getCurrentExtension();
-const Settings             = Me.imports.src.settings;
-const WindowSwitcherPopup  = Me.imports.src.windowSwitcherPopup;
-const Actions              = Me.imports.src.actions;
+const Extension            = ExtensionUtils.getCurrentExtension();
+const Settings             = Extension.imports.src.settings;
+const WindowSwitcherPopup  = Extension.imports.src.windowSwitcherPopup;
+const Actions              = Extension.imports.src.actions;
 
 
-function init(me) {
-    // me === Me
-    ExtensionUtils.initTranslations(me.metadata['gettext-domain']);
-    return new AATWS(me);
+function init() {
+    ExtensionUtils.initTranslations(Extension.metadata['gettext-domain']);
+    return new AATWS();
 }
 
 class AATWS {
-    constructor(me) {
-        this._metadata = me.metadata;
-        this._originalOverlayKeyHandlerId = null;
-        this._signalOverlayKey = null;
+    init() {
         this._wmFocusToActiveHandlerId = 0;
         this._monitorsChangedConId = 0;
         this._monitorsChangedDelayId = 0;
+        this._originalOverlayKeyHandlerId = null;
+        this._signalOverlayKey = null;
         this._pressureBarriers = null;
-        this._actions = null;
     }
 
     enable() {
-        this._opt = new Settings.Options();
-        WindowSwitcherPopup.opt = this._opt;
+        this.init();
+        const metadata = Extension.metadata;
+        const Me = {
+            metadata,
+            gSettings: ExtensionUtils.getSettings(metadata['settings-schema']),
+            _: imports.gettext.domain(metadata['gettext-domain']).gettext,
+        };
+        Me.opt = new Settings.Options(Me);
+        Me.actions = new Actions.Actions(Me);
 
-        if (!this._actions)
-            this._actions = new Actions.Actions(this._opt);
-        else
-            this._actions.resumeThumbnailsIfExist();
-        WindowSwitcherPopup.actions = this._actions;
+        this.Me = Me;
+        this._opt = Me.opt;
+        this.metadata = Me.metadata;
 
-        // this._opt.connect('changed::super-key-mode', this._updateOverlayKeyHandler);
+        WindowSwitcherPopup.init(Me);
+        Extension.imports.src.switcherItems._ = Me._;
+        Extension.imports.src.windowMenu._ = Me._;
+
         this._opt.connect('changed', this._updateSettings.bind(this));
 
+        // Replace default AltTab switchers
         this._origAltTabWSP = AltTab.WindowSwitcherPopup;
         this._origAltTabASP = AltTab.AppSwitcherPopup;
         AltTab.WindowSwitcherPopup = WindowSwitcherPopup.WindowSwitcherPopup;
@@ -67,7 +73,7 @@ class AATWS {
         this._updateHotTrigger();
         this._updateDashVisibility();
 
-        console.debug(`${this._metadata.name}: enabled`);
+        console.debug(`${this.metadata.name}: enabled`);
     }
 
     disable() {
@@ -79,13 +85,6 @@ class AATWS {
             this.popup = null;
         }
 
-        if (Main.sessionMode.isLocked && this._extensionEnabled()) {
-            this._actions.hideThumbnails();
-        } else {
-            this._actions.clean();
-            this._actions = null;
-        }
-
         if (this._origAltTabWSP)
             AltTab.WindowSwitcherPopup = this._origAltTabWSP;
         if (this._origAltTabASP)
@@ -93,15 +92,17 @@ class AATWS {
         this._origAltTabWSP = null;
         this._origAltTabASP = null;
         this._restoreOverlayKeyHandler();
-        WindowSwitcherPopup.options = null;
 
         this._removePressureBarrier();
         this._updateDashVisibility(true);
 
+        this.Me.actions.clean();
+        this.Me.actions = null;
         this._opt.destroy();
         this._opt = null;
+        this.Me.opt = null;
 
-        console.debug(`${this._metadata.name}: disabled`);
+        console.debug(`${this.metadata.name}: disabled`);
     }
 
     _updateAlwaysActivateFocusedConnection() {
@@ -146,17 +147,15 @@ class AATWS {
     }
 
     _updateOverlayKeyHandler() {
-    // Block original overlay key handler
         this._restoreOverlayKeyHandler();
 
         if (this._opt.get('superKeyMode', true) === 1)
             return;
 
-
+        // Block original overlay key handler
         this._originalOverlayKeyHandlerId = GObject.signal_handler_find(global.display, { signalId: 'overlay-key' });
         if (this._originalOverlayKeyHandlerId !== null)
             global.display.block_signal_handler(this._originalOverlayKeyHandlerId);
-
 
         // Connect modified overlay key handler
         let _a11ySettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.a11y.keyboard' });
@@ -312,9 +311,9 @@ class AATWS {
     _extensionEnabled() {
         const shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
         let enabledE = shellSettings.get_strv('enabled-extensions');
-        enabledE = enabledE.indexOf(Me.metadata.uuid) > -1;
+        enabledE = enabledE.indexOf(this.metadata.uuid) > -1;
         let disabledE = shellSettings.get_strv('disabled-extensions');
-        disabledE = disabledE.indexOf(Me.metadata.uuid) > -1;
+        disabledE = disabledE.indexOf(this.metadata.uuid) > -1;
         let disableUser = shellSettings.get_boolean('disable-user-extensions');
 
         if (enabledE && !disabledE && !disableUser)

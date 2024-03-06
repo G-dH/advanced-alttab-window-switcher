@@ -3,7 +3,7 @@
  * SwitcherList
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -50,9 +50,9 @@ const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 */
 var SwitcherList = GObject.registerClass(
 class SwitcherList extends SwitcherPopup.SwitcherList {
-    _init(items, options, switcherParams) {
+    _init(items, opt, switcherParams) {
         super._init(false); // squareItems = false
-        this._options = options;
+        this.opt = opt;
         this._switcherParams = switcherParams;
 
         this._statusLabel = new St.Label({
@@ -62,14 +62,14 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
         });
 
         this.add_child(this._statusLabel);
-        if (!this._options.STATUS)
+        if (!this.opt.STATUS)
             this._statusLabel.hide();
 
 
         this.icons = [];
 
         let showAppsIcon;
-        if (this._switcherParams.showingApps && (this._options.INCLUDE_SHOW_APPS_ICON || this._switcherParams.mouseControl)) {
+        if (this._switcherParams.showingApps && (this.opt.INCLUDE_SHOW_APPS_ICON || this._switcherParams.mouseControl)) {
             showAppsIcon = this._getShowAppsIcon();
             if (this._switcherParams.reverseOrder) {
                 this.addItem(showAppsIcon, showAppsIcon.titleLabel);
@@ -82,29 +82,19 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
             let item = items[i];
             let icon;
             if (item.get_title) {
-                icon = new WindowIcon(item, i, this._switcherParams, this._options);
-                /* if (switcherParams.mouseControl && item === global.display.get_tab_list(0, null)[0]) {
-                    icon._is_focused = true;
-                }*/
+                icon = new WindowIcon(item, i, this._switcherParams, this.opt);
             } else if (item.get_app_info) {
-                icon = new AppIcon(item, i, this._switcherParams, this._options);
-                /* if (switcherParams.mouseControl && item.cachedWindows.length && (item.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) {
-                    icon._is_focused = true;
-                }*/
+                icon = new AppIcon(item, i, this._switcherParams, this.opt);
                 icon.connect('menu-state-changed',
                     (o, open) => {
-                        this._options.cancelTimeout = open;
+                        this.opt.cancelTimeout = open;
                     }
                 );
             } else {
-                icon = new SysActionIcon(item, i, this._switcherParams, this._options);
+                icon = new SysActionIcon(item, i, this._switcherParams, this.opt);
             }
 
             this.icons.push(icon);
-
-            /* if (icon._is_focused) {
-                this._items[this._items.length - 1].add_style_class_name(this._options.colorStyle.FOCUSED);
-            }*/
 
             // compensate item height added by "running dot (line)" indicator
             const listItem = this.addItem(icon, icon.titleLabel);
@@ -135,9 +125,9 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
 
     _getShowAppsIcon() {
         const showAppsIcon = new ShowAppsIcon({
-            iconSize: this._options.APP_MODE_ICON_SIZE,
-            showLabel: this._options.SHOW_APP_TITLES,
-            style: this._options.colorStyle.TITLE_LABEL,
+            iconSize: this.opt.APP_MODE_ICON_SIZE,
+            showLabel: this.opt.SHOW_APP_TITLES,
+            style: this.opt.colorStyle.TITLE_LABEL,
         });
 
         return showAppsIcon;
@@ -163,7 +153,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
         let [labelMin, labelNat] = this._statusLabel.get_preferred_height(-1);
 
         let multiplier = 0;
-        multiplier += this._options.STATUS ? 1 : 0;
+        multiplier += this.opt.STATUS ? 1 : 0;
         minHeight += multiplier * labelMin + spacing;
         natHeight += multiplier * labelNat + spacing;
 
@@ -176,7 +166,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
         let themeNode = this.get_theme_node();
         let contentBox = themeNode.get_content_box(box);
         const spacing = themeNode.get_padding(St.Side.BOTTOM);
-        const statusLabelHeight = this._options.STATUS ? this._statusLabel.height : spacing;
+        const statusLabelHeight = this.opt.STATUS ? this._statusLabel.height : spacing;
         const totalLabelHeight =
             statusLabelHeight;
 
@@ -210,7 +200,7 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
     _onItemMotion(item) {
         // Avoid reentrancy
         const icon = this.icons[this._items.indexOf(item)];
-        if (item !== this._items[this._highlighted] || (this._options.INTERACTIVE_INDICATORS && !icon._mouseControlsSet)) {
+        if (item !== this._items[this._highlighted] || (this.opt.INTERACTIVE_INDICATORS && !icon._mouseControlsSet)) {
             this._itemEntered(this._items.indexOf(item));
         }
 
@@ -228,17 +218,15 @@ class SwitcherList extends SwitcherPopup.SwitcherList {
     highlight(index) {
         if (this._items[this._highlighted]) {
             this._items[this._highlighted].remove_style_pseudo_class('selected');
-            if (this._options.colorStyle.STYLE)
-                this._items[this._highlighted].remove_style_class_name(this._options.colorStyle.SELECTED);
-            /* if (this.icons[this._highlighted]._is_focused)
-                this._items[this._highlighted].add_style_class_name(this._options.colorStyle.FOCUSED);*/
+            if (this.opt.colorStyle.STYLE)
+                this._items[this._highlighted].remove_style_class_name(this.opt.colorStyle.SELECTED);
         }
 
         if (this._items[index]) {
             this._items[index].add_style_pseudo_class('selected');
-            if (this._options.colorStyle.STYLE) {
-                // this._items[index].remove_style_class_name(this._options.colorStyle.FOCUSED);
-                this._items[index].add_style_class_name(this._options.colorStyle.SELECTED);
+            if (this.opt.colorStyle.STYLE) {
+                // this._items[index].remove_style_class_name(this.opt.colorStyle.FOCUSED);
+                this._items[index].add_style_class_name(this.opt.colorStyle.SELECTED);
             }
         }
 

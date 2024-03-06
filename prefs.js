@@ -3,7 +3,7 @@
  * Prefs
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -12,17 +12,17 @@
 const { Gtk } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
-const Me             = ExtensionUtils.getCurrentExtension();
-const Settings       = Me.imports.src.settings;
-const OptionsFactory = Me.imports.src.optionsFactory;
-
-// gettext
-const _  = Settings._;
+const Extension      = ExtensionUtils.getCurrentExtension();
+const Settings       = Extension.imports.src.settings;
+const OptionsFactory = Extension.imports.src.optionsFactory;
 
 const shellVersion   = Settings.shellVersion;
 
 const Actions = Settings.Actions;
 
+let Me;
+// gettext
+let _;
 let opt;
 
 function _getActionList() {
@@ -44,14 +44,23 @@ function _getActionList() {
         [_('Toggle Fullscreen on Empty WS'),   Actions.FS_ON_NEW_WS],
         [_('Sort Windows by Applications'),    Actions.GROUP_APP],
         [_('Sort Current Monitor First'),      Actions.CURRENT_MON_FIRST],
-        [_('Create Window Thumbnail'),         Actions.THUMBNAIL],
+        [_('Create Window Thumbnail (requires WTMB extension)'), Actions.THUMBNAIL],
         [_('Open Preferences'),                Actions.PREFS],
     ];
 }
 
 function init() {
-    ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    opt = new Settings.Options();
+    const metadata = Extension.metadata;
+    ExtensionUtils.initTranslations(metadata['gettext-domain']);
+    Me = {
+        metadata,
+        gSettings: ExtensionUtils.getSettings(metadata['settings-schema']),
+        _: imports.gettext.domain(metadata['gettext-domain']).gettext,
+    };
+    Me.opt = new Settings.Options(Me);
+
+    _ = Me._;
+    opt = Me.opt;
 }
 
 function _getPageList() {
@@ -59,49 +68,41 @@ function _getPageList() {
     const options = _getOptions(itemFactory);
     const pageList = [
         {
-            name: 'common',
             title: _('Common'),
             iconName: 'preferences-system-symbolic',
             optionList: _getCommonOptionList(options),
         },
         {
-            name: 'windows',
             title: _('Window Switcher'),
             iconName: 'focus-windows-symbolic',
             optionList: _getWindowOptionList(options),
         },
         {
-            name: 'apps',
             title: _('App Switcher'),
             iconName: 'view-app-grid-symbolic',
             optionList: _getAppOptionList(options),
         },
         {
-            name: 'dock',
-            title: _('Dock Mode'),
+            title: _('Dash Mode'),
             iconName: 'user-bookmarks-symbolic',
             optionList: _getDockOptionList(options),
         },
         {
-            name: 'hotkeys',
             title: _('Hotkeys'),
             iconName: 'input-keyboard-symbolic',
             optionList: _getHotkeysOptionList(itemFactory),
         },
         {
-            name: 'mouse',
             title: _('Mouse'),
             iconName: 'input-mouse-symbolic',
             optionList: _getMouseOptionList(options),
         },
         {
-            name: 'misc',
             title: _('Misc'),
             iconName: 'preferences-other-symbolic',
             optionList: _getMiscOptionList(options),
         },
         {
-            name: 'about',
             title: _('About'),
             iconName: 'preferences-system-details-symbolic',
             optionList: getAboutOptionList(itemFactory),
@@ -118,6 +119,8 @@ function fillPreferencesWindow(window) {
     window.connect('close-request', () => {
         opt.destroy();
         opt = null;
+        _ = null;
+        Me = null;
     });
 }
 
@@ -140,167 +143,162 @@ function buildPrefsWidget() {
 }
 
 function _getCommonOptionList(options) {
-    const opt = options;
+    const o = options;
 
     const optionList = [
-        opt.Behavior,
+        o.Behavior,
         // ---------------
-        opt.Position,
-        opt.DefaultMonitor,
-        opt.ShowImmediately,
-        opt.SearchModeDefault,
-        opt.SyncFilter,
-        // opt.UpDownArrowAction,
-        // opt.HotkeysRequireShift,
-        opt.WraparoundSelector,
-        opt.HoverSelectsItem,
-        opt.DelayShowingSwitcher,
-        opt.InteractiveIndicators,
+        o.Position,
+        o.DefaultMonitor,
+        o.ShowImmediately,
+        o.SearchModeDefault,
+        o.SyncFilter,
+        o.WraparoundSelector,
+        o.HoverSelectsItem,
+        o.DelayShowingSwitcher,
+        o.InteractiveIndicators,
         // ---------------
-        opt.AppearanceCommon,
-        opt.WsThumbnails,
-        opt.Theme,
-        opt.OverlayTitle,
-        opt.TooltipLabelScale,
-        opt.ShowDirectActivation,
-        opt.ShowStatus,
-        opt.SingleAppPreviewSize,
+        o.AppearanceCommon,
+        o.WsThumbnails,
+        o.Theme,
+        o.OverlayTitle,
+        o.TooltipLabelScale,
+        o.ShowDirectActivation,
+        o.ShowStatus,
+        o.SingleAppPreviewSize,
         // ---------------
-        opt.Super,
-        opt.SuperKeyMode,
-        opt.EnableSuper,
-        opt.SuperDoublePress,
+        o.Super,
+        o.SuperKeyMode,
+        o.EnableSuper,
+        o.SuperDoublePress,
         // ---------------
-        opt.Input,
-        opt.RememberInput,
+        o.Input,
+        o.RememberInput,
     ];
 
     return optionList;
 }
 
 function _getWindowOptionList(options) {
-    const opt = options;
+    const o = options;
 
     const optionList = [
-        opt.Controls,
-        opt.ShortcutWin,
-        opt.Behavior,
-        opt.DefaultFilterWin,
-        opt.DefaultSortingWin,
-        opt.DefaultGrouping,
-        opt.DistinguishMinimized,
-        opt.SkipMinimized,
-        opt.MinimizedLast,
-        opt.IncludeModals,
-        opt.SearchAllWindows,
-        opt.SearchApplications,
+        o.Controls,
+        o.ShortcutWin,
+        o.Behavior,
+        o.DefaultFilterWin,
+        o.DefaultSortingWin,
+        o.DefaultGrouping,
+        o.DistinguishMinimized,
+        o.SkipMinimized,
+        o.MinimizedLast,
+        o.IncludeModals,
+        o.SearchAllWindows,
+        o.SearchApplications,
         // ---------------
-        opt.AppearanceWin,
-        opt.ShowWindowTitle,
-        opt.ShowWorkspaceIndex,
-        opt.WindowPreviewSize,
-        opt.WindowIconSize,
+        o.AppearanceWin,
+        o.ShowWindowTitle,
+        o.ShowWorkspaceIndex,
+        o.WindowPreviewSize,
+        o.WindowIconSize,
     ];
 
     return optionList;
 }
 
 function _getAppOptionList(options) {
-    const opt = options;
+    const o = options;
 
     const optionList = [
-        opt.Controls,
-        opt.ShortcutApp,
-        opt.Behavior,
-        opt.DefaultFilterApp,
-        opt.DefaultSortingApp,
-        opt.RaiseFirstWinOnly,
-        opt.ResultsLimit,
-        opt.SearchPrefRunning,
-        opt.IncludeFavorites,
-        opt.IncludeShowAppsIcon,
+        o.Controls,
+        o.ShortcutApp,
+        o.Behavior,
+        o.DefaultFilterApp,
+        o.DefaultSortingApp,
+        o.RaiseFirstWinOnly,
+        o.ResultsLimit,
+        o.SearchPrefRunning,
+        o.IncludeFavorites,
+        o.IncludeShowAppsIcon,
         // ---------------
-        opt.AppearanceApp,
-        opt.ShowAppTitle,
-        opt.ShowWinCounter,
-        opt.HideWinCounterForSingleWindow,
-        opt.AppIconSize,
+        o.AppearanceApp,
+        o.ShowAppTitle,
+        o.ShowWinCounter,
+        o.HideWinCounterForSingleWindow,
+        o.AppIconSize,
     ];
 
     return optionList;
 }
 
 function _getDockOptionList(options) {
-    const opt = options;
+    const o = options;
 
     const optionList = [
-        opt.HotEdge,
-        opt.HotEdgePosition,
-        opt.HotEdgeFullScreen,
-        opt.HotEdgeMode,
-        opt.HotEdgeMonitor,
-        opt.HotEdgePressure,
-        opt.HotEdgeWidth,
+        o.HotEdge,
+        o.HotEdgePosition,
+        o.HotEdgeFullScreen,
+        o.HotEdgeMode,
+        o.HotEdgeMonitor,
+        o.HotEdgePressure,
+        o.HotEdgeWidth,
         // ---------------
-        opt.ExternalTrigger,
-        opt.SingleOnActivate,
-        opt.AppStableOrder,
-        opt.AppIncludeFavorites,
-        opt.AutomaticallyReverseOrder,
-        opt.PointerOutTimeout,
-        opt.ActivateOnHide,
-        opt.MousePointerPosition,
-        opt.AnimationTimeFactor,
+        o.ExternalTrigger,
+        o.SingleOnActivate,
+        o.AppStableOrder,
+        o.AppIncludeFavorites,
+        o.AutomaticallyReverseOrder,
+        o.PointerOutTimeout,
+        o.ActivateOnHide,
+        o.MousePointerPosition,
+        o.AnimationTimeFactor,
         // ---------------
-        opt.Dash,
-        opt.ShowDash,
+        o.Dash,
+        o.ShowDash,
     ];
 
     return optionList;
 }
 
 function _getMiscOptionList(options) {
-    const opt = options;
+    const o = options;
 
     const optionList = [
-        opt.WindowManager,
-        opt.AlwaysActivateFocused,
+        o.WindowManager,
+        o.AlwaysActivateFocused,
         // ---------------
-        opt.Workspace,
-        opt.ShowWsSwitcherPopup,
-        // ---------------
-        opt.Thumbnails,
-        opt.ThumbnailScale,
+        o.Workspace,
+        o.ShowWsSwitcherPopup,
     ];
 
     return optionList;
 }
 
 function _getMouseOptionList(options) {
-    const opt = options;
+    const o = options;
 
     const optionList = [
-        opt.Common,
-        opt.PrimaryBackground,
-        opt.SecondaryBackground,
-        opt.MiddleBackground,
-        opt.ScrollBackground,
-        opt.PrimaryOutside,
-        opt.SecondaryOutside,
-        opt.MiddleOutside,
-        opt.ScrollOutside,
+        o.Common,
+        o.PrimaryBackground,
+        o.SecondaryBackground,
+        o.MiddleBackground,
+        o.ScrollBackground,
+        o.PrimaryOutside,
+        o.SecondaryOutside,
+        o.MiddleOutside,
+        o.ScrollOutside,
         // ---------------
-        opt.WindowSwitcher,
-        opt.ScrollWinItem,
-        opt.PrimaryWinItem,
-        opt.SecondaryWinItem,
-        opt.MiddleWinItem,
+        o.WindowSwitcher,
+        o.ScrollWinItem,
+        o.PrimaryWinItem,
+        o.SecondaryWinItem,
+        o.MiddleWinItem,
         // ---------------
-        opt.AppSwitcher,
-        opt.ScrollAppItem,
-        opt.PrimaryAppItem,
-        opt.SecondaryAppItem,
-        opt.MiddleAppItem,
+        o.AppSwitcher,
+        o.ScrollAppItem,
+        o.PrimaryAppItem,
+        o.SecondaryAppItem,
+        o.MiddleAppItem,
     ];
 
     return optionList;
@@ -322,7 +320,7 @@ function _getOptions(itemFactory) {
     optDict.Position = itemFactory.getRowWidget(
         _('Placement'),
         _('Specifies the screen location for the switcher pop-up'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupPosition',
         [
             [_('Top'), 1],
@@ -334,7 +332,7 @@ function _getOptions(itemFactory) {
     optDict.DefaultMonitor = itemFactory.getRowWidget(
         _('Default Monitor'),
         _('Determines the screen on which the switcher pop-up will be displayed'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupMonitor',
         [
             [_('Primary Monitor'), 1],
@@ -353,7 +351,7 @@ function _getOptions(itemFactory) {
     optDict.ShowImmediately = itemFactory.getRowWidget(
         _('Show Selected Window'),
         _('Instantly displays the selected window in its original size upon switcher selection. Choose between a preview clone or raising the original window including switching workspaces if needed'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupPreviewSelected',
         [
             [_('Disable'), 1],
@@ -397,7 +395,7 @@ function _getOptions(itemFactory) {
     optDict.OverlayTitle = itemFactory.getRowWidget(
         _('Tooltip Titles'),
         _('The switcher pop-up displays the full title of the selected item as a caption, positioned above or below as needed'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupTooltipTitle',
         [
             [_('Disable'), 1],
@@ -470,12 +468,12 @@ function _getOptions(itemFactory) {
         optDict.WsThumbnails = itemFactory.getRowWidget(
             _('Show Workspace Thumbnails'),
             _('AATWS displays workspace thumbnails above or below the switcher, allowing you to preview their content, drag and drop windows between workspaces and switch workspaces with the mouse. Additionally, you can reorder the current workspace using (Ctrl or Shift)+Scroll or Ctrl+Page Up/Down'),
-            itemFactory.newComboBox(),
+            itemFactory.newDropDown(),
             'switcherWsThumbnails',
             [
                 [_('Disable'),                0],
                 [_('Show'),                   1],
-                [_('Show in Dock Mode Only'), 2],
+                [_('Show in Dash Mode Only'), 2],
             ]
         );
     } else {
@@ -485,7 +483,7 @@ function _getOptions(itemFactory) {
     optDict.Theme = itemFactory.getRowWidget(
         _('Color Style'),
         _('The "Default" option corresponds to the current Shell theme, and "Follow System Color Scheme" switches between AATWS Dark and Light styles based on the current GNOME color style (available in GNOME 42 and higher)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupTheme',
         [
             [_('Default'),                    0],
@@ -504,7 +502,7 @@ function _getOptions(itemFactory) {
     optDict.SuperKeyMode = itemFactory.getRowWidget(
         _('Super Key Action'),
         _('Press and release the Super key (default overlay-key, remappable in Gnome Tweaks) to open the App or Window switcher. The default mode preserves system behavior'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'superKeyMode',
         [
             [_('Default'),          1],
@@ -521,7 +519,7 @@ function _getOptions(itemFactory) {
         'enableSuper'
     );
 
-    const superDoublePressSwitch = itemFactory.newComboBox();
+    const superDoublePressSwitch = itemFactory.newDropDown();
     optDict.SuperDoublePress = itemFactory.getRowWidget(
         _('Double Super Key Press (needs previous option enabled)'),
         _('Initial double press of the Super key (or key set as Window Action Key) may perform selected action.'),
@@ -549,7 +547,7 @@ function _getOptions(itemFactory) {
     optDict.HotEdgePosition = itemFactory.getRowWidget(
         _('Hot Edge Position'),
         _('Hot edge activates the App or Window switcher when the mouse pointer applies pressure to the edge of the monitor'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'hotEdgePosition',
         [
             [_('Disabled'), 0],
@@ -568,7 +566,7 @@ function _getOptions(itemFactory) {
     optDict.HotEdgeMode = itemFactory.getRowWidget(
         _('Hot Edge Action'),
         _('Default switcher mode for Hot Edge trigger.'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'hotEdgeMode',
         [
             [_('App Switcher'),     0],
@@ -579,7 +577,7 @@ function _getOptions(itemFactory) {
     optDict.HotEdgeMonitor = itemFactory.getRowWidget(
         _('Hot Edge Monitor'),
         _('Specifies whether the hot edge is set for the primary monitor only or for all active monitors'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'hotEdgeMonitor',
         [
             [_('Primary'), 0],
@@ -622,7 +620,7 @@ function _getOptions(itemFactory) {
     optDict.ShowDash = itemFactory.getRowWidget(
         _('Dash Visibility'),
         _('Manages the visibility of the Dash in the Activities overview. You can disable the Dash if you are using AATWS instead'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'showDash',
         [
             [_('Leave Unchanged'), 0],
@@ -662,7 +660,7 @@ function _getOptions(itemFactory) {
     optDict.DefaultFilterWin = itemFactory.getRowWidget(
         _('Default Filter'),
         _('Specifies the filter for windows that should appear in the list. The filter can also be changed on the fly using a hotkey'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupFilter',
         [
             [_('All'),               1],
@@ -674,7 +672,7 @@ function _getOptions(itemFactory) {
     optDict.DefaultSortingWin = itemFactory.getRowWidget(
         _('Default Sorting'),
         _('Determines the order in which the list of windows should be sorted'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupSorting',
         [
             [_('Most Recently Used'),     1],
@@ -686,7 +684,7 @@ function _getOptions(itemFactory) {
     optDict.DefaultGrouping = itemFactory.getRowWidget(
         _('Default Grouping'),
         _('Groups windows in the list based on the selected key'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupOrder',
         [
             [_('None'),                  1],
@@ -752,7 +750,7 @@ function _getOptions(itemFactory) {
     optDict.ShowWindowTitle = itemFactory.getRowWidget(
         _('Show Window Titles'),
         _('Displays window titles (ellipsized if needed) under each window item in the switcher list'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupTitles',
         [
             [_('Enabled'), 1],
@@ -821,7 +819,7 @@ function _getOptions(itemFactory) {
     optDict.DefaultFilterApp = itemFactory.getRowWidget(
         _('Default Filter'),
         _('Specifies the filter for apps that should appear in the list. The filter can also be changed on the fly using a hotkey'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'appSwitcherPopupFilter',
         [
             [_('All'),               1],
@@ -833,7 +831,7 @@ function _getOptions(itemFactory) {
     optDict.DefaultSortingApp = itemFactory.getRowWidget(
         _('Default Sorting'),
         _('Determines the order in which the list of apps should be sorted'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'appSwitcherPopupSorting',
         [
             [_('Most Recently Used'), 1],
@@ -943,7 +941,7 @@ function _getOptions(itemFactory) {
     optDict.SingleOnActivate = itemFactory.getRowWidget(
         _('Show App Windows Instead of Direct Activation'),
         _('Choose between immediate activation of the clicked app (activated by a mouse button set to Activate Item) or switch to the window list to access other available windows (based on the current filter setting)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'appSwitcherPopupShowWinsOnActivate',
         [
             [_('Disable'), 0],
@@ -961,7 +959,7 @@ function _getOptions(itemFactory) {
 
     optDict.AppStableOrder = itemFactory.getRowWidget(
         _('Force App Switcher Stable Sequence'),
-        _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dock. Pinned (favorite) apps (if included) maintain the order they have in the Dash, and other open apps keep the order in which they were launched'),
+        _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dash. Pinned (favorite) apps (if included) maintain the order they have in the Dash, and other open apps keep the order in which they were launched'),
         itemFactory.newSwitch(),
         'switcherPopupExtAppStable'
     );
@@ -1037,25 +1035,6 @@ function _getOptions(itemFactory) {
         'wsShowSwitcherPopup'
     );
 
-    optDict.Thumbnails = itemFactory.getRowWidget(
-        _('DND Window Thumbnails')
-    );
-
-    let tmbScaleAdjustment = new Gtk.Adjustment({
-        lower: 5,
-        upper: 50,
-        step_increment: 1,
-        page_increment: 10,
-    }
-    );
-
-    optDict.ThumbnailScale = itemFactory.getRowWidget(
-        _('Thumbnail Height Scale (%)'),
-        _('Adjusts the default height of the thumbnail relative to the screen height'),
-        itemFactory.newSpinButton(tmbScaleAdjustment),
-        'winThumbnailScale'
-    );
-
     // /////////////////////////////////////////////////////////////////////
 
     optDict.Common = itemFactory.getRowWidget(
@@ -1065,7 +1044,7 @@ function _getOptions(itemFactory) {
     optDict.PrimaryBackground = itemFactory.getRowWidget(
         _('Primary Click on switcher Background'),
         _('Action triggered by a click of the primary (usually left) mouse button on the switcher pop-up background'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupPrimClickIn',
         actionList
     );
@@ -1073,7 +1052,7 @@ function _getOptions(itemFactory) {
     optDict.SecondaryBackground = itemFactory.getRowWidget(
         _('Secondary Click on switcher Background'),
         _('Action triggered by a click of the secondary (usually right) mouse button on the switcher pop-up background'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupSecClickIn',
         actionList
     );
@@ -1081,7 +1060,7 @@ function _getOptions(itemFactory) {
     optDict.MiddleBackground = itemFactory.getRowWidget(
         _('Middle Click on switcher Background'),
         _('Action triggered by a click of the middle mouse button on the switcher pop-up background'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupMidClickIn',
         actionList
     );
@@ -1089,7 +1068,7 @@ function _getOptions(itemFactory) {
     optDict.ScrollBackground = itemFactory.getRowWidget(
         _('Scroll over switcher Background'),
         _('Action triggered by scrolling over the switcher pop-up, but not over the switcher item'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupScrollIn',
         actionList
     );
@@ -1097,7 +1076,7 @@ function _getOptions(itemFactory) {
     optDict.PrimaryOutside = itemFactory.getRowWidget(
         _('Primary Click Outside switcher'),
         _('Action triggered by a click of the primary (usually left) mouse button outside the switcher pop-up'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupPrimClickOut',
         actionList
     );
@@ -1105,7 +1084,7 @@ function _getOptions(itemFactory) {
     optDict.SecondaryOutside = itemFactory.getRowWidget(
         _('Secondary Click Outside switcher'),
         _('Action triggered by a click of the secondary (usually right) mouse button outside the switcher pop-up'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupSecClickOut',
         actionList
     );
@@ -1113,7 +1092,7 @@ function _getOptions(itemFactory) {
     optDict.MiddleOutside = itemFactory.getRowWidget(
         _('Middle Click Outside switcher'),
         _('Action triggered by a click of the middle mouse button outside the switcher pop-up'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupMidClickOut',
         actionList
     );
@@ -1121,7 +1100,7 @@ function _getOptions(itemFactory) {
     optDict.ScrollOutside = itemFactory.getRowWidget(
         _('Scroll Outside switcher'),
         _('Action triggered by scrolling outside of the switcher pop-up'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupScrollOut',
         actionList
     );
@@ -1135,7 +1114,7 @@ function _getOptions(itemFactory) {
     optDict.ScrollWinItem = itemFactory.getRowWidget(
         _('Scroll Over Item'),
         _('Action triggered by scrolling over any switcher item (window icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupScrollItem',
         actionList
     );
@@ -1147,7 +1126,7 @@ function _getOptions(itemFactory) {
     optDict.PrimaryWinItem = itemFactory.getRowWidget(
         _('Primary Click on Item'),
         _('Action triggered by a click of the primary (usually left) mouse button on any switcher item (window icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupPrimClickItem',
         winActionList
     );
@@ -1155,7 +1134,7 @@ function _getOptions(itemFactory) {
     optDict.SecondaryWinItem = itemFactory.getRowWidget(
         _('Secondary Click on Item'),
         _('Action triggered by a click of the secondary (usually right) mouse button on any switcher item (window icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupSecClickItem',
         winActionList
     );
@@ -1163,7 +1142,7 @@ function _getOptions(itemFactory) {
     optDict.MiddleWinItem = itemFactory.getRowWidget(
         _('Middle Click on Item'),
         _('Action triggered by a click of the middle mouse button on any switcher item (window icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'winSwitcherPopupMidClickItem',
         winActionList
     );
@@ -1181,7 +1160,7 @@ function _getOptions(itemFactory) {
     optDict.ScrollAppItem = itemFactory.getRowWidget(
         _('Scroll Over Item'),
         _('Action triggered by scrolling over any switcher item (window icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'appSwitcherPopupScrollItem',
         appActionList
     );
@@ -1191,7 +1170,7 @@ function _getOptions(itemFactory) {
     optDict.PrimaryAppItem = itemFactory.getRowWidget(
         _('Primary Click on Item'),
         _('Action triggered by a click of the primary (usually left) mouse button on any switcher item (app icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'appSwitcherPopupPrimClickItem',
         appActionList
     );
@@ -1199,7 +1178,7 @@ function _getOptions(itemFactory) {
     optDict.SecondaryAppItem = itemFactory.getRowWidget(
         _('Secondary Click on Item'),
         _('Action triggered by a click of the secondary (usually right) mouse button on any switcher item (app icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'appSwitcherPopupSecClickItem',
         appActionList
     );
@@ -1207,7 +1186,7 @@ function _getOptions(itemFactory) {
     optDict.MiddleAppItem = itemFactory.getRowWidget(
         _('Middle Click on Item'),
         _('Action triggered by a click of the middle mouse button on any switcher item (app icon)'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'appSwitcherPopupMidClickItem',
         appActionList
     );
@@ -1354,17 +1333,7 @@ The current monitor is the one where the switcher pop-up is located, or where th
 
     optionList.push(itemFactory.getRowWidget(
         _('Create Window Thumbnail'),
-        _('Creates a thumbnail preview of the selected window and places it at the bottom right of the current monitor. \
-You can move the thumbnail anywhere on the screen using a mouse drag & drop and you can make as many thumbnails as you want.\n\
-To remove lastly created thumbnail, use this hotkey while pressing Ctrl key, or click on the close button inside thumbnail.\n\
-To remove all created thumbnails, use this hotkey while pressing Shift and Ctrl keys.\n\
-Thumbnail controls:\n\
-    Double click:    \t\t activates the source window\n\
-    Primary click:     \t\t toggles scroll wheel function (resize / source)\n\
-    Secondary click:    \t\t window preview\n\
-    Scroll wheel:       \t\t resizes or changes the source window\n\
-    Ctrl + Scroll wheel:  \t changes source window or resize\n\
-    Shift + Scroll wheel: \t adjusts opacity'),
+        _('Creates a thumbnail preview of the selected window using the "WTMB (Window Thumbnails)" extension if installed on your system. Hold down Ctrl to remove the last-created thumbnail, and hold down Ctrl+Shift to remove all thumbnails'),
         itemFactory.newEntry(),
         'hotkeyThumbnail'
     )
@@ -1420,7 +1389,7 @@ Thumbnail controls:\n\
     optionList.push(itemFactory.getRowWidget(
         _('Up/Down Keys Action'),
         _('Choose what Up/Down arrow keys should do.'),
-        itemFactory.newComboBox(),
+        itemFactory.newDropDown(),
         'switcherPopupUpDownAction',
         [
             [_('Nothing'), 1],
@@ -1599,7 +1568,7 @@ function getAboutOptionList(itemFactory) {
 
     optionList.push(itemFactory.getRowWidget(
         _('Reset all options'),
-        _('Set all options to default values.'),
+        _('Reset all options to their default values'),
         itemFactory.newOptionsResetButton()
     ));
 
@@ -1634,7 +1603,7 @@ function getAboutOptionList(itemFactory) {
 
     optionList.push(itemFactory.getRowWidget(
         _('Buy Me a Coffee'),
-        _('Enjoying AATWS? Consider supporting it by buying me a coffee!'),
+        _('Enjoying this extension? Consider supporting it by buying me a coffee!'),
         itemFactory.newLinkButton('https://buymeacoffee.com/georgdh')
     ));
 

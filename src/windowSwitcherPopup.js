@@ -3,7 +3,7 @@
  * WindowSwitcherPopup
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -22,22 +22,15 @@ const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const SystemActions   = imports.misc.systemActions;
 
 const ExtensionUtils  = imports.misc.extensionUtils;
-const Me              = ExtensionUtils.getCurrentExtension();
+const Extension       = ExtensionUtils.getCurrentExtension();
 
-const SwitcherList    = Me.imports.src.switcherList.SwitcherList;
-const AppSwitcher     = Me.imports.src.switcherList.AppSwitcher;
-const CaptionLabel    = Me.imports.src.captionLabel.CaptionLabel;
-const WindowMenu      = Me.imports.src.windowMenu;
-const Settings        = Me.imports.src.settings;
-
-// gettext
-const _               = Settings._;
+const SwitcherList    = Extension.imports.src.switcherList.SwitcherList;
+const AppSwitcher     = Extension.imports.src.switcherList.AppSwitcher;
+const CaptionLabel    = Extension.imports.src.captionLabel.CaptionLabel;
+const WindowMenu      = Extension.imports.src.windowMenu;
+const Settings        = Extension.imports.src.settings;
 
 const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
-
-// opt and actions inits in extension.enable()
-var opt;
-var actions;
 
 const SwitcherMode = {
     WINDOWS: 0,
@@ -50,10 +43,7 @@ const FilterMode = {
     MONITOR:   3,
 };
 
-const FilterModeLabel = ['',
-    _('ALL'),
-    _('WS '),
-    _('MON')];
+let FilterModeLabel;
 
 const Position = {
     TOP: 1,
@@ -61,16 +51,13 @@ const Position = {
     BOTTOM: 3,
 };
 
-const SortingMode = {
+let SortingMode = {
     MRU: 1,
     STABLE_SEQUENCE: 2,
     STABLE_CURRENT_FIRST: 3,
 };
 
-const SortingModeLabel = ['',
-    _('MRU'),
-    _('STABLE'),
-    _('STABLE - current 1.')];
+let SortingModeLabel;
 
 const GroupMode = {
     NONE: 1,
@@ -79,11 +66,7 @@ const GroupMode = {
     WORKSPACES: 4,
 };
 
-const GroupModeLabel = ['',
-    _('NONE'),
-    _('MON FIRST'),
-    _('APPS'),
-    _('WS')];
+let GroupModeLabel;
 
 const SelectMode = {
     NONE: -1,
@@ -125,6 +108,31 @@ const Action = Settings.Actions;
 
 const SCROLL_TIMEOUT = 200;
 const SCROLL_SELECTION_TIMEOUT = 20;
+
+let Me;
+// gettext
+let _;
+let opt;
+
+function init(me) {
+    Me = me;
+    opt = Me.opt;
+    _ = Me._;
+
+    FilterModeLabel = ['',
+        _('ALL'),
+        _('WS '),
+        _('MON')];
+    SortingModeLabel = ['',
+        _('MRU'),
+        _('STABLE'),
+        _('STABLE - current 1.')];
+    GroupModeLabel = ['',
+        _('NONE'),
+        _('MON FIRST'),
+        _('APPS'),
+        _('WS')];
+}
 
 function primaryModifier(mask) {
     if (mask === 0)
@@ -230,7 +238,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
         super._init();
-        this._actions              = actions;
+        this._actions              = Me.actions;
         // Global options
         // filter out all modifiers except Shift|Ctrl|Alt|Super and get those used in the shortcut that triggered this popup
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
@@ -2228,7 +2236,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if ((opt.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true) && !_ctrlPressed())
                 this._createWinThumbnail();
             else if (_ctrlPressed() && _shiftPressed())
-                this._actions.removeThumbnails();
+                this._actions.removeAllThumbnails();
             else if (_ctrlPressed())
                 this._actions.removeLastThumbnail();
         } else if (opt.get('hotkeyPrefs').includes(keyString) && (opt.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
@@ -2978,7 +2986,7 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._updateSwitcher();
         }
 
-        this._actions.showWsSwitcherPopup(direction, wsIndex);
+        this._actions.showWsSwitcherPopup(wsIndex);
         this._doNotUpdateOnNewWindow = false;
     }
 

@@ -3,7 +3,7 @@
  * CaptionLabel
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -11,23 +11,14 @@
 
 const { GObject, St, Clutter } = imports.gi;
 
-const Main            = imports.ui.main;
-
-const ExtensionUtils  = imports.misc.extensionUtils;
-const Me              = ExtensionUtils.getCurrentExtension();
-const Settings        = Me.imports.src.settings;
-
-const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
-
 
 var CaptionLabel = GObject.registerClass(
 class CaptionLabel extends St.BoxLayout {
-    _init(params, options) {
+    _init(params, opt) {
         this._search = params.name === 'search-label';
-        this._options = options;
 
         super._init({
-            style_class: this._options.colorStyle.CAPTION_LABEL,
+            style_class: opt.colorStyle.CAPTION_LABEL,
             vertical: !this._search, // horizontal orientation for search label, vertical for title caption
             style: `font-size: ${params.fontSize}em;`,
         });
@@ -90,7 +81,6 @@ class CaptionLabel extends St.BoxLayout {
     }
 
     _destroy() {
-        // Main.layoutManager.removeChrome(this);
         super.destroy();
     }
 });

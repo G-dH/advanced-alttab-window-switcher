@@ -3,24 +3,19 @@
  * Actions
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
 'use strict';
 
-const { GLib, GObject, St, Meta, Shell, Clutter } = imports.gi;
+const { Gio, GLib, Meta, Shell } = imports.gi;
 
 const Main                   = imports.ui.main;
-const ExtensionUtils         = imports.misc.extensionUtils;
-const Me                     = ExtensionUtils.getCurrentExtension();
-
-const Settings               = Me.imports.src.settings;
-const WinTmb                 = Me.imports.src.winTmb;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 
-const shellVersion = Settings.shellVersion;
-
+// gettext
+let _;
 
 function getCurrentMonitorGeometry() {
     return global.display.get_monitor_geometry(global.display.get_current_monitor());
@@ -32,76 +27,21 @@ function _getWindowApp(metaWindow) {
 }
 
 var Actions = class {
-    constructor(opt) {
-        this._opt = opt;
+    constructor(me) {
+        this._opt = me.opt;
+        _ = me._;
+        this.metadata = me.metadata;
     }
 
     clean() {
-        this.removeThumbnails();
         this._opt = null;
         this._shellSettings = null;
-        this._windowThumbnails = null;
-    }
-
-    removeThumbnails() {
-        if (this._windowThumbnails) {
-            this._windowThumbnails.forEach(
-                t => {
-                    if (t)
-                        t.destroy();
-                }
-            );
-            this._windowThumbnails = [];
-        }
-        this._disconnectThumbnails();
-    }
-
-    _disconnectThumbnails() {
-        if (this._showingConId) {
-            Main.overview.disconnect(this._showingConId);
-            this._showingConId = 0;
-        }
-        if (this._hidingConId) {
-            Main.overview.disconnect(this._hidingConId);
-            this._hidingConId = 0;
-        }
-    }
-
-    removeLastThumbnail() {
-        if (!this._windowThumbnails)
-            return;
-
-        const length = this._windowThumbnails.length;
-        if (length)
-            this._windowThumbnails[length - 1].destroy();
-        this._windowThumbnails.pop();
-    }
-
-    hideThumbnails() {
-        if (this._windowThumbnails) {
-            this._windowThumbnails.forEach(
-                t => {
-                    if (t)
-                        t.hide();
-                }
-            );
-        }
-    }
-
-    resumeThumbnailsIfExist() {
-        if (this._windowThumbnails) {
-            this._windowThumbnails.forEach(
-                t => {
-                    if (t)
-                        t.show();
-                }
-            );
-        }
+        _ = null;
     }
 
     _getShellSettings() {
         if (!this._shellSettings)
-            this._shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
+            this._shellSettings = new Gio.Settings({ schema_id: 'org.gnome.shell' });
 
         return this._shellSettings;
     }
@@ -170,20 +110,12 @@ var Actions = class {
     }
 
     toggleAppGrid() {
-        if (Main.overview.dash.showAppsButton.checked) {
+        if (Main.overview.dash.showAppsButton.checked)
             Main.overview.hide();
-        } else if (shellVersion < 40) {
-            // Pressing the apps btn before overview activation avoids icons animation in GS 3.36/3.38
-            // but in GS40 with Dash to Dock and its App button set to "no animation", this whole sequence is problematic
-
-            // in 3.36 pressing the button is usually enough to activate overview, but not always
+        else if (Main.overview._shown)
             Main.overview.dash.showAppsButton.checked = true;
-            Main.overview.show();
-        } else if (Main.overview._shown) {
-            Main.overview.dash.showAppsButton.checked = true;
-        } else {
+        else
             Main.overview.show(2); // 2 for App Grid
-        }
     }
 
     fullscreenWinOnEmptyWs(metaWindow = null) {
@@ -272,15 +204,13 @@ var Actions = class {
         Main.wm.actionMoveWorkspace(targetWs);
     }
 
-    showWsSwitcherPopup(direction, wsIndex) {
+    showWsSwitcherPopup(wsIndex) {
         if (!this._opt.SHOW_WS_SWITCHER_POPUP)
             return;
         if (!wsIndex)
             wsIndex = global.workspace_manager.get_active_workspace_index();
 
-
         if (!Main.overview.visible) {
-            const vertical = global.workspaceManager.layout_rows === -1;
             if (Main.wm._workspaceSwitcherPopup === null) {
                 Main.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup();
                 Main.wm._workspaceSwitcherPopup.connect('destroy', () => {
@@ -288,18 +218,7 @@ var Actions = class {
                 });
             }
 
-            let motion;
-            if (direction === Meta.MotionDirection.DOWN)
-                motion = vertical ? Meta.MotionDirection.DOWN : Meta.MotionDirection.RIGHT;
-            else
-                motion = vertical ? Meta.MotionDirection.UP   : Meta.MotionDirection.LEFT;
-
-
-
-            if (shellVersion >= 42)
-                Main.wm._workspaceSwitcherPopup.display(wsIndex);
-            else
-                Main.wm._workspaceSwitcherPopup.display(motion, wsIndex);
+            Main.wm._workspaceSwitcherPopup.display(wsIndex);
         }
     }
 
@@ -313,82 +232,58 @@ var Actions = class {
     }
 
     makeThumbnailWindow(metaWindow) {
-        if (!this._windowThumbnails)
-            this._windowThumbnails = [];
-        let metaWin;
-        if (metaWindow)
-            metaWin = metaWindow;
-
-        if (!metaWin)
+        if (!metaWindow)
             return;
 
-        let monitorHeight = getCurrentMonitorGeometry().height;
-        let scale = this._opt.get('winThumbnailScale');
-        this._windowThumbnails.push(new WinTmb.WindowThumbnail(metaWin, this._windowThumbnails, {
-            'height': Math.floor(scale / 100 * monitorHeight),
-            'thumbnailsOnScreen': this._windowThumbnails.length,
-        }));
-
-        this._hidingConId = Main.overview.connect('hiding', () => this._showThumbnails());
-        this._showingConId = Main.overview.connect('showing', () => this._hideThumbnails());
+        if (global.windowThumbnails)
+            global.windowThumbnails.createThumbnail(metaWindow);
+        else
+            Main.notify(_('Create Window Thumbnail'), _('This action requires the Window Thumbnails extension installed on your system'));
     }
 
-    _hideThumbnails() {
-        this._windowThumbnails.forEach(tmb => {
-            tmb.ease({
-                opacity: 0,
-                duration: 200,
-                mode: Clutter.AnimationMode.LINEAR,
-                onComplete: () => tmb.hide(),
-            });
-        });
-        this._thumbnailsHidden = true;
+    removeLastThumbnail() {
+        if (global.windowThumbnails)
+            global.windowThumbnails.removeLast();
     }
 
-    _showThumbnails() {
-        this._windowThumbnails.forEach(tmb => {
-            tmb.show();
-            tmb.ease({
-                opacity: 255,
-                duration: 100,
-                mode: Clutter.AnimationMode.LINEAR,
-            });
-        });
-        this._thumbnailsHidden = false;
+    removeAllThumbnails() {
+        if (global.windowThumbnails)
+            global.windowThumbnails.removeAll();
     }
 
-    openPrefsWindow() {
-        // if prefs window already exist, move it to the current WS and activate it
-        const metadata = Me.metadata;
+    openPrefsWindow(metadata) {
+        if (!metadata)
+            metadata = this.metadata;
+
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         let tracker = Shell.WindowTracker.get_default();
         let metaWin, isMe = null;
 
         for (let win of windows) {
             const app = tracker.get_window_app(win);
-            if (win.get_title() && win.get_title().includes(metadata.name) && app.get_name() === 'Extensions') {
-            // this is our existing window
+            if (win.get_title()?.includes(metadata.name) && app.get_name() === 'Extensions') {
+                // this is our existing window
                 metaWin = win;
                 isMe = true;
                 break;
-            } else if (win.wm_class && win.wm_class.includes('org.gnome.Shell.Extensions')) {
-            // this is prefs window of another extension
+            } else if (win.wm_class?.includes('org.gnome.Shell.Extensions')) {
+                // this is prefs window of another extension
                 metaWin = win;
                 isMe = false;
             }
         }
 
         if (metaWin && !isMe) {
-        // other prefs window blocks opening another prefs window, so close it
+            // other prefs window blocks opening another prefs window, so close it
             metaWin.delete(global.get_current_time());
         } else if (metaWin && isMe) {
-        // if prefs window already exist, move it to the current WS and activate it
+            // if prefs window already exist, move it to the current WS and activate it
             metaWin.change_workspace(global.workspace_manager.get_active_workspace());
             metaWin.activate(global.get_current_time());
         }
 
         if (!metaWin || (metaWin && !isMe)) {
-        // delay to avoid errors if previous prefs window has been colsed
+            // delay to avoid errors if previous prefs window has been colsed
             GLib.idle_add(GLib.PRIORITY_LOW, () => {
                 try {
                     Main.extensionManager.openExtensionPrefs(metadata.uuid, '', {});

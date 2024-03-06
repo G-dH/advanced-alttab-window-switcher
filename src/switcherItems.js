@@ -3,7 +3,7 @@
  * SwitcherItems
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -17,26 +17,24 @@ const IconGrid        = imports.ui.iconGrid;
 const SystemActions   = imports.misc.systemActions;
 const Screenshot      = imports.ui.screenshot;
 
-const ExtensionUtils  = imports.misc.extensionUtils;
-const Me              = ExtensionUtils.getCurrentExtension();
-const Settings        = Me.imports.src.settings;
-const _               = Settings._;
+var _;
 
 const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const LABEL_FONT_SIZE = 0.9;
 
+
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var WindowIcon = GObject.registerClass(
 class WindowIcon extends St.BoxLayout {
-    _init(item, iconIndex, switcherParams, options) {
+    _init(item, iconIndex, switcherParams, opt) {
         const metaWin = item;
         super._init({
             style_class: 'thumbnail-box',
             vertical: true,
             reactive: true,
         });
-        this._options = options;
+        this.opt = opt;
         this._switcherParams = switcherParams;
         this._icon = new St.Widget({ layout_manager: new Clutter.BinLayout() });
         this._id = metaWin.get_id();
@@ -47,7 +45,7 @@ class WindowIcon extends St.BoxLayout {
         this._createWindowIcon(metaWin);
 
         if (this._switcherParams.hotKeys && iconIndex < 12) {
-            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex, options.colorStyle.INDICATOR_OVERLAY);
+            this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex, opt.colorStyle.INDICATOR_OVERLAY);
             this._icon.add_child(this._hotkeyIndicator);
         }
 
@@ -94,7 +92,7 @@ class WindowIcon extends St.BoxLayout {
 
         this.titleLabel = new St.Label({
             text: title,
-            style_class: this._options.colorStyle.TITLE_LABEL,
+            style_class: this.opt.colorStyle.TITLE_LABEL,
             x_align: Clutter.ActorAlign.CENTER,
         });
 
@@ -109,8 +107,8 @@ class WindowIcon extends St.BoxLayout {
         size = this._switcherParams.winPrevSize;
         cloneSize = size;
 
-        if (!this._switcherParams.singleAppMode && this._options.APP_ICON_SIZE > size) {
-            size = this._options.APP_ICON_SIZE;
+        if (!this._switcherParams.singleAppMode && this.opt.APP_ICON_SIZE > size) {
+            size = this.opt.APP_ICON_SIZE;
             switched = true;
             cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * this._switcherParams.winPrevSize);
         }
@@ -120,7 +118,7 @@ class WindowIcon extends St.BoxLayout {
 
         if (this.app) {
             icon = this._createAppIcon(this.app,
-                this._options.APP_ICON_SIZE);
+                this.opt.APP_ICON_SIZE);
             this._appIcon = icon;
             this._appIcon.reactive = false;
         }
@@ -134,7 +132,7 @@ class WindowIcon extends St.BoxLayout {
             front = icon;
         }
 
-        if (this.window.minimized && this._options.MARK_MINIMIZED)
+        if (this.window.minimized && this.opt.MARK_MINIMIZED)
             front.opacity = 80;
 
 
@@ -150,7 +148,7 @@ class WindowIcon extends St.BoxLayout {
             this._icon.add_child(this._getIndicatorBox());
 
 
-        if (this._options.WS_INDEXES) {
+        if (this.opt.WS_INDEXES) {
             this._wsIndicator = this._createWsIcon(window.get_workspace().index() + 1);
             this._icon.add_child(this._wsIndicator);
         }
@@ -176,14 +174,14 @@ class WindowIcon extends St.BoxLayout {
 
         let label = new St.Label({
             text: `${index}`,
-            style_class: this._options.colorStyle.INDICATOR_OVERLAY,
+            style_class: this.opt.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.END,
         });
         if (currentWS + 1 === index)
-            label.add_style_class_name(this._options.colorStyle.INDICATOR_OVERLAY_HIGHLIGHTED);
+            label.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY_HIGHLIGHTED);
 
 
         return label;
@@ -192,7 +190,7 @@ class WindowIcon extends St.BoxLayout {
     _getIndicatorBox() {
         const indicatorBox = new St.BoxLayout({
             vertical: false,
-            // style_class: this._options.colorStyle.INDICATOR_OVERLAY,
+            // style_class: this.opt.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
@@ -216,9 +214,9 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.START,
             */
         });
-        icon.add_style_class_name(this._options.colorStyle.INDICATOR_OVERLAY);
+        icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY);
         if (!this.window.is_above()) {
-            icon.add_style_class_name(this._options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
+            icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {
             icon.add_style_class_name('window-state-indicators-active');
@@ -238,10 +236,10 @@ class WindowIcon extends St.BoxLayout {
             x_align: Clutter.ActorAlign.CENTER,
             */
         });
-        icon.add_style_class_name(this._options.colorStyle.INDICATOR_OVERLAY);
+        icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY);
         this._stickyIcon = icon;
         if (!this.window.is_on_all_workspaces()) {
-            icon.add_style_class_name(this._options.colorStyle.INDICATOR_OVERLAY_INACTIVE);
+            icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {
             icon.add_style_class_name('window-state-indicators-active');
@@ -256,7 +254,7 @@ var AppIcon = GObject.registerClass(
 class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams, options) {
         super._init(app);
-        this._options = options;
+        this.opt = options;
 
         // avoid conflict with rest of the system
         this._onMenuPoppedDown = () => { };
@@ -303,10 +301,10 @@ class AppIcon extends AppDisplay.AppIcon {
         // symbolic icons should be visible on both dark and light background
         this.set_style('color: grey;');
 
-        if (this._options.SHOW_APP_TITLES) {
+        if (this.opt.SHOW_APP_TITLES) {
             if (this.icon.label) {
                 this.icon.label.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
-                this.icon.label.set_style_class_name(this._options.colorStyle.TITLE_LABEL);
+                this.icon.label.set_style_class_name(this.opt.colorStyle.TITLE_LABEL);
                 this.icon.label.opacity = 255;
                 // set label truncate method
                 this.icon.label.clutterText.set({
@@ -327,7 +325,7 @@ class AppIcon extends AppDisplay.AppIcon {
             winCounterIndicator = this._createWinCounterIndicator(count);
             // winCounterIndicator.add_style_class_name('running-counter');
             // move the counter above app title
-            /* if (this._options.SHOW_APP_TITLES && !this._switcherParams.includeFavorites) {
+            /* if (this.opt.SHOW_APP_TITLES && !this._switcherParams.includeFavorites) {
                 winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
             } else {
                 winCounterIndicator.set_style(`margin-bottom: 1px;`);
@@ -337,9 +335,9 @@ class AppIcon extends AppDisplay.AppIcon {
         }
 
         if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
-            if (winCounterIndicator && this._options.SHOW_APP_TITLES)
+            if (winCounterIndicator && this.opt.SHOW_APP_TITLES)
                 this._winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.8}em;`);
-            else if (winCounterIndicator && !this._options.SHOW_APP_TITLES)
+            else if (winCounterIndicator && !this.opt.SHOW_APP_TITLES)
                 winCounterIndicator.set_style('margin-bottom: 7px;');
 
             // ensure the bottom-margin is always 0
@@ -347,15 +345,15 @@ class AppIcon extends AppDisplay.AppIcon {
             this._dot.add_style_class_name('running-dot');
 
             // change dot color to be visible on light bg cause Adwaita uses white color
-            if (this._options.colorStyle.RUNNING_DOT_COLOR)
-                this._dot.add_style_class_name(this._options.colorStyle.RUNNING_DOT_COLOR);
+            if (this.opt.colorStyle.RUNNING_DOT_COLOR)
+                this._dot.add_style_class_name(this.opt.colorStyle.RUNNING_DOT_COLOR);
 
             this.icon.set_style('margin-bottom: 4px;');
             if (!count)
                 this._dot.opacity = 0;
         } else {
             this._iconContainer.remove_child(this._dot);
-            if (winCounterIndicator && this._options.SHOW_APP_TITLES)
+            if (winCounterIndicator && this.opt.SHOW_APP_TITLES)
                 this._winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
             // this.icon.set_style('margin-bottom: 4px;');
         }
@@ -377,21 +375,21 @@ class AppIcon extends AppDisplay.AppIcon {
     }
 
     _shouldShowWinCounter(count) {
-        if (this._options.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW && count === 1)
+        if (this.opt.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW && count === 1)
             return false;
         else
-            return this._options.SHOW_WIN_COUNTER;
+            return this.opt.SHOW_WIN_COUNTER;
     }
 
     // this is override of original function to adjust icon size
     _createIcon() {
-        return this.app.create_icon_texture(this._options.APP_MODE_ICON_SIZE);
+        return this.app.create_icon_texture(this.opt.APP_MODE_ICON_SIZE);
     }
 
     _createWinCounterIndicator(num) {
         let label = new St.Label({
             text: `${num}`,
-            style_class: this._options.colorStyle.RUNNING_COUNTER,
+            style_class: this.opt.colorStyle.RUNNING_COUNTER,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
@@ -413,12 +411,12 @@ class SysActionIcon extends St.Widget {
         super._init({ reactive: true });
 
         this._id = app;
-        this._options = options;
+        this.opt = options;
         this._systemActions = SystemActions.getDefault();
 
         const actionName = this._systemActions.getName(this._id);
-        const showLabel = this._options.SHOW_APP_TITLES;
-        const iconSize = this._options.APP_MODE_ICON_SIZE;
+        const showLabel = this.opt.SHOW_APP_TITLES;
+        const iconSize = this.opt.APP_MODE_ICON_SIZE;
 
         this._is_sysActionIcon = true;
 
@@ -429,7 +427,7 @@ class SysActionIcon extends St.Widget {
         });
 
         this.icon.setIconSize(iconSize);
-        this.icon.add_style_class_name(this._options.colorStyle.TITLE_LABEL);
+        this.icon.add_style_class_name(this.opt.colorStyle.TITLE_LABEL);
 
         this.titleLabel = new St.Label({
             text: actionName,
@@ -439,7 +437,7 @@ class SysActionIcon extends St.Widget {
     }
 
     _createIcon() {
-        const size = this._options.APP_MODE_ICON_SIZE;
+        const size = this.opt.APP_MODE_ICON_SIZE;
         const iconName = this._systemActions.getIconName(this._id);
         return new St.Icon({
             icon_name: iconName,

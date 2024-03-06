@@ -217,9 +217,6 @@
     <key name='switcher-popup-wrap' type='b'>
       <default>true</default>
     </key>
-    <key name='win-thumbnail-scale' type='i'>
-      <default>15</default>
-    </key>
     <key name='ws-switch-ignore-last' type='b'>
       <default>false</default>
     </key>
