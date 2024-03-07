@@ -257,9 +257,10 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         // default gaps between switcher and top/bottom screen edge
         const panelBox = Main.layoutManager.panelBox;
         const panelVisible = Main.panel.visible && panelBox.visible && panelBox.get_parent() === Main.layoutManager.uiGroup;
+        const panelHorizontal = (panelBox.width / panelBox.height) > 1;
         this._monitorGeometry      = global.display.get_monitor_geometry(this._monitorIndex);
-        this.PANEL_TOP             = panelVisible && panelBox.y === this._monitorGeometry.y;
-        this.PANEL_BOTTOM          = panelVisible && panelBox.allocation.y2 === (this._monitorGeometry.y + this._monitorGeometry.height);
+        this.PANEL_TOP             = panelVisible && panelBox.y === this._monitorGeometry.y && panelHorizontal;
+        this.PANEL_BOTTOM          = panelVisible && panelBox.allocation.y2 === (this._monitorGeometry.y + this._monitorGeometry.height) && panelHorizontal;
         this.MARGIN_TOP            = 12;
         this.MARGIN_BOTTOM         = 12;
         // current screen scale factor that also affects margins
