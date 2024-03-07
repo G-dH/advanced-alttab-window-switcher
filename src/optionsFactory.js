@@ -276,7 +276,8 @@ export const ItemFactory = class ItemFactory {
 };
 
 const DropDownItem = GObject.registerClass({
-    GTypeName: 'DropdownItem',
+    // Registered name should be unique
+    GTypeName: `DropDownItem${Math.floor(Math.random() * 1000)}`,
     Properties: {
         'text': GObject.ParamSpec.string(
             'text',
