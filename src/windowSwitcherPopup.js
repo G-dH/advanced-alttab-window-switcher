@@ -319,6 +319,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._wsManagerConId = global.workspace_manager.connect('workspace-switched', this._onWorkspaceChanged.bind(this));
         this._newWindowConId = 0;
 
+        Main.overview.connectObject('showing', () => this.fadeAndDestroy(), this);
+        this._connectNewWindows();
+
         this._timeoutIds = {};
     }
 
@@ -504,8 +507,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         this._tempFilterMode = null;
-        if (!this._newWindowConId)
-            this._connectNewWindows();
 
         this._updateInProgress = false;
         return true;
@@ -734,6 +735,8 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
     _onDestroy() {
         this._doNotUpdateOnNewWindow = true;
+
+        Main.overview.disconnectObject(this);
 
         this._popModal();
 
