@@ -4,10 +4,6 @@
   "name": "AATWS - Advanced Alt-Tab Window Switcher",
   "settings-schema": "org.gnome.shell.extensions.advanced-alt-tab-window-switcher",
   "shell-version": [
-    "3.36",
-    "3.38",
-    "40",
-    "41",
     "42",
     "43",
     "44"
@@ -17,7 +13,7 @@
     "buymeacoffee": "georgdh"
   },
   "uuid": "advanced-alt-tab@G-dH.github.com",
-  "version-name": "44.10",
+  "version-name": "44.11",
   "version": 999
 }
 
