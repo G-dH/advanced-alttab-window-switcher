@@ -1,24 +1,29 @@
 ## Changelog
-### v46.0, v44.9 (not released yet on e.g.o)
+### v46.1 (2024-03-13) v44.11 (not released yet)
+**Added:**
+- Support for GNOME 46.rc
+
+**Fixed:**
+- The switcher position can end up out of the screen if main panel is vertical (#92)
+- The switcher won't close when something triggers overview while it's open (#93)
+- Conflicts with Tiling Assistant extension (#90)
+
+**Other Changes:**
+- Dropped support for GNOME 3.36 - 41 (still available but not developped anymore)
+- Removed winTmb module for window thumbnails, AATWS can now use standalone WTMB extension
+- Automatic switching filter in case the switcher shows only one item that matches the current filter setting now take effect only if you press Tab (or your shortcut) key once again
+
+
+### v46.0, v44.9 (2024-01-29)
+
 **Added**
-- Support for GNOME 46
+- Support for GNOME 46.alpha
 - Automatically switch filter in case the switcher shows only one item that matches the current filter setting and you press your shortcut key (typically Tab) once again. Allows for quicker switching to a window on another monitor/workspace, if you set the filter mode to current monitor/workspace.
 
 **Fixed**
 - Initial selection for search results is always set to the first item, even if the item refers to the current window. In this case the second item will be selected in the window switcher mode.
 - Using hotkey to toggle search mode should activate the search even if it's already active by default, because it also allows user to release modifier key for more comfortable typing
 - Option "Show Workspace Switcher Pop-up" doesn't take effect immediately
-
-
-### v45.6 (2023-12-17) v44.8 (2023-12-23)
-**Added:**
-- System actions like Power Off, Suspend, ... were added to app search results. For quick access to available actions, you can use 'qq' as the search pattern
-
-**Fixed:**
-- Hotkeys issues in GNOME 45
-- Access to destroyed actors exceptions when a new window is created
-- Switcher allocation errors during updates
-- App switcher error after disabling AATWS in GNOME 45
 
 
 ### v45.5 (2023-12-17) v44.7 (2023-12-17)
