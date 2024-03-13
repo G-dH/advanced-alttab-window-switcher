@@ -49,8 +49,9 @@ function _createWindowClone(window, size) {
     });
 }
 
-export const WindowIcon = GObject.registerClass(
-class WindowIcon extends St.BoxLayout {
+export const WindowIcon = GObject.registerClass({
+    GTypeName: `WindowIcon${Math.floor(Math.random() * 1000)}`,
+}, class WindowIcon extends St.BoxLayout {
     _init(item, iconIndex, switcherParams, opt) {
         const metaWin = item;
         super._init({
@@ -274,8 +275,9 @@ class WindowIcon extends St.BoxLayout {
 
 // ////////////////////////////////////////////////////////////////////////
 
-export const AppIcon = GObject.registerClass(
-class AppIcon extends AppDisplay.AppIcon {
+export const AppIcon = GObject.registerClass({
+    GTypeName: `AppIcon${Math.floor(Math.random() * 1000)}`,
+}, class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams, opt) {
         super._init(app);
         this.opt = opt;
@@ -429,7 +431,9 @@ class AppIcon extends AppDisplay.AppIcon {
     }
 });
 
-export const SysActionIcon = GObject.registerClass(
+export const SysActionIcon = GObject.registerClass({
+    GTypeName: `SysActionIcon${Math.floor(Math.random() * 1000)}`,
+},
 class SysActionIcon extends St.Widget {
     _init(app, iconIndex, switcherParams, opt) {
         super._init({ reactive: true });
@@ -479,8 +483,9 @@ class SysActionIcon extends St.Widget {
     }
 });
 
-export const ShowAppsIcon = GObject.registerClass(
-class ShowAppsIcon extends St.Widget {
+export const ShowAppsIcon = GObject.registerClass({
+    GTypeName: `ShowAppsIcon${Math.floor(Math.random() * 1000)}`,
+}, class ShowAppsIcon extends St.Widget {
     _init(params) {
         super._init({ reactive: true });
 

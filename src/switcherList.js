@@ -48,8 +48,9 @@ export function cleanGlobal() {
     _ = null;
 }
 
-export const SwitcherList = GObject.registerClass(
-class SwitcherList extends SwitcherPopup.SwitcherList {
+export const SwitcherList = GObject.registerClass({
+    GTypeName: `SwitcherList${Math.floor(Math.random() * 1000)}`,
+}, class SwitcherList extends SwitcherPopup.SwitcherList {
     _init(items, opt, switcherParams) {
         super._init(false); // squareItems = false
         this.opt = opt;

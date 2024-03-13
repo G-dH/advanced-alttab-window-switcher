@@ -194,8 +194,9 @@ export function translateDirectionToHorizontal(direction) {
     return direction;
 }
 
-export const WindowPreview = GObject.registerClass(
-class WindowPreview extends St.Widget {
+export const WindowPreview = GObject.registerClass({
+    GTypeName: `WindowPreview${Math.floor(Math.random() * 1000)}`,
+}, class WindowPreview extends St.Widget {
     _init() {
         super._init({ layout_manager: new Clutter.BinLayout() });
         this._window = null;

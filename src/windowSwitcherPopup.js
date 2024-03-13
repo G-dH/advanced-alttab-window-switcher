@@ -2156,17 +2156,9 @@ export const WindowSwitcherPopup = {
             if (!this._showingApps)
                 this._toggleWsOrder();
 
-        // show window or overview
+        // show window preview
         } else if (keysym === Clutter.KEY_space || keysym === Clutter.KEY_KP_0 || keysym === Clutter.KEY_KP_Insert) {
-            if (_ctrlPressed()) {
-                this._popModal();
-                Main.overview.toggle();
-                // need to release and grab the input back, otherwise the Shell gets to an irresponsive state
-                this._pushModal();
-            } else {
-                // this._showWindow();
-                this._toggleShowPreview();
-            }
+            this._toggleShowPreview();
 
         // close window/app
         } else if (opt.get('hotkeyCloseQuit').includes(keyString)) {
