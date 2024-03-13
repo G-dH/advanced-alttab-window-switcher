@@ -232,8 +232,9 @@ function _getWindows(workspace, modals = false) {
 }
 
 
-var   WindowSwitcherPopup = GObject.registerClass(
-class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
+var   WindowSwitcherPopup = GObject.registerClass({
+    GTypeName: `WindowSwitcherPopup${Math.floor(Math.random() * 1000)}`,
+}, class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _init() {
         shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
@@ -1988,7 +1989,6 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                 if (keysymName === 'space')
                     keysymName = ' ';
 
-
                 if (!(keysymName === ' ' && (this._searchEntry === '' || this._searchEntry[this._searchEntry.length - 1] === ' '))) {
                     this._searchEntry += keysymName.toLowerCase();
                     this.show();
@@ -2187,28 +2187,18 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             if (!this._showingApps)
                 this._toggleWsOrder();
 
-        // show window or overview
+        // show window preview
         } else if (keysym === Clutter.KEY_space || keysym === Clutter.KEY_KP_0 || keysym === Clutter.KEY_KP_Insert) {
-            if (_ctrlPressed()) {
-                this._popModal();
-                Main.overview.toggle();
-                // need to release and grab the input back, otherwise the Shell gets to an irresponsive state
-                this._pushModal();
-            } else {
-                // this._showWindow();
-                this._toggleShowPreview();
-            }
+            this._toggleShowPreview();
 
         // close window/app
         } else if (opt.get('hotkeyCloseQuit').includes(keyString)) {
             if (opt.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)
                 this._closeWinQuitApp();
 
-
         // close all listed windows that belongs to the selected app
         } else if (opt.get('hotkeyCloseAllApp').includes(keyString) && (opt.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
             this._closeAppWindows();
-
 
         // make selected window Always on Top
         } else if (opt.get('hotkeyAbove').includes(keyString) && (opt.SHIFT_AZ_HOTKEYS ? _shiftPressed() : true)) {
@@ -3666,8 +3656,9 @@ class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
 // ////////////////////////////////////////////////////////////////////////////////
 
-var   AppSwitcherPopup = GObject.registerClass(
-class AppSwitcherPopup extends WindowSwitcherPopup {
+var   AppSwitcherPopup = GObject.registerClass({
+    GTypeName: `AppSwitcherPopup${Math.floor(Math.random() * 1000)}`,
+}, class AppSwitcherPopup extends WindowSwitcherPopup {
     _init(switcherParams) {
         super._init(switcherParams);
         this._switcherMode = SwitcherMode.APPS;

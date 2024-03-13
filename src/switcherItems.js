@@ -25,8 +25,9 @@ const LABEL_FONT_SIZE = 0.9;
 
 
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var WindowIcon = GObject.registerClass(
-class WindowIcon extends St.BoxLayout {
+var WindowIcon = GObject.registerClass({
+    GTypeName: `WindowIcon${Math.floor(Math.random() * 1000)}`,
+}, class WindowIcon extends St.BoxLayout {
     _init(item, iconIndex, switcherParams, opt) {
         const metaWin = item;
         super._init({
@@ -250,8 +251,9 @@ class WindowIcon extends St.BoxLayout {
 
 // ////////////////////////////////////////////////////////////////////////
 
-var AppIcon = GObject.registerClass(
-class AppIcon extends AppDisplay.AppIcon {
+var AppIcon = GObject.registerClass({
+    GTypeName: `AppIcon${Math.floor(Math.random() * 1000)}`,
+}, class AppIcon extends AppDisplay.AppIcon {
     _init(app, iconIndex, switcherParams, options) {
         super._init(app);
         this.opt = options;
@@ -405,8 +407,9 @@ class AppIcon extends AppDisplay.AppIcon {
     }
 });
 
-var SysActionIcon = GObject.registerClass(
-class SysActionIcon extends St.Widget {
+var SysActionIcon = GObject.registerClass({
+    GTypeName: `SysActionIcon${Math.floor(Math.random() * 1000)}`,
+}, class SysActionIcon extends St.Widget {
     _init(app, iconIndex, switcherParams, options) {
         super._init({ reactive: true });
 
@@ -455,8 +458,9 @@ class SysActionIcon extends St.Widget {
     }
 });
 
-var ShowAppsIcon = GObject.registerClass(
-class ShowAppsIcon extends St.Widget {
+var ShowAppsIcon = GObject.registerClass({
+    GTypeName: `ShowAppsIcon${Math.floor(Math.random() * 1000)}`,
+}, class ShowAppsIcon extends St.Widget {
     _init(params) {
         super._init({ reactive: true });
 

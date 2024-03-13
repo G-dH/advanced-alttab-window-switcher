@@ -48,8 +48,9 @@ const shellVersion    = parseFloat(imports.misc.config.PACKAGE_VERSION);
                         ._id
 
 */
-var SwitcherList = GObject.registerClass(
-class SwitcherList extends SwitcherPopup.SwitcherList {
+var SwitcherList = GObject.registerClass({
+    GTypeName: `SwitcherList${Math.floor(Math.random() * 1000)}`,
+}, class SwitcherList extends SwitcherPopup.SwitcherList {
     _init(items, opt, switcherParams) {
         super._init(false); // squareItems = false
         this.opt = opt;

@@ -12,8 +12,9 @@
 const { GObject, St, Clutter } = imports.gi;
 
 
-var CaptionLabel = GObject.registerClass(
-class CaptionLabel extends St.BoxLayout {
+var CaptionLabel = GObject.registerClass({
+    GTypeName: `CaptionLabel${Math.floor(Math.random() * 1000)}`,
+}, class CaptionLabel extends St.BoxLayout {
     _init(params, opt) {
         this._search = params.name === 'search-label';
 
