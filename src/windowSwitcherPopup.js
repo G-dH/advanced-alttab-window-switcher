@@ -1962,8 +1962,8 @@ export const WindowSwitcherPopup = {
                 if (!(keysymName === ' ' && (this._searchEntry === '' || this._searchEntry[this._searchEntry.length - 1] === ' '))) {
                     this._searchEntry += keysymName.toLowerCase();
                     this.show();
+                    return Clutter.EVENT_STOP;
                 }
-                return Clutter.EVENT_STOP;
             }
         }
 
