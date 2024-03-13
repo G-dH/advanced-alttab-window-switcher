@@ -3,7 +3,7 @@
  * Util
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2024
  * @license    GPL-3.0
  */
 
@@ -194,8 +194,8 @@ export function translateDirectionToHorizontal(direction) {
     return direction;
 }
 
-export const CyclerHighlight = GObject.registerClass(
-class CyclerHighlight extends St.Widget {
+export const WindowPreview = GObject.registerClass(
+class WindowPreview extends St.Widget {
     _init() {
         super._init({ layout_manager: new Clutter.BinLayout() });
         this._window = null;
