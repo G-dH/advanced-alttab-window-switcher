@@ -2896,7 +2896,6 @@ var   WindowSwitcherPopup = GObject.registerClass({
 
 
         this._updateSwitcher();
-        this._actions.showWsSwitcherPopup();
     }
 
     _switchWorkspace(direction) {
