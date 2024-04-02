@@ -106,17 +106,18 @@
 }
 
 .caption-label-dark, .caption-label-light {
-  border-radius: 20px;
+  border-radius: 14px;
   padding: 0.3em;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+  padding-left: 0.7em;
+  padding-right: 0.7em;
   border: solid 1px;
   box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
 }
 
 .title-description {
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+  font-size: 0.7em;
+  /*padding-left: 0.5em;
+  padding-right: 0.5em;*/
 }
 
 .window-close-aatws {
