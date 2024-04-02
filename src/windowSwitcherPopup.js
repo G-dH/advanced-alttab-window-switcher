@@ -960,7 +960,6 @@ export const WindowSwitcherPopup = {
             y = parent.allocation.y2 + yOffset + margin;
 
         childBox.set_origin(x, y);
-        return childBox;
     },
 
     _initialSelection(backward /* binding */) {
@@ -2391,6 +2390,10 @@ export const WindowSwitcherPopup = {
         this._itemCaption.connect('destroy', () => {
             this._itemCaption = null;
         });
+
+        // The parent's allocate() is called automatically if the child's geometry has changed,
+        // but the caption position is updated in the parent's allocate()
+        this.emit('queue-relayout');
     },
 
     _updateMouseControls() {
