@@ -141,7 +141,7 @@ export const WindowIcon = GObject.registerClass({
         let clone = _createWindowClone(mutterWindow, cloneSize * scaleFactor);
         let icon;
 
-        if (this.app) {
+        if (this.app && this.opt.APP_ICON_SIZE) {
             icon = this._createAppIcon(this.app,
                 this.opt.APP_ICON_SIZE);
             this._appIcon = icon;
@@ -160,11 +160,11 @@ export const WindowIcon = GObject.registerClass({
         if (this.window.minimized && this.opt.MARK_MINIMIZED)
             front.opacity = 80;
 
-
-        this._alignFront(front);
-
         this._icon.add_child(base);
-        this._icon.add_child(front);
+        if (front) {
+            this._alignFront(front);
+            this._icon.add_child(front);
+        }
 
         // will be used to connect on icon signals (switcherList.icons[n]._front)
         this._front = front;
