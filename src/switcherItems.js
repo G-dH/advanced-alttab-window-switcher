@@ -343,8 +343,7 @@ var AppIcon = GObject.registerClass({
                 winCounterIndicator.set_style('margin-bottom: 7px;');
 
             // ensure the bottom-margin is always 0
-            this._dot.remove_style_class_name('running-dot');
-            this._dot.add_style_class_name('running-dot');
+            this._dot.add_style_class_name('running-dot-aatws');
 
             // change dot color to be visible on light bg cause Adwaita uses white color
             if (this.opt.colorStyle.RUNNING_DOT_COLOR)
