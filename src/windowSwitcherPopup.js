@@ -547,7 +547,7 @@ var   WindowSwitcherPopup = GObject.registerClass({
         }
 
         // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
-        if (shellVersion >= 40 && this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
+        if (this._switcherList._scrollableLeft || this._switcherList._scrollableRight) {
             const activeWidth = 5;
             this._switcherList.reactive = true;
             this._switcherList.connect('motion-event', () => {
@@ -843,21 +843,15 @@ var   WindowSwitcherPopup = GObject.registerClass({
         this._updateMouseControls();
     }
 
-    vfunc_allocate(box, flags) {
+    vfunc_allocate(box) {
         // Prevent updating the allocation if switcherList is being destroyed
         if (!this._switcherListExists)
             return;
 
         let monitor = this._getMonitorByIndex(this._monitorIndex);
-        // no flags in GS 40+
-        const useFlags = flags !== undefined;
-        if (shellVersion >= 40)
-            box.set_size(monitor.width, monitor.height);
+        box.set_size(monitor.width, monitor.height);
 
-        if (useFlags)
-            this.set_allocation(box, flags);
-        else
-            this.set_allocation(box);
+        this.set_allocation(box);
 
         let childBox = new Clutter.ActorBox();
         // Allocate the switcherList
@@ -895,10 +889,7 @@ var   WindowSwitcherPopup = GObject.registerClass({
         childBox.x2 = Math.min(monitor.x + monitor.width, childBox.x1 + childNaturalWidth);
         childBox.y2 = childBox.y1 + childNaturalHeight;
 
-        if (useFlags)
-            this._switcherList.allocate(childBox, flags);
-        else
-            this._switcherList.allocate(childBox);
+        this._switcherList.allocate(childBox);
 
         if (this._wsTmb) {
             const SIZE = 110;
@@ -922,26 +913,17 @@ var   WindowSwitcherPopup = GObject.registerClass({
             childBox.set_origin(x, y);
             childBox.set_size(width, height);
 
-            if (useFlags)
-                wsTmb.allocate(childBox, flags);
-            else
-                wsTmb.allocate(childBox);
+            wsTmb.allocate(childBox);
         }
 
         if (this._itemCaption) {
             this._setCaptionAllocationBox(this._itemCaption, childBox, monitor);
-            if (useFlags)
-                this._itemCaption.allocate(childBox, flags);
-            else
-                this._itemCaption.allocate(childBox);
+            this._itemCaption.allocate(childBox);
         }
 
         if (this._searchCaption) {
             this._setCaptionAllocationBox(this._searchCaption, childBox, monitor);
-            if (useFlags)
-                this._searchCaption.allocate(childBox, flags);
-            else
-                this._searchCaption.allocate(childBox);
+            this._searchCaption.allocate(childBox);
         }
     }
 
