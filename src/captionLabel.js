@@ -58,7 +58,6 @@ var CaptionLabel = GObject.registerClass({
         if (details && !this._descriptionLabel) {
             this._descriptionLabel = new St.Label({
                 style_class: 'title-description',
-                style: 'font-size: 0.7em;', // font size is relative to parent style
             });
             this.add_child(this._descriptionLabel);
         } else if (!details && this._descriptionLabel && !this._descriptionLabel._removed) {
