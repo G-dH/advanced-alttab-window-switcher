@@ -410,11 +410,12 @@ function _getOptions(itemFactory) {
         step_increment: 5,
         page_increment: 5,
     });
-
+    const tooltipScale = itemFactory.newScale(tooltipScaleAdjustment);
+    tooltipScale.add_mark(120, Gtk.PositionType.TOP, null);
     optDict.TooltipLabelScale = itemFactory.getRowWidget(
-        _('Tooltip Title Scale (%)'),
-        _('Adjust font size for app/window titles.'),
-        itemFactory.newSpinButton(tooltipScaleAdjustment),
+        _('Tooltip Title Scale'),
+        _('Adjusts font size for app/window titles'),
+        tooltipScale,
         'switcherPopupTooltipLabelScale'
     );
 
@@ -438,15 +439,20 @@ function _getOptions(itemFactory) {
 
     let singlePrevSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
-        lower: 0,
+        lower: 64,
         step_increment: 8,
         page_increment: 32,
     });
-
+    const singleAppPrevSizeScale = itemFactory.newScale(singlePrevSizeAdjustment);
+    singleAppPrevSizeScale.add_mark(96, Gtk.PositionType.TOP, null);
+    singleAppPrevSizeScale.add_mark(128, Gtk.PositionType.TOP, null);
+    singleAppPrevSizeScale.add_mark(192, Gtk.PositionType.TOP, null);
+    singleAppPrevSizeScale.add_mark(256, Gtk.PositionType.TOP, null);
+    singleAppPrevSizeScale.add_mark(384, Gtk.PositionType.TOP, null);
     optDict.SingleAppPreviewSize = itemFactory.getRowWidget(
         _('Single App Preview Size (px)'),
         null,
-        itemFactory.newSpinButton(singlePrevSizeAdjustment),
+        singleAppPrevSizeScale,
         'singleAppPreviewSize'
     );
 
@@ -456,29 +462,26 @@ function _getOptions(itemFactory) {
         step_increment: 10,
         page_increment: 100,
     });
-
+    const popupTimeoutScale = itemFactory.newScale(popupTimeoutAdjustment);
+    popupTimeoutScale.add_mark(100, Gtk.PositionType.TOP, null);
     optDict.DelayShowingSwitcher = itemFactory.getRowWidget(
         _('Delay Switcher Display (ms)'),
         _('Introduces a delay before showing the pop-up to prevent disturbance for fast Alt+Tab users. Note that even with a delay set to 0, there may still be some lag as the switcher pop-up builds, dependent on your system and the number of items'),
-        itemFactory.newSpinButton(popupTimeoutAdjustment),
+        popupTimeoutScale,
         'switcherPopupTimeout'
     );
 
-    if (shellVersion >= 42) {
-        optDict.WsThumbnails = itemFactory.getRowWidget(
-            _('Show Workspace Thumbnails'),
-            _('AATWS displays workspace thumbnails above or below the switcher, allowing you to preview their content, drag and drop windows between workspaces and switch workspaces with the mouse. Additionally, you can reorder the current workspace using (Ctrl or Shift)+Scroll or Ctrl+Page Up/Down'),
-            itemFactory.newDropDown(),
-            'switcherWsThumbnails',
-            [
-                [_('Disable'),                0],
-                [_('Show'),                   1],
-                [_('Show in Dash Mode Only'), 2],
-            ]
-        );
-    } else {
-        optDict.WsThumbnails = null;
-    }
+    optDict.WsThumbnails = itemFactory.getRowWidget(
+        _('Show Workspace Thumbnails'),
+        _('AATWS displays workspace thumbnails above or below the switcher, allowing you to preview their content, drag and drop windows between workspaces and switch workspaces with the mouse. Additionally, you can reorder the current workspace using (Ctrl or Shift)+Scroll or Ctrl+Page Up/Down'),
+        itemFactory.newDropDown(),
+        'switcherWsThumbnails',
+        [
+            [_('Disable'),                0],
+            [_('Show'),                   1],
+            [_('Show in Dash Mode Only'), 2],
+        ]
+    );
 
     optDict.Theme = itemFactory.getRowWidget(
         _('Color Style'),
@@ -592,11 +595,12 @@ function _getOptions(itemFactory) {
         step_increment: 10,
         page_increment: 50,
     });
-
+    const hotPressureScale = itemFactory.newScale(hotPressureAdjustment);
+    hotPressureScale.add_mark(100, Gtk.PositionType.TOP, null);
     optDict.HotEdgePressure = itemFactory.getRowWidget(
         _('Hot Edge Pressure Threshold'),
         _('Adjusts the pressure the mouse pointer needs to apply to trigger the hot edge'),
-        itemFactory.newSpinButton(hotPressureAdjustment),
+        hotPressureScale,
         'hotEdgePressure'
     );
 
@@ -606,11 +610,12 @@ function _getOptions(itemFactory) {
         step_increment: 5,
         page_increment: 10,
     });
-
+    const hotWidthScale = itemFactory.newScale(hotWidthAdjustment);
+    hotWidthScale.add_mark(50, Gtk.PositionType.TOP, null);
     optDict.HotEdgeWidth = itemFactory.getRowWidget(
-        _('Hot Edge Width (%)'),
+        _('Hot Edge Width'),
         _('Adjusts the width of the hot edge barrier as a percentage of the screen width'),
-        itemFactory.newSpinButton(hotWidthAdjustment),
+        hotWidthScale,
         'hotEdgeWidth'
     );
 
@@ -773,29 +778,42 @@ function _getOptions(itemFactory) {
 
     const popupSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
-        lower: 16,
+        lower: 32,
         step_increment: 8,
         page_increment: 32,
     });
-
+    const popupSizeScale = itemFactory.newScale(popupSizeAdjustment);
+    popupSizeScale.add_mark(64, Gtk.PositionType.TOP, null);
+    popupSizeScale.add_mark(128, Gtk.PositionType.TOP, null);
+    popupSizeScale.add_mark(192, Gtk.PositionType.TOP, null);
+    popupSizeScale.add_mark(256, Gtk.PositionType.TOP, null);
+    popupSizeScale.add_mark(384, Gtk.PositionType.TOP, null);
     optDict.WindowPreviewSize = itemFactory.getRowWidget(
         _('Window Preview Size (px)'),
         null,
-        itemFactory.newSpinButton(popupSizeAdjustment),
+        popupSizeScale,
         'winSwitcherPopupPreviewSize'
     );
 
     let popupIconSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
-        lower: 16,
+        lower: 0,
         step_increment: 8,
         page_increment: 32,
     });
-
+    const iconSizeScale = itemFactory.newScale(popupIconSizeAdjustment);
+    iconSizeScale.add_mark(32, Gtk.PositionType.TOP, null);
+    iconSizeScale.add_mark(48, Gtk.PositionType.TOP, null);
+    iconSizeScale.add_mark(64, Gtk.PositionType.TOP, null);
+    iconSizeScale.add_mark(96, Gtk.PositionType.TOP, null);
+    iconSizeScale.add_mark(128, Gtk.PositionType.TOP, null);
+    iconSizeScale.add_mark(192, Gtk.PositionType.TOP, null);
+    iconSizeScale.add_mark(256, Gtk.PositionType.TOP, null);
+    iconSizeScale.add_mark(384, Gtk.PositionType.TOP, null);
     optDict.WindowIconSize = itemFactory.getRowWidget(
         _('Window Icon Size (px)'),
         null,
-        itemFactory.newSpinButton(popupIconSizeAdjustment),
+        iconSizeScale,
         'winSwitcherPopupIconSize'
     );
 
@@ -920,15 +938,22 @@ function _getOptions(itemFactory) {
 
     let popupAppIconSizeAdjustment = new Gtk.Adjustment({
         upper: 512,
-        lower: 16,
+        lower: 32,
         step_increment: 8,
         page_increment: 32,
     });
-
+    const appIconSizeScale = itemFactory.newScale(popupAppIconSizeAdjustment);
+    appIconSizeScale.add_mark(48, Gtk.PositionType.TOP, null);
+    appIconSizeScale.add_mark(64, Gtk.PositionType.TOP, null);
+    appIconSizeScale.add_mark(96, Gtk.PositionType.TOP, null);
+    appIconSizeScale.add_mark(128, Gtk.PositionType.TOP, null);
+    appIconSizeScale.add_mark(192, Gtk.PositionType.TOP, null);
+    appIconSizeScale.add_mark(256, Gtk.PositionType.TOP, null);
+    appIconSizeScale.add_mark(384, Gtk.PositionType.TOP, null);
     optDict.AppIconSize = itemFactory.getRowWidget(
         _('App Icon Size (px)'),
         null,
-        itemFactory.newSpinButton(popupAppIconSizeAdjustment),
+        appIconSizeScale,
         'appSwitcherPopupIconSize'
     );
 
@@ -1006,11 +1031,12 @@ function _getOptions(itemFactory) {
         step_increment: 10,
         page_increment: 100,
     });
-
+    const animationFactorScale = itemFactory.newScale(animationFactorAdjustment);
+    animationFactorScale.add_mark(100, Gtk.PositionType.TOP, null);
     optDict.AnimationTimeFactor = itemFactory.getRowWidget(
-        _('Animation Speed (%)'),
+        _('Animation Speed'),
         _('Adjusts speed of an show/hide animation.'),
-        itemFactory.newSpinButton(animationFactorAdjustment),
+        animationFactorScale,
         'animationTimeFactor'
     );
 
@@ -1507,7 +1533,7 @@ The current monitor is the one where the switcher pop-up is located, or where th
 
     optionList.push(itemFactory.getRowWidget(
         _('Reorder Current Workspace'),
-        _('Move the current workspace by one position left or right (up or down on GNOME < 40)'),
+        _('Move the current workspace by one position left or right (up or down if your workspaces are stacked vertically)'),
         itemFactory.newEntry(),
         _('Ctrl + PageUp/PageDown')
     )

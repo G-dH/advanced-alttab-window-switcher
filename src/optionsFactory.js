@@ -65,7 +65,7 @@ var ItemFactory = class ItemFactory {
         if (widget) {
             if (widget._isSwitch)
                 this._connectSwitch(widget, key, variable);
-            else if (widget._isSpinbutton)
+            else if (widget._isSpinbutton || widget._isScale)
                 this._connectSpinButton(widget, key, variable);
             /* else if (widget._isComboBox)
                 this._connectComboBox(widget, key, variable, options);*/
@@ -210,6 +210,24 @@ var ItemFactory = class ItemFactory {
         spinButton.set_adjustment(adjustment);
         spinButton._isSpinbutton = true;
         return spinButton;
+    }
+
+    newScale(adjustment) {
+        const scale = new Gtk.Scale({
+            orientation: Gtk.Orientation.HORIZONTAL,
+            draw_value:  true,
+            has_origin:  false,
+            value_pos:   Gtk.PositionType.LEFT,
+            digits:      0,
+            halign:      Gtk.Align.END,
+            valign:      Gtk.Align.CENTER,
+            hexpand:     true,
+            vexpand:     false,
+        });
+        scale.set_size_request(300, -1);
+        scale.set_adjustment(adjustment);
+        scale._isScale = true;
+        return scale;
     }
 
     /* newComboBox() {
