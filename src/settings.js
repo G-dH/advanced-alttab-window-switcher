@@ -254,6 +254,9 @@ export const Options = class Options {
         case 3:
             this.colorStyle = darkScheme ? ColorStyleDark : ColorStyleLight;
             break;
+        case 4:
+            this.colorStyle = darkScheme ? ColorStyleLight : ColorStyleDark;
+            break;
         default:
             this.colorStyle = ColorStyleDefault;
         }

@@ -457,10 +457,11 @@ export default class AATWS extends ExtensionPreferences {
             itemFactory.newDropDown(),
             'switcherPopupTheme',
             [
-                [_('Default'),                    0],
-                [_('AATWS Dark'),                 1],
-                [_('AATWS Light'),                2],
-                [_('Follow System Color Style'),  3],
+                [_('Default'),                              0],
+                [_('AATWS Dark'),                           1],
+                [_('AATWS Light'),                          2],
+                [_('Follow System Color Style'),            3],
+                [_('Follow System Color Style - Inverted'), 4],
             ]
         );
 
