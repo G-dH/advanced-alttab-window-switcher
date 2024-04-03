@@ -173,8 +173,8 @@
   border-width: 1px;
   margin-top: 6px; /* can be overridden in code - position top */
   margin-bottom: 6px; /* can be overridden in code - position bottom */
-  padding: 8px;
-  border-radius: 24px;
+  /*padding: 8px;
+  border-radius: 24px;*/
 }
 
 .switcher-list-all {
