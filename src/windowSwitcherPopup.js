@@ -3389,25 +3389,26 @@ var   WindowSwitcherPopup = GObject.registerClass({
                 return wList.filter(w => {
                 // search in window title and app name/exec
                     const appInfo = Shell.WindowTracker.get_default().get_window_app(w).appInfo;
-                    const title = w.title;
-                    let appName;
-                    let appGeneric;
-                    let appExec;
 
-                    if (appInfo) {
-                        appName = appInfo.get_name() || '';
-                        appGeneric = appInfo.get_generic_name() || '';
-                        appExec = appInfo.get_executable() || '';
-                    }
-                    let text = `${title} ${appName} ${appGeneric} ${appExec}`;
+                    const title = w.title;
+                    const appName = appInfo?.get_name() || '';
+                    const appGeneric = appInfo?.get_generic_name() || '';
+                    const appExec = appInfo?.get_executable() || '';
+
+                    const text = `${title} ${appName} ${appGeneric} ${appExec}`;
+
+                    // Store appName to the metaWindow
+                    w._appName = appName;
 
                     return this._match(text, pattern);
                 });
             };
 
             let winListP = filterList(winList, pattern);
-            if (winListP.length > 0 && this._searchEntryNotEmpty())
+            if (winListP.length > 0 && this._searchEntryNotEmpty()) {
+                winListP.sort((a, b) => this._isMoreRelevant(a._appName || '', b._appName || '', pattern));
                 winListP.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), pattern));
+            }
 
             winList = winListP;
         }
