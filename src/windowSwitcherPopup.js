@@ -237,6 +237,7 @@ function _ctrlPressed(state) {
 
 export const WindowSwitcherPopup = {
     _init() {
+        this.offscreen_redirect = Clutter.OffscreenRedirect.ALWAYS;
         shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
         SwitcherPopup.SwitcherPopup.prototype._init.bind(this)();
