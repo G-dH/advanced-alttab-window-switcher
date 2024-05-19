@@ -538,7 +538,7 @@ function _createHotKeyNumIcon(index, style) {
 
     icon.add_child(box);
     let label = new St.Label({ text: `F${(index + 1).toString()}` });
-    box.add(label);
+    box.add_child(label);
 
     return icon;
 }
