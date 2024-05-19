@@ -247,9 +247,6 @@
     <key name='ws-switch-popup' type='b'>
       <default>true</default>
     </key>
-    <key name='wm-always-activate-focused' type='b'>
-      <default>false</default>
-    </key>
 
     <key name='hotkey-switch-filter' type='s'>
       <default>'Q'</default>

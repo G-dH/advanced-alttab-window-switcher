@@ -71,9 +71,6 @@ export default class AATWS extends Extension {
         if (this._opt.get('superKeyMode') > 1)
             this._updateOverlayKeyHandler();
 
-        this._updateAlwaysActivateFocusedConnection();
-        this._opt.connect('changed::wm-always-activate-focused', this._updateAlwaysActivateFocusedConnection.bind(this));
-
         this._updateHotTrigger();
         this._updateDashVisibility();
 
@@ -115,23 +112,6 @@ export default class AATWS extends Extension {
         this.Me = null;
 
         console.debug(`${this.metadata.name}: enabled`);
-    }
-
-    _updateAlwaysActivateFocusedConnection() {
-        // GS 43 activates focused windows immediately by default and this can lead to problems with refocusing window you're switching from
-        /* if (this._opt.get('wmAlwaysActivateFocused', true) && Settings.shellVersion < 43 && !this._wmFocusToActiveHandlerId) {
-            this._wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', () => {
-                if (!Main.overview._shown) {
-                    let win = global.display.get_focus_window();
-                    if (win)
-                        Main.activateWindow(win);
-                }
-            });
-        } else*/
-        if (this._wmFocusToActiveHandlerId) {
-            global.display.disconnect(this._wmFocusToActiveHandlerId);
-            this._wmFocusToActiveHandlerId = 0;
-        }
     }
 
     _updateSettings(settings, key) {

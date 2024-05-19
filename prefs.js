@@ -1010,20 +1010,9 @@ export default class AATWS extends ExtensionPreferences {
         animationFactorScale.add_mark(100, Gtk.PositionType.TOP, null);
         optDict.AnimationTimeFactor = itemFactory.getRowWidget(
             _('Animation Speed'),
-            _('Adjusts speed of an show/hide animation.'),
+            _('Adjusts speed of the show/hide animation.'),
             animationFactorScale,
             'animationTimeFactor'
-        );
-
-        optDict.WindowManager = itemFactory.getRowWidget(
-            _('Window Manager')
-        );
-
-        optDict.AlwaysActivateFocused = itemFactory.getRowWidget(
-            _('Always Activate Focused Window'),
-            _('For GNOME Shell version < 43, this is a workaround for the window manager. It aims to prevent situations where the focused window is not activated, causing it not to update its position in the window switcher list. This can occur when you minimize a window, the window manager focuses the next window in the stack but leaves it inactive until the user interacts with the window'),
-            itemFactory.newSwitch(),
-            'wmAlwaysActivateFocused'
         );
 
         optDict.Workspace = itemFactory.getRowWidget(
