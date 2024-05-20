@@ -1,5 +1,13 @@
 ## Changelog
-### v46.1 (2024-03-13) v44.11 (not released yet)
+### v46.2 (2024-03-13) v44.11 (not released yet)
+**Fixed:**
+- Option *Show Hotkeys F1-F12 for Direct Activation* crashes AATWS on GNOME 46 (#102)
+
+**Other Changes:**
+- Set switcher popup `offscreen_redirect` property to ALWAYS for better performance
+
+
+### v46.1 (2024-03-13) v44.10 (not released)
 **Added:**
 - Support for GNOME 46.rc
 
@@ -9,7 +17,7 @@
 - Conflicts with Tiling Assistant extension (#90)
 
 **Other Changes:**
-- Dropped support for GNOME 3.36 - 41 (still available but not developped anymore)
+- Dropped support for GNOME 3.36 - 41 (still available but no longer being developed)
 - Removed winTmb module for window thumbnails, AATWS can now use standalone WTMB extension
 - Automatic switching filter in case the switcher shows only one item that matches the current filter setting now take effect only if you press Tab (or your shortcut) key once again
 
