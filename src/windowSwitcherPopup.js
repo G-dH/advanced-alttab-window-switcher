@@ -232,13 +232,14 @@ function _getWindows(workspace, modals = false) {
 }
 
 
-var   WindowSwitcherPopup = GObject.registerClass({
+var WindowSwitcherPopup = GObject.registerClass({
     GTypeName: `WindowSwitcherPopup${Math.floor(Math.random() * 1000)}`,
 }, class WindowSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _init() {
         shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
         super._init();
+        this.offscreen_redirect = Clutter.OffscreenRedirect.ALWAYS;
         this._actions              = Me.actions;
 
         // Global options
