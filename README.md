@@ -1,4 +1,4 @@
-# AATWS - Advanced Alt-Tab Window Switcher (ESM branch)
+# AATWS - Advanced Alt-Tab Window Switcher
 An extension for GNOME Shell that replaces its following built-in switchers:
 
 - **Switch windows**
@@ -128,7 +128,7 @@ Install the extension (`--force` switch needs to be used only if some version of
 The most recent version in the repository is the one I'm currently running on my own systems, problems may occur, but usually nothing serious.
 Run following commands in the terminal (`git` needs to installed, navigate to the directory you want to download the source):
 
-#### GNOME 45
+#### GNOME 45+
 
     git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
     cd advanced-alttab-window-switcher/
