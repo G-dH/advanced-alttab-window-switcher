@@ -1,7 +1,8 @@
 ## Changelog
-### v46.2 (2024-03-13) v44.11 (not released yet)
+### v46.2 (not released yet) v44.11 (not released yet)
 **Fixed:**
 - Option *Show Hotkeys F1-F12 for Direct Activation* crashes AATWS on GNOME 46 (#102)
+- Missing "running" indicator
 
 **Other Changes:**
 - Set switcher popup `offscreen_redirect` property to ALWAYS for better performance
