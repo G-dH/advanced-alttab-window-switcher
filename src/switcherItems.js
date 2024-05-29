@@ -368,6 +368,9 @@ export const AppIcon = GObject.registerClass({
 
             // ensure the bottom-margin is always 0
             this._dot.add_style_class_name('running-dot-aatws');
+            if (!Clutter.Container) { // Relevant only for GS 46.0-46.1, 46.2 moved the offset to CSS and added a method to apply it from the theme node
+                this._dot.translationY = 0;
+            }
 
             // change dot color to be visible on light bg cause Adwaita uses white color
             if (this.opt.colorStyle.RUNNING_DOT_COLOR)
@@ -380,7 +383,6 @@ export const AppIcon = GObject.registerClass({
             this._iconContainer.remove_child(this._dot);
             if (winCounterIndicator && this.opt.SHOW_APP_TITLES)
                 this._winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
-            // this.icon.set_style('margin-bottom: 4px;');
         }
 
         if (this._switcherParams.hotKeys && iconIndex < 12) {
