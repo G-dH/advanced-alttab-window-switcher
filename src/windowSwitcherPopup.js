@@ -237,10 +237,11 @@ function _ctrlPressed(state) {
 
 export const WindowSwitcherPopup = {
     _init() {
-        this.offscreen_redirect = Clutter.OffscreenRedirect.ALWAYS;
         shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
-        SwitcherPopup.SwitcherPopup.prototype._init.bind(this)();
+        SwitcherPopup.SwitcherPopup.prototype._init.bind(this)({
+            offscreen_redirect: Clutter.OffscreenRedirect.ALWAYS,
+        });
         this._actions              = Me.actions;
 
         // Global options
@@ -312,7 +313,6 @@ export const WindowSwitcherPopup = {
         this._updateInProgress     = false;
         // _skipInitialSelection allows to avoid double selection when re-showing switcher followed by custom selection
         this._skipInitialSelection = false;
-        this._switcherListExists   = false;
         this._allowFilterSwitchOnOnlyItem = false;
 
         opt.cancelTimeout = false;
@@ -336,7 +336,6 @@ export const WindowSwitcherPopup = {
     _updateOnWorkspaceSwitched(callback) {
         if (this._timeoutIds.wsSwitcherAnimationDelayId)
             GLib.source_remove(this._timeoutIds.wsSwitcherAnimationDelayId);
-
 
         this._timeoutIds.wsSwitcherAnimationDelayId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
@@ -406,7 +405,6 @@ export const WindowSwitcherPopup = {
             if (this.WIN_FILTER_MODE === FilterMode.MONITOR)
                 this.WIN_FILTER_MODE = FilterMode.WORKSPACE;
 
-
             if (this.APP_FILTER_MODE === FilterMode.MONITOR)
                 this.APP_FILTER_MODE = FilterMode.WORKSPACE;
         }
@@ -450,7 +448,6 @@ export const WindowSwitcherPopup = {
         if (this._tempFilterMode)
             this._tempFilterMode = null;
 
-
         let itemList = this._getItemList();
 
         if (!itemList.length && this._searchEntryNotEmpty()) {
@@ -483,13 +480,13 @@ export const WindowSwitcherPopup = {
                 reverseOrder: this._shouldReverse(),
             };
 
-            if (this._switcherList) {
-                this._switcherListExists = false;
+            if (this._switcherList)
                 this._switcherList.destroy();
-            }
 
             this._switcherList = new SwitcherList.SwitcherList(itemList, opt, switcherParams);
-            this._switcherListExists = true;
+            this._switcherList.connect('destroy', () => {
+                this._switcherList = null;
+            });
 
             this._connectShowAppsIcon();
 
@@ -506,11 +503,15 @@ export const WindowSwitcherPopup = {
         this._tempFilterMode = null;
 
         this._updateInProgress = false;
+
+        this.connect('destroy', () => {
+            this._switcherList = null;
+        });
         return true;
     },
 
     _showPopup(backward, binding, mask) {
-        if (this._items.length === 0)
+        if (this._items.length === 0 || !this._switcherList)
             return false;
 
         this._alreadyShowed = true;
@@ -777,10 +778,8 @@ export const WindowSwitcherPopup = {
 
         // Make sure the SwitcherList is always destroyed, it may not be
         // a child of the actor at this point.
-        if (this._switcherList) {
-            this._switcherListExists = false;
+        if (this._switcherList)
             this._switcherList.destroy();
-        }
 
         Main.layoutManager.aatws = null;
     },
@@ -844,7 +843,7 @@ export const WindowSwitcherPopup = {
 
     vfunc_allocate(box) {
         // Prevent updating the allocation if switcherList is being destroyed
-        if (!this._switcherListExists)
+        if (!this._switcherList)
             return;
 
         let monitor = Util.getMonitorByIndex(this._monitorIndex);
@@ -906,7 +905,6 @@ export const WindowSwitcherPopup = {
                 y = this._switcherList.allocation.y1 - height - yOffset;
             else if (this.POPUP_POSITION === Position.TOP || this.POPUP_POSITION === Position.CENTER)
                 y = this._switcherList.allocation.y2 + yOffset;
-
 
             childBox.set_origin(x, y);
             childBox.set_size(width, height);
@@ -1082,7 +1080,6 @@ export const WindowSwitcherPopup = {
 
         if (!opt.REMEMBER_INPUT || !opt.INPUT_SOURCE_ID)
             return;
-
 
         const inputSourceManager = Keyboard.getInputSourceManager();
         this._originalSource = inputSourceManager._currentSource;
@@ -1292,7 +1289,6 @@ export const WindowSwitcherPopup = {
                 duration: ANIMATION_TIME / 2 * opt.ANIMATION_TIME_FACTOR,
                 mode: Clutter.AnimationMode.EASE_IN_QUAD,
                 onComplete: () => {
-                    this._switcherListExists = false;
                     this.destroy();
                 },
             });
@@ -1306,7 +1302,6 @@ export const WindowSwitcherPopup = {
                 });
             }
         } else {
-            this._switcherListExists = false;
             this.destroy();
         }
     },
@@ -1319,14 +1314,11 @@ export const WindowSwitcherPopup = {
             this._itemCaption.opacity = 0;
 
         if (this.opacity > 0) {
-            if (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered) {
-                this._switcherListExists = false;
+            if (this.KEYBOARD_TRIGGERED && !this._overlayKeyTriggered)
                 this.destroy();
-            } else {
+            else
                 this._animateOut();
-            }
         } else {
-            this._switcherListExists = false;
             this.destroy();
         }
     },
@@ -1377,6 +1369,7 @@ export const WindowSwitcherPopup = {
                     selected.open_new_window(-1);
                 }
             } else if (selected && selected._is_showAppsIcon) {
+                Main.overview.disconnectObject(this);
                 this._actions.toggleAppGrid();
             } else if (selected && selected._is_sysActionIcon) {
                 selected.activate();
@@ -1395,7 +1388,7 @@ export const WindowSwitcherPopup = {
     },
 
     _activateWindow(metaWin) {
-        const wsSwitched = global.workspaceManager.get_active_workspace_index() !== metaWin.get_workspace().index();
+        const wsSwitched = global.workspaceManager.get_active_workspace_index() !== metaWin.get_workspace()?.index();
         Main.activateWindow(metaWin);
         if (wsSwitched) { // && this.SHOW_WS_POPUP) {
             this._actions.showWsSwitcherPopup();
@@ -1486,7 +1479,6 @@ export const WindowSwitcherPopup = {
                     if (this.PREVIEW_SELECTED === PreviewMode.SHOW_WIN) {
                         if (this._lastShowed)
                             this._selectedIndex = this._lastShowed;
-
 
                         if (this._showingApps) {
                             const selected = this._getSelectedTarget();
@@ -1600,11 +1592,9 @@ export const WindowSwitcherPopup = {
         if (this._reverseOrder  && !reversed)
             return this._previous(true);
 
-
         let step = 1;
         if (!opt.WRAPAROUND && this._selectedIndex === (this._items.length - 1))
             step = 0;
-
 
         return mod(this._selectedIndex + step, this._items.length);
     },
@@ -1613,11 +1603,9 @@ export const WindowSwitcherPopup = {
         if (this._reverseOrder && !reversed)
             return this._next(true);
 
-
         let step = 1;
         if (!opt.WRAPAROUND && this._selectedIndex === 0)
             step = 0;
-
 
         return mod(this._selectedIndex - step, this._items.length);
     },
@@ -1644,7 +1632,6 @@ export const WindowSwitcherPopup = {
                     // find the first window of the group
                     if (!nextApp)
                         nextApp = _getWindowApp(this._items[i].window).get_id();
-
 
                     if (_getWindowApp(this._items[i].window).get_id() !== nextApp || i === lastIndex) {
                         this._select(i + (i === 0 ? 0 : 1));
@@ -1692,7 +1679,6 @@ export const WindowSwitcherPopup = {
 
         if (windows.length === 0)
             return null;
-
 
         let ri = windows[0].get_monitor();
 
@@ -1840,7 +1826,6 @@ export const WindowSwitcherPopup = {
         // if scroll doesn't control selection, select the item under the pointer in case the hover selection missed the event
         if (action !== Action.SELECT_ITEM)
             this._selectClickedItem(actor);
-
 
         this._lastActionTimeStamp = Date.now();
         this._triggerAction(action, direction);
@@ -2074,7 +2059,6 @@ export const WindowSwitcherPopup = {
         } else if (opt.get('hotkeySearch').includes(keyString) || keysym === Clutter.KEY_Insert) {
             this._toggleSearchMode();
 
-
         // Clear search entry or Force close (kill -9) the window process
         } else if (keysym === Clutter.KEY_Delete) {
             if (!_shiftPressed() && this._searchEntry !== null) {
@@ -2280,7 +2264,6 @@ export const WindowSwitcherPopup = {
         if (direction === Clutter.ScrollDirection.SMOOTH)
             return false;
 
-
         if (this._wsTmb && this._isPointerOnWsTmb()) {
             // scroll over ws thumbnails switches ws
             if (Date.now() - this._lastActionTimeStamp > 50) {
@@ -2291,7 +2274,6 @@ export const WindowSwitcherPopup = {
                     this._reorderWorkspace(direction === Meta.MotionDirection.UP ? -1 : 1);
                 else
                     this._switchWorkspace(direction);
-
 
                 this._lastActionTimeStamp = Date.now();
             }
@@ -2435,7 +2417,6 @@ export const WindowSwitcherPopup = {
             item._closeButton.opacity = 255;
         }
 
-
         if (!opt.INTERACTIVE_INDICATORS || this._isPointerOut() || this._selectedIndex < 0)
             return;
 
@@ -2449,7 +2430,6 @@ export const WindowSwitcherPopup = {
             if  (item._hotkeyIndicator)
                 item._hotkeyIndicator.opacity = 0;
         }
-
 
         if (item._aboveIcon && !item._aboveIcon.reactive) {
             item._aboveIcon.reactive = true;
@@ -2623,7 +2603,6 @@ export const WindowSwitcherPopup = {
                 else if (toIndex > maxIndex)
                     toIndex = 0;
 
-
                 let element = favorites[fromIndex];
                 favorites.splice(fromIndex, 1);
                 favorites.splice(toIndex, 0, element);
@@ -2648,7 +2627,6 @@ export const WindowSwitcherPopup = {
         let selected = this._getSelectedTarget();
         if (!selected || selected._is_showAppsIcon)
             return;
-
 
         if (toggle && this._winPreview) {
             this._destroyWinPreview();
@@ -2701,12 +2679,12 @@ export const WindowSwitcherPopup = {
         if (selected.minimized)
             selected.unminimize();
 
-
         selected.raise();
 
         if (global.workspace_manager.get_active_workspace() !== selected.get_workspace()) {
             Main.wm.actionMoveWorkspace(selected.get_workspace());
-            this._actions.showWsSwitcherPopup();
+            if (!this._wsTmb)
+                this._actions.showWsSwitcherPopup();
         }
     },
 
@@ -2838,7 +2816,6 @@ export const WindowSwitcherPopup = {
         if (filterMode < FilterMode.ALL)
             filterMode = m;
 
-
         if (this._switcherMode === SwitcherMode.WINDOWS) {
             this.WIN_FILTER_MODE = filterMode;
             if (opt.SYNC_FILTER)
@@ -2861,7 +2838,6 @@ export const WindowSwitcherPopup = {
         else
             this.GROUP_MODE = GroupMode.WORKSPACES;
 
-
         this._updateSwitcher();
     },
 
@@ -2881,7 +2857,8 @@ export const WindowSwitcherPopup = {
             this._updateOnWorkspaceSwitched();
         }
 
-        this._actions.showWsSwitcherPopup();
+        if (!this._wsTmb)
+            this._actions.showWsSwitcherPopup();
     },
 
     _switchMonitor(direction) {
@@ -2913,10 +2890,8 @@ export const WindowSwitcherPopup = {
         if (!selected)
             selected = this._getSelectedTarget();
 
-
         if (!selected || selected._is_showAppsIcon || (selected.cachedWindows && !selected.cachedWindows.length))
             return;
-
 
         let wsIndex = global.workspace_manager.get_active_workspace_index();
         wsIndex += direction === Clutter.ScrollDirection.UP ? 0 : 1;
@@ -2931,7 +2906,6 @@ export const WindowSwitcherPopup = {
 
         if (!selected || selected._is_showAppsIcon || (selected.cachedWindows && !selected.cachedWindows.length))
             return;
-
 
         // avoid recreation of the switcher during the move
         this._doNotUpdateOnNewWindow = true;
@@ -2960,7 +2934,8 @@ export const WindowSwitcherPopup = {
             this._updateSwitcher();
         }
 
-        this._actions.showWsSwitcherPopup(direction, wsIndex);
+        if (!this._wsTmb)
+            this._actions.showWsSwitcherPopup(direction, wsIndex);
         this._doNotUpdateOnNewWindow = false;
     },
 
@@ -3080,14 +3055,6 @@ export const WindowSwitcherPopup = {
             let menuItems = appIcon._menu._getMenuItems();
             menuItems[1].active = true;
         }
-
-        // remove items added by OFP extension
-        if (this._items[this._selectedIndex]._addedMenuItems) {
-            this._items[this._selectedIndex]._addedMenuItems.forEach(
-                item => item.destroy()
-            );
-            this._items[this._selectedIndex]._addedMenuItems = undefined;
-        }
     },
 
     _closeWinQuitApp() {
@@ -3148,13 +3115,15 @@ export const WindowSwitcherPopup = {
     _switchToFirstWS() {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(0));
         this.show();
-        this._actions.showWsSwitcherPopup();
+        if (!this._wsTmb)
+            this._actions.showWsSwitcherPopup();
     },
 
     _switchToLastWS() {
         Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(global.workspace_manager.n_workspaces - 1));
         this.show();
-        this._actions.showWsSwitcherPopup();
+        if (!this._wsTmb)
+            this._actions.showWsSwitcherPopup();
     },
 
     _toggleWinAbove() {
@@ -3293,7 +3262,6 @@ export const WindowSwitcherPopup = {
         if (typeof  pattern === 'string')
             pattern = pattern.trim();
 
-
         let filterMode;
         if (this._tempFilterMode)
             filterMode = this._tempFilterMode;
@@ -3323,7 +3291,6 @@ export const WindowSwitcherPopup = {
 
         if (opt.SKIP_MINIMIZED)
             winList = winList.filter(w => !w.minimized);
-
 
         if (this.WIN_SORTING_MODE === SortingMode.STABLE_SEQUENCE || this.WIN_SORTING_MODE === SortingMode.STABLE_CURRENT_FIRST) {
             winList.sort((a, b) => a.get_stable_sequence() - b.get_stable_sequence());
@@ -3394,7 +3361,6 @@ export const WindowSwitcherPopup = {
         if (winList.length)
             this._showingApps = false;
 
-
         return winList;
     },
 
@@ -3448,7 +3414,6 @@ export const WindowSwitcherPopup = {
 
             if (this.APP_SORTING_MODE === SortingMode.STABLE_SEQUENCE || (!this.KEYBOARD_TRIGGERED && opt.get('switcherPopupExtAppStable')))
                 running.sort((a, b) => runningIds.indexOf(a.get_id()) - runningIds.indexOf(b.get_id()));
-
 
             appList = [...running, ...appList];
             // when triggered by the mouse, keep favorites order instead of default and also when hotkey to reordering favs was used
@@ -3546,7 +3511,6 @@ export const WindowSwitcherPopup = {
 
         if (appList.length)
             this._showingApps = true;
-
 
         return appList;
     },
