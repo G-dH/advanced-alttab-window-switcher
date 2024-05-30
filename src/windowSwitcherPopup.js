@@ -1328,63 +1328,81 @@ export const WindowSwitcherPopup = {
             GLib.source_remove(this._timeoutIds.showWinImmediately);
             this._timeoutIds.showWinImmediately = 0;
         }
+
         this._doNotShowWin = true;
         this._doNotUpdateOnNewWindow = true;
         const selected = this._getSelectedTarget();
+
         if (this._showingApps && selected) {
-            if ((!_shiftPressed() && !_ctrlPressed()) && !this.KEYBOARD_TRIGGERED && opt.SHOW_WINS_ON_ACTIVATE &&
-                    selected && selected.cachedWindows &&
-                    ((selected.cachedWindows[1] && opt.SHOW_WINS_ON_ACTIVATE === 2) ||
-                    (opt.SHOW_WINS_ON_ACTIVATE === 1 && global.display.get_tab_list(0, null).length &&
-                    selected.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) &&
-                    selected.cachedWindows[0].get_workspace() === global.workspace_manager.get_active_workspace()
-            ) {
+            if (this._shouldToggleSingleAppMode()) {
                 this._toggleSingleAppMode();
                 return;
-            } else if (selected.cachedWindows && selected.cachedWindows[0]) {
-                if (opt.APP_RAISE_FIRST_ONLY) {
-                    this._setInput('reset');
-                    this._activateWindow(selected.cachedWindows[0]);
-                    // opt.skipThisFocus = true;
-                } else {
-                    // following not only activates the app recent window, but also rise all other windows of the app above other windows
-                    // but if item is activated without key/button press (ACTIVATE_ON_HIDE), only the first window is raised, so we need to raise the windows anyway
-                    // selected.activate_window(selected.cachedWindows[0], global.get_current_time());
-
-                    const wins = selected.cachedWindows;
-                    for (let i = wins.length - 1; i >= 0; i--)
-                        wins[i].raise();
-
-                    this._setInput('reset');
-                    this._activateWindow(selected.cachedWindows[0]);
-                    // opt.skipThisFocus = true;
-                }
-            } else if (selected && selected.get_n_windows) {
-                if (selected.get_n_windows() === 0) {
-                    // app has no windows - probably not running
-                    selected.activate();
-                    // opt.skipThisFocus = true;
-                } else {
-                    // in this case app is running but no window match the current filter mode
-                    selected.open_new_window(-1);
-                }
-            } else if (selected && selected._is_showAppsIcon) {
-                Main.overview.disconnectObject(this);
-                this._actions.toggleAppGrid();
-            } else if (selected && selected._is_sysActionIcon) {
+            } else if (selected.cachedWindows?.length) {
+                this._activateApp(selected);
+            } else if (selected.get_n_windows) {
+                this._launchApp(selected);
+            } else if (selected._is_showAppsIcon) {
+                this._showAppGrid();
+            } else if (selected._is_sysActionIcon) {
                 selected.activate();
             }
         } else if (selected) {
             this._setInput('reset');
             this._activateWindow(selected);
-            // Main.activateWindow(selected);
         }
 
-        // don't close the switcher if there is higher possibility that user wants to continue using it
-        if (!this._showingApps || (this.KEYBOARD_TRIGGERED || opt.ACTIVATE_ON_HIDE || (!this.KEYBOARD_TRIGGERED && !opt.SHOW_WINS_ON_ACTIVATE) || selected._is_showAppsIcon))
+        if (this._shouldFadeAndDestroy())
             this.fadeAndDestroy();
         else
             this._doNotUpdateOnNewWindow = false;
+    },
+
+    _shouldToggleSingleAppMode(selected) {
+        return  selected?.cachedWindows?.length &&
+                !_shiftPressed() && !_ctrlPressed() &&
+                !this.KEYBOARD_TRIGGERED &&
+                opt.SHOW_WINS_ON_ACTIVATE &&
+                ((opt.SHOW_WINS_ON_ACTIVATE === 2 && selected?.cachedWindows.length > 1) ||
+                 (opt.SHOW_WINS_ON_ACTIVATE === 1 && global.display.get_tab_list(0, null).length &&
+                 selected.cachedWindows[0] === global.display.get_tab_list(0, null)[0])) &&
+                selected.cachedWindows[0]?.get_workspace() === global.workspace_manager.get_active_workspace();
+    },
+
+    _activateApp(selected) {
+        if (!opt.APP_RAISE_FIRST_ONLY) {
+            // The following line not only activates the app recent window, but also rise all other windows of the app above other windows
+            // selected.activate_window(selected.cachedWindows[0], global.get_current_time());
+            // However, if the item is activated without key/button press (ACTIVATE_ON_HIDE), only the first window is raised, so we need to raise the windows manually
+
+            const wins = selected.cachedWindows;
+            for (let i = wins.length - 1; i >= 0; i--)
+                wins[i].raise();
+        }
+
+        this._setInput('reset');
+        this._activateWindow(selected.cachedWindows[0]);
+    },
+
+    _launchApp(selected) {
+        if (!selected.get_n_windows()) {
+            // app has no windows - probably not running
+            selected.activate();
+        } else {
+            // app is running but no window match the current filter mode
+            selected.open_new_window(-1);
+        }
+    },
+
+    _showAppGrid() {
+        Main.overview.disconnectObject(this);
+        this._actions.toggleAppGrid();
+    },
+
+    _shouldFadeAndDestroy() {
+        return !this._showingApps ||
+            this.KEYBOARD_TRIGGERED ||
+            opt.ACTIVATE_ON_HIDE ||
+            (!this.KEYBOARD_TRIGGERED && !opt.SHOW_WINS_ON_ACTIVATE);
     },
 
     _activateWindow(metaWin) {
