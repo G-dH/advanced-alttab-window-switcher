@@ -218,7 +218,6 @@ export const WindowIcon = GObject.registerClass({
     _getIndicatorBox() {
         const indicatorBox = new St.BoxLayout({
             vertical: false,
-            // style_class: this.opt.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
@@ -238,9 +237,6 @@ export const WindowIcon = GObject.registerClass({
             icon_size: 14,
             y_expand: true,
             y_align: Clutter.ActorAlign.START,
-            /* x_expand: true,
-            x_align: Clutter.ActorAlign.START,
-            */
         });
         icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY);
         if (!this.window.is_above()) {
@@ -260,9 +256,6 @@ export const WindowIcon = GObject.registerClass({
             icon_size: 14,
             y_expand: true,
             y_align: Clutter.ActorAlign.START,
-            /* x_expand: true,
-            x_align: Clutter.ActorAlign.CENTER,
-            */
         });
         icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY);
         this._stickyIcon = icon;
@@ -292,6 +285,7 @@ export const AppIcon = GObject.registerClass({
         this.app = app;
         this._id = app.get_id();
         this._name = app.get_name();
+        this._is_app = true;
 
         this._iconContainer = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
@@ -326,11 +320,8 @@ export const AppIcon = GObject.registerClass({
             () => this._updateRunningStyle(), this);
         this._updateRunningStyle();
 
-        // avoid conflict with rest of the system
-        // this._onMenuPoppedDown = () => { };
         // mouse events should go through the AppIcon to the switcher button
         this.reactive = false;
-        // this.activate = () => {};
 
         // remove scroll connection created by my OFP extension
         if (this._scrollConnectionID)
@@ -365,40 +356,29 @@ export const AppIcon = GObject.registerClass({
             text: appName,
         });
 
-        this._id = app.get_id();
-
         // symbolic icons should be visible on both dark and light background
         this.set_style('color: grey;');
 
-        if (this.opt.SHOW_APP_TITLES) {
-            if (this.icon.label) {
-                this.icon.label.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
-                this.icon.label.set_style_class_name(this.opt.colorStyle.TITLE_LABEL);
-                this.icon.label.opacity = 255;
-                // set label truncate method
-                this.icon.label.clutterText.set({
-                    line_wrap: false,
-                    ellipsize: 3, // Pango.EllipsizeMode.END,
-                });
-                // workaround that disconnects icon.label _updateMultiline()
-                this.icon.label = this.titleLabel;
-                this.icon.label.show();
-            }
-        } else if (this.icon.label) {
-            this.icon.label.hide();
+
+        if (this.opt.SHOW_APP_TITLES && this.icon.label) {
+            this.icon.label.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
+            this.icon.label.set_style_class_name(this.opt.colorStyle.TITLE_LABEL);
+            this.icon.label.opacity = 255;
+            // set label truncate method
+            this.icon.label.clutterText.set({
+                line_wrap: false,
+                ellipsize: 3, // Pango.EllipsizeMode.END,
+            });
+            // workaround that disconnects icon.label _updateMultiline()
+            this.icon.label = this.titleLabel;
+        } else {
+            this.icon.label?.hide();
         }
 
         const count = app.cachedWindows.length;
         let winCounterIndicator;
         if (count && this._shouldShowWinCounter(count)) {
             winCounterIndicator = this._createWinCounterIndicator(count);
-            // winCounterIndicator.add_style_class_name('running-counter');
-            // move the counter above app title
-            /* if (this.opt.SHOW_APP_TITLES && !this._switcherParams.includeFavorites) {
-                winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
-            } else {
-                winCounterIndicator.set_style(`margin-bottom: 1px;`);
-            }*/
             this._iconContainer.add_child(winCounterIndicator);
             this._winCounterIndicator = winCounterIndicator;
         }
@@ -409,7 +389,7 @@ export const AppIcon = GObject.registerClass({
             else if (winCounterIndicator && !this.opt.SHOW_APP_TITLES)
                 winCounterIndicator.set_style('margin-bottom: 7px;');
 
-            // change dot color to be visible on light bg cause Adwaita uses white color
+            // Change running dot color to be visible on light bg (Adwaita theme uses white dot)
             if (this.opt.colorStyle.RUNNING_DOT_COLOR)
                 this._dot.add_style_class_name(this.opt.colorStyle.RUNNING_DOT_COLOR);
 
@@ -426,8 +406,6 @@ export const AppIcon = GObject.registerClass({
             this._hotkeyIndicator = _createHotKeyNumIcon(iconIndex, opt.colorStyle.INDICATOR_OVERLAY);
             this._iconContainer.add_child(this._hotkeyIndicator);
         }
-
-        this._is_app = true;
 
         // if user activates an action that includes destroying the switcher from the app menu
         // when appIcon is destroyed, the fading app menu jumps to the top left corner of the monitor (lost parent / relative position).
