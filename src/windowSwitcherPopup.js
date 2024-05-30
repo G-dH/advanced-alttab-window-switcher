@@ -319,7 +319,7 @@ export const WindowSwitcherPopup = {
 
         Main.layoutManager.aatws = this;
 
-        this._wsManagerConId = global.workspace_manager.connect('workspace-switched', this._onWorkspaceChanged.bind(this));
+        global.workspace_manager.connectObject('workspace-switched', this._onWorkspaceChanged.bind(this), this);
         this._newWindowConId = 0;
 
         Main.overview.connectObject('showing', () => this.fadeAndDestroy(), this);
@@ -503,10 +503,6 @@ export const WindowSwitcherPopup = {
         this._tempFilterMode = null;
 
         this._updateInProgress = false;
-
-        this.connect('destroy', () => {
-            this._switcherList = null;
-        });
         return true;
     },
 
@@ -733,9 +729,16 @@ export const WindowSwitcherPopup = {
     _onDestroy() {
         this._doNotUpdateOnNewWindow = true;
 
-        Main.overview.disconnectObject(this);
-
         this._popModal();
+
+        // Remove connections
+        this._realize?.winActor.disconnect(this._realize.id);
+        if (this._newWindowConId)
+            global.display.disconnect(this._newWindowConId);
+
+        global.workspace_manager.disconnectObject(this);
+
+        Main.overview.disconnectObject(this);
 
         // remove original timeouts
         if (this._motionTimeoutId)
@@ -753,17 +756,7 @@ export const WindowSwitcherPopup = {
             });
         }
 
-        if (this._wsManagerConId)
-            global.workspace_manager.disconnect(this._wsManagerConId);
-
-        if (this._newWindowConId)
-            global.display.disconnect(this._newWindowConId);
-
         this._removeCaptions();
-
-        if (this._actions)
-            this._actions = null;
-
         this._destroyWinPreview();
 
         if (this._originalOverlayKey) {
@@ -775,6 +768,8 @@ export const WindowSwitcherPopup = {
             this.remove_child(this._wsTmb);
             this._wsTmb = null;
         }
+
+        this._actions = null;
 
         // Make sure the SwitcherList is always destroyed, it may not be
         // a child of the actor at this point.
@@ -1044,15 +1039,21 @@ export const WindowSwitcherPopup = {
             // new window has been created but maybe not yet realized
             const winActor = win.get_compositor_private();
             if (!winActor.realized) {
+                if (this._realize)
+                    this._realize.winActor.disconnect(this._realize.id);
+                else
+                    this._realize = { winActor };
+
                 // avoid updating switcher while waiting for window's realize signal
                 this._awaitingWin = win;
-                const realizeId = winActor.connect('realize', () => {
+                this._realize.id = winActor.connect('realize', () => {
                     // update switcher only if no newer window is waiting for realization
                     if (this._awaitingWin === win) {
                         this._updateSwitcher();
                         this._awaitingWin = null;
                     }
-                    winActor.disconnect(realizeId);
+                    this._realize.winActor.disconnect(this._realize.id);
+                    this._realize = null;
                 });
             } else {
                 this._updateSwitcher();
