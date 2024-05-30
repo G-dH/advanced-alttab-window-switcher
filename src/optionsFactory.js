@@ -153,7 +153,7 @@ export const ItemFactory = class ItemFactory {
             widget.set_icon_activatable(Gtk.EntryIconPosition.SECONDARY, true);
             widget.connect('icon-press', e => {
                 if (e.get_text() === '')
-                    e.set_text(this._settings.getDefault(variable));
+                    e.set_text(this._opt.getDefault(variable));
                 else
                     e.set_text('');
             });
