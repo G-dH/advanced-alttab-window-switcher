@@ -1,5 +1,8 @@
 ## Changelog
 ### v46.2 (not released yet) v44.11 (not released yet)
+**Added:**
+- Option *Follow System Color Style - Inverted* allows automatic switching between Dark and Light ATAWS color styles, opposite to the system's Dark mode setting
+
 **Fixed:**
 - Option *Show Hotkeys F1-F12 for Direct Activation* crashes AATWS on GNOME 46 (#102)
 - Missing "running" indicator
@@ -8,13 +11,13 @@
 
 **Other Changes:**
 - Set switcher popup `offscreen_redirect` property to ALWAYS for better performance
+- In the Settings window, spin buttons has been replaced with scales
 - Refactored parts of the code
 
 
 ### v46.1 (2024-03-13) v44.10 (not released)
 **Added:**
 - Support for GNOME 46.rc
-- Option *Follow System Color Style - Inverted* allows automatic switching between Dark and Light ATAWS color styles, opposite to the system's Dark mode setting
 
 **Fixed:**
 - The switcher position can end up out of the screen if main panel is vertical (#92)
@@ -27,7 +30,6 @@
 - Dropped support for GNOME 3.36 - 41 (still available but no longer being developed)
 - Removed winTmb module for window thumbnails, AATWS can now use the new standalone WTMB extension
 - Automatic switching filter in case the switcher shows only one item that matches the current filter setting now take effect only if you press Tab (or your shortcut) key once again
-- In the Settings window, spin buttons has been replaced with scales
 - Removed custom popup border radius and padding so it follows the current GNOME Shell theme
 
 
