@@ -167,13 +167,13 @@ export const Actions = class {
             win.stick();
     }
 
-    switchWorkspace(direction /* noIndicator = false */) {
+    switchWorkspace(direction) {
         direction = Util.translateDirectionToHorizontal(direction);
         const targetWs = global.workspaceManager.get_active_workspace().get_neighbor(direction);
         Main.wm.actionMoveWorkspace(targetWs);
     }
 
-    showWsSwitcherPopup(direction, wsIndex) {
+    showWsSwitcherPopup(wsIndex) {
         if (!this._opt.SHOW_WS_SWITCHER_POPUP)
             return;
         if (!wsIndex)

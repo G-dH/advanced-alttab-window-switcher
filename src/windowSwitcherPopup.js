@@ -1812,9 +1812,7 @@ export const WindowSwitcherPopup = {
     },
 
     _onItemScrollEvent(actor, event) {
-        const direction = event.get_scroll_direction();
-        if (direction === Clutter.ScrollDirection.SMOOTH)
-            return Clutter.EVENT_STOP;
+        let direction = Util.getScrollDirection(event);
 
         const action = this._showingApps
             ? opt.get('appSwitcherPopupScrollItem')
@@ -2259,17 +2257,19 @@ export const WindowSwitcherPopup = {
         return Clutter.EVENT_STOP;
     },
 
+    _translateScrollToMotion(direction) {
+        return direction === Clutter.ScrollDirection.UP
+            ? Meta.MotionDirection.UP
+            : Meta.MotionDirection.DOWN;
+    },
+
     vfunc_scroll_event(event) {
-        let direction = event.direction;
-        if (direction === Clutter.ScrollDirection.SMOOTH)
-            return false;
+        let direction = Util.getScrollDirection(event);
 
         if (this._wsTmb && this._isPointerOnWsTmb()) {
+            direction = this._translateScrollToMotion(direction);
             // scroll over ws thumbnails switches ws
             if (Date.now() - this._lastActionTimeStamp > 50) {
-                direction = direction === Clutter.ScrollDirection.UP
-                    ? Meta.MotionDirection.UP
-                    : Meta.MotionDirection.DOWN;
                 if (_shiftPressed() || _ctrlPressed())
                     this._reorderWorkspace(direction === Meta.MotionDirection.UP ? -1 : 1);
                 else
@@ -2922,12 +2922,11 @@ export const WindowSwitcherPopup = {
             return;
         }
 
-        direction = direction === Clutter.ScrollDirection.UP
-            ? Meta.MotionDirection.UP
-            : Meta.MotionDirection.DOWN;
+        direction = this._translateScrollToMotion(direction);
+
         let ws = global.workspace_manager.get_workspace_by_index(wsIndex);
         if (this._showingApps) {
-            this._actions.switchWorkspace(direction, true);
+            this._actions.switchWorkspace(direction);
             this._moveToCurrentWS();
         } else {
             Main.wm.actionMoveWindow(selected, ws);
@@ -2935,7 +2934,7 @@ export const WindowSwitcherPopup = {
         }
 
         if (!this._wsTmb)
-            this._actions.showWsSwitcherPopup(direction, wsIndex);
+            this._actions.showWsSwitcherPopup(wsIndex);
         this._doNotUpdateOnNewWindow = false;
     },
 
@@ -2956,7 +2955,8 @@ export const WindowSwitcherPopup = {
 
     _reorderWorkspace(direction = 0) {
         this._actions.reorderWorkspace(direction);
-        this._actions.showWsSwitcherPopup();
+        if (!this._wsTmb)
+            this._actions.showWsSwitcherPopup();
     },
 
     _toggleMaximizeOnCurrentMonitor() {
@@ -3199,8 +3199,7 @@ export const WindowSwitcherPopup = {
             this._switchFilterMode();
             break;
         case Action.SWITCH_WS:
-            direction = direction === Clutter.ScrollDirection.UP ? Meta.MotionDirection.UP : Meta.MotionDirection.DOWN;
-            this._switchWorkspace(direction);
+            this._switchWorkspace(this._translateScrollToMotion(direction));
             break;
         case Action.SHOW:
             // this._showWindow();
