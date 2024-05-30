@@ -8,6 +8,7 @@
 - Missing "running" indicator
 - Scroll actions only work for one direction
 - Various exceptions filling the system log
+- Improved sorting of window search results - add app name comparison
 
 **Other Changes:**
 - Set switcher popup `offscreen_redirect` property to ALWAYS for better performance
