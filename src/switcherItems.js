@@ -14,10 +14,13 @@ import St from 'gi://St';
 import Shell from 'gi://Shell';
 import GObject from 'gi://GObject';
 
-import * as AppDisplay from 'resource:///org/gnome/shell/ui/appDisplay.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import { AppMenu } from 'resource:///org/gnome/shell/ui/appMenu.js';
+import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 import * as IconGrid from 'resource:///org/gnome/shell/ui/iconGrid.js';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
 import * as Screenshot from 'resource:///org/gnome/shell/ui/screenshot.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 // gettext
 let _;
@@ -232,7 +235,7 @@ export const WindowIcon = GObject.registerClass({
         let icon = new St.Icon({
             style_class: 'window-state-indicators',
             icon_name: 'go-top-symbolic',
-            icon_size: 16,
+            icon_size: 14,
             y_expand: true,
             y_align: Clutter.ActorAlign.START,
             /* x_expand: true,
@@ -254,7 +257,7 @@ export const WindowIcon = GObject.registerClass({
         let icon = new St.Icon({
             style_class: 'window-state-indicators',
             icon_name: 'view-pin-symbolic',
-            icon_size: 16,
+            icon_size: 14,
             y_expand: true,
             y_align: Clutter.ActorAlign.START,
             /* x_expand: true,
@@ -277,15 +280,57 @@ export const WindowIcon = GObject.registerClass({
 
 export const AppIcon = GObject.registerClass({
     GTypeName: `AppIcon${Math.floor(Math.random() * 1000)}`,
-}, class AppIcon extends AppDisplay.AppIcon {
+    Signals: {
+        'menu-state-changed': { param_types: [GObject.TYPE_BOOLEAN] },
+        'sync-tooltip': {},
+    },
+}, class AppIcon extends St.Button {
     _init(app, iconIndex, switcherParams, opt) {
-        super._init(app);
+        super._init({});
         this.opt = opt;
 
+        this.app = app;
+        this._id = app.get_id();
+        this._name = app.get_name();
+
+        this._iconContainer = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            x_expand: true,
+            y_expand: true,
+        });
+
+        this.set_child(this._iconContainer);
+
+        const iconParams = {};
+        iconParams['createIcon'] = this._createIcon.bind(this);
+        iconParams['setSizeManually'] = true;
+        this.icon = new IconGrid.BaseIcon(app.get_name(), iconParams);
+        this._iconContainer.add_child(this.icon);
+
+        this._dot = new St.Widget({
+            style_class: 'app-grid-running-dot app-well-app-running-dot running-dot-aatws',
+            layout_manager: new Clutter.BinLayout(),
+            x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.END,
+        });
+
+        this._iconContainer.add_child(this._dot);
+
+        this._menu = null;
+        this._menuManager = new PopupMenu.PopupMenuManager(this);
+
+        this._menuTimeoutId = 0;
+        this.app.connectObject('notify::state',
+            () => this._updateRunningStyle(), this);
+        this._updateRunningStyle();
+
         // avoid conflict with rest of the system
-        this._onMenuPoppedDown = () => { };
+        // this._onMenuPoppedDown = () => { };
         // mouse events should go through the AppIcon to the switcher button
         this.reactive = false;
+        // this.activate = () => {};
 
         // remove scroll connection created by my OFP extension
         if (this._scrollConnectionID)
@@ -322,8 +367,6 @@ export const AppIcon = GObject.registerClass({
 
         this._id = app.get_id();
 
-        // remove original app icon style
-        this.style_class = '';
         // symbolic icons should be visible on both dark and light background
         this.set_style('color: grey;');
 
@@ -366,12 +409,6 @@ export const AppIcon = GObject.registerClass({
             else if (winCounterIndicator && !this.opt.SHOW_APP_TITLES)
                 winCounterIndicator.set_style('margin-bottom: 7px;');
 
-            // ensure the bottom-margin is always 0
-            this._dot.add_style_class_name('running-dot-aatws');
-            if (!Clutter.Container) { // Relevant only for GS 46.0-46.1, 46.2 moved the offset to CSS and added a method to apply it from the theme node
-                this._dot.translationY = 0;
-            }
-
             // change dot color to be visible on light bg cause Adwaita uses white color
             if (this.opt.colorStyle.RUNNING_DOT_COLOR)
                 this._dot.add_style_class_name(this.opt.colorStyle.RUNNING_DOT_COLOR);
@@ -413,6 +450,13 @@ export const AppIcon = GObject.registerClass({
         return this.app.create_icon_texture(this.opt.APP_MODE_ICON_SIZE);
     }
 
+    _updateRunningStyle() {
+        if (this.app.state !== Shell.AppState.STOPPED)
+            this._dot.show();
+        else
+            this._dot.hide();
+    }
+
     _createWinCounterIndicator(num) {
         let label = new St.Label({
             text: `${num}`,
@@ -427,7 +471,43 @@ export const AppIcon = GObject.registerClass({
         return label;
     }
 
+    popupMenu(side = St.Side.LEFT) {
+        if (!this._menu) {
+            this._menu = new AppMenu(this, side, {
+                favoritesSection: true,
+                showSingleWindows: true,
+            });
+            this._menu.setApp(this.app);
+            this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
+                if (!isPoppedUp)
+                    this._onMenuPoppedDown();
+            });
+            Main.uiGroup.add_child(this._menu.actor);
+            this._menuManager.addMenu(this._menu);
+        }
+
+        this.emit('menu-state-changed', true);
+
+        this._menu.open(BoxPointer.PopupAnimation.FULL);
+        this._menuManager.ignoreRelease();
+        this.emit('sync-tooltip');
+
+        return false;
+    }
+
+    _onMenuPoppedDown() {
+        this.emit('menu-state-changed', false);
+    }
+
     vfunc_button_press_event() {
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    vfunc_touch_event() {
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    vfunc_clicked() {
         return Clutter.EVENT_PROPAGATE;
     }
 });

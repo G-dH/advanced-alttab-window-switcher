@@ -2459,7 +2459,7 @@ export const WindowSwitcherPopup = {
             item._menuIcon = new St.Icon({
                 style_class: 'window-state-indicators',
                 icon_name: 'view-more-symbolic',
-                icon_size: 16,
+                icon_size: 14,
                 y_expand: true,
                 y_align: Clutter.ActorAlign.START,
             });

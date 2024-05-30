@@ -235,7 +235,7 @@ export const Options = class Options {
     }
 
     _updateColorScheme(/* settings, key */) {
-        const gtkTheme = this._intSettings.get_string('gtk-theme');
+        // const gtkTheme = this._intSettings.get_string('gtk-theme');
         const darkScheme = this._intSettings.get_string('color-scheme') === 'prefer-dark';
         let colorStyle = this.get('switcherPopupTheme');
 
@@ -259,7 +259,7 @@ export const Options = class Options {
             this.colorStyle = ColorStyleDefault;
         }
 
-        ColorStyleLight.RUNNING_DOT_COLOR = this.colorStyle === ColorStyleLight && gtkTheme === 'Adwaita'
+        ColorStyleLight.RUNNING_DOT_COLOR = this.colorStyle === ColorStyleLight /* && gtkTheme === 'Adwaita'*/
             ? ColorStyleLight.RUNNING_DOT_ADWAITA
             : '';
     }
