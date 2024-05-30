@@ -3,9 +3,12 @@
 **Fixed:**
 - Option *Show Hotkeys F1-F12 for Direct Activation* crashes AATWS on GNOME 46 (#102)
 - Missing "running" indicator
+- Scroll actions only work for one direction
+- Various exceptions filling the system log
 
 **Other Changes:**
 - Set switcher popup `offscreen_redirect` property to ALWAYS for better performance
+- Refactored parts of the code
 
 
 ### v46.1 (2024-03-13) v44.10 (not released)
