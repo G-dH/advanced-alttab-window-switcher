@@ -1,5 +1,5 @@
 ## Changelog
-### v46.2 (not released yet) v44.11 (not released yet)
+### v46.2 (2024-05-30) v44.11 (not released yet)
 **Added:**
 - Option *Follow System Color Style - Inverted* allows automatic switching between Dark and Light ATAWS color styles, opposite to the system's Dark mode setting
 
