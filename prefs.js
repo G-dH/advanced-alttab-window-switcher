@@ -16,32 +16,32 @@ import * as OptionsFactory from './src/optionsFactory.js';
 
 import { ExtensionPreferences } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import { Actions } from './src/enum.js';
+
 // gettext
 let _;
 
-const Actions = Settings.Actions;
-
 function _getActionList() {
     return [
-        [_('Do Nothing'),                      Actions.NONE],
-        [_('Close Switcher Popup'),            Actions.HIDE],
-        [_('Select Next/Previous'),            Actions.SELECT_ITEM],
-        [_('Activate'),                        Actions.ACTIVATE],
-        [_('Switch Workspace'),                Actions.SWITCH_WS],
-        [_('Open New Window'),                 Actions.NEW_WINDOW],
-        [_('Show / Preview'),                  Actions.SHOW],
-        [_('Open Context Menu'),               Actions.MENU],
-        [_('Switch Filter Mode'),              Actions.SWITCH_FILTER],
-        [_('Toggle Single App Mode'),          Actions.SINGLE_APP],
-        [_('Toggle Switcher Mode'),            Actions.SWITCHER_MODE],
-        [_('Close/Quit Selected'),             Actions.CLOSE_QUIT],
-        [_('Force Quit Selected App'),         Actions.KILL],
-        [_('Move Selected to Current WS/Monitor'), Actions.MOVE_TO_WS],
-        [_('Toggle Fullscreen on Empty WS'),   Actions.FS_ON_NEW_WS],
-        [_('Sort Windows by Applications'),    Actions.GROUP_APP],
-        [_('Sort Current Monitor First'),      Actions.CURRENT_MON_FIRST],
+        [_('Do Nothing'),                                        Actions.NONE],
+        [_('Close Switcher Popup'),                              Actions.HIDE],
+        [_('Select Next/Previous'),                              Actions.SELECT_ITEM],
+        [_('Activate'),                                          Actions.ACTIVATE],
+        [_('Switch Workspace'),                                  Actions.SWITCH_WS],
+        [_('Open New Window'),                                   Actions.NEW_WINDOW],
+        [_('Show / Preview'),                                    Actions.SHOW],
+        [_('Open Context Menu'),                                 Actions.MENU],
+        [_('Switch Filter Mode'),                                Actions.SWITCH_FILTER],
+        [_('Toggle Single App Mode'),                            Actions.SINGLE_APP],
+        [_('Toggle Switcher Mode'),                              Actions.SWITCHER_MODE],
+        [_('Close/Quit Selected'),                               Actions.CLOSE_QUIT],
+        [_('Force Quit Selected App'),                           Actions.KILL],
+        [_('Move Selected to Current WS/Monitor'),               Actions.MOVE_TO_WS],
+        [_('Toggle Fullscreen on Empty WS'),                     Actions.FS_ON_NEW_WS],
+        [_('Sort Windows by Applications'),                      Actions.GROUP_APP],
+        [_('Sort Current Monitor First'),                        Actions.CURRENT_MON_FIRST],
         [_('Create Window Thumbnail (requires WTMB extension)'), Actions.THUMBNAIL],
-        [_('Open Preferences'),                Actions.PREFS],
+        [_('Open Preferences'),                                  Actions.PREFS],
     ];
 }
 
@@ -331,7 +331,7 @@ export default class AATWS extends ExtensionPreferences {
             [
                 [_('Disable'), 1],
                 [_('Show Preview'), 2],
-                [_('Show Window'), 3],
+                // [_('Show Window'), 3],
             ]
         );
 
@@ -719,7 +719,7 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.SearchApplications = itemFactory.getRowWidget(
             _('Search Applications'),
-            _('Searches for installed applications to launch new ones when no window matches the specified pattern'),
+            _('Searches for installed applications to launch new ones when no window matches the specified search query'),
             itemFactory.newSwitch(),
             'winSwitcherPopupSearchApps'
         );
@@ -1216,7 +1216,7 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
 
         optionList.push(itemFactory.getRowWidget(
             _('Search Mode'),
-            _('In the search mode, you can enter multiple patterns separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, description, categories, keywords, and app executables. This allows you to find most editor apps by typing "edit", games by typing "game", and so on. You can even search for sections in the GNOME Settings app'),
+            _('In the search mode, you can enter multiple strings separated by a space and in arbitrary order to search windows and apps by window titles, app names, app generic names, description, categories, keywords, and app executables. This allows you to find most editor apps by typing "edit", games by typing "game", and so on. You can even search for sections in the GNOME Settings app'),
             itemFactory.newEntry(),
             'hotkeySearch'
         )
@@ -1448,7 +1448,7 @@ The current monitor is the one where the switcher pop-up is located, or where th
 
         optionList.push(itemFactory.getRowWidget(
             _('Clear Search Entry'),
-            _('Clears typed pattern when the switcher is in Search mode.'),
+            _('Clears the typed search query when the switcher is in Search mode.'),
             itemFactory.newEntry(),
             _('Del')
         )

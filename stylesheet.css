@@ -192,6 +192,10 @@
   border-width: 2px;
 }
 
+/* remove transition to prevent flickering of highlighted item when updating switcher */
+.item-box {
+  transition-duration: 0ms;
+}
 .item-box-custom {
   background-color: transparent;
 }

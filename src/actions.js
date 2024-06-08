@@ -9,7 +9,7 @@
 
 'use strict';
 
-import Gio from 'gi://Gio';
+import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
@@ -23,9 +23,20 @@ import * as Util from './util.js';
 let _;
 
 export const Actions = class {
-    constructor(me) {
-        this._opt = me.opt;
+    constructor(me, wsp, shortcutModifiers) {
         _ = me._;
+        this.Me = me;
+        this._opt = me.opt;
+        this._wsp = wsp;
+        this._shortcutModifiers = shortcutModifiers;
+    }
+
+    _shiftPressed(state) {
+        return Util.shiftPressed(state, this._shortcutModifiers);
+    }
+
+    _ctrlPressed(state) {
+        return Util.ctrlPressed(state, this._shortcutModifiers);
     }
 
     clean() {
@@ -34,25 +45,64 @@ export const Actions = class {
         _ = null;
     }
 
-    _getShellSettings() {
-        if (!this._shellSettings)
-            this._shellSettings = new Gio.Settings({ schema_id: 'org.gnome.shell' });
+    _getSelectedTarget() {
+        return this._wsp._getSelectedTarget();
+    }
 
-        return this._shellSettings;
+    _getSelectedWindow() {
+        const selected = this._getSelectedTarget();
+        let metaWin;
+
+        if (!metaWin && selected?.cachedWindows)
+            metaWin = selected.cachedWindows[0];
+        else if (selected.get_title)
+            metaWin = selected;
+
+        return metaWin ?? null;
     }
 
     // ///////////////////////////////////////////////////////////////////////////
+    // Actions
 
-    closeAppWindows(selected, itemList) {
-        let winList = [];
+    switchToFirstWS() {
+        Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(0));
+        if (!this._wsp._wsTmb)
+            this.showWsSwitcherPopup();
+    }
+
+    switchToLastWS() {
+        Main.wm.actionMoveWorkspace(global.workspace_manager.get_workspace_by_index(global.workspace_manager.n_workspaces - 1));
+        if (!this._wsp._wsTmb)
+            this.showWsSwitcherPopup();
+    }
+
+    closeWinQuitApp() {
+        const selected = this._getSelectedTarget();
+        if (!selected)
+            return;
+
+        if (selected.get_title && this._ctrlPressed())
+            Util.getWindowApp(selected).request_quit();
+        else if (selected.get_title)
+            selected.delete(global.get_current_time());
+        else if (selected.cachedWindows?.length && this._ctrlPressed())
+            selected.request_quit();
+        else if (selected.cachedWindows?.length)
+            this.closeAppWindows(selected);
+    }
+
+    closeAppWindows(selected) {
+        selected = selected ?? this._getSelectedTarget();
+        if (!selected)
+            return;
+
+        const items = this._wsp._items;
+        let winList;
         if (selected.cachedWindows) {
             winList = selected.cachedWindows;
         } else {
             let app = Util.getWindowApp(selected).get_id();
-            itemList.forEach(i => {
-                if (Util.getWindowApp(i.window).get_id() === app)
-                    winList.push(i.window);
-            });
+            winList = items.filter(i => Util.getWindowApp(i.window).get_id() === app).map(i => i.window);
         }
         let time = global.get_current_time();
         for (let win of winList) {
@@ -61,90 +111,184 @@ export const Actions = class {
         }
     }
 
-    moveWindowToCurrentWs(metaWindow, monitorIndex = -1) {
+    killApp(selected) {
+        selected = selected ?? this._getSelectedTarget();
+        if (!selected)
+            return;
+
+        if (selected.cachedWindows?.length)
+            selected.cachedWindows[0].kill();
+        else
+            selected.kill();
+    }
+
+    moveWinToNewAdjacentWs(direction, metaWin, recursion) {
+        metaWin = metaWin ?? this._getSelectedWindow();
+        if (!metaWin)
+            return;
+
+        let wsIndex = metaWin.get_workspace().index();
+        wsIndex += direction === Clutter.ScrollDirection.UP ? 0 : 1;
+        Main.wm.insertWorkspace(wsIndex);
+        this.moveWinToAdjacentWs(direction, metaWin, recursion);
+    }
+
+    moveWinToAdjacentWs(direction, metaWin, recursion) {
+        metaWin = metaWin ?? this._getSelectedWindow();
+        if (!metaWin)
+            return;
+
+        // avoid recreation of the switcher during the move
+        this._wsp._doNotUpdateOnNewWindow = true;
+        let wsOrig = metaWin.get_workspace();
+        let wsIndex = wsOrig.index();
+        wsIndex += direction === Clutter.ScrollDirection.UP ? -1 : 1;
+        wsIndex = Math.min(wsIndex, global.workspace_manager.get_n_workspaces() - 1);
+
+        // create new workspace if window should be moved in front of the first workspace
+        if (wsIndex < 0 & !recursion) {
+            recursion = true;
+            this.moveWinToNewAdjacentWs(direction, metaWin, recursion);
+            this._wsp._doNotUpdateOnNewWindow = false;
+            return;
+        } else if (wsIndex < 0) {
+            return;
+        }
+
+        direction = Util.translateScrollToMotion(direction);
+
+        let ws = global.workspace_manager.get_workspace_by_index(wsIndex);
+        if (this._wsp._showingApps) {
+            ws.activate(global.get_current_time());
+            this.moveToCurrentWS();
+        } else {
+            wsOrig.activate(global.get_current_time());
+            Main.wm.actionMoveWindow(metaWin, ws);
+        }
+        this._wsp._updateSwitcher();
+
+        if (!this._wsTmb)
+            this.showWsSwitcherPopup(wsIndex);
+        this._doNotUpdateOnNewWindow = false;
+        this._wsp._showWindow();
+    }
+
+    moveToCurrentWS() {
+        let selected = this._getSelectedTarget();
+
+        let winList;
+        if (selected.cachedWindows)
+            winList = selected.cachedWindows;
+        else if (selected.get_title)
+            winList = [selected];
+
+        if (!winList)
+            return;
+
+        winList.forEach(win => {
+            this._moveWindowToCurrentWs(win, this._wsp._keyboardTriggered ? this._monitorIndex : -1);
+        });
+
+        this._wsp._showWindow();
+        this._wsp._delayedUpdate(100);
+    }
+
+    _moveWindowToCurrentWs(metaWindow, monitorIndex = -1) {
         let ws = global.workspace_manager.get_active_workspace();
         let win = metaWindow;
         win.change_workspace(ws);
         let targetMonitorIndex = monitorIndex > -1 ? monitorIndex : global.display.get_current_monitor();
         let currentMonitorIndex = win.get_monitor();
-        if (currentMonitorIndex !== targetMonitorIndex) {
-            // move window to target monitor
+        if (currentMonitorIndex !== targetMonitorIndex)
             win.move_to_monitor(targetMonitorIndex);
-            /* let actor = win.get_compositor_private();
-            let targetMonitor  = Util.getMonitorByIndex(targetMonitorIndex);
+    }
 
-            let x = targetMonitor.x + Math.max(Math.floor(targetMonitor.width - actor.width) / 2, 0);
-            let y = targetMonitor.y + Math.max(Math.floor(targetMonitor.height - actor.height) / 2, 0);
-            win.move_frame(true, x, y);*/
+    toggleOverview() {
+        if (Main.overview._shown) {
+            Main.overview.hide();
+        } else {
+            Main.overview.disconnectObject(this._wsp);
+            this._wsp.fadeAndDestroy();
+            Main.overview.show(); // 2 for App Grid
         }
     }
 
     toggleAppGrid() {
-        if (Main.overview.dash.showAppsButton.checked)
+        if (Main.overview.dash.showAppsButton.checked) {
             Main.overview.hide();
-        else if (Main.overview._shown)
+        } else if (Main.overview._shown) {
             Main.overview.dash.showAppsButton.checked = true;
-        else
+        } else {
+            Main.overview.disconnectObject(this._wsp);
+            this._wsp.fadeAndDestroy();
             Main.overview.show(2); // 2 for App Grid
+        }
     }
 
-    fullscreenWinOnEmptyWs(metaWindow = null) {
-        let win;
-        if (!metaWindow)
+    toggleFullscreenOnNewWS(metaWin) {
+        metaWin = metaWin ?? this._getSelectedWindow();
+        if (!metaWin)
             return;
-        else
-            win = metaWindow;
+
         // if property fullscreen === true, win was already maximized on new ws
-        if (win.fullscreen) {
-            win.unmake_fullscreen();
-            if (win._originalWS) {
+        if (metaWin.fullscreen) {
+            metaWin.unmake_fullscreen();
+            if (metaWin._originalWS) {
                 let ws = false;
                 for (let i = 0; i < global.workspaceManager.n_workspaces; i++) {
                     let w = global.workspaceManager.get_workspace_by_index(i);
-                    if (w === win._originalWS) {
+                    if (w === metaWin._originalWS) {
                         ws = true;
                         break;
                     }
                 }
                 if (ws) {
-                    win.change_workspace(win._originalWS);
-                    Main.wm.actionMoveWorkspace(win._originalWS);
+                    metaWin.change_workspace(metaWin._originalWS);
+                    Main.wm.actionMoveWorkspace(metaWin._originalWS);
                 }
-                win._originalWS = null;
+                metaWin._originalWS = null;
             }
         } else {
-            let ws = win.get_workspace();
-            win._originalWS = ws;
-            win.make_fullscreen();
+            let ws = metaWin.get_workspace();
+            metaWin._originalWS = ws;
+            metaWin.make_fullscreen();
             let nWindows = ws.list_windows().filter(
-                w =>
+                win =>
                     // w.get_window_type() === Meta.WindowType.NORMAL &&
-                    !w.is_on_all_workspaces()
+                    !win.is_on_all_workspaces()
             ).length;
             if (nWindows > 1) {
                 let newWsIndex = ws.index() + 1;
                 Main.wm.insertWorkspace(newWsIndex);
                 let newWs = global.workspace_manager.get_workspace_by_index(newWsIndex);
-                win.change_workspace(newWs);
-                win.activate(global.get_current_time());
+                metaWin.change_workspace(newWs);
+                metaWin.activate(global.get_current_time());
             }
         }
     }
 
-    toggleMaximizeOnCurrentMonitor(metaWindow, monitorIndex) {
-        let win = metaWindow;
-        if (win.get_workspace().index() === global.workspace_manager.get_active_workspace().index() &&
-            monitorIndex === win.get_monitor()) {
-            if (win.get_maximized() === Meta.MaximizeFlags.BOTH)
-                win.unmaximize(Meta.MaximizeFlags.BOTH);
+    toggleMaximizeOnCurrentMonitor(metaWin) {
+        metaWin = metaWin ?? this._getSelectedWindow();
+        if (!metaWin)
+            return;
+
+        const monitorIndex = this._wsp._monitorIndex; // this._wsp._keyboardTriggered ? this._wsp._monitorIndex : -1
+
+        if (metaWin.get_workspace().index() === global.workspace_manager.get_active_workspace().index() &&
+            monitorIndex === metaWin.get_monitor()) {
+            if (metaWin.get_maximized() === Meta.MaximizeFlags.BOTH)
+                metaWin.unmaximize(Meta.MaximizeFlags.BOTH);
             else
-                win.maximize(Meta.MaximizeFlags.BOTH);
+                metaWin.maximize(Meta.MaximizeFlags.BOTH);
         } else {
             // the already maximized window have to be unmaximized first, otherwise it then unminimize on the original monitor instead of the current one
-            win.unmaximize(Meta.MaximizeFlags.BOTH);
-            this.moveWindowToCurrentWs(win, monitorIndex);
-            win.maximize(Meta.MaximizeFlags.BOTH);
+            metaWin.unmaximize(Meta.MaximizeFlags.BOTH);
+            this._moveWindowToCurrentWs(metaWin, monitorIndex);
+            metaWin.maximize(Meta.MaximizeFlags.BOTH);
         }
+
+        this._wsp._showWindow();
+        this._wsp._updateSwitcher();
     }
 
     toggleAboveWindow(metaWindow) {
@@ -174,7 +318,7 @@ export const Actions = class {
     }
 
     showWsSwitcherPopup(wsIndex) {
-        if (!this._opt.SHOW_WS_SWITCHER_POPUP)
+        if (!this._opt?.SHOW_WS_SWITCHER_POPUP)
             return;
         if (!wsIndex)
             wsIndex = global.workspace_manager.get_active_workspace_index();
@@ -198,30 +342,35 @@ export const Actions = class {
         let targetIdx = activeWsIdx + direction;
         if (targetIdx > -1 && targetIdx < global.workspace_manager.get_n_workspaces())
             global.workspace_manager.reorder_workspace(activeWs, targetIdx);
+
+        if (!this._wsp._wsTmb)
+            this.showWsSwitcherPopup();
     }
 
-    makeThumbnailWindow(metaWindow) {
-        if (!metaWindow)
+    createWindowThumbnail(metaWin) {
+        metaWin = metaWin ?? this._getSelectedWindow();
+        if (!metaWin)
             return;
 
         if (global.windowThumbnails)
-            global.windowThumbnails.createThumbnail(metaWindow);
+            global.windowThumbnails.createThumbnail(metaWin);
         else
             Main.notify(_('Create Window Thumbnail'), _('This action requires the Window Thumbnails extension installed on your system'));
     }
 
-    removeLastThumbnail() {
+    removeLastWindowThumbnail() {
         if (global.windowThumbnails)
             global.windowThumbnails.removeLast();
     }
 
-    removeAllThumbnails() {
+    removeAllWindowThumbnails() {
         if (global.windowThumbnails)
             global.windowThumbnails.removeAll();
     }
 
-    openPrefsWindow(metadata) {
+    openPrefsWindow() {
         // if prefs window already exist, move it to the current WS and activate it
+        const metadata = this.Me.metadata;
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null);
         let tracker = Shell.WindowTracker.get_default();
         let metaWin, isMe = null;
@@ -259,5 +408,6 @@ export const Actions = class {
                 }
             });
         }
+        this._wsp.fadeAndDestroy();
     }
 };

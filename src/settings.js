@@ -12,33 +12,6 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
-export const Actions = {
-    NONE:              0,
-    SELECT_ITEM:       1,
-    ACTIVATE:          2,
-    SINGLE_APP:        3,
-    SWITCH_FILTER:     4,
-    SWITCHER_MODE:     5,
-    SWITCH_WS:         6,
-    GROUP_APP:         7,
-    CURRENT_MON_FIRST: 8,
-    MENU:              9,
-    SHOW:             10,
-    MOVE_TO_WS:       11,
-    THUMBNAIL:        12,
-    HIDE:             13,
-    CLOSE_QUIT:       14,
-    CLOSE_ALL_APP:    15, // close all windows of selected application
-    KILL:             16,
-    NEW_WINDOW:       17,
-    ALLWAYS_ON_TOP:   18,
-    STICKY:           19, // always on visible ws
-    MOVE_MAX:         20, // move window to the current ws and maximize it
-    FS_ON_NEW_WS:     21, // fullscreen window on new ws next to the current one
-
-    PREFS:            99,
-};
-
 const ColorStyleDefault = {
     STYLE: ' ',
     SWITCHER_LIST: ' ',
@@ -324,9 +297,10 @@ export const Options = class Options {
     }
 
     _setOptionConstants() {
+        this.ENABLE_SUPER          = this.get('enableSuper');
         this.SUPER_DOUBLE_PRESS_ACT = this.get('superDoublePressAction'); // 1 - dafault, 2, Overview, 3 - App Grid, 4 - Activate Previous Window
         this.POSITION_POINTER      = this.get('switcherPopupPointer'); // place popup at pointer position
-        this.REVERSE_AUTO          = this.get('switcherPopupReverseAuto');  // reverse list in order to the first item be closer to the mouse pointer. only if !KEYBOARD_TRIGGERED
+        this.REVERSE_AUTO          = this.get('switcherPopupReverseAuto');  // reverse list in order to the first item be closer to the mouse pointer. only if !_keyboardTriggered
         this.POPUP_POSITION        = this.get('switcherPopupPosition');
         this.NO_MODS_TIMEOUT       = this.get('switcherPopupPointerTimeout');
         this.INITIAL_DELAY         = this.get('switcherPopupTimeout');
@@ -378,8 +352,10 @@ export const Options = class Options {
         this.APP_MODE_ICON_SIZE    = this.get('appSwitcherPopupIconSize');
         this.SEARCH_PREF_RUNNING   = this.get('appSwitcherPopupSearchPrefRunning');
         this.INCLUDE_SHOW_APPS_ICON = this.get('appSwitcherPopupIncludeShowAppsIcon');
-        this.SHOW_WINS_ON_ACTIVATE = this.get('appSwitcherPopupShowWinsOnActivate');
+        this.LIST_WINS_ON_ACTIVATE = this.get('appSwitcherPopupShowWinsOnActivate');
         this.INCLUDE_FAV_MOUSE     = this.get('switcherPopupExtAppFavorites');
         this.COLOR_STYLE_DEFAULT   = !this.get('switcherPopupTheme');
+
+        this.DASH_APP_STABLE_SEQUENCE = this.get('switcherPopupExtAppStable');
     }
 };

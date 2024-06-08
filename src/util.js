@@ -22,7 +22,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 const Gi = imports._gi;
 
 
-export var Overrides = class {
+export const Overrides = class {
     constructor() {
         this._overrides = {};
     }
@@ -139,19 +139,43 @@ function* collectFromDatadirs(subdir, includeUserDir) {
     }
 }
 
-export function getWindows(workspace) {
+export function translateScrollToMotion(direction) {
+    return direction === Clutter.ScrollDirection.UP
+        ? Meta.MotionDirection.UP
+        : Meta.MotionDirection.DOWN;
+}
+
+export function shiftPressed(state, ignoredModifiers = 0) {
+    if (state === undefined)
+        state = global.get_pointer()[2];
+    // ignore the key if used as a modifier for the switcher shortcut
+    return !!(state & Clutter.ModifierType.SHIFT_MASK) && !(ignoredModifiers & Clutter.ModifierType.SHIFT_MASK);
+}
+
+export function ctrlPressed(state, ignoredModifiers = 0) {
+    if (state === undefined)
+        state = global.get_pointer()[2];
+    // ignore the key if used as a modifier for the switcher shortcut
+    return !!(state & Clutter.ModifierType.CONTROL_MASK) && !(ignoredModifiers & Clutter.ModifierType.CONTROL_MASK);
+}
+
+export function getWindows(workspace, modals = false) {
     // We ignore skip-taskbar windows in switchers, but if they are attached
     // to their parent, their position in the MRU list may be more appropriate
     // than the parent; so start with the complete list ...
-    let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, workspace);
-    // ... map windows to their parent where appropriate ...
+    let windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL,
+        workspace);
+    // ... map windows to their parent where appropriate, or leave it if the user wants to list modal windows too...
     return windows.map(w => {
-        return w.is_attached_dialog() ? w.get_transient_for() : w;
+        return w.is_attached_dialog() && !modals ? w.get_transient_for() : w;
     // ... and filter out skip-taskbar windows and duplicates
-    }).filter((w, i, a) => !w.skip_taskbar && a.indexOf(w) === i);
+    // ... (if modal windows (attached_dialogs) haven't been removed in map function, leave them in the list)
+    }).filter((w, i, a) => (!w.skip_taskbar && a.indexOf(w) === i) || w.is_attached_dialog());
 }
 
 export function getWindowApp(metaWindow) {
+    if (!metaWindow)
+        return null;
     let tracker = Shell.WindowTracker.get_default();
     return tracker.get_window_app(metaWindow);
 }

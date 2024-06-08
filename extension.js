@@ -20,7 +20,6 @@ import * as AltTab from 'resource:///org/gnome/shell/ui/altTab.js';
 import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
 
 import * as WindowSwitcherPopup from './src/windowSwitcherPopup.js';
-import * as Actions from './src/actions.js';
 import * as Settings from './src/settings.js';
 import * as Util from './src/util.js';
 import * as SwitcherList from './src/switcherList.js';
@@ -39,7 +38,7 @@ export default class AATWS extends Extension {
         this._originalOverlayKeyHandlerId = null;
         this._signalOverlayKey = null;
         this._wmFocusToActiveHandlerId = 0;
-        this._monitorsChangedSigId = 0;
+        this._monitorsChangedConId = 0;
         this._monitorsChangedDelayId = 0;
         this._pressureBarriers = null;
     }
@@ -53,8 +52,6 @@ export default class AATWS extends Extension {
         Me.opt = new Settings.Options(Me);
         this._opt = Me.opt;
         this.Me = Me;
-
-        Me.actions = new Actions.Actions(Me);
 
         WindowSwitcherPopup.init(Me);
         SwitcherList.init(Me);
@@ -74,6 +71,7 @@ export default class AATWS extends Extension {
         this._updateHotTrigger();
         this._updateDashVisibility();
 
+        this._updateSettings();
         this._opt.connect('changed', this._updateSettings.bind(this));
 
         console.debug(`${this.metadata.name}: enabled`);
@@ -83,13 +81,8 @@ export default class AATWS extends Extension {
         if (this._wmFocusToActiveHandlerId)
             global.display.disconnect(this._wmFocusToActiveHandlerId);
 
-        if (Main.layoutManager.aatws) {
-            Main.layoutManager.aatws.destroy();
-            Main.layoutManager.aatws = null;
-        }
-
-        this.Me.actions.clean();
-        this.Me.actions = null;
+        Main.layoutManager.aatws?.destroy();
+        Main.layoutManager.aatws = null;
 
         if (this._overrides) {
             this._overrides.removeOverride('WindowSwitcherPopup');
@@ -98,7 +91,6 @@ export default class AATWS extends Extension {
         this._overrides = null;
 
         this._restoreOverlayKeyHandler();
-
         this._removePressureBarrier();
         this._updateDashVisibility(true);
 
@@ -115,6 +107,11 @@ export default class AATWS extends Extension {
     }
 
     _updateSettings(settings, key) {
+        // Option 3 - Show Window has been removed, switch to option 2 - Show Preview
+        const previewMode = this._opt.get('switcherPopupPreviewSelected');
+        if (previewMode === 3)
+            this._opt.set('switcherPopupPreviewSelected', 2);
+
         if (key === 'super-key-mode')
             this._updateOverlayKeyHandler();
 
@@ -176,26 +173,29 @@ export default class AATWS extends Extension {
     }
 
     _toggleSwitcher(mouseTriggered = false) {
-        if (Main.overview._visible)
+        if (Main.overview._visible) {
+            if (!mouseTriggered)
+                Main.overview.toggle();
             return;
+        }
 
         const altTabPopup = new AltTab.WindowSwitcherPopup();
         if (mouseTriggered) {
-            altTabPopup.KEYBOARD_TRIGGERED = false;
-            altTabPopup.POPUP_POSITION = this._opt.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
+            altTabPopup._keyboardTriggered = false;
+            altTabPopup._popupPosition = this._opt.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
             const appSwitcherMode = this._opt.get('hotEdgeMode') === 0;
-            altTabPopup.SHOW_APPS = !!appSwitcherMode;
+            altTabPopup._showApps = !!appSwitcherMode;
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
             altTabPopup._monitorIndex = global.display.get_current_monitor();
         } else {
-            altTabPopup.KEYBOARD_TRIGGERED = true;
+            altTabPopup._keyboardTriggered = true;
             const hotEdgePosition = this._opt.get('hotEdgePosition');
             let position = hotEdgePosition ? hotEdgePosition : null;
             if (position)
-                altTabPopup.POPUP_POSITION = position === 1 ? 1 : 3;
+                altTabPopup._popupPosition = position === 1 ? 1 : 3;
             const appSwitcherMode = this._opt.get('superKeyMode') === 2;
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
-            altTabPopup.SHOW_APPS = !!appSwitcherMode;
+            altTabPopup._showApps = !!appSwitcherMode;
             altTabPopup._overlayKeyTriggered = true;
         }
         altTabPopup._modifierMask = 0;
@@ -269,8 +269,8 @@ export default class AATWS extends Extension {
             pressureBarrier.addBarrier(horizontalBarrier);
 
             this._pressureBarriers.push([pressureBarrier, horizontalBarrier]);
-            if (!this._monitorsChangedSigId) {
-                this._monitorsChangedSigId = Main.layoutManager.connect('monitors-changed', () => {
+            if (!this._monitorsChangedConId) {
+                this._monitorsChangedConId = Main.layoutManager.connect('monitors-changed', () => {
                     // avoid unnecessary executions, the signal is being emitted multiple times
                     if (!this._monitorsChangedDelayId) {
                         this._monitorsChangedDelayId = GLib.timeout_add_seconds(
@@ -300,9 +300,9 @@ export default class AATWS extends Extension {
             this._pressureBarriers = null;
         }
 
-        if (this._monitorsChangedSigId) {
-            Main.layoutManager.disconnect(this._monitorsChangedSigId);
-            this._monitorsChangedSigId = 0;
+        if (this._monitorsChangedConId) {
+            Main.layoutManager.disconnect(this._monitorsChangedConId);
+            this._monitorsChangedConId = 0;
         }
         if (this._monitorsChangedDelayId) {
             GLib.source_remove(this._monitorsChangedDelayId);

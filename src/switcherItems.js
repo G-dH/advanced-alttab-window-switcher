@@ -62,7 +62,7 @@ export const WindowIcon = GObject.registerClass({
             vertical: true,
             reactive: true,
         });
-        this.opt = opt;
+        this._opt = opt;
         this._switcherParams = switcherParams;
         this._icon = new St.Widget({ layout_manager: new Clutter.BinLayout() });
         this._id = metaWin.get_id();
@@ -105,7 +105,7 @@ export const WindowIcon = GObject.registerClass({
     }
 
     _createWindowIcon(window) {
-        this._is_window = true;
+        this._isWindow = true;
         this.window = window;
 
         let title = window.get_title();
@@ -120,7 +120,7 @@ export const WindowIcon = GObject.registerClass({
 
         this.titleLabel = new St.Label({
             text: title,
-            style_class: this.opt.colorStyle.TITLE_LABEL,
+            style_class: this._opt.colorStyle.TITLE_LABEL,
             x_align: Clutter.ActorAlign.CENTER,
         });
 
@@ -135,8 +135,8 @@ export const WindowIcon = GObject.registerClass({
         size = this._switcherParams.winPrevSize;
         cloneSize = size;
 
-        if (!this._switcherParams.singleAppMode && this.opt.APP_ICON_SIZE > size) {
-            size = this.opt.APP_ICON_SIZE;
+        if (!this._switcherParams.singleAppMode && this._opt.APP_ICON_SIZE > size) {
+            size = this._opt.APP_ICON_SIZE;
             switched = true;
             cloneSize = Math.floor((mutterWindow.width / mutterWindow.height) * this._switcherParams.winPrevSize);
         }
@@ -144,9 +144,9 @@ export const WindowIcon = GObject.registerClass({
         let clone = _createWindowClone(mutterWindow, cloneSize * scaleFactor);
         let icon;
 
-        if (this.app && this.opt.APP_ICON_SIZE) {
+        if (this.app && this._opt.APP_ICON_SIZE) {
             icon = this._createAppIcon(this.app,
-                this.opt.APP_ICON_SIZE);
+                this._opt.APP_ICON_SIZE);
             this._appIcon = icon;
             this._appIcon.reactive = false;
         }
@@ -160,7 +160,7 @@ export const WindowIcon = GObject.registerClass({
             front = icon;
         }
 
-        if (this.window.minimized && this.opt.MARK_MINIMIZED)
+        if (this.window.minimized && this._opt.MARK_MINIMIZED)
             front.opacity = 80;
 
         this._icon.add_child(base);
@@ -176,7 +176,7 @@ export const WindowIcon = GObject.registerClass({
             this._icon.add_child(this._getIndicatorBox());
 
 
-        if (this.opt.WS_INDEXES) {
+        if (this._opt.WS_INDEXES) {
             this._wsIndicator = this._createWsIcon(window.get_workspace().index() + 1);
             this._icon.add_child(this._wsIndicator);
         }
@@ -202,14 +202,14 @@ export const WindowIcon = GObject.registerClass({
 
         let label = new St.Label({
             text: `${index}`,
-            style_class: this.opt.colorStyle.INDICATOR_OVERLAY,
+            style_class: this._opt.colorStyle.INDICATOR_OVERLAY,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.END,
         });
         if (currentWS + 1 === index)
-            label.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY_HIGHLIGHTED);
+            label.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_HIGHLIGHTED);
 
 
         return label;
@@ -238,9 +238,9 @@ export const WindowIcon = GObject.registerClass({
             y_expand: true,
             y_align: Clutter.ActorAlign.START,
         });
-        icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY);
+        icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY);
         if (!this.window.is_above()) {
-            icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
+            icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {
             icon.add_style_class_name('window-state-indicators-active');
@@ -257,10 +257,10 @@ export const WindowIcon = GObject.registerClass({
             y_expand: true,
             y_align: Clutter.ActorAlign.START,
         });
-        icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY);
+        icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY);
         this._stickyIcon = icon;
         if (!this.window.is_on_all_workspaces()) {
-            icon.add_style_class_name(this.opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
+            icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {
             icon.add_style_class_name('window-state-indicators-active');
@@ -280,12 +280,12 @@ export const AppIcon = GObject.registerClass({
 }, class AppIcon extends St.Button {
     _init(app, iconIndex, switcherParams, opt) {
         super._init({});
-        this.opt = opt;
+        this._opt = opt;
 
         this.app = app;
         this._id = app.get_id();
         this._name = app.get_name();
-        this._is_app = true;
+        this._isApp = true;
 
         this._iconContainer = new St.Widget({
             layout_manager: new Clutter.BinLayout(),
@@ -360,9 +360,9 @@ export const AppIcon = GObject.registerClass({
         this.set_style('color: grey;');
 
 
-        if (this.opt.SHOW_APP_TITLES && this.icon.label) {
+        if (this._opt.SHOW_APP_TITLES && this.icon.label) {
             this.icon.label.set_style(`font-size: ${LABEL_FONT_SIZE}em;`);
-            this.icon.label.set_style_class_name(this.opt.colorStyle.TITLE_LABEL);
+            this.icon.label.set_style_class_name(this._opt.colorStyle.TITLE_LABEL);
             this.icon.label.opacity = 255;
             // set label truncate method
             this.icon.label.clutterText.set({
@@ -384,21 +384,21 @@ export const AppIcon = GObject.registerClass({
         }
 
         if (this._switcherParams.includeFavorites || this._switcherParams.searchActive) {
-            if (winCounterIndicator && this.opt.SHOW_APP_TITLES)
+            if (winCounterIndicator && this._opt.SHOW_APP_TITLES)
                 this._winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.8}em;`);
-            else if (winCounterIndicator && !this.opt.SHOW_APP_TITLES)
+            else if (winCounterIndicator && !this._opt.SHOW_APP_TITLES)
                 winCounterIndicator.set_style('margin-bottom: 7px;');
 
             // Change running dot color to be visible on light bg (Adwaita theme uses white dot)
-            if (this.opt.colorStyle.RUNNING_DOT_COLOR)
-                this._dot.add_style_class_name(this.opt.colorStyle.RUNNING_DOT_COLOR);
+            if (this._opt.colorStyle.RUNNING_DOT_COLOR)
+                this._dot.add_style_class_name(this._opt.colorStyle.RUNNING_DOT_COLOR);
 
             this.icon.set_style('margin-bottom: 4px;');
             if (!count)
                 this._dot.opacity = 0;
         } else {
             this._iconContainer.remove_child(this._dot);
-            if (winCounterIndicator && this.opt.SHOW_APP_TITLES)
+            if (winCounterIndicator && this._opt.SHOW_APP_TITLES)
                 this._winCounterIndicator.set_style(`margin-bottom: ${LABEL_FONT_SIZE * 1.4}em;`);
         }
 
@@ -411,21 +411,20 @@ export const AppIcon = GObject.registerClass({
         // when appIcon is destroyed, the fading app menu jumps to the top left corner of the monitor (lost parent / relative position).
         // hiding the menu immediately hides this visual glitch
         this.connect('destroy', () => {
-            if (this._menu)
-                this._menu.actor.hide();
+            this._menu?.destroy();
         });
     }
 
     _shouldShowWinCounter(count) {
-        if (this.opt.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW && count === 1)
+        if (this._opt.HIDE_WIN_COUNTER_FOR_SINGLE_WINDOW && count === 1)
             return false;
         else
-            return this.opt.SHOW_WIN_COUNTER;
+            return this._opt.SHOW_WIN_COUNTER;
     }
 
     // this is override of original function to adjust icon size
     _createIcon() {
-        return this.app.create_icon_texture(this.opt.APP_MODE_ICON_SIZE);
+        return this.app.create_icon_texture(this._opt.APP_MODE_ICON_SIZE);
     }
 
     _updateRunningStyle() {
@@ -438,7 +437,7 @@ export const AppIcon = GObject.registerClass({
     _createWinCounterIndicator(num) {
         let label = new St.Label({
             text: `${num}`,
-            style_class: this.opt.colorStyle.RUNNING_COUNTER,
+            style_class: this._opt.colorStyle.RUNNING_COUNTER,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.CENTER,
@@ -498,14 +497,14 @@ class SysActionIcon extends St.Widget {
         super._init({ reactive: true });
 
         this._id = app;
-        this.opt = opt;
+        this._opt = opt;
         this._systemActions = SystemActions.getDefault();
 
         const actionName = this._systemActions.getName(this._id);
-        const showLabel = this.opt.SHOW_APP_TITLES;
-        const iconSize = this.opt.APP_MODE_ICON_SIZE;
+        const showLabel = this._opt.SHOW_APP_TITLES;
+        const iconSize = this._opt.APP_MODE_ICON_SIZE;
 
-        this._is_sysActionIcon = true;
+        this._isSysActionIcon = true;
 
         this.icon = new IconGrid.BaseIcon(actionName, {
             setSizeManually: true,
@@ -514,7 +513,7 @@ class SysActionIcon extends St.Widget {
         });
 
         this.icon.setIconSize(iconSize);
-        this.icon.set_style_class_name(this.opt.colorStyle.TITLE_LABEL);
+        this.icon.set_style_class_name(this._opt.colorStyle.TITLE_LABEL);
 
         this.titleLabel = new St.Label({
             text: actionName,
@@ -524,7 +523,7 @@ class SysActionIcon extends St.Widget {
     }
 
     _createIcon() {
-        const size = this.opt.APP_MODE_ICON_SIZE;
+        const size = this._opt.APP_MODE_ICON_SIZE;
         const iconName = this._systemActions.getIconName(this._id);
         return new St.Icon({
             icon_name: iconName,
@@ -553,7 +552,7 @@ export const ShowAppsIcon = GObject.registerClass({
         const style = params.style;
 
 
-        this._is_showAppsIcon = true;
+        this._isShowAppsIcon = true;
         this._id = 'show-apps-icon';
 
         this.icon = new IconGrid.BaseIcon(_('Apps'), {
