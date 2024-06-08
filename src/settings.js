@@ -134,6 +134,7 @@ export const Options = class Options {
             switcherPopupTheme: ['int', 'switcher-popup-theme'],
             switcherPopupInteractiveIndicators: ['boolean', 'switcher-popup-interactive-indicators'],
             switcherPopupShowIfNoWin: ['boolean', 'switcher-popup-show-if-no-win'],
+            switcherPopupSecondTabSwitchFilter: ['boolean', 'switcher-popup-second-tab-switch-filter'],
             switcherWsThumbnails: ['int', 'switcher-ws-thumbnails'],
             singleAppPreviewSize: ['int', 'win-switcher-single-prev-size'],
             winSwitcherPopupFilter: ['int', 'win-switcher-popup-filter'],
@@ -327,6 +328,7 @@ export const Options = class Options {
         this.ANIMATION_TIME_FACTOR = this.get('animationTimeFactor') / 100;
         this.SHOW_WS_SWITCHER_POPUP = this.get('wsShowSwitcherPopup');
         this.SHOW_IF_NO_WIN        = this.get('switcherPopupShowIfNoWin');
+        this.SECOND_TAB_SWITCH     = this.get('switcherPopupSecondTabSwitchFilter');
 
         // Window switcher
         this.WIN_FILTER_MODE       = this.get('winSwitcherPopupFilter');

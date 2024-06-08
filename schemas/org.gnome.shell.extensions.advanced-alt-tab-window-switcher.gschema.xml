@@ -116,6 +116,9 @@
     <key name='switcher-popup-show-if-no-win' type='b'>
       <default>true</default>
     </key>
+    <key name='switcher-popup-second-tab-switch-filter' type='b'>
+      <default>true</default>
+    </key>
     <key name='switcher-popup-hot-keys' type='b'>
       <default>false</default>
     </key>

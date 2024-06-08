@@ -133,6 +133,7 @@ export default class AATWS extends ExtensionPreferences {
             o.DelayShowingSwitcher,
             o.InteractiveIndicators,
             o.ShowIfNoWin,
+            o.SecondTabSwitchFilter,
             // ---------------
             o.AppearanceCommon,
             o.WsThumbnails,
@@ -369,6 +370,13 @@ export default class AATWS extends ExtensionPreferences {
             _('If no normal window is open, AATWS can show you a list of favorite applications pinned to dash instead, allowing you to (search and) launch a new one'),
             itemFactory.newSwitch(),
             'switcherPopupShowIfNoWin'
+        );
+
+        optDict.SecondTabSwitchFilter = itemFactory.getRowWidget(
+            _('Press Tab Again to Switch Filter'),
+            _("This option enables switching the filter to a less restrictive mode when there is only one item in the list and you press a tab key again, so you don't need to use the hotkey for switching the filter"),
+            itemFactory.newSwitch(),
+            'switcherPopupSecondTabSwitchFilter'
         );
 
 

@@ -248,7 +248,7 @@ export class InputHandler {
         if (this._wsp._singleApp)
             this._wsp._toggleSingleAppMode();
 
-        if (!this._wsp._allowFilterSwitchOnOnlyItem && this._wsp._items.length === 1) {
+        if (this._opt.SECOND_TAB_SWITCH && !this._wsp._allowFilterSwitchOnOnlyItem && this._wsp._items.length === 1) {
             this._wsp._allowFilterSwitchOnOnlyItem = true;
             this._wsp._updateSwitcher();
         }
