@@ -89,7 +89,7 @@ export class ListProvider {
         }
 
         // if no windows at all, show dash content to launch new app
-        if (itemList.length === 0 && !Util.getWindows(null).length && !searchQuery) {
+        if (this._opt.SHOW_IF_NO_WIN && itemList.length === 0 && !Util.getWindows(null).length && !searchQuery) {
             this._wsp._switcherMode = Enum.SwitcherMode.APPS;
             this._wsp._includeFavorites = true;
             this._wsp._showApps = true;

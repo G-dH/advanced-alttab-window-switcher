@@ -132,6 +132,7 @@ export default class AATWS extends ExtensionPreferences {
             o.HoverSelectsItem,
             o.DelayShowingSwitcher,
             o.InteractiveIndicators,
+            o.ShowIfNoWin,
             // ---------------
             o.AppearanceCommon,
             o.WsThumbnails,
@@ -362,6 +363,14 @@ export default class AATWS extends ExtensionPreferences {
             itemFactory.newSwitch(),
             'switcherPopupInteractiveIndicators'
         );
+
+        optDict.ShowIfNoWin = itemFactory.getRowWidget(
+            _('Show Favorite Apps When No Window Open'),
+            _('If no normal window is open, AATWS can show you a list of favorite applications pinned to dash instead, allowing you to (search and) launch a new one'),
+            itemFactory.newSwitch(),
+            'switcherPopupShowIfNoWin'
+        );
+
 
         optDict.Content = itemFactory.getRowWidget(
             _('Content')
