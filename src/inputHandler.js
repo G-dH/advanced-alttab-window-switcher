@@ -275,6 +275,13 @@ export class InputHandler {
     }
 
     _handleAppSwitcherMode(selected, action) {
+        // Try to switch filter on the second switch group key press if allowed
+        if (this._wsp._singleApp && !this._wsp._allowFilterSwitchOnOnlyItem && this._wsp._items.length === 1) {
+            this._wsp._allowFilterSwitchOnOnlyItem = true;
+            this._wsp._updateSwitcher();
+            return;
+        }
+
         if (this._wsp._showingApps && selected.cachedWindows) {
             if (selected && selected.cachedWindows.length)
                 this._wsp._toggleSingleAppMode();
