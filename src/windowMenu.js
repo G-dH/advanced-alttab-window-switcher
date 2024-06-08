@@ -8,7 +8,7 @@
  * @license    GPL-3.0
  */
 
-const { GLib, Meta, St, Clutter } = imports.gi;
+const { Clutter, Meta, St } = imports.gi;
 
 const BoxPointer = imports.ui.boxpointer;
 const Main = imports.ui.main;
@@ -18,14 +18,23 @@ const Screenshot = imports.ui.screenshot;
 // gettext
 var _;
 
+function init(me) {
+    _ = me._;
+}
+
+function cleanGlobal() {
+    _ = null;
+}
+
 var WindowMenu = class extends PopupMenu.PopupMenu {
-    constructor(window, sourceActor, aatws) {
+    constructor(window, sourceActor, wsp) {
         super(sourceActor, 0.5, St.Side.LEFT);
 
-        this._aatws = aatws;
+        this._wsp = wsp;
+        this._actions = wsp._actions;
         this.actor.add_style_class_name('window-menu');
 
-        Main.layoutManager.uiGroup.add_actor(this.actor);
+        Main.layoutManager.uiGroup.add_child(this.actor);
         this.actor.hide();
 
         this._buildMenu(window);
@@ -48,6 +57,7 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
                 logError(e, 'Error capturing screenshot');
             }
         });
+
 
         item = this.addAction(_('Hide'), () => {
             window.minimize();
@@ -73,7 +83,7 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
             else
                 window.make_above();
 
-            this._aatws._updateSwitcher();
+            this._wsp._updateSwitcher();
         });
         if (window.is_above())
             item.setOrnament(PopupMenu.Ornament.CHECK);
@@ -94,7 +104,7 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
                 else
                     window.stick();
 
-                this._aatws._updateSwitcher();
+                this._wsp._updateSwitcher();
             });
             if (isSticky)
                 item.setOrnament(PopupMenu.Ornament.CHECK);
@@ -106,25 +116,25 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
                 if (!vertical) {
                     this.addAction(_('Move to Workspace Left'), () => {
                         let dir = Clutter.ScrollDirection.UP;
-                        this._aatws._moveWinToAdjacentWs(dir);
+                        this._wsp._moveWinToAdjacentWs(dir);
                     });
                 }
                 if (!vertical) {
                     this.addAction(_('Move to Workspace Right'), () => {
                         let dir = Clutter.ScrollDirection.DOWN;
-                        this._aatws._moveWinToAdjacentWs(dir);
+                        this._wsp._moveWinToAdjacentWs(dir);
                     });
                 }
                 if (vertical) {
                     this.addAction(_('Move to Workspace Up'), () => {
                         let dir = Clutter.ScrollDirection.UP;
-                        this._aatws._moveWinToAdjacentWs(dir);
+                        this._wsp._moveWinToAdjacentWs(dir);
                     });
                 }
                 if (vertical) {
                     this.addAction(_('Move to Workspace Down'), () => {
                         let dir = Clutter.ScrollDirection.DOWN;
-                        this._aatws._moveWinToAdjacentWs(dir);
+                        this._wsp._moveWinToAdjacentWs(dir);
                     });
                 }
             }
@@ -175,20 +185,20 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
 
         this.addAction(_('Move to Current Workspace'), () => {
             // window.change_workspace(global.workspace_manager.get_active_workspace());
-            this._aatws._actions.moveWindowToCurrentWs(window, this._aatws.KEYBOARD_TRIGGERED ? this._aatws._monitorIndex : -1);
+            this._actions.moveWindowToCurrentWs(window, this._wsp._keyboardTriggered ? this._wsp._monitorIndex : -1);
         });
 
         item = this.addAction(_('Fullscreen on Empty Workspace'), () => {
             // window.change_workspace(global.workspace_manager.get_active_workspace());
-            this._aatws._actions.fullscreenWinOnEmptyWs(window);
-            this._aatws._updateSwitcher();
+            this._actions.toggleFullscreenOnNewWS(window);
+            this._wsp._updateSwitcher();
         });
         if (window._originalWS)
             item.setOrnament(PopupMenu.Ornament.CHECK);
 
         this.addAction(_('Create Window Thumbnail (PIP)'), () => {
             // window.change_workspace(global.workspace_manager.get_active_workspace());
-            this._aatws._actions.makeThumbnailWindow(window);
+            this._actions.createWindowThumbnail(window);
         });
 
         this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -203,7 +213,7 @@ var WindowMenu = class extends PopupMenu.PopupMenu {
 
 var WindowMenuManager = class {
     constructor(aatws) {
-        this._aatws = aatws;
+        this._wsp = aatws;
         this._manager = new PopupMenu.PopupMenuManager(Main.layoutManager.dummyCursor);
     }
 
@@ -214,7 +224,7 @@ var WindowMenuManager = class {
         if (type !== Meta.WindowMenuType.WM)
             throw new Error('Unsupported window menu type');
 
-        let menu = new WindowMenu(window, sourceActor, this._aatws);
+        let menu = new WindowMenu(window, sourceActor, this._wsp);
 
         this._manager.addMenu(menu);
 

@@ -9,7 +9,93 @@
 
 'use strict';
 
-const { GObject, St, Clutter } = imports.gi;
+const { Clutter, GObject, St } = imports.gi;
+
+const ExtensionUtils = imports.misc.extensionUtils;
+const Extension      = ExtensionUtils.getCurrentExtension();
+
+const Enum           = Extension.imports.src.enum;
+const ListProvider   = Extension.imports.src.listProvider.ListProvider;
+const _match         = ListProvider.prototype._match;
+
+
+function showSearchCaption(text, wsp, opt) {
+    const margin = 20;
+    let offset = wsp._itemCaption
+        ? wsp._itemCaption.height + margin
+        : margin;
+    offset += wsp._wsTmb && wsp._popupPosition !== Enum.Position.CENTER ? wsp._wsTmb.height : 0;
+
+    const fontSize = opt.CAPTIONS_SCALE * 2;
+    const params = {
+        name: 'search-label',
+        text,
+        fontSize,
+        yOffset: offset,
+        monitorIndex: wsp._monitorIndex,
+    };
+    if (!wsp._searchCaption) {
+        wsp._searchCaption = new CaptionLabel(params, opt);
+        wsp.add_child(wsp._searchCaption);
+    } else {
+        wsp._searchCaption.update(params);
+    }
+}
+
+function showTitleCaption(wsp, opt) {
+    let selected = wsp._items[wsp._selectedIndex];
+
+    //              for better compatibility with the Tiling Assistant extension
+    if (!selected || (!selected._isWindow && !selected.titleLabel))
+        return;
+
+    let title;
+    let details = '';
+
+    if (selected._isWindow) {
+        title = selected.window.get_title();
+        const appName = selected.app.get_name();
+        details = appName === title ? '' : appName;
+    } else {
+        title = selected.titleLabel.get_text();
+        // if searching apps add more info to the caption
+        if (selected._appDetails?.generic_name && !_match(title, selected._appDetails.generic_name))
+            details += `${selected._appDetails.generic_name}`;
+
+        if (selected._appDetails?.description && !_match(title, selected._appDetails.description))
+            details += `${details ? '\n' : ''}${selected._appDetails.description}`;
+    }
+
+    const fontSize = opt.CAPTIONS_SCALE;
+
+    const params = {
+        name: 'item-label',
+        text: title,
+        description: details,
+        fontSize,
+        yOffset: 0,
+    };
+
+    if (!wsp._itemCaption) {
+        wsp._itemCaption = new CaptionLabel(params, opt);
+        wsp.add_child(wsp._itemCaption);
+    } else {
+        wsp._itemCaption.update(params);
+    }
+
+    if (wsp._inAnimation)
+        wsp._itemCaption.opacity = 0;
+    else
+        wsp._itemCaption.opacity = 255;
+
+    wsp._itemCaption.connect('destroy', () => {
+        wsp._itemCaption = null;
+    });
+
+    // The parent's allocate() is called automatically if the child's geometry has changed,
+    // but the caption position is updated in the parent's allocate()
+    wsp.emit('queue-relayout');
+}
 
 
 var CaptionLabel = GObject.registerClass({
@@ -81,6 +167,7 @@ var CaptionLabel = GObject.registerClass({
     }
 
     _destroy() {
+        // Main.layoutManager.removeChrome(this);
         super.destroy();
     }
 });

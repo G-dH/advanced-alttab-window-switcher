@@ -17,10 +17,14 @@ const Layout               = imports.ui.layout;
 
 const ExtensionUtils       = imports.misc.extensionUtils;
 const Extension            = ExtensionUtils.getCurrentExtension();
+
 const Settings             = Extension.imports.src.settings;
 const WindowSwitcherPopup  = Extension.imports.src.windowSwitcherPopup;
-const Actions              = Extension.imports.src.actions;
+const SwitcherList         = Extension.imports.src.switcherList;
+const SwitcherItems        = Extension.imports.src.switcherItems;
+const WindowMenu           = Extension.imports.src.windowMenu;
 
+const HOT_CORNER_PRESSURE_TIMEOUT = 1000; // ms
 
 function init() {
     ExtensionUtils.initTranslations(Extension.metadata['gettext-domain']);
@@ -29,11 +33,11 @@ function init() {
 
 class AATWS {
     init() {
-        this._wmFocusToActiveHandlerId = 0;
-        this._monitorsChangedConId = 0;
-        this._monitorsChangedDelayId = 0;
         this._originalOverlayKeyHandlerId = null;
         this._signalOverlayKey = null;
+        this._wmFocusToActiveHandlerId = 0;
+        this._monitorsChangedSigId = 0;
+        this._monitorsChangedDelayId = 0;
         this._pressureBarriers = null;
     }
 
@@ -43,18 +47,16 @@ class AATWS {
         const Me = {
             metadata,
             gSettings: ExtensionUtils.getSettings(metadata['settings-schema']),
-            _: imports.gettext.domain(metadata['gettext-domain']).gettext,
+            _: Extension.gettext.bind(this),
         };
         Me.opt = new Settings.Options(Me);
-        Me.actions = new Actions.Actions(Me);
-
-        this.Me = Me;
         this._opt = Me.opt;
-        this.metadata = Me.metadata;
+        this.Me = Me;
 
         WindowSwitcherPopup.init(Me);
-        Extension.imports.src.switcherItems._ = Me._;
-        Extension.imports.src.windowMenu._ = Me._;
+        SwitcherList.init(Me);
+        SwitcherItems.init(Me);
+        WindowMenu.init(Me);
 
         this._opt.connect('changed', this._updateSettings.bind(this));
 
@@ -67,13 +69,10 @@ class AATWS {
         if (this._opt.get('superKeyMode') > 1)
             this._updateOverlayKeyHandler();
 
-        this._updateAlwaysActivateFocusedConnection();
-        this._opt.connect('changed::wm-always-activate-focused', this._updateAlwaysActivateFocusedConnection.bind(this));
-
         this._updateHotTrigger();
         this._updateDashVisibility();
 
-        console.debug(`${this.metadata.name}: enabled`);
+        console.debug(`${this.Me.metadata.name}: enabled`);
     }
 
     disable() {
@@ -91,37 +90,29 @@ class AATWS {
             AltTab.AppSwitcherPopup = this._origAltTabASP;
         this._origAltTabWSP = null;
         this._origAltTabASP = null;
-        this._restoreOverlayKeyHandler();
 
+        this._restoreOverlayKeyHandler();
         this._removePressureBarrier();
         this._updateDashVisibility(true);
 
-        this.Me.actions.clean();
-        this.Me.actions = null;
+        WindowSwitcherPopup.cleanGlobal();
+        SwitcherList.cleanGlobal();
+        SwitcherItems.cleanGlobal();
+        WindowMenu.cleanGlobal();
+
         this._opt.destroy();
         this._opt = null;
         this.Me.opt = null;
 
-        console.debug(`${this.metadata.name}: disabled`);
-    }
-
-    _updateAlwaysActivateFocusedConnection() {
-    // GS 43 activates focused windows immediately by default and this can lead to problems with refocusing window you're switching from
-        if (this._opt.get('wmAlwaysActivateFocused', true) && Settings.shellVersion < 43 && !this._wmFocusToActiveHandlerId) {
-            this._wmFocusToActiveHandlerId = global.display.connect('notify::focus-window', () => {
-                if (!Main.overview._shown) {
-                    let win = global.display.get_focus_window();
-                    if (win)
-                        Main.activateWindow(win);
-                }
-            });
-        } else if (this._wmFocusToActiveHandlerId) {
-            global.display.disconnect(this._wmFocusToActiveHandlerId);
-            this._wmFocusToActiveHandlerId = 0;
-        }
+        console.debug(`${this.Me.metadata.name}: disabled`);
     }
 
     _updateSettings(settings, key) {
+        // Option 3 - Show Window has been removed, switch to option 2 - Show Preview
+        const previewMode = this._opt.get('switcherPopupPreviewSelected');
+        if (previewMode === 3)
+            this._opt.set('switcherPopupPreviewSelected', 2);
+
         if (key === 'super-key-mode')
             this._updateOverlayKeyHandler();
 
@@ -147,15 +138,17 @@ class AATWS {
     }
 
     _updateOverlayKeyHandler() {
+    // Block original overlay key handler
         this._restoreOverlayKeyHandler();
 
         if (this._opt.get('superKeyMode', true) === 1)
             return;
 
-        // Block original overlay key handler
+
         this._originalOverlayKeyHandlerId = GObject.signal_handler_find(global.display, { signalId: 'overlay-key' });
         if (this._originalOverlayKeyHandlerId !== null)
             global.display.block_signal_handler(this._originalOverlayKeyHandlerId);
+
 
         // Connect modified overlay key handler
         let _a11ySettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.a11y.keyboard' });
@@ -181,26 +174,29 @@ class AATWS {
     }
 
     _toggleSwitcher(mouseTriggered = false) {
-        if (Main.overview._visible)
+        if (Main.overview._visible) {
+            if (!mouseTriggered)
+                Main.overview.toggle();
             return;
+        }
 
-        const altTabPopup = new WindowSwitcherPopup.WindowSwitcherPopup();
+        const altTabPopup = new AltTab.WindowSwitcherPopup();
         if (mouseTriggered) {
-            altTabPopup.KEYBOARD_TRIGGERED = false;
-            altTabPopup.POPUP_POSITION = this._opt.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
+            altTabPopup._keyboardTriggered = false;
+            altTabPopup._popupPosition = this._opt.get('hotEdgePosition') === 1 ? 1 : 3; // 1-top, 2-bottom > 1-top, 2-center, 3-bottom
             const appSwitcherMode = this._opt.get('hotEdgeMode') === 0;
-            altTabPopup.SHOW_APPS = !!appSwitcherMode;
+            altTabPopup._showApps = !!appSwitcherMode;
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
             altTabPopup._monitorIndex = global.display.get_current_monitor();
         } else {
-            altTabPopup.KEYBOARD_TRIGGERED = true;
+            altTabPopup._keyboardTriggered = true;
             const hotEdgePosition = this._opt.get('hotEdgePosition');
             let position = hotEdgePosition ? hotEdgePosition : null;
             if (position)
-                altTabPopup.POPUP_POSITION = position === 1 ? 1 : 3;
+                altTabPopup._popupPosition = position === 1 ? 1 : 3;
             const appSwitcherMode = this._opt.get('superKeyMode') === 2;
             altTabPopup._switcherMode = appSwitcherMode ? 1 : 0;
-            altTabPopup.SHOW_APPS = !!appSwitcherMode;
+            altTabPopup._showApps = !!appSwitcherMode;
             altTabPopup._overlayKeyTriggered = true;
         }
         altTabPopup._modifierMask = 0;
@@ -242,18 +238,31 @@ class AATWS {
             let y = position === 1 ? geometry.y : geometry.y + geometry.height;
             y -= Meta.is_wayland_compositor() ? 1 : 0;
 
-            const horizontalBarrier = new Meta.Barrier({
-                display: global.display,
-                x1,
-                x2,
-                y1: y,
-                y2: y,
-                directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
-            });
+            let horizontalBarrier;
+            // GS 46+ replaced the Meta.Barrier.display property with backend
+            if (Meta.Barrier.prototype.backend) {
+                horizontalBarrier = new Meta.Barrier({
+                    backend: global.backend,
+                    x1,
+                    x2,
+                    y1: y,
+                    y2: y,
+                    directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
+                });
+            } else {
+                horizontalBarrier = new Meta.Barrier({
+                    display: global.display,
+                    x1,
+                    x2,
+                    y1: y,
+                    y2: y,
+                    directions: position === 1 ? BD.POSITIVE_Y : BD.NEGATIVE_Y,
+                });
+            }
 
             const pressureBarrier = new Layout.PressureBarrier(
                 this._opt.get('hotEdgePressure', true), // pressure threshold
-                Layout.HOT_CORNER_PRESSURE_TIMEOUT,
+                HOT_CORNER_PRESSURE_TIMEOUT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW
             );
 
@@ -306,18 +315,5 @@ class AATWS {
         const fsAllowed = this._opt.get('hotEdgeFullScreen');
         if (!(!fsAllowed && monitor.inFullscreen))
             this._toggleSwitcher(true);
-    }
-
-    _extensionEnabled() {
-        const shellSettings = ExtensionUtils.getSettings('org.gnome.shell');
-        let enabledE = shellSettings.get_strv('enabled-extensions');
-        enabledE = enabledE.indexOf(this.metadata.uuid) > -1;
-        let disabledE = shellSettings.get_strv('disabled-extensions');
-        disabledE = disabledE.indexOf(this.metadata.uuid) > -1;
-        let disableUser = shellSettings.get_boolean('disable-user-extensions');
-
-        if (enabledE && !disabledE && !disableUser)
-            return true;
-        return false;
     }
 }

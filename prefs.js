@@ -13,12 +13,13 @@ const { Gtk } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Extension      = ExtensionUtils.getCurrentExtension();
+
 const Settings       = Extension.imports.src.settings;
 const OptionsFactory = Extension.imports.src.optionsFactory;
 
+const Actions = Extension.imports.src.enum.Actions;
 const shellVersion   = Settings.shellVersion;
 
-const Actions = Settings.Actions;
 
 let Me;
 // gettext
@@ -1042,13 +1043,6 @@ function _getOptions(itemFactory) {
 
     optDict.WindowManager = itemFactory.getRowWidget(
         _('Window Manager')
-    );
-
-    optDict.AlwaysActivateFocused = itemFactory.getRowWidget(
-        _('Always Activate Focused Window'),
-        _('For GNOME Shell version < 43, this is a workaround for the window manager. It aims to prevent situations where the focused window is not activated, causing it not to update its position in the window switcher list. This can occur when you minimize a window, the window manager focuses the next window in the stack but leaves it inactive until the user interacts with the window'),
-        itemFactory.newSwitch(),
-        'wmAlwaysActivateFocused'
     );
 
     optDict.Workspace = itemFactory.getRowWidget(

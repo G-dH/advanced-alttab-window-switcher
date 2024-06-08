@@ -69,8 +69,8 @@
   height: 1.1em;
   width: 1.1em;
   margin: 2px;
-  padding-top: 2px;
-  padding-bottom: 2px;
+  padding-top: 3px;
+  padding-bottom: 3px;
   padding-left: 3px;
   padding-right: 3px;
 }
@@ -98,7 +98,7 @@
 }
 
 .search-icon {
-  margin-right: 0.2em;
+  margin-right: 0.3em;
 }
 
 .search-label, .caption-label-dark, .caption-label-light {
@@ -174,7 +174,7 @@
   margin-top: 6px; /* can be overridden in code - position top */
   margin-bottom: 6px; /* can be overridden in code - position bottom */
   /*padding: 8px;
-  border-radius: 19px;*/
+  border-radius: 24px;*/
 }
 
 .switcher-list-all {
@@ -190,6 +190,14 @@
 .switcher-list-monitor {
   border-color: rgba(160, 0, 0, 0.8);
   border-width: 2px;
+}
+
+/* remove transition to prevent flickering of highlighted item when updating switcher */
+.item-box {
+  transition-duration: 0ms;
+}
+.item-box-custom {
+  background-color: transparent;
 }
 
 .selected-dark {
