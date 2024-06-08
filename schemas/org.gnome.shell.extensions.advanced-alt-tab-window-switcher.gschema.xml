@@ -260,6 +260,9 @@
     <key name='hotkey-switch-filter' type='s'>
       <default>'Q'</default>
     </key>
+    <key name='hotkey-switch-filter-permanent' type='s'>
+      <default>''</default>
+    </key>
     <key name='hotkey-close-quit' type='s'>
       <default>'W'</default>
     </key>

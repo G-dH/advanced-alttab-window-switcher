@@ -1497,8 +1497,17 @@ export const WindowSwitcherPopup = {
             if (opt.SYNC_FILTER)
                 this._winFilterMode = filterMode;
         }
+        this._allowFilterSwitchOnOnlyItem = false;
         this._filterSwitched = true;
         this._updateSwitcher();
+    },
+
+    _switchFilterModePermanent() {
+        this._switchFilterMode();
+        if (this._switcherMode === Enum.SwitcherMode.APPS)
+            opt.set('appSwitcherPopupFilter', this._appFilterMode);
+        else
+            opt.set('winSwitcherPopupFilter', this._winFilterMode);
     },
 
     _toggleGroupByWs() {

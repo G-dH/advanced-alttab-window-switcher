@@ -1232,10 +1232,18 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
         );
 
         optionList.push(itemFactory.getRowWidget(
-            _('Filter mode'),
-            _('Switches the window/app filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
+            _('Switch Filter Mode Temporary'),
+            _('Temporarily switches the window/app filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
             itemFactory.newEntry(),
             'hotkeySwitchFilter'
+        )
+        );
+
+        optionList.push(itemFactory.getRowWidget(
+            _('Switch Filter Mode Permanently'),
+            _('Permanently (as if switched in Settings window) switches the window/app filter mode - ALL / WS / MONITOR (the Monitor mode is skipped if single monitor is used or if the secondary monitor is empty).'),
+            itemFactory.newEntry(),
+            'hotkeySwitchFilterPermanent'
         )
         );
 

@@ -181,6 +181,7 @@ export const Options = class Options {
             switcherPopupPointerTimeout: ['int', 'switcher-popup-pointer-timeout'],
             switcherPopupActivateOnHide: ['boolean', 'switcher-popup-activate-on-hide'],
             hotkeySwitchFilter: ['string', 'hotkey-switch-filter'],
+            hotkeySwitchFilterPermanent: ['string', 'hotkey-switch-filter-permanent'],
             hotkeySingleApp: ['string', 'hotkey-single-app'],
             hotkeyCloseQuit: ['string', 'hotkey-close-quit'],
             hotkeySearch: ['string', 'hotkey-search'],
