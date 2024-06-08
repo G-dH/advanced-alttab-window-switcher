@@ -1,5 +1,5 @@
 {
-  "description": "Highly customizable replacement for the Alt/Super+Tab window/app switchers that offers 'type to search' mode, various filtering and sorting options, workspace and monitor navigation, configurable hotkeys for navigation and window/app control and an app launcher.\nAATWS is compatible with Custom Hot Corners - Extended extension, allows to configure any mouse button and scroll wheel and can be used as a mouse controlled 'dock'.\n\nNote that GNOME has 3 built-in window switcher popups and this extension replaces all of them. The first one is grouping windows by applications and is used as default in vanilla GNOME distributions. The second one offers window list and the third one windows of the currently focused application. You can set keyboard shortcuts for all the switchers in the Gnome Settings.",
+  "description": "A highly customizable replacement for Alt+Tab window and app switchers that offers type-to-search mode, various filtering and sorting settings, workspace and monitor navigation, window control, app launcher, and a mouse-controlled 'dash' mode",
   "gettext-domain": "advanced-alt-tab-window-switcher",
   "name": "AATWS (Advanced Alt-Tab Window Switcher)",
   "settings-schema": "org.gnome.shell.extensions.advanced-alt-tab-window-switcher",
@@ -12,6 +12,6 @@
     "buymeacoffee": "georgdh"
   },
   "uuid": "advanced-alt-tab@G-dH.github.com",
-  "version-name": "46.2"
+  "version-name": "46.3"
 }
 
