@@ -289,20 +289,20 @@ var ListProvider = class {
                 return false;
             }
 
-            if (!appInfo.should_show() && !appInfo.get_commandline().includes('gnome-control-center'))
+            let exec = appInfo.get_commandline();
+            if (!appInfo.should_show() && !exec?.includes('gnome-control-center'))
                 return false;
-
 
             let string = '';
             let shouldShow = false;
             if (appInfo.get_display_name) {
-                let exec = appInfo.get_commandline() || '';
                 // show only launchers that should be visible in this DE and invisible launchers of Gnome Settings items
-                shouldShow = appInfo.should_show() || exec.includes('gnome-control-center', 0);
+                shouldShow = appInfo.should_show() || exec?.includes('gnome-control-center');
 
                 if (shouldShow) {
                     let dispName = appInfo.get_display_name() || '';
                     let gName = appInfo.get_generic_name() || '';
+                    exec = exec || '';
                     let description = appInfo.get_description() || '';
                     let categories = appInfo.get_string('Categories') || '';
                     let keywords = appInfo.get_string('Keywords') || '';
