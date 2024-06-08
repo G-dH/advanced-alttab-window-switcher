@@ -1,5 +1,5 @@
 # AATWS - Advanced Alt-Tab Window Switcher
-An extension for GNOME Shell that replaces its following built-in switchers:
+An extension for GNOME Shell that enhances its following built-in switchers:
 
 - **Switch windows**
 - **Switch applications**
@@ -14,7 +14,7 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 ![Window Switcher Popup](screenshots/screenshot.png)
 
 ## Features:
-- Supports GNOME Shell 3.36 - 46
+- Supports GNOME Shell 42 - 46 (legacy versions also available for 3.36 - 41)
 - Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*
 - Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed
 - Hotkeys allow to control switcher and windows, including relocations
@@ -89,23 +89,6 @@ An extension for GNOME Shell that replaces its following built-in switchers:
 
 **Even in the search mode you can use all hotkeys if you press and hold the Shift modifier key**.
 
-### DND Window Thumbnails
-Window thumbnails are scaled-down window clones that can be used to monitor windows not currently visible on the screen. By pressing the `T` hotkey (which you can change) you can create a thumbnail of the selected window which will be placed at bottom right of the current monitor. You can create as many clones as you want and place them anywhere on the screen. Each thumbnail can be independently resized, you can adjust its opacity and even change its source window. When the thumbnail's source window is closed, its thumbnail will be removed too.
-You can remove the lastly created thumbnail using `Ctrl + T` or remove all thumbnails using `Ctrl + Shift + T`.
-
-    Double click          - activates source window
-    Primary cLick         - toggles scroll wheel function (resize / source)
-    Scroll wheel          - resizes or switches a source window
-    Ctrl + Scroll wheel   - switches source window or resizes
-    Secondary click       - shows full-size window preview and toggles Show preview on hover functionality - hover shows preview / leave hides the preview
-    Shift + Scroll wheel  - changes thumbnail opacity
-
-    NO LONGER AVAILABLE: Secondary click       - removes the thumbnail
-    NO LONGER AVAILABLE: Middle click          - closes the source window
-    NO LONGER AVAILABLE: Ctrl + Primary button - toggles window preview to app icon
-
-Known bugs: when the thumbnail is created above VirtualBox virtual machine window, the thumbnail becomes irresponsive.
-
 ## Changelog
 [CHANGELOG.md](CHANGELOG.md)
 
@@ -134,7 +117,14 @@ Run following commands in the terminal (`git` needs to installed, navigate to th
     cd advanced-alttab-window-switcher/
     make install
 
-#### GNOME 3.36 - 44
+#### GNOME 42 - 44
+
+    git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
+    cd advanced-alttab-window-switcher/
+    git checkout gnome-42-44
+    make install
+
+#### GNOME 3.36 - 41 (no longer developed)
 
     git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
     cd advanced-alttab-window-switcher/
@@ -153,5 +143,6 @@ After installation you need to enable the extension. Only direct installation fr
 ## Contribution
 Contributions are welcome and I will try my best to answer quickly to all suggestions.
 
-## Buy Me a Coffee
-If you like my work and want to keep me motivated, give me some feedback. You can also [buy me a coffee](https://buymeacoffee.com/georgdh).
+## Donations
+If you like my work and want to keep me motivated, give me some feedback. 
+But you can also [buy me a coffee](https://buymeacoffee.com/georgdh).
