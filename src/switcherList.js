@@ -146,9 +146,9 @@ export const SwitcherList = GObject.registerClass({
             winPrevSize: wsp._singleApp ? opt.SINGLE_APP_PREVIEW_SIZE : opt.WINDOW_PREVIEW_SIZE,
             hotKeys: opt.HOT_KEYS && wsp._keyboardTriggered,
             singleApp: wsp._singleApp,
-            addAppDetails: wsp._searchQueryNotEmpty(),
+            addAppDetails: !!wsp._searchQuery,
             includeFavorites: wsp._includeFavorites,
-            searchActive: wsp._searchQueryNotEmpty(),
+            searchActive: !!wsp._searchQuery,
             reverseOrder: wsp._shouldReverse(),
         };
     }

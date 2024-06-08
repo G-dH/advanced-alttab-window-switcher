@@ -388,7 +388,7 @@ export const WindowSwitcherPopup = {
             this._switcherList.add_style_class_name(opt.colorStyle.SWITCHER_LIST);
 
         // if switcher switches the filter mode, color the popup border to indicate current filter - red for MONITOR, orange for WS, green for ALL
-        if (this._filterSwitched && !opt.STATUS && !(this._showingApps && this._searchQueryNotEmpty())) {
+        if (this._filterSwitched && !opt.STATUS && !(this._showingApps && this._searchQuery)) {
             let fm = this._showingApps ? this._appFilterMode : this._winFilterMode;
             fm = this._listProvider._currentFilterMode ?? fm;
 
@@ -472,7 +472,7 @@ export const WindowSwitcherPopup = {
             GLib.Source.set_name_by_id(this._initialDelayTimeoutId, '[gnome-shell] Main.osdWindow.cancel');
         } else {
             this.opacity = 255;
-            if (this._searchQueryNotEmpty())
+            if (this._searchQuery)
                 CaptionLabel.showSearchCaption(this._searchQuery, this, opt);
             else if (this._searchQuery === '')
                 this._searchCaption?.hide();
@@ -528,7 +528,7 @@ export const WindowSwitcherPopup = {
 
     _setInitialSelection(backward) {
         const recentWindow = Util.getWindows(null)[0];
-        if (this._searchQueryNotEmpty()) {
+        if (this._searchQuery) {
             if (!this._showingApps) {
                 // if the first window in the list is the current one, select the second window
                 const firstWindow = this._reverseOrder ? this._items[this._items.length - 1].window : this._items[0].window;
@@ -546,7 +546,7 @@ export const WindowSwitcherPopup = {
         if (this._firstRun && this._items[0].window && this._items[0].window.minimized)
             this._initialSelectionMode = Enum.SelectMode.FIRST;
 
-        if (this._searchQueryIsEmpty() && this._initialSelectionMode === Enum.SelectMode.NONE)
+        if (!this._searchQuery && this._initialSelectionMode === Enum.SelectMode.NONE)
             this._initialSelectionMode = Enum.SelectMode.ACTIVE;
 
         if (!this._skipInitialSelection /* || this._searchQuery !== null*/)
@@ -804,7 +804,7 @@ export const WindowSwitcherPopup = {
         if (!this._singleApp)
             return;
 
-        if (this._searchQueryNotEmpty()) {
+        if (this._searchQuery) {
             this._searchQuery = '';
         } else {
             this._singleApp = null;
@@ -947,7 +947,7 @@ export const WindowSwitcherPopup = {
     _getAdjustedItemList() {
         let itemList = this._listProvider.getItemList(this._searchQuery);
 
-        if (!itemList.length && this._searchQueryNotEmpty()) {
+        if (!itemList.length && this._searchQuery) {
             // no results -> back to the last successful pattern
             this._searchQuery = this._searchQuery.slice(0, -1);
             this._listProvider._currentFilterMode = null;
@@ -1594,14 +1594,6 @@ export const WindowSwitcherPopup = {
                 return i;
         }
         return -1;
-    },
-
-    _searchQueryNotEmpty() {
-        return this._searchQuery !== null && this._searchQuery !== '';
-    },
-
-    _searchQueryIsEmpty() {
-        return this._searchQuery === null || this._searchQuery === '';
     },
 
     _disableHover() {
