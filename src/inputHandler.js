@@ -503,9 +503,9 @@ export class InputHandler {
     }
 
     _clearSearchEntry() {
-        if (!this._shiftPressed() && this._wsp._searchQuery !== null) {
+        if (!this._shiftPressed() && this._wsp._searchQuery) {
             this._wsp._searchQuery = '';
-            this._wsp.show();
+            this._wsp._updateSwitcher();
         }
     }
 
