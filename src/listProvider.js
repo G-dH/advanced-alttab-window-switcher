@@ -176,7 +176,7 @@ var ListProvider = class {
             return this._match(text, searchQuery);
         });
 
-        if (winList.length > 0 /* && this._wsp._searchQueryNotEmpty()*/) {
+        if (winList.length > 0 /* && this._wsp._searchQuery*/) {
             winList.sort((a, b) => this._isMoreRelevant(a._appName || '', b._appName || '', searchQuery));
             winList.sort((a, b) => this._isMoreRelevant(a.get_title(), b.get_title(), searchQuery));
         }
