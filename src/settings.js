@@ -111,6 +111,7 @@ export const Options = class Options {
             switcherPopupPosition: ['int', 'switcher-popup-position'],
             switcherPopupMonitor: ['int', 'switcher-popup-monitor'],
             switcherPopupShiftHotkeys: ['boolean', 'switcher-popup-shift-hotkeys'],
+            switcherPopupDelKeyClose: ['boolean', 'switcher-popup-del-key-close'],
             switcherPopupTimeout: ['int', 'switcher-popup-timeout'],
             switcherPopupPreviewSelected: ['int', 'switcher-popup-preview-selected'],
             switcherPopupUpDownAction: ['int', 'switcher-popup-up-down-action'],
@@ -310,6 +311,7 @@ export const Options = class Options {
         this.UP_DOWN_ACTION        = this.get('switcherPopupUpDownAction');
         this.HOT_KEYS              = this.get('switcherPopupHotKeys');
         this.SHIFT_AZ_HOTKEYS      = this.get('switcherPopupShiftHotkeys');
+        this.DELETE_KEY_CLOSE      = this.get('switcherPopupDelKeyClose');
         this.STATUS                = this.get('switcherPopupStatus');
         this.PREVIEW_SELECTED      = this.get('switcherPopupPreviewSelected');
         this.SEARCH_ALL            = this.get('winSwitcherPopupSearchAll');

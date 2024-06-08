@@ -452,7 +452,7 @@ export class InputHandler {
     _handleActionKeys(keysym, keyString) {
         const actions = {
             [Clutter.KEY_Insert]:                      this._wsp._toggleSearchMode.bind(this._wsp),
-            [Clutter.KEY_Delete]:                      this._clearSearchEntry.bind(this),
+            [Clutter.KEY_Delete]:                      this._handleDelKey.bind(this),
             [Clutter.KEY_space]:                       this._wsp._toggleShowPreview.bind(this._wsp),
             [Clutter.KEY_KP_0]:                        this._wsp._toggleShowPreview.bind(this._wsp),
             [Clutter.KEY_KP_Insert]:                   this._wsp._toggleShowPreview.bind(this._wsp),
@@ -520,6 +520,13 @@ export class InputHandler {
             this._wsp._openNewWindow();
         else
             this._wsp._finish();
+    }
+
+    _handleDelKey() {
+        if (this._opt.DELETE_KEY_CLOSE)
+            this._actions.closeWinQuitApp();
+        else
+            this._clearSearchEntry();
     }
 
     _handleMenuKey() {

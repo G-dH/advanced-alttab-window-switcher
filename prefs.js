@@ -1208,10 +1208,18 @@ All hotkeys work directly or with Shift key pressed, if it's set in Preferences 
         );
 
         optionList.push(itemFactory.getRowWidget(
-            _('Shift for Action Hotkeys'),
-            _('Single-key action hotkeys, excluding navigation and filter switching, now require holding down the Shift key'),
+            _('Require Shift for Action Hotkeys'),
+            _('If enabled, single-key action hotkeys, excluding navigation and filter switching, now require holding down the Shift key to prevent unintentional actions'),
             itemFactory.newSwitch(),
             'switcherPopupShiftHotkeys'
+        )
+        );
+
+        optionList.push(itemFactory.getRowWidget(
+            _('Delete Key to Close'),
+            _('If enabled, the Delete key can be used to close selected window or app. If disabled, the key can be used to clear search query'),
+            itemFactory.newSwitch(),
+            'switcherPopupDelKeyClose'
         )
         );
 

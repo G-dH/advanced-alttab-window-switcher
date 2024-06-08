@@ -217,6 +217,9 @@
     <key name='switcher-popup-shift-hotkeys' type='b'>
       <default>false</default>
     </key>
+    <key name='switcher-popup-del-key-close' type='b'>
+      <default>false</default>
+    </key>
     <key name='switcher-popup-wrap' type='b'>
       <default>true</default>
     </key>
