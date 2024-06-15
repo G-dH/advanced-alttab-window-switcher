@@ -437,7 +437,7 @@ export const WindowSwitcherPopup = {
 
     _showSearchCaptionIfNeeded() {
         if (this._searchQuery === '' && !this._searchActive)
-            CaptionLabel.showSearchCaption('Type to search...', this, opt);
+            CaptionLabel.showSearchCaption('Type to search', this, opt);
     },
 
     _showPopup() {
@@ -1073,14 +1073,18 @@ export const WindowSwitcherPopup = {
         if (this._itemCaption)
             this._itemCaption.opacity = 0;
 
-        if (this.opacity > 0) {
-            if (this._keyboardTriggered && !this._overlayKeyTriggered)
-                this.destroy();
-            else
-                this._animateOut();
-        } else {
-            this.destroy();
-        }
+        if ((this.opacity > 0 && !this._keyboardTriggered) || this._overlayKeyTriggered)
+            this._animateOut();
+        else
+            this._delayedDestroy();
+    },
+
+    // Avoid no stage errors when user is too fast
+    _delayedDestroy() {
+        GLib.idle_add(
+            GLib.PRIORITY_DEFAULT,
+            () => this.destroy()
+        );
     },
 
     _finish() {
