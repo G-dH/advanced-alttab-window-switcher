@@ -138,8 +138,9 @@ export const WindowSwitcherPopup = {
         this._modifierMask         = global.get_pointer()[2] & 77; // 77 covers Shift|Ctrl|Alt|Super
         this._keyBind              = ''; // can be set by the external trigger which provides the keyboard shortcut
 
-        this.CHCE_TRIGGERED        = false; // can be set to true from CHC-E extension
         this._keyboardTriggered    = true; // can be set to false if mouse was used to trigger AATWS
+        this._positionPointer      = false; // will be updated in show()
+        this._dashMode             = false; // will be updated in show()
 
         // current screen scale factor that also affects margins
         this.SCALE_FACTOR          = St.ThemeContext.get_for_stage(global.stage).scaleFactor;
@@ -273,8 +274,13 @@ export const WindowSwitcherPopup = {
 
         this._inputHandler._remapOverlayKeyIfNeeded();
 
-        if (this._firstRun)
+        if (this._firstRun) {
             this._pushModalCustom();
+            const externalTrigger = this.CHCE_TRIGGERED !== undefined ? this.CHCE_TRIGGERED : this._externalTrigger; // backward compatibility
+            this._keyboardTriggered = this.KEYBOARD_TRIGGERED !== undefined ? this.KEYBOARD_TRIGGERED : this._keyboardTriggered; // backward compatibility
+            this._dashMode = !this._keyboardTriggered || (this._keyboardTriggered && this._overlayKeyTriggered);
+            this._positionPointer = opt.POSITION_POINTER && externalTrigger && !this._keyboardTriggered;
+        }
 
         // You can have different setting for switcher triggered by kbd and mouse, but both should be switchable on the fly using a hotkey
         this._includeFavorites = this._keyboardTriggered || !this._firstRun ? this._includeFavorites : opt.INCLUDE_FAV_MOUSE;
@@ -413,7 +419,7 @@ export const WindowSwitcherPopup = {
         const themeNode = this._switcherList.get_theme_node();
         const padding = Math.round(themeNode.get_padding(St.Side.BOTTOM) / 2 / this.SCALE_FACTOR);
         if (this._firstRun) {
-            if (this.CHCE_TRIGGERED && opt.POSITION_POINTER && !this._keyboardTriggered) {
+            if (this._positionPointer) {
                 this.MARGIN_TOP = 2;
                 this.MARGIN_BOTTOM = 2;
             } else if (this._popupPosition === Enum.Position.TOP) {
@@ -454,9 +460,9 @@ export const WindowSwitcherPopup = {
             const delay = Math.max(0, opt.INITIAL_DELAY - (Date.now() - this._initTime));
             this._initialDelayTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_HIGH,
-                this._keyboardTriggered && !this._overlayKeyTriggered ? delay : 0,
+                this._dashMode ? 0 : delay,
                 () => {
-                    if (!this._keyboardTriggered || this._overlayKeyTriggered) {
+                    if (this._dashMode) {
                         this._animateIn();
                     } else {
                         this._itemCaption?.set_opacity(255);
@@ -847,7 +853,7 @@ export const WindowSwitcherPopup = {
             x = Math.max(x, monitor.x);
         }
 
-        if (this.CHCE_TRIGGERED && opt.POSITION_POINTER && !this._keyboardTriggered) {
+        if (this._positionPointer) {
             if (x === undefined)
                 x = Math.min(this._pointer.x, monitor.x + monitor.width - childNaturalWidth);
             childBox.x1 = x;
@@ -1028,7 +1034,7 @@ export const WindowSwitcherPopup = {
 
         let translationY = 0;
         let opacity = 255;
-        if (opt.POSITION_POINTER) {
+        if (this._positionPointer) {
             translationY = 0;
             opacity = 0;
         }
@@ -1073,7 +1079,7 @@ export const WindowSwitcherPopup = {
         if (this._itemCaption)
             this._itemCaption.opacity = 0;
 
-        if ((this.opacity > 0 && !this._keyboardTriggered) || this._overlayKeyTriggered)
+        if (this.opacity > 0 && this._dashMode)
             this._animateOut();
         else
             this._delayedDestroy();
@@ -1126,7 +1132,7 @@ export const WindowSwitcherPopup = {
         const focus = global.display.get_tab_list(0, null)[0];
         return  selected?.cachedWindows?.length &&
                 !_shiftPressed() && !_ctrlPressed() &&
-                (!this._keyboardTriggered || this._overlayKeyTriggered) &&
+                this._dashMode &&
                 opt.LIST_WINS_ON_ACTIVATE &&
                 ((opt.LIST_WINS_ON_ACTIVATE === Enum.ListOnActivate.FOCUSED_MULTI_WINDOW && selected.cachedWindows.length > 1) ||
                  (opt.LIST_WINS_ON_ACTIVATE === Enum.ListOnActivate.FOCUSED && selected.cachedWindows[0] === focus)) &&
@@ -1134,7 +1140,7 @@ export const WindowSwitcherPopup = {
     },
 
     _shouldFadeAndDestroy() {
-        return  this._keyboardTriggered ||
+        return  !this._dashMode ||
                 opt.ACTIVATE_ON_HIDE; /* ||
                 (!this._keyboardTriggered && !opt.LIST_WINS_ON_ACTIVATE)*/
     },
@@ -1242,7 +1248,7 @@ export const WindowSwitcherPopup = {
             GLib.PRIORITY_DEFAULT,
             opt.NO_MODS_TIMEOUT,
             () => {
-                const shouldFinish =    !this._keyboardTriggered &&
+                const shouldFinish =    this._dashMode &&
                                         !this._overlayKeyTriggered &&
                                         this._inputHandler.isPointerOut() &&
                                         !opt.cancelTimeout;
@@ -1902,7 +1908,7 @@ export const WindowSwitcherPopup = {
     },
 
     _showWsThumbnails() {
-        const enabled = opt.WS_THUMBNAILS === 1 || (opt.WS_THUMBNAILS === 2 && !this._keyboardTriggered);
+        const enabled = opt.WS_THUMBNAILS === 1 || (opt.WS_THUMBNAILS === 2 && this._dashMode);
         if (enabled) {
             if (this._wsTmb) {
                 this.remove_child(this._wsTmb);
