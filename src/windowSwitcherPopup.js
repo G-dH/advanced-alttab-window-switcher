@@ -437,7 +437,7 @@ export const WindowSwitcherPopup = {
 
     _showSearchCaptionIfNeeded() {
         if (this._searchQuery === '' && !this._searchActive)
-            CaptionLabel.showSearchCaption('Type to search', this, opt);
+            CaptionLabel.showSearchCaption(_('Type to search'), this, opt);
     },
 
     _showPopup() {
