@@ -168,11 +168,6 @@ function _getCommonOptionList(options) {
         o.ShowStatus,
         o.SingleAppPreviewSize,
         // ---------------
-        o.Super,
-        o.SuperKeyMode,
-        o.EnableSuper,
-        o.SuperDoublePress,
-        // ---------------
         o.Input,
         o.RememberInput,
     ];
@@ -244,15 +239,22 @@ function _getDockOptionList(options) {
         o.HotEdgePressure,
         o.HotEdgeWidth,
         // ---------------
-        o.ExternalTrigger,
-        o.SingleOnActivate,
-        o.AppStableOrder,
-        o.AppIncludeFavorites,
+        o.Super,
+        o.SuperKeyMode,
+        o.EnableSuper,
+        o.SuperDoublePress,
+        // ---------------
+        o.DashMode,
         o.AutomaticallyReverseOrder,
         o.PointerOutTimeout,
         o.ActivateOnHide,
         o.MousePointerPosition,
         o.AnimationTimeFactor,
+        // ---------------
+        o.DashAppSwitcher,
+        o.DashActivateToSingle,
+        o.DashAppStableOrder,
+        o.DashAppIncludeFavorites,
         // ---------------
         o.Dash,
         o.ShowDash,
@@ -961,11 +963,25 @@ function _getOptions(itemFactory) {
 
     // //////////////////////////////////////////////////////////////////////////////////////////////
 
-    optDict.ExternalTrigger = itemFactory.getRowWidget(
-        _('Options for the mouse triggered switcher (using Hot Edge or CHC-E extension)')
+    optDict.DashAppSwitcher = itemFactory.getRowWidget(
+        _('Dash Mode App Switcher')
     );
 
-    optDict.SingleOnActivate = itemFactory.getRowWidget(
+    optDict.DashAppIncludeFavorites = itemFactory.getRowWidget(
+        _('Includes Favorite (Pinned) Apps'),
+        _('Include favorite apps pinned to Dash regardless the App switcher settings'),
+        itemFactory.newSwitch(),
+        'switcherPopupExtAppFavorites'
+    );
+
+    optDict.DashAppStableOrder = itemFactory.getRowWidget(
+        _('Stable Sequence'),
+        _('Show app switcher items in stable order, as they are in the default Dash'),
+        itemFactory.newSwitch(),
+        'switcherPopupExtAppStable'
+    );
+
+    optDict.DashActivateToSingle = itemFactory.getRowWidget(
         _('Show App Windows Instead of Direct Activation'),
         _('Choose between immediate activation of the clicked app (activated by a mouse button set to Activate Item) or switch to the window list to access other available windows (based on the current filter setting)'),
         itemFactory.newDropDown(),
@@ -977,18 +993,8 @@ function _getOptions(itemFactory) {
         ]
     );
 
-    optDict.AppIncludeFavorites = itemFactory.getRowWidget(
-        _('Force App Switcher Include Favorites (Pinned)'),
-        _('Include favorite apps pinned to Dash to the App switcher regardless the App switcher settings.'),
-        itemFactory.newSwitch(),
-        'switcherPopupExtAppFavorites'
-    );
-
-    optDict.AppStableOrder = itemFactory.getRowWidget(
-        _('Force App Switcher Stable Sequence'),
-        _('When the app switcher is triggered using a mouse, the default app order can be overridden to behave more like a dash. Pinned (favorite) apps (if included) maintain the order they have in the Dash, and other open apps keep the order in which they were launched'),
-        itemFactory.newSwitch(),
-        'switcherPopupExtAppStable'
+    optDict.DashMode = itemFactory.getRowWidget(
+        _('Dash Mode Options (AATWS opened using a hot edge or Super key)')
     );
 
     optDict.AutomaticallyReverseOrder = itemFactory.getRowWidget(
