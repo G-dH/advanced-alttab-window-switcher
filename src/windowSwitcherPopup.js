@@ -154,7 +154,7 @@ export const WindowSwitcherPopup = {
 
         // App switcher
         this._appFilterMode        = opt.APP_FILTER_MODE;
-        this._includeFavorites     = opt.get('appSwitcherPopupFavoriteApps');
+        this._includeFavorites     = opt.INCLUDE_FAVORITES;
 
         // Other
         this._switcherMode         = Enum.SwitcherMode.WINDOWS;
@@ -175,7 +175,8 @@ export const WindowSwitcherPopup = {
         this._updateInProgress     = false;
         this._skipInitialSelection = false;
         this._allowFilterSwitchOnOnlyItem = false;
-        opt.cancelTimeout = false;
+
+        opt.cancelTimeout           = false;
 
         Main.layoutManager.aatws = this;
 
@@ -244,21 +245,13 @@ export const WindowSwitcherPopup = {
         // new window has been created but maybe not yet realized
         const winActor = win.get_compositor_private();
         if (!winActor.realized) {
-            if (this._realize)
+            if (this._realize?.id)
                 this._realize.winActor.disconnect(this._realize.id);
-            else
-                this._realize = { winActor };
 
-            // avoid updating switcher while waiting for window's realize signal
-            this._awaitingWin = win;
+            this._realize = { winActor };
+
             this._realize.id = winActor.connect('realize', () => {
-                if (!this._realize)
-                    return;
-                // update switcher only if no newer window is waiting for realization
-                if (this._awaitingWin === win) {
-                    this._updateSwitcher();
-                    this._awaitingWin = null;
-                }
+                this._updateSwitcher();
                 this._realize.winActor.disconnect(this._realize.id);
                 this._realize = null;
             });
@@ -276,14 +269,15 @@ export const WindowSwitcherPopup = {
 
         if (this._firstRun) {
             this._pushModalCustom();
+
+            // Update run-time variables
             const externalTrigger = this.CHCE_TRIGGERED !== undefined ? this.CHCE_TRIGGERED : this._externalTrigger; // backward compatibility
             this._keyboardTriggered = this.KEYBOARD_TRIGGERED !== undefined ? this.KEYBOARD_TRIGGERED : this._keyboardTriggered; // backward compatibility
             this._dashMode = !this._keyboardTriggered || (this._keyboardTriggered && this._overlayKeyTriggered);
             this._positionPointer = opt.POSITION_POINTER && externalTrigger && !this._keyboardTriggered;
+            this._includeFavorites = this._dashMode ? opt.DASH_APP_INCLUDE_FAVORITES : this._includeFavorites;
         }
 
-        // You can have different setting for switcher triggered by kbd and mouse, but both should be switchable on the fly using a hotkey
-        this._includeFavorites = this._keyboardTriggered || !this._firstRun ? this._includeFavorites : opt.INCLUDE_FAV_MOUSE;
         this._updateFilterMode();
         this._handleSingleAppMode(binding);
         this._storePointerPosition();
@@ -654,9 +648,6 @@ export const WindowSwitcherPopup = {
 
         this._switcherList = new SwitcherList.SwitcherList(itemList, opt, this);
         // this._switcherList._list.vertical = true;
-        this._switcherList.connect('destroy', () => {
-            this._switcherList = null;
-        });
 
         if (!opt.HOVER_SELECT && this._keyboardTriggered)
             this._switcherList._itemEntered = function () {};
@@ -668,17 +659,37 @@ export const WindowSwitcherPopup = {
         this._switcherList.connect('item-activated', this._itemActivated.bind(this));
         this._switcherList.connect('item-entered', this._itemEntered.bind(this));
         this._switcherList.connect('item-removed', this._itemRemoved.bind(this));
+        this._switcherList.connect('destroy', () => {
+            this._switcherList = null;
+        });
+        this._switcherList.reactive = true;
+        const enterConId = this._switcherList.connect('enter-event', () => {
+            if (!this._scrollByPointerOvershootAdded)
+                this._addScrollByPointerOvershoot();
 
-        this._addScrollByPointerOvershoot(this._switcherList);
+            opt.cancelTimeout = false;
+
+            // This connection is no longer needed
+            this._switcherList.disconnect(enterConId);
+        });
 
         this.add_child(this._switcherList);
+
+        // If the dash mode popup has been opened using the mouse outside the popup,
+        // wait until the pointer hovers over the popup to start the timeout
+        if (this._firstRun && this._dashMode && !this._overlayKeyTriggered && this._inputHandler.isPointerOut())
+            opt.cancelTimeout = true;
     },
 
-    _addScrollByPointerOvershoot(switcherList) {
-        // scrolling by overshooting mouse pointer over left/right edge doesn't work in gnome 40+, so this is my implementation
-        if (switcherList._scrollableLeft || switcherList._scrollableRight) {
+    _addScrollByPointerOvershoot() {
+        const switcherList = this._switcherList;
+        if (!switcherList || this._scrollByPointerOvershootAdded)
+            return;
+
+        // Scrolling by overshooting mouse pointer over the left/right edge is not implemented since GNOME 40
+        // Following workaround is about moving pointer over the edge area of the switcher to scroll the list
+        if (switcherList._rightArrow.opacity || switcherList._leftArrow.opacity) {
             const activeWidth = 5;
-            switcherList.reactive = true;
             switcherList.connect('motion-event', () => {
                 if (switcherList._scrollView.get_hscroll_bar().adjustment.get_transition('value'))
                     return;
@@ -690,6 +701,7 @@ export const WindowSwitcherPopup = {
                 else if (switcherList._scrollableLeft && this._selectedIndex > 0 && pointerX < (switcherList.allocation.x1 + activeWidth))
                     this._select(this._previous(true));
             });
+            this._scrollByPointerOvershootAdded = true;
         }
     },
 
@@ -1087,9 +1099,16 @@ export const WindowSwitcherPopup = {
 
     // Avoid no stage errors when user is too fast
     _delayedDestroy() {
-        GLib.idle_add(
+        if (this._timeoutIds.delayedDestroy)
+            GLib.source_remove(this._timeoutIds.delayedDestroy);
+
+        this._timeoutIds.delayedDestroy = GLib.idle_add(
             GLib.PRIORITY_DEFAULT,
-            () => this.destroy()
+            () => {
+                this._timeoutIds.delayedDestroy = 0;
+                this.destroy();
+                return GLib.SOURCE_REMOVE;
+            }
         );
     },
 
@@ -1102,6 +1121,7 @@ export const WindowSwitcherPopup = {
         this._doNotShowWin = true;
         this._doNotUpdateOnNewWindow = true;
         const selected = this._getSelectedTarget();
+        const hasFocus = this._selectedHasFocus(selected);
 
         if (this._showingApps && selected) {
             if (this._shouldToggleSingleAppMode(selected)) {
@@ -1122,7 +1142,8 @@ export const WindowSwitcherPopup = {
             this._activateWindow(selected);
         }
 
-        if (this._shouldFadeAndDestroy())
+        this.fadeAndDestroy();
+        if (this._shouldFadeAndDestroy(hasFocus))
             this.fadeAndDestroy();
         else
             this._doNotUpdateOnNewWindow = false;
@@ -1134,13 +1155,19 @@ export const WindowSwitcherPopup = {
                 !_shiftPressed() && !_ctrlPressed() &&
                 this._dashMode &&
                 opt.LIST_WINS_ON_ACTIVATE &&
-                ((opt.LIST_WINS_ON_ACTIVATE === Enum.ListOnActivate.FOCUSED_MULTI_WINDOW && selected.cachedWindows.length > 1) ||
+                ((opt.LIST_WINS_ON_ACTIVATE === Enum.ListOnActivate.FOCUSED_MULTI_WINDOW && selected.cachedWindows.length > 1 && selected.cachedWindows.includes(focus)) ||
                  (opt.LIST_WINS_ON_ACTIVATE === Enum.ListOnActivate.FOCUSED && selected.cachedWindows[0] === focus)) &&
                 selected.cachedWindows[0].get_workspace() === global.workspace_manager.get_active_workspace();
     },
 
-    _shouldFadeAndDestroy() {
-        return  !this._dashMode ||
+    _selectedHasFocus(selected) {
+        const window = selected.cachedWindows?.length ? selected.cachedWindows[0] : selected;
+        const focus = global.display.get_tab_list(0, null)[0];
+        return window === focus;
+    },
+
+    _shouldFadeAndDestroy(hasFocus) {
+        return  !this._dashMode || (this._dashMode && !this._showingApps) || hasFocus ||
                 opt.ACTIVATE_ON_HIDE; /* ||
                 (!this._keyboardTriggered && !opt.LIST_WINS_ON_ACTIVATE)*/
     },
@@ -1194,7 +1221,7 @@ export const WindowSwitcherPopup = {
         if (winToApp) // Switching mode Win -> App
             id = Util.getWindowApp(selected)?.get_id() ?? null;
         else if (winToApp === false) // Switching mode App -> Win
-            id = selected?.cachedWindows[0]?.get_id() ?? null;
+            id = selected?.cachedWindows ? selected.cachedWindows[0]?.get_id() : null;
         else // Update without switching the switcher mode
             id = this._getSelectedID();
 

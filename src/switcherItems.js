@@ -411,7 +411,7 @@ export const AppIcon = GObject.registerClass({
         // when appIcon is destroyed, the fading app menu jumps to the top left corner of the monitor (lost parent / relative position).
         // hiding the menu immediately hides this visual glitch
         this.connect('destroy', () => {
-            this._menu?.destroy();
+            this._menu?.actor.hide();
         });
     }
 
@@ -461,6 +461,10 @@ export const AppIcon = GObject.registerClass({
             });
             Main.uiGroup.add_child(this._menu.actor);
             this._menuManager.addMenu(this._menu);
+            this._menu.connectObject('destroy', () => {
+                this._menu.disconnectObject(this);
+                this._menu = null;
+            }, this);
         }
 
         this.emit('menu-state-changed', true);

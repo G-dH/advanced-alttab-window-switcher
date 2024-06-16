@@ -26,6 +26,7 @@ export class ListProvider {
         this._showApps = this._wsp._showApps;
         this._singleApp = this._wsp._singleApp;
         // this._firstRun = this._wsp._firstRun;
+        this._dashMode = this._wsp._dashMode;
         this._keyboardTriggered = this._wsp._keyboardTriggered;
         this._allowFilterSwitchOnOnlyItem = this._wsp._allowFilterSwitchOnOnlyItem;
 
@@ -217,8 +218,8 @@ export class ListProvider {
     }
 
     _updateForAppList() {
-        this._stableSequence = this._opt.APP_SORTING_MODE === Enum.SortingMode.STABLE_SEQUENCE || (!this._keyboardTriggered && this._opt.DASH_APP_STABLE_SEQUENCE);
-        this._sortByFavorites = (!this._keyboardTriggered && this._opt.DASH_APP_STABLE_SEQUENCE) || !this._wsp._favoritesMRU || this._opt.APP_SORTING_MODE !== Enum.SortingMode.MRU;
+        this._stableSequence = this._opt.APP_SORTING_MODE === Enum.SortingMode.STABLE_SEQUENCE || (this._dashMode && this._opt.DASH_APP_STABLE_SEQUENCE);
+        this._sortByFavorites = (this._dashMode && this._opt.DASH_APP_STABLE_SEQUENCE) || (!this._dashMode && (!this._wsp._favoritesMRU || this._opt.APP_SORTING_MODE !== Enum.SortingMode.MRU));
         this._wsp._favoritesMRU = !this._sortByFavorites;
         this._includeFavorites = this._wsp._includeFavorites;
         this._filterWorkspace = this._currentFilterMode > Enum.FilterMode.ALL;
