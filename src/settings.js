@@ -352,9 +352,9 @@ var Options = class Options {
         this.SEARCH_PREF_RUNNING   = this.get('appSwitcherPopupSearchPrefRunning');
         this.INCLUDE_SHOW_APPS_ICON = this.get('appSwitcherPopupIncludeShowAppsIcon');
         this.LIST_WINS_ON_ACTIVATE = this.get('appSwitcherPopupShowWinsOnActivate');
-        this.INCLUDE_FAV_MOUSE     = this.get('switcherPopupExtAppFavorites');
         this.COLOR_STYLE_DEFAULT   = !this.get('switcherPopupTheme');
 
         this.DASH_APP_STABLE_SEQUENCE = this.get('switcherPopupExtAppStable');
+        this.DASH_APP_INCLUDE_FAVORITES = this.get('switcherPopupExtAppFavorites');
     }
 };

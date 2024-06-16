@@ -409,7 +409,7 @@ var AppIcon = GObject.registerClass({
         // when appIcon is destroyed, the fading app menu jumps to the top left corner of the monitor (lost parent / relative position).
         // hiding the menu immediately hides this visual glitch
         this.connect('destroy', () => {
-            this._menu?.destroy();
+            this._menu?.actor.hide();
         });
     }
 
@@ -453,12 +453,16 @@ var AppIcon = GObject.registerClass({
                 showSingleWindows: true,
             });
             this._menu.setApp(this.app);
-            this._menu.connect('open-state-changed', (menu, isPoppedUp) => {
+            this._menu.connectObject('open-state-changed', (menu, isPoppedUp) => {
                 if (!isPoppedUp)
                     this._onMenuPoppedDown();
-            });
+            }, this);
             Main.uiGroup.add_child(this._menu.actor);
             this._menuManager.addMenu(this._menu);
+            this._menu.connectObject('destroy', () => {
+                this._menu.disconnectObject(this);
+                this._menu = null;
+            }, this);
         }
 
         this.emit('menu-state-changed', true);
