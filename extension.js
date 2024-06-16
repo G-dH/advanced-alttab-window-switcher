@@ -200,7 +200,7 @@ class AATWS {
             altTabPopup._overlayKeyTriggered = true;
         }
         altTabPopup._modifierMask = 0;
-        altTabPopup.POSITION_POINTER = false;
+        altTabPopup._positionPointer = false;
         altTabPopup.show();
     }
 
