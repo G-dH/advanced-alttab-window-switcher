@@ -33,6 +33,7 @@ export const Actions = {
     MOVE_MAX:         20, // move window to the current ws and maximize it
     FS_ON_NEW_WS:     21, // fullscreen window on new ws next to the current one
     REORDER_WS:       22,
+    MINIMIZE:         23,
 
     PREFS:            99,
 };

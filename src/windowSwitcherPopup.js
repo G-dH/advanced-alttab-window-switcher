@@ -2008,6 +2008,9 @@ export const WindowSwitcherPopup = {
         case Enum.Actions.FS_ON_NEW_WS:
             this._actions.toggleFullscreenOnNewWS();
             break;
+        case Enum.Actions.MINIMIZE:
+            this._actions.toggleMinimize();
+            break;
         case Enum.Actions.HIDE:
             this.fadeAndDestroy();
             break;

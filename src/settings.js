@@ -192,6 +192,7 @@ export const Options = class Options {
             hotkeyCloseAllApp: ['string', 'hotkey-close-all-app'],
             hotkeyFsOnNewWs: ['string', 'hotkey-fs-on-new-ws'],
             hotkeyMaximize: ['string', 'hotkey-maximize'],
+            hotkeyMinimize: ['string', 'hotkey-minimize'],
             hotkeyGroupWs: ['string', 'hotkey-group-ws'],
             hotkeySwitcherMode: ['string', 'hotkey-switcher-mode'],
             hotkeyThumbnail: ['string', 'hotkey-thumbnail'],

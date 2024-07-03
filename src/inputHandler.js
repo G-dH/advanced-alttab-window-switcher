@@ -469,6 +469,7 @@ export class InputHandler {
             [this._opt.get('hotkeySticky')]:                this._wsp._toggleWinSticky.bind(this._wsp),
             [this._opt.get('hotkeyMoveWinToMonitor')]:      this._actions.moveToCurrentWS.bind(this._actions),
             [this._opt.get('hotkeyMaximize')]:              this._actions.toggleMaximizeOnCurrentMonitor.bind(this._actions),
+            [this._opt.get('hotkeyMinimize')]:              this._actions.toggleMinimize.bind(this._actions),
             [this._opt.get('hotkeyFsOnNewWs')]:             this._actions.toggleFullscreenOnNewWS.bind(this._actions),
             [this._opt.get('hotkeyNewWin')]:                this._wsp._openNewWindow.bind(this._wsp),
             [this._opt.get('hotkeySwitcherMode')]:          this._wsp._toggleSwitcherMode.bind(this._wsp),

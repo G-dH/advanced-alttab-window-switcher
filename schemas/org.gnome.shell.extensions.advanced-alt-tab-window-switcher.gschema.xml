@@ -293,6 +293,9 @@
     <key name='hotkey-maximize' type='s'>
       <default>'M'</default>
     </key>
+    <key name='hotkey-minimize' type='s'>
+      <default>'D'</default>
+    </key>
     <key name='hotkey-group-ws' type='s'>
       <default>'G'</default>
     </key>

@@ -291,6 +291,29 @@ export const Actions = class {
         this._wsp._updateSwitcher();
     }
 
+    toggleMinimize(metaWin) {
+        metaWin = metaWin ?? this._getSelectedWindow();
+        if (!metaWin)
+            return;
+
+        if (!metaWin.minimized) {
+            // this._setMetaWinIconGeometry(metaWin, this._wsp._items[this._wsp._selectedIndex]);
+            metaWin.minimize();
+        } else {
+            this._moveWindowToCurrentWs(metaWin, this._wsp._monitorIndex);
+            metaWin.unminimize();
+            metaWin.activate(global.get_current_time());
+        }
+        this._wsp._delayedUpdate(250);
+    }
+
+    _setMetaWinIconGeometry(metaWin, selected) {
+        const geometry = metaWin.get_icon_geometry()[1];
+        [geometry.x, geometry.y] = selected.get_transformed_position();
+
+        metaWin.set_icon_geometry(geometry);
+    }
+
     toggleAboveWindow(metaWindow) {
         let win = metaWindow;
         if (!win)

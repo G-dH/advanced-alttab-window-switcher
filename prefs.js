@@ -38,6 +38,7 @@ function _getActionList() {
         [_('Force Quit Selected App'),                           Actions.KILL],
         [_('Move Selected to Current WS/Monitor'),               Actions.MOVE_TO_WS],
         [_('Toggle Fullscreen on Empty WS'),                     Actions.FS_ON_NEW_WS],
+        [_('Toggle Minimize'),                                   Actions.MINIMIZE],
         [_('Sort Windows by Applications'),                      Actions.GROUP_APP],
         [_('Sort Current Monitor First'),                        Actions.CURRENT_MON_FIRST],
         [_('Create Window Thumbnail (requires WTMB extension)'), Actions.THUMBNAIL],
@@ -1338,9 +1339,18 @@ Next use of this hotkey on the same window moves the window back to its original
         optionList.push(itemFactory.getRowWidget(
             _('Maximize on Current Workspace/Monitor'),
             _('Selected window will be maximized on the current workspace and monitor.\
-The current monitor is the one where the switcher pop-up is located, or where the mouse pointer is currently positioned if the switcher was triggered by a mouse.'),
+The current monitor is the one where the switcher pop-up is located'),
             itemFactory.newEntry(),
             'hotkeyMaximize'
+        )
+        );
+
+        optionList.push(itemFactory.getRowWidget(
+            _('Toggle Minimize'),
+            _('Minimize the selected window, or un-minimize it on the current workspace and monitor.\
+The current monitor is the one where the switcher pop-up is located'),
+            itemFactory.newEntry(),
+            'hotkeyMinimize'
         )
         );
 
