@@ -176,6 +176,7 @@ export const Options = class Options {
             wsShowSwitcherPopup: ['boolean', 'ws-switch-popup'],
             switcherPopupPointer: ['boolean', 'switcher-popup-pointer'],
             switcherPopupExtAppFavorites: ['boolean', 'switcher-popup-ext-app-favorites'],
+            switcherPopupExtAppShowAppsIcon: ['boolean', 'switcher-popup-ext-app-show-apps-icon'],
             switcherPopupExtAppStable: ['boolean', 'switcher-popup-ext-app-stable'],
             switcherPopupReverseAuto: ['boolean', 'switcher-popup-reverse-auto'],
             switcherPopupPointerTimeout: ['int', 'switcher-popup-pointer-timeout'],
@@ -365,5 +366,6 @@ export const Options = class Options {
 
         this.DASH_APP_STABLE_SEQUENCE = this.get('switcherPopupExtAppStable');
         this.DASH_APP_INCLUDE_FAVORITES = this.get('switcherPopupExtAppFavorites');
+        this.DASH_APP_INCLUDE_APPS_ICON = this.get('switcherPopupExtAppShowAppsIcon');
     }
 };

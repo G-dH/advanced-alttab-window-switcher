@@ -232,6 +232,7 @@ export default class AATWS extends ExtensionPreferences {
             o.DashActivateToSingle,
             o.DashAppStableOrder,
             o.DashAppIncludeFavorites,
+            o.DashAppIncludeShowAppsIcon,
             // ---------------
             o.Dash,
             o.ShowDash,
@@ -960,10 +961,17 @@ export default class AATWS extends ExtensionPreferences {
         );
 
         optDict.DashAppIncludeFavorites = itemFactory.getRowWidget(
-            _('Includes Favorite (Pinned) Apps'),
+            _('Include Favorite (Pinned) Apps'),
             _('Include favorite apps pinned to Dash regardless the App switcher settings'),
             itemFactory.newSwitch(),
             'switcherPopupExtAppFavorites'
+        );
+
+        optDict.DashAppIncludeShowAppsIcon = itemFactory.getRowWidget(
+            _('Include Show Apps Icon'),
+            _('Adds a button to access application grid'),
+            itemFactory.newSwitch(),
+            'switcherPopupExtAppShowAppsIcon'
         );
 
         optDict.DashAppStableOrder = itemFactory.getRowWidget(

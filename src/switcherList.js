@@ -64,7 +64,7 @@ export const SwitcherList = GObject.registerClass({
 
         let showAppsIcon;
         let showAppsItemBox;
-        if (!items[0].get_title && (this._opt.INCLUDE_SHOW_APPS_ICON || this._switcherParams.mouseControl)) {
+        if (!items[0].get_title && (this._opt.INCLUDE_SHOW_APPS_ICON || (this._switcherParams.mouseControl && opt.DASH_APP_INCLUDE_APPS_ICON))) {
             showAppsIcon = this._getShowAppsIcon();
             if (this._switcherParams.reverseOrder) {
                 showAppsItemBox = this.addItem(showAppsIcon, showAppsIcon.titleLabel);
