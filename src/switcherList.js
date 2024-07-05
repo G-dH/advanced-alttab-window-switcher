@@ -64,7 +64,8 @@ export const SwitcherList = GObject.registerClass({
 
         let showAppsIcon;
         let showAppsItemBox;
-        if (!items[0].get_title && (this._opt.INCLUDE_SHOW_APPS_ICON || (this._switcherParams.mouseControl && opt.DASH_APP_INCLUDE_APPS_ICON))) {
+        const dashMode = this._switcherParams.dashMode;
+        if (!items[0].get_title && (!dashMode && this._opt.INCLUDE_SHOW_APPS_ICON || (dashMode && opt.DASH_APP_INCLUDE_APPS_ICON))) {
             showAppsIcon = this._getShowAppsIcon();
             if (this._switcherParams.reverseOrder) {
                 showAppsItemBox = this.addItem(showAppsIcon, showAppsIcon.titleLabel);
@@ -139,6 +140,7 @@ export const SwitcherList = GObject.registerClass({
     _getSwitcherParams(opt, wsp) {
         let showWinTitles = opt.WINDOW_TITLES === 1 || (opt.WINDOW_TITLES === 3 && wsp._singleApp);
         return {
+            dashMode: wsp._dashMode,
             mouseControl: !wsp._keyboardTriggered,
             showingApps: wsp._showingApps,
             showItemTitle: wsp._showingApps ? opt.SHOW_APP_TITLES : showWinTitles,
