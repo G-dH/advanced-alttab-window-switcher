@@ -504,7 +504,6 @@ class SysActionIcon extends St.Widget {
 
         const actionName = this._systemActions.getName(this._id);
         const showLabel = this._opt.SHOW_APP_TITLES;
-        const iconSize = this._opt.APP_MODE_ICON_SIZE;
 
         this._isSysActionIcon = true;
 
@@ -514,7 +513,6 @@ class SysActionIcon extends St.Widget {
             createIcon: this._createIcon.bind(this),
         });
 
-        this.icon.setIconSize(iconSize);
         this.icon.set_style_class_name(this._opt.colorStyle.TITLE_LABEL);
 
         this.titleLabel = new St.Label({
@@ -525,12 +523,9 @@ class SysActionIcon extends St.Widget {
     }
 
     _createIcon() {
-        const size = this._opt.APP_MODE_ICON_SIZE;
-        const iconName = this._systemActions.getIconName(this._id);
         return new St.Icon({
-            icon_name: iconName,
-            width: size,
-            height: size,
+            iconName: this._systemActions.getIconName(this._id),
+            iconSize: this._opt.APP_MODE_ICON_SIZE,
             style: 'color: grey;',
         });
     }
