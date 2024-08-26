@@ -5,7 +5,8 @@
   "settings-schema": "org.gnome.shell.extensions.advanced-alt-tab-window-switcher",
   "shell-version": [
     "45",
-    "46"
+    "46",
+    "47"
   ],
   "url": "https://github.com/G-dH/advanced-alttab-window-switcher",
   "donations": {
