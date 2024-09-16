@@ -186,7 +186,7 @@ export const Actions = class {
             return;
 
         winList.forEach(win => {
-            this._moveWindowToCurrentWs(win, this._wsp._keyboardTriggered ? this._monitorIndex : -1);
+            this._moveWindowToCurrentWs(win, this._wsp._keyboardTriggered ? this._wsp._monitorIndex : -1);
         });
 
         this._wsp._showWindow();
