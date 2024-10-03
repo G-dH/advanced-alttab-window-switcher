@@ -108,7 +108,7 @@ export const WindowIcon = GObject.registerClass({
         this._isWindow = true;
         this.window = window;
 
-        let title = window.get_title();
+        let title = window.get_title() ?? '';
         if (this._switcherParams.showItemTitle) {
             // move workspace/folder name to the front, so it will be visible if label is ellipsized
             if (title.includes(' - VSCodium')) {
