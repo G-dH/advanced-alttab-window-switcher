@@ -743,7 +743,7 @@ export const WindowSwitcherPopup = {
             GLib.source_remove(this._noModsTimeoutId);
 
         // remove all local timeouts
-        if (this._timeoutIds) { // Test for compatibility with the Tiling Assistant
+        if (this._timeoutIds) { // Tiling assistant compatibility
             Object.values(this._timeoutIds).forEach(id => {
                 if (id)
                     GLib.source_remove(id);
@@ -760,13 +760,12 @@ export const WindowSwitcherPopup = {
 
         // Make sure the SwitcherList is always destroyed, it may not be
         // a child of the actor at this point.
-        if (this._switcherList)
-            this._switcherList.destroy();
+        this._switcherList?.destroy();
 
-        this._inputHandler.clean();
+        this._inputHandler?.clean();
         this._inputHandler = null;
 
-        this._actions.clean();
+        this._actions?.clean();
         this._actions = null;
 
         Main.layoutManager.aatws = null;
@@ -839,7 +838,8 @@ export const WindowSwitcherPopup = {
         if (!(this._selectedIndex === n && (item._closeButton && item._closeButton.opacity === 255)) ||
              (this._selectedIndex === n && !item._closeButton))
             this._itemEnteredHandler(n);
-        this._switcherList._updateMouseControls(n);
+        if (this._switcherList._updateMouseControls) // Prevent error if used by the Tiling assistant
+            this._switcherList._updateMouseControls(n);
     },
 
     vfunc_allocate(box) {
@@ -1093,8 +1093,10 @@ export const WindowSwitcherPopup = {
 
         if (this.opacity > 0 && this._dashMode)
             this._animateOut();
-        else
+        else if (this._timeoutIds) // Tiling assistant compatibility
             this._delayedDestroy();
+        else
+            this.destroy();
     },
 
     // Avoid no stage errors when user is too fast
@@ -1648,7 +1650,39 @@ export const WindowSwitcherPopup = {
 
     vfunc_key_press_event(keyEvent) {
         this._disableHover();
-        this._inputHandler.handleKeyPress(keyEvent);
+        if (this._inputHandler)
+            this._inputHandler.handleKeyPress(keyEvent);
+        else // Handle the input from the Tilling assistant AltTab instance
+            this._original_key_press_event(keyEvent);
+        return Clutter.EVENT_STOP;
+    },
+
+    // Tiling assistant compatibility
+    _original_key_press_event(event) {
+        let keysym = event.get_key_symbol();
+        let action = global.display.get_keybinding_action(
+            event.get_key_code(), event.get_state());
+
+        this._disableHover();
+
+        if (this._keyPressHandler(keysym, action) !== Clutter.EVENT_PROPAGATE) {
+            this._showImmediately();
+            return Clutter.EVENT_STOP;
+        }
+
+        // Note: pressing one of the below keys will destroy the popup only if
+        // that key is not used by the active popup's keyboard shortcut
+        if (keysym === Clutter.KEY_Escape || keysym === Clutter.KEY_Tab)
+            this.fadeAndDestroy();
+
+        // Allow to explicitly select the current item; this is particularly
+        // useful for no-modifier popups
+        if (keysym === Clutter.KEY_space ||
+            keysym === Clutter.KEY_Return ||
+            keysym === Clutter.KEY_KP_Enter ||
+            keysym === Clutter.KEY_ISO_Enter)
+            this._finish(event.get_time());
+
         return Clutter.EVENT_STOP;
     },
 
@@ -1690,7 +1724,10 @@ export const WindowSwitcherPopup = {
     vfunc_scroll_event(event) {
         let direction = Util.getScrollDirection(event);
 
-        const action = this._inputHandler.getScrollAction(event);
+        const action = this._inputHandler?.getScrollAction(event);
+        // If called from the Tiling assistant, _inputHandler is missing
+        if (!action)
+            return null;
 
         if (!this._scrollActionAllowed(action))
             return Clutter.EVENT_STOP;

@@ -321,7 +321,7 @@ export const SwitcherList = GObject.registerClass({
     // //////////////////////////////////////////////////////////
 
     _updateMouseControls(selectedIndex) {
-        if (!this._wsp.mouseActive)
+        if (!this._wsp.mouseActive || !this._wsp._timeoutIds) // timeoutIds are missing if the popup belongs to the Tiling assistant
             return;
 
         // activate indicators only when mouse pointer is (probably) used to control the switcher
