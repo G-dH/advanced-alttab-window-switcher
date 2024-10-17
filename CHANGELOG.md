@@ -1,4 +1,24 @@
 ## Changelog
+### v47.1
+**Fixed:**
+- Conflict with *Tiling assistant* extension (#124)
+
+
+### v47.0/v46.3 (2024-10-11 e.g.o)
+**Fixed**
+- Switcher not showing if window has no title (#123)
+
+**Added:**
+- GNOME 47 support
+- *Switch Filter Mode Permanently* hotkey option
+- *Press Tab Again to Switch Filter* option
+- *Delete Key to Close* hotkey option
+- *Show Favorite Apps When No Window Open* option
+
+**Other Changes:**
+- Refactored codebase for improved readability and maintainability 
+
+
 ### v46.2 (2024-05-30) v44.11 (not released yet)
 **Added:**
 - Option *Follow System Color Style - Inverted* allows automatic switching between Dark and Light ATAWS color styles, opposite to the system's Dark mode setting
