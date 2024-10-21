@@ -140,17 +140,16 @@ export class ListProvider {
                 winList = winList.filter(w => w.get_monitor() === this._monitorIndex);
         }
 
-        if (searchQuery) {
+        if (searchQuery)
             winList = this._filterWinList(winList, searchQuery);
-        } else {
+        else
             winList = this._sortWinList(winList);
 
-            if (this._singleApp) {
-                const { id, name } = this._singleApp;
+        if (this._singleApp) {
+            const { id, name } = this._singleApp;
 
-                // some apps (like VirtualBox) may create multiple windows with different app ids, but with the same name
-                winList = winList.filter(w => this._tracker.get_window_app(w).get_id() === id || this._tracker.get_window_app(w).get_name() === name);
-            }
+            // some apps (like VirtualBox) may create multiple windows with different app ids, but with the same name
+            winList = winList.filter(w => this._tracker.get_window_app(w).get_id() === id || this._tracker.get_window_app(w).get_name() === name);
         }
 
         return winList;
