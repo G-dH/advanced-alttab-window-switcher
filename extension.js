@@ -66,8 +66,6 @@ class AATWS {
 
         this._updateHotTrigger();
         this._updateDashVisibility();
-
-        console.debug(`${this._metadata.name}: enabled`);
     }
 
     disable() {
@@ -100,8 +98,6 @@ class AATWS {
 
         this._opt.destroy();
         this._opt = null;
-
-        console.debug(`${this._metadata.name}: disabled`);
     }
 
     _updateAlwaysActivateFocusedConnection() {
