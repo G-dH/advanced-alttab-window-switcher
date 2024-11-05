@@ -1,4 +1,9 @@
 ## Changelog
+### v47.2
+**Fixed:**
+- Search ignores single app mode (#125)
+
+
 ### v47.1
 **Fixed:**
 - Conflict with *Tiling assistant* extension (#124)
