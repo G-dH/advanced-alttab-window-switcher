@@ -393,7 +393,7 @@ var Actions = class {
                 try {
                     Main.extensionManager.openExtensionPrefs(metadata.uuid, '', {});
                 } catch (e) {
-                    console.error(e);
+                    log(e);
                 }
             });
         }
