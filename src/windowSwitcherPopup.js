@@ -611,6 +611,7 @@ export const WindowSwitcherPopup = {
                         index = i + 1;
 
                     this._select(index);
+                    break;
                 }
             }
         } else {
@@ -621,6 +622,7 @@ export const WindowSwitcherPopup = {
                         index = i - 1;
 
                     this._select(index);
+                    break;
                 }
             }
         }
