@@ -72,7 +72,7 @@ class AATWS {
         this._updateHotTrigger();
         this._updateDashVisibility();
 
-        console.debug(`${this.Me.metadata.name}: enabled`);
+        log(`${this.Me.metadata.name}: enabled`);
     }
 
     disable() {
@@ -104,7 +104,7 @@ class AATWS {
         this._opt = null;
         this.Me.opt = null;
 
-        console.debug(`${this.Me.metadata.name}: disabled`);
+        log(`${this.Me.metadata.name}: disabled`);
     }
 
     _updateSettings(settings, key) {
