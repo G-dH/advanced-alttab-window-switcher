@@ -605,6 +605,7 @@ var WindowSwitcherPopup = GObject.registerClass({
                         index = i + 1;
 
                     this._select(index);
+                    break;
                 }
             }
         } else {
@@ -615,6 +616,7 @@ var WindowSwitcherPopup = GObject.registerClass({
                         index = i - 1;
 
                     this._select(index);
+                    break;
                 }
             }
         }
