@@ -1,4 +1,8 @@
 ## Changelog
+### v48.0
+**Added:**
+- Support for GNOME 48
+
 ### v47.2
 **Fixed:**
 - Search ignores single app mode (#125)
