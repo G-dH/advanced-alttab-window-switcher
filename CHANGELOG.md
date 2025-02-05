@@ -1,5 +1,5 @@
 ## Changelog
-### v48.0
+### v48.0 (2025-02-05)
 **Fixed:**
 - Initial selection when *Default Grouping* option is set to *Workspaces* 
 
@@ -7,12 +7,12 @@
 - Support for GNOME 48
 
 
-### v47.2
+### v47.2 (2024-11-05)
 **Fixed:**
 - Search ignores single app mode (#125)
 
 
-### v47.1
+### v47.1 (2024-09-18)
 **Fixed:**
 - Conflict with *Tiling assistant* extension (#124)
 
