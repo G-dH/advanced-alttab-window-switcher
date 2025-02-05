@@ -6,13 +6,14 @@
   "shell-version": [
     "45",
     "46",
-    "47"
+    "47",
+    "48"
   ],
   "url": "https://github.com/G-dH/advanced-alttab-window-switcher",
   "donations": {
     "buymeacoffee": "georgdh"
   },
   "uuid": "advanced-alt-tab@G-dH.github.com",
-  "version-name": "47.2"
+  "version-name": "48.0"
 }
 
