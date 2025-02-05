@@ -1,7 +1,11 @@
 ## Changelog
 ### v48.0
+**Fixed:**
+- Initial selection when *Default Grouping* option is set to *Workspaces* 
+
 **Added:**
 - Support for GNOME 48
+
 
 ### v47.2
 **Fixed:**
