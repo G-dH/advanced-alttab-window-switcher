@@ -698,6 +698,8 @@ export class InputHandler {
     isPointerOut() {
         const [x, y] = global.get_pointer();
         const switcher = this._wsp._switcherList;
+        if (!switcher)
+            return;
         const popupPosition = this._wsp._popupPosition;
         // margin expands the "inside" area around the popup to cover gap between the popup and the edge of screen (Top/Bottom position), plus small overlap
         const margin = this.MARGIN_BOTTOM * this.SCALE_FACTOR - 1;
