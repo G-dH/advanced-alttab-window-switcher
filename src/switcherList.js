@@ -3,7 +3,7 @@
  * SwitcherList
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -190,7 +190,6 @@ export const SwitcherList = GObject.registerClass({
     }
 
     vfunc_get_preferred_height() {
-
         let maxChildMin = 0;
         let maxChildNat = 0;
 
@@ -260,9 +259,8 @@ export const SwitcherList = GObject.registerClass({
     _onItemMotion(item) {
         // Avoid reentrancy
         const icon = this.icons[this._items.indexOf(item)];
-        if (item !== this._items[this._highlighted] || (this._opt.INTERACTIVE_INDICATORS && !icon._mouseControlsSet)) {
+        if (item !== this._items[this._highlighted] || (this._opt.INTERACTIVE_INDICATORS && !icon._mouseControlsSet))
             this._itemEntered(this._items.indexOf(item));
-        }
 
         return Clutter.EVENT_PROPAGATE;
     }
@@ -292,7 +290,9 @@ export const SwitcherList = GObject.registerClass({
 
         this._highlighted = index;
 
-        let adjustment = this._scrollView.get_hscroll_bar().adjustment;
+        let adjustment = this._scrollView.get_hadjustment
+            ? this._scrollView.get_hadjustment()
+            : this._scrollView.get_hscroll_bar().adjustment;
         let [value] = adjustment.get_values();
         let [absItemX] = this._items[index].get_transformed_position();
         let [, posX] = this.transform_stage_point(absItemX, 0);

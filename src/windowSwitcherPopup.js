@@ -3,7 +3,7 @@
  * WindowSwitcherPopup
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -693,7 +693,10 @@ export const WindowSwitcherPopup = {
         if (switcherList._rightArrow.opacity || switcherList._leftArrow.opacity) {
             const activeWidth = 5;
             switcherList.connect('motion-event', () => {
-                if (switcherList._scrollView.get_hscroll_bar().adjustment.get_transition('value'))
+                let adjustment = switcherList._scrollView.get_hadjustment
+                    ? switcherList._scrollView.get_hadjustment()
+                    : switcherList._scrollView.get_hscroll_bar().adjustment;
+                if (adjustment.get_transition('value'))
                     return;
 
                 const pointerX = global.get_pointer()[0];
