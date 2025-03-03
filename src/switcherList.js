@@ -205,7 +205,8 @@ export const SwitcherList = GObject.registerClass({
             maxChildNat = maxChildMin;
         }
 
-        let multiplier = this._list.vertical ? this._items.length : 1;
+        const orientation = this._list.orientation === undefined ? 'vertical' : 'orientation';
+        let multiplier = this._list[orientation] ? this._items.length : 1;
         let spacing = this._list.get_theme_node().get_length('spacing') * (multiplier - 1);
         maxChildMin = maxChildMin * multiplier + spacing;
         maxChildNat = maxChildNat * multiplier + spacing;

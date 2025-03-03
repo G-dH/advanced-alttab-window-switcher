@@ -3,7 +3,7 @@
  * CaptionLabel
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -105,9 +105,14 @@ export const CaptionLabel = GObject.registerClass({
 
         super._init({
             style_class: opt.colorStyle.CAPTION_LABEL,
-            vertical: !this._search, // horizontal orientation for search label, vertical for title caption
             style: `font-size: ${params.fontSize}em;`,
         });
+
+        // horizontal orientation for search label, vertical for title caption
+        if (this.orientation !== undefined) // since GS 48
+            this.orientation = this._search ? Clutter.Orientation.HORIZONTAL : Clutter.Orientation.VERTICAL;
+        else
+            this.vertical = !this._search;
 
         this._label = new St.Label({
             name: params.name,

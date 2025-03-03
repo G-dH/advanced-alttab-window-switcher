@@ -3,7 +3,7 @@
  * SwitcherItems
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -59,9 +59,12 @@ export const WindowIcon = GObject.registerClass({
         const metaWin = item;
         super._init({
             style_class: 'thumbnail-box',
-            vertical: true,
             reactive: true,
         });
+        if (this.orientation !== undefined) // since GS 48
+            this.orientation = Clutter.Orientation.VERTICAL;
+        else
+            this.vertical = true;
         this._opt = opt;
         this._switcherParams = switcherParams;
         this._icon = new St.Widget({ layout_manager: new Clutter.BinLayout() });
@@ -217,7 +220,6 @@ export const WindowIcon = GObject.registerClass({
 
     _getIndicatorBox() {
         const indicatorBox = new St.BoxLayout({
-            vertical: false,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
@@ -591,8 +593,11 @@ function _createHotKeyNumIcon(index, style) {
 
     let box = new St.BoxLayout({
         style_class: style,
-        vertical: true,
     });
+    if (box.orientation !== undefined) // since GS 48
+        box.orientation = Clutter.Orientation.VERTICAL;
+    else
+        box.vertical = true;
 
     icon.add_child(box);
     let label = new St.Label({ text: `F${(index + 1).toString()}` });

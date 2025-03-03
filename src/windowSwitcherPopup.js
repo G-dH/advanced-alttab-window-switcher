@@ -649,7 +649,6 @@ export const WindowSwitcherPopup = {
             this._switcherList.destroy();
 
         this._switcherList = new SwitcherList.SwitcherList(itemList, opt, this);
-        // this._switcherList._list.vertical = true;
 
         if (!opt.HOVER_SELECT && this._keyboardTriggered)
             this._switcherList._itemEntered = function () {};
@@ -1691,7 +1690,7 @@ export const WindowSwitcherPopup = {
         return Clutter.EVENT_STOP;
     },
 
-    vfunc_key_release_event(keyEvent) {
+    vfunc_key_release_event() {
         // monitor release of shortcut modifier keys
         if (this._modifierMask) {
             let mods = global.get_pointer()[2];
