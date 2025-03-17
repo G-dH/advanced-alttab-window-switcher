@@ -1,10 +1,14 @@
 ## Changelog
+### v48.1 (2025-03-7)
+**Fixed:**
+- Compatibility with GNOME 48.beta
+
 ### v48.0 (2025-02-05)
 **Fixed:**
 - Initial selection when *Default Grouping* option is set to *Workspaces* 
 
 **Added:**
-- Support for GNOME 48
+- Support for GNOME 48.alpha
 
 
 ### v47.2 (2024-11-05)
@@ -24,7 +28,7 @@
 **Added:**
 - GNOME 47 support
 - *Switch Filter Mode Permanently* hotkey option
-- *Press Tab Again to Switch Filter* option
+- *Press Tab Again- to Switch Filter* option
 - *Delete Key to Close* hotkey option
 - *Show Favorite Apps When No Window Open* option
 
