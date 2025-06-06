@@ -3,13 +3,13 @@
  * SwitcherItems
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
 'use strict';
 
-const { Clutter, GObject, Shell, St } = imports.gi;
+const { Clutter, GObject, Shell, St, Meta } = imports.gi;
 
 const Main            = imports.ui.main;
 const AppMenu         = imports.ui.appMenu.AppMenu;
@@ -237,7 +237,7 @@ var WindowIcon = GObject.registerClass({
             y_align: Clutter.ActorAlign.START,
         });
         icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY);
-        if (!this.window.is_above()) {
+        if (!this.window.is_above() || this.window.get_maximized() === Meta.MaximizeFlags.BOTH) {
             icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {
@@ -257,7 +257,12 @@ var WindowIcon = GObject.registerClass({
         });
         icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY);
         this._stickyIcon = icon;
-        if (!this.window.is_on_all_workspaces()) {
+        const primary = global.display.get_primary_monitor();
+        const monitor = this.window.get_monitor();
+        const wsPrimaryOnly = this._opt.mutterSettings.get_boolean('workspaces-only-on-primary');
+        if (!this.window.is_on_all_workspaces() ||
+            (wsPrimaryOnly && monitor !== primary)
+        ) {
             icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {

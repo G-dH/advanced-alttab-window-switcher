@@ -3,7 +3,7 @@
  * Actions
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -297,7 +297,7 @@ var Actions = class {
             return;
         if (win.is_above())
             win.unmake_above();
-        else
+        else if (win.get_maximized() !== Meta.MaximizeFlags.BOTH)
             win.make_above();
     }
 
