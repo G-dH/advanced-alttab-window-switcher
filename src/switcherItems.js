@@ -13,6 +13,7 @@ import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import Shell from 'gi://Shell';
 import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { AppMenu } from 'resource:///org/gnome/shell/ui/appMenu.js';
@@ -241,7 +242,7 @@ export const WindowIcon = GObject.registerClass({
             y_align: Clutter.ActorAlign.START,
         });
         icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY);
-        if (!this.window.is_above()) {
+        if (!this.window.is_above() || this.window.get_maximized() === Meta.MaximizeFlags.BOTH) {
             icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {
@@ -260,8 +261,13 @@ export const WindowIcon = GObject.registerClass({
             y_align: Clutter.ActorAlign.START,
         });
         icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY);
+        const primary = global.display.get_primary_monitor();
+        const monitor = this.window.get_monitor();
+        const wsPrimaryOnly = this._opt.mutterSettings.get_boolean('workspaces-only-on-primary');
         this._stickyIcon = icon;
-        if (!this.window.is_on_all_workspaces()) {
+        if (!this.window.is_on_all_workspaces() ||
+            (wsPrimaryOnly && monitor !== primary)
+        ) {
             icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {

@@ -3,7 +3,7 @@
  * Settings
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -211,6 +211,7 @@ export const Options = class Options {
         this._intSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
         this._updateColorScheme();
         this._intSettingsSigId = this._intSettings.connect('changed::color-scheme', this._updateColorScheme.bind(this));
+        this.mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
     }
 
     _updateColorScheme(/* settings, key */) {
@@ -300,6 +301,7 @@ export const Options = class Options {
 
         this._intSettings.disconnect(this._intSettingsSigId);
         this._intSettings = null;
+        this.mutterSettings = null;
     }
 
     _setOptionConstants() {
