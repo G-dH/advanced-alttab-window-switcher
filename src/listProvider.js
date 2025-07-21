@@ -3,7 +3,7 @@
  * ListProvider
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -41,6 +41,15 @@ var ListProvider = class {
 
         this._insufficientResultsLimit = !searchQuery && this._keyboardTriggered && this._allowFilterSwitchOnOnlyItem ? 1 : 0;
         this._filterSwitchAllowed = !searchQuery || (this._opt.SEARCH_ALL && !!searchQuery);
+        this._workspace = this._currentFilterMode > Enum.FilterMode.ALL
+            ? global.workspace_manager.get_active_workspace()
+            : null;
+        this._monitorIndex = this._currentFilterMode === Enum.FilterMode.MONITOR
+            ? this._wsp._monitorIndex
+            : null;
+
+        this._filterWorkspace = this._workspace !== null;
+        this._filterMonitor = this._monitorIndex !== null && this._monitorIndex > -1;
     }
 
     getItemList(searchQuery) {
@@ -107,19 +116,11 @@ var ListProvider = class {
     }
 
     _updateForWinList() {
-        this._workspace = this._currentFilterMode > Enum.FilterMode.ALL
-            ? global.workspace_manager.get_active_workspace()
-            : null;
-        this._monitorIndex = this._currentFilterMode === Enum.FilterMode.MONITOR
-            ? this._wsp._monitorIndex
-            : null;
         this._tracker = this._tracker ?? Shell.WindowTracker.get_default();
         this._filterWorkspace = this._currentFilterMode > Enum.FilterMode.ALL;
         this._filterMonitor = this._currentFilterMode === Enum.FilterMode.MONITOR && this._monitorIndex > -1;
-
         this._groupMode = this._wsp._groupMode;
         this._singleApp = this._wsp._singleApp;
-
         this._stableSequenceCurrentFirst = this._opt.WIN_SORTING_MODE === Enum.SortingMode.STABLE_CURRENT_FIRST;
         this._stableSequence = this._opt.WIN_SORTING_MODE === Enum.SortingMode.STABLE_SEQUENCE || this._stableSequenceCurrentFirst;
         this._groupWorkspaces = this._wsp._groupMode === Enum.GroupMode.WORKSPACES && this._currentFilterMode === Enum.FilterMode.ALL;
@@ -227,13 +228,6 @@ var ListProvider = class {
         this._includeFavorites = this._wsp._includeFavorites;
         this._filterWorkspace = this._currentFilterMode > Enum.FilterMode.ALL;
         this._filterMonitor = this._currentFilterMode === Enum.FilterMode.MONITOR && this._monitorIndex > -1;
-
-        this._workspace = this._currentFilterMode > Enum.FilterMode.ALL
-            ? global.workspace_manager.get_active_workspace()
-            : null;
-        this._monitorIndex = this._currentFilterMode === Enum.FilterMode.MONITOR
-            ? this._wsp._monitorIndex
-            : null;
         this._runningIds = this._getRunningAppsIds(
             true, // true for stable sequence order
             this._workspace,
@@ -345,16 +339,10 @@ var ListProvider = class {
 
     _setCachedWindows(appList) {
         return appList.filter(app => {
-            if (app.get_n_windows()) {
-                app.cachedWindows = this._filterWindowsForWsMonitor(
-                    app.get_windows(),
-                    this._opt.INCLUDE_MODALS,
-                    this._filterWorkspace ? this._workspace.index() : null,
-                    this._monitorIndex
-                );
-            } else {
+            if (app.get_n_windows())
+                app.cachedWindows = this._filterWindowsForWsMonitor(app.get_windows());
+            else
                 app.cachedWindows = [];
-            }
 
             // Filter out non-favorite apps without windows
             return app.cachedWindows.length > 0 || this._favoritesFull.includes(app.get_id());
@@ -364,7 +352,7 @@ var ListProvider = class {
     _setCachedWindowsForSearch(appList) {
         appList.forEach(app => {
             if (app.get_n_windows && app.get_n_windows())
-                app.cachedWindows = this._filterWindowsForWsMonitor(app.get_windows(), this._opt.INCLUDE_MODALS);
+                app.cachedWindows = this._filterWindowsForWsMonitor(app.get_windows());
             else if (app.get_n_windows)
                 app.cachedWindows = [];
         });
@@ -446,4 +434,3 @@ var ListProvider = class {
             return !aAny && bAny;
     }
 };
-
