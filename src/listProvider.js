@@ -129,6 +129,7 @@ var ListProvider = class {
     }
 
     getCustomWindowList(searchQuery = '', allWindows = false) {
+        this._updateCoreParams();
         this._updateForWinList();
 
         const workspace = null;
@@ -236,6 +237,7 @@ var ListProvider = class {
     }
 
     getAppList(searchQuery = '') {
+        this._updateCoreParams();
         this._updateForAppList();
 
         const running = this._getRunningApps();
