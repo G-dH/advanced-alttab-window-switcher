@@ -872,14 +872,14 @@ export const WindowSwitcherPopup = {
         if (this._positionPointer) {
             if (x === undefined)
                 x = Math.min(this._pointer.x, monitor.x + monitor.width - childNaturalWidth);
-            childBox.x1 = x;
+            childBox.x1 = Math.round(x);
             if (childBox.x1 < monitor.x)
                 childBox.x1 = monitor.x;
-            childBox.y1 = Math.min(Math.max(this._pointer.y - (childNaturalHeight / 2), monitor.y), monitor.y + monitor.height - childNaturalHeight);
+            childBox.y1 = Math.round(Math.min(Math.max(this._pointer.y - (childNaturalHeight / 2), monitor.y), monitor.y + monitor.height - childNaturalHeight));
         } else {
             if (x === undefined)
                 x = Math.max(monitor.x, monitor.x + Math.floor((monitor.width - childNaturalWidth) / 2));
-            childBox.x1 = x;
+            childBox.x1 = Math.round(x);
             let offset = Math.floor((monitor.height - childNaturalHeight) / 2);
             if (this._popupPosition === Enum.Position.TOP)
                 offset = 0;
@@ -1148,7 +1148,6 @@ export const WindowSwitcherPopup = {
             this._activateWindow(selected);
         }
 
-        this.fadeAndDestroy();
         if (this._shouldFadeAndDestroy(hasFocus))
             this.fadeAndDestroy();
         else
