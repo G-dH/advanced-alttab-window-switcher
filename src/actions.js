@@ -276,7 +276,9 @@ export const Actions = class {
 
         if (metaWin.get_workspace().index() === global.workspace_manager.get_active_workspace().index() &&
             monitorIndex === metaWin.get_monitor()) {
-            if (metaWin.get_maximized() === Meta.MaximizeFlags.BOTH)
+            if ((metaWin.get_maximized && metaWin.get_maximized() === Meta.MaximizeFlags.BOTH) ||
+                (metaWin.is_maximized && metaWin.is_maximized()) // Since GNOME 49
+            )
                 metaWin.unmaximize(Meta.MaximizeFlags.BOTH);
             else
                 metaWin.maximize(Meta.MaximizeFlags.BOTH);
@@ -320,7 +322,9 @@ export const Actions = class {
             return;
         if (win.is_above())
             win.unmake_above();
-        else if (win.get_maximized() !== Meta.MaximizeFlags.BOTH)
+        else if (!(win.get_maximized && win.get_maximized() === Meta.MaximizeFlags.BOTH) ||
+                 (win.is_maximized && win.is_maximized()) // Since GNOME 49
+        )
             win.make_above();
     }
 

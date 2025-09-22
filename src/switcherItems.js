@@ -234,7 +234,10 @@ export const WindowIcon = GObject.registerClass({
             y_align: Clutter.ActorAlign.START,
         });
         icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY);
-        if (!this.window.is_above() || this.window.get_maximized() === Meta.MaximizeFlags.BOTH) {
+        if (!this.window.is_above() ||
+            ((this.window.get_maximized && this.window.get_maximized() === Meta.MaximizeFlags.BOTH) ||
+            (this.window.is_maximized && this.window.is_maximized())) // Since GNOME 49
+        ) {
             icon.add_style_class_name(this._opt.colorStyle.INDICATOR_OVERLAY_INACTIVE);
             icon.opacity = 0;
         } else {

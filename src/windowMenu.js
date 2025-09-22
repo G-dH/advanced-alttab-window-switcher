@@ -68,7 +68,8 @@ export const WindowMenu = class extends PopupMenu.PopupMenu {
         if (!window.can_minimize())
             item.setSensitive(false);
 
-        if (window.get_maximized()) {
+        if ((window.get_maximized && window.get_maximized() === Meta.MaximizeFlags.BOTH) ||
+            (window.is_maximized && window.is_maximized())) { // Since GNOME 49
             item = this.addAction(_('Restore'), () => {
                 window.unmaximize(Meta.MaximizeFlags.BOTH);
             });
