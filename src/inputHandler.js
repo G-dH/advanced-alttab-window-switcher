@@ -3,7 +3,7 @@
  * EventHandler
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2024
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -183,7 +183,7 @@ export class InputHandler {
     }
 
     _invalidSearchCharacter(keysym, keysymName) {
-        return this._ctrlPressed() || keysymName.length !== 1 || !(/[a-zA-Z0-9]/.test(keysymName) || keysym === Clutter.KEY_space);
+        return this._ctrlPressed() || keysymName.length !== 1 || !(/[a-zA-Z0-9-+!/.@#$%&=]/.test(keysymName) || keysym === Clutter.KEY_space);
     }
 
     // ------------------------------------------------------------------
@@ -699,7 +699,7 @@ export class InputHandler {
         const [x, y] = global.get_pointer();
         const switcher = this._wsp._switcherList;
         if (!switcher)
-            return;
+            return null;
         const popupPosition = this._wsp._popupPosition;
         // margin expands the "inside" area around the popup to cover gap between the popup and the edge of screen (Top/Bottom position), plus small overlap
         const margin = this.MARGIN_BOTTOM * this.SCALE_FACTOR - 1;
