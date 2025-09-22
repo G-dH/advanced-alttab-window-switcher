@@ -4,7 +4,7 @@
  * modified original windowMenu modul
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2023
+ * @copyright  2021-2025
  * @license    GPL-3.0
  */
 
@@ -90,7 +90,8 @@ export const WindowMenu = class extends PopupMenu.PopupMenu {
         });
         if (window.is_above())
             item.setOrnament(PopupMenu.Ornament.CHECK);
-        if (window.get_maximized() === Meta.MaximizeFlags.BOTH ||
+        if ((window.get_maximized && window.get_maximized() === Meta.MaximizeFlags.BOTH) ||
+            (window.is_maximized && window.is_maximized()) || // Since GNOME 49
             type === Meta.WindowType.DOCK ||
             type === Meta.WindowType.DESKTOP ||
             type === Meta.WindowType.SPLASHSCREEN)

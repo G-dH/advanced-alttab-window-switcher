@@ -183,6 +183,8 @@ export const WindowSwitcherPopup = {
         global.workspace_manager.connectObject('workspace-switched', this._onWorkspaceChanged.bind(this), this);
         Main.overview.connectObject('showing', () => this.fadeAndDestroy(), this);
         this._connectNewWindows();
+        this._connectKeyHandler();
+        this._connectMouseHandler();
 
         this._timeoutIds = {};
     },
@@ -1650,15 +1652,17 @@ export const WindowSwitcherPopup = {
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // Key handlers
-
-    vfunc_key_press_event(keyEvent) {
+    // GNOME Shell moves to higher-level event handling
+    // This vfunc is still available in GS 49,
+    // let's hope that switching to key-pressed-event signal will not brake anything
+    /* vfunc_key_press_event(keyEvent) {
         this._disableHover();
         if (this._inputHandler)
             this._inputHandler.handleKeyPress(keyEvent);
         else // Handle the input from the Tilling assistant AltTab instance
             this._original_key_press_event(keyEvent);
         return Clutter.EVENT_STOP;
-    },
+    },*/
 
     // Tiling assistant compatibility
     _original_key_press_event(event) {
@@ -1689,7 +1693,7 @@ export const WindowSwitcherPopup = {
         return Clutter.EVENT_STOP;
     },
 
-    vfunc_key_release_event() {
+    /* vfunc_key_release_event() {
         // monitor release of shortcut modifier keys
         if (this._modifierMask) {
             let mods = global.get_pointer()[2];
@@ -1697,7 +1701,6 @@ export const WindowSwitcherPopup = {
 
             if (state === 0) {
                 if (this._selectedIndex !== -1) {
-                    // this.blockSwitchWsFunction = true;
                     this._finish();
                 } else {
                     this.fadeAndDestroy();
@@ -1708,14 +1711,54 @@ export const WindowSwitcherPopup = {
         }
 
         return Clutter.EVENT_STOP;
+    },*/
+
+    _connectKeyHandler() {
+        this.connect('key-press-event', (actor, event) => {
+            this._disableHover();
+            if (this._inputHandler)
+                this._inputHandler.handleKeyPress(event);
+            else // Handle the input from the Tilling assistant AltTab instance
+                this._original_key_press_event(event);
+            return Clutter.EVENT_STOP;
+        });
+
+        this.connect('key-release-event', () => {
+            // monitor release of shortcut modifier keys
+            if (this._modifierMask) {
+                let mods = global.get_pointer()[2];
+                // let mods = event.get_state();
+                let state = mods & this._modifierMask;
+
+                if (state === 0) {
+                    if (this._selectedIndex !== -1)
+                        this._finish();
+                    else
+                        this.fadeAndDestroy();
+                }
+            } else {
+                this._resetNoModsTimeout();
+            }
+
+            return Clutter.EVENT_STOP;
+        });
     },
+
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Mouse handlers
 
-    vfunc_button_press_event(event) {
+    // Since GNOME 49, mouse event vfuncs has been removed from St.Widget
+    /* vfunc_button_press_event(event) {
         const action = this._inputHandler.getButtonPressAction(event);
         return this._triggerAction(action);
+    },*/
+
+    _connectMouseHandler() {
+        this.connect('button-press-event', (actor, event) => {
+            const action = this._inputHandler.getButtonPressAction(event);
+            return this._triggerAction(action);
+        });
     },
 
     _onItemBtnPressEvent(actor, event) {
