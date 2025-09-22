@@ -175,6 +175,7 @@ export const WindowSwitcherPopup = {
         this._updateInProgress     = false;
         this._skipInitialSelection = false;
         this._allowFilterSwitchOnOnlyItem = false;
+        this._mouseHoveringItemIndex = undefined;
 
         opt.cancelTimeout           = false;
 
@@ -312,6 +313,8 @@ export const WindowSwitcherPopup = {
 
         this._firstRun = false;
         this._updateInProgress = false;
+        this._switcherList._updateMouseControls(this._mouseHoveringItemIndex);
+
         return true;
     },
 
@@ -1652,9 +1655,11 @@ export const WindowSwitcherPopup = {
 
     // /////////////////////////////////////////////////////////////////////////////////////////////
     // Key handlers
+
     // GNOME Shell moves to higher-level event handling
     // This vfunc is still available in GS 49,
     // let's hope that switching to key-pressed-event signal will not brake anything
+
     /* vfunc_key_press_event(keyEvent) {
         this._disableHover();
         if (this._inputHandler)

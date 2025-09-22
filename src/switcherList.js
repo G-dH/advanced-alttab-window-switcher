@@ -10,8 +10,9 @@
 'use strict';
 
 import Clutter from 'gi://Clutter';
-import St from 'gi://St';
 import GObject from 'gi://GObject';
+import St from 'gi://St';
+import Meta from 'gi://Meta';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as SwitcherPopup from 'resource:///org/gnome/shell/ui/switcherPopup.js';
@@ -379,16 +380,24 @@ export const SwitcherList = GObject.registerClass({
         if (item._aboveIcon && !item._aboveIcon.reactive) {
             item._aboveIcon.reactive = true;
             item._aboveIcon.opacity = 255;
+            const canAbove =
+                !((item.window.get_maximized && item.window.get_maximized() === Meta.MaximizeFlags.BOTH) || // GNOME <= 48
+                (item.window.is_maximized && item.window.is_maximized())); // Since GNOME 49
+
             item._aboveIcon.connect('button-press-event', () => {
-                this._wsp._toggleWinAbove();
+                if (canAbove)
+                    this._wsp._toggleWinAbove();
                 return Clutter.EVENT_STOP;
             });
-            item._aboveIcon.connect('enter-event', () => {
-                item._aboveIcon.add_style_class_name('window-state-indicators-hover');
-            });
-            item._aboveIcon.connect('leave-event', () => {
-                item._aboveIcon.remove_style_class_name('window-state-indicators-hover');
-            });
+
+            if (canAbove) {
+                item._aboveIcon.connect('enter-event', () => {
+                    item._aboveIcon.add_style_class_name('window-state-indicators-hover');
+                });
+                item._aboveIcon.connect('leave-event', () => {
+                    item._aboveIcon.remove_style_class_name('window-state-indicators-hover');
+                });
+            }
         }
 
         if (item._stickyIcon && !item._stickyIcon.reactive) {
@@ -524,5 +533,6 @@ export const SwitcherList = GObject.registerClass({
         }
 
         item._mouseControlsSet = true;
+        this._wsp._mouseHoveringItemIndex = selectedIndex;
     }
 });
