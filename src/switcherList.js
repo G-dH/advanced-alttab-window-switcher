@@ -473,7 +473,7 @@ export const SwitcherList = GObject.registerClass({
                 const button = event.get_button();
                 if (button === Clutter.BUTTON_PRIMARY) {
                     if (this._wsp._getSelectedTarget().get_workspace().index() !== global.workspaceManager.get_active_workspace_index())
-                        this._wsp._moveToCurrentWS();
+                        this._wsp._actions.moveToCurrentWS();
                     return Clutter.EVENT_STOP;
                 } else if (button === Clutter.BUTTON_MIDDLE) {
                     return Clutter.EVENT_PROPAGATE;

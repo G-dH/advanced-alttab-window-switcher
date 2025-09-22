@@ -1749,7 +1749,7 @@ export const WindowSwitcherPopup = {
         });
     },
 
-
+    
     // ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Mouse handlers
 
@@ -2055,7 +2055,7 @@ export const WindowSwitcherPopup = {
             return Clutter.EVENT_STOP;
         case Enum.Actions.ACTIVATE:
             if (_shiftPressed() && !_ctrlPressed())
-                this._moveToCurrentWS();
+                this._actions.moveToCurrentWS();
             else if (_ctrlPressed() && !_shiftPressed())
                 this._openNewWindow();
             else
