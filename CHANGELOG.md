@@ -1,7 +1,19 @@
 ## Changelog
-### v48.1 (2025-03-7)
+### v49.0 (not yet released)
+**Added:**
+- Support for GNOME 49
+
+**Fixed:**
+- Blurred text labels in some cases
+- App switcher in Dash mode not apearing when no app is open (#151)
+- App Switcher not respecting "Isolate Monitors" setting (#153)
+- Mouse-controlled buttons not updating or disappearing after use
+
+
+### v48.1 (2025-03-17)
 **Fixed:**
 - Compatibility with GNOME 48.beta
+
 
 ### v48.0 (2025-02-05)
 **Fixed:**
