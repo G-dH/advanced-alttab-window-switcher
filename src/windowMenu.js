@@ -71,11 +71,17 @@ export const WindowMenu = class extends PopupMenu.PopupMenu {
         if ((window.get_maximized && window.get_maximized() === Meta.MaximizeFlags.BOTH) ||
             (window.is_maximized && window.is_maximized())) { // Since GNOME 49
             item = this.addAction(_('Restore'), () => {
-                window.unmaximize(Meta.MaximizeFlags.BOTH);
+                if (window.get_maximized)
+                    window.unmaximize(Meta.MaximizeFlags.BOTH);
+                else // Since GNOME 49
+                    window.unmaximize(); ;
             });
         } else {
             item = this.addAction(_('Maximize'), () => {
-                window.maximize(Meta.MaximizeFlags.BOTH);
+                if (window.get_maximized)
+                    window.maximize(Meta.MaximizeFlags.BOTH);
+                else // Since GNOME 49
+                    window.maximize();
             });
         }
         if (!window.can_maximize())

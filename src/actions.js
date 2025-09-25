@@ -278,15 +278,28 @@ export const Actions = class {
             monitorIndex === metaWin.get_monitor()) {
             if ((metaWin.get_maximized && metaWin.get_maximized() === Meta.MaximizeFlags.BOTH) ||
                 (metaWin.is_maximized && metaWin.is_maximized()) // Since GNOME 49
-            )
-                metaWin.unmaximize(Meta.MaximizeFlags.BOTH);
-            else
+            ) {
+                if (metaWin.get_maximized)
+                    metaWin.unmaximize(Meta.MaximizeFlags.BOTH);
+                else // Since GNOME 49
+                    metaWin.unmaximize();
+            } else if (metaWin.get_maximized) {
                 metaWin.maximize(Meta.MaximizeFlags.BOTH);
+            } else { // Since GNOME 49
+                metaWin.maximize();
+            }
         } else {
-            // the already maximized window have to be unmaximized first, otherwise it then unminimize on the original monitor instead of the current one
-            metaWin.unmaximize(Meta.MaximizeFlags.BOTH);
+            // If the window is already maximized, it must be unmaximized first
+            // otherwise, it will restore on the original monitor instead of the current one
+            if (metaWin.get_maximized)
+                metaWin.unmaximize(Meta.MaximizeFlags.BOTH);
+            else // Since GNOME 49
+                metaWin.unmaximize();
             this._moveWindowToCurrentWs(metaWin, monitorIndex);
-            metaWin.maximize(Meta.MaximizeFlags.BOTH);
+            if (metaWin.get_maximized)
+                metaWin.maximize(Meta.MaximizeFlags.BOTH);
+            else // Since GNOME 49
+                metaWin.maximize();
         }
 
         this._wsp._showWindow();
