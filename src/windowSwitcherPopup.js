@@ -531,6 +531,25 @@ export const WindowSwitcherPopup = {
         }
     },
 
+    _getIndexUnderPointer() {
+        if (!this._switcherList || !this._switcherList.visible)
+            return -1;
+
+        const [pointerX, pointerY] = global.get_pointer();
+        const [hasPoint, localX, localY] = this._switcherList.transform_stage_point(pointerX, pointerY);
+        if (!hasPoint)
+            return -1;
+
+        for (let i = 0; i < this._switcherList._items.length; i++) {
+            const item = this._switcherList._items[i];
+            const box = item.get_allocation_box();
+            if (localX >= box.x1 && localX <= box.x2 && localY >= box.y1 && localY <= box.y2)
+                return i;
+        }
+
+        return -1;
+    },
+
     _setInitialSelection(backward) {
         const recentWindow = Util.getWindows(null)[0];
         if (this._searchQuery) {
@@ -566,6 +585,14 @@ export const WindowSwitcherPopup = {
 
         if (this._items.length === 1 && this._switcherList) {
             this._select(0);
+            return;
+        }
+
+        // Prefer seamless mouse-driven selection when the pointer already hovers an item
+        const pointerIndex = this._getIndexUnderPointer();
+        if (pointerIndex > -1) {
+            this._mouseHoveringItemIndex = pointerIndex;
+            this._select(pointerIndex);
             return;
         }
 
