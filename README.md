@@ -105,7 +105,7 @@ Download the latest release archive using following command:
 
 Install the extension (`--force` switch needs to be used only if some version of the extension is already installed):
 
-    gnome-extensions install --force advanced-alttab-window-switcher@G-dH.github.com.zip
+    gnome-extensions install --force advanced-alt-tab@G-dH.github.com.zip
 
 ### Installation of the latest development version
 The most recent version in the repository is the one I'm currently running on my own systems, problems may occur, but usually nothing serious.
