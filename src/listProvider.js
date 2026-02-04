@@ -339,7 +339,7 @@ export class ListProvider {
                 app.cachedWindows = [];
 
             // Filter out non-favorite apps without windows
-            return app.cachedWindows.length > 0 || this._favoritesFull.includes(app.get_id());
+            return app.cachedWindows.length > 0 || this._favoritesFull?.includes(app.get_id());
         });
     }
 
