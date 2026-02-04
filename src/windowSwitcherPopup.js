@@ -3,7 +3,7 @@
  * WindowSwitcherPopup
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2025
+ * @copyright  2021-2026
  * @license    GPL-3.0
  */
 
@@ -1264,8 +1264,8 @@ export const WindowSwitcherPopup = {
         if (!opt.STATUS)
             return;
 
-        let filterMode = this._showingApps ? this._appFilterMode : this._winFilterMode;
-        filterMode = this._listProvider._currentFilterMode; //  ?? filterMode;
+        const filterMode = this._listProvider._currentFilterMode ??
+            this._showingApps ? this._appFilterMode : this._winFilterMode;
 
         this._switcherList._statusLabel.set_text(
             `${_('Filter: ')}${FilterModeLabel[filterMode]
