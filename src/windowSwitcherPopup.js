@@ -354,8 +354,8 @@ export const WindowSwitcherPopup = {
     _pushModal() {
         let result = true;
         let grab = Main.pushModal(this);
-        // We expect at least a keyboard grab here
-        if ((grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
+        // We expect at least a keyboard grab here (GNOME < 50 only)
+        if (grab.get_seat_state && (grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
             Main.popModal(grab);
             result = false;
         }
