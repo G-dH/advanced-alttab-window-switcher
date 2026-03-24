@@ -1,5 +1,15 @@
 ## Changelog
-### v49.0 (not yet released)
+### v50.0 (not released yet)
+**Added:**
+- Support for GNOME 50
+
+**Fixed:**
+- Errors when toggling sticky and above on app
+- Mode indicator in the status label
+- Access to undefined this._favoritesFull
+
+
+### v49.0 (2025-09-25)
 **Added:**
 - Support for GNOME 49
 
