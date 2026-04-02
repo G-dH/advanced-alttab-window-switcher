@@ -1336,7 +1336,7 @@ export const WindowSwitcherPopup = {
 
     _getSelectedID() {
         let item = this._items[this._selectedIndex > -1 ? this._selectedIndex : null];
-        return item._id;
+        return item?._id;
     },
 
     _select(index) {
