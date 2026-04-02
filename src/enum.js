@@ -28,7 +28,7 @@ export const Actions = {
     CLOSE_ALL_APP:    15, // close all windows of selected application
     KILL:             16,
     NEW_WINDOW:       17,
-    ALLWAYS_ON_TOP:   18,
+    ALWAYS_ON_TOP:    18,
     STICKY:           19, // always on visible ws
     MOVE_MAX:         20, // move window to the current ws and maximize it
     FS_ON_NEW_WS:     21, // fullscreen window on new ws next to the current one
