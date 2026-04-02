@@ -466,7 +466,8 @@ export const WindowSwitcherPopup = {
                     } else {
                         this._itemCaption?.set_opacity(255);
                         this.opacity = 255;
-                        this._winPreview?.set_opacity(255);
+                        if (this._previewSelected === Enum.PreviewMode.PREVIEW)
+                            this._showPreview();
                         this._inputHandler._setInputTimeout();
                     }
 
@@ -478,7 +479,8 @@ export const WindowSwitcherPopup = {
             GLib.Source.set_name_by_id(this._initialDelayTimeoutId, '[gnome-shell] Main.osdWindow.cancel');
         } else {
             this.opacity = 255;
-            this._winPreview?.set_opacity(255);
+            if (this._previewSelected === Enum.PreviewMode.PREVIEW)
+                this._showPreview();
             if (this._searchQuery)
                 CaptionLabel.showSearchCaption(this._searchQuery, this, opt);
             else if (this._searchQuery === '')
@@ -1045,7 +1047,6 @@ export const WindowSwitcherPopup = {
                         this._timeoutIds.setInputDelay = 0;
                     }
                 );
-                this._winPreview?.set_opacity(255);
             },
         });
     },
@@ -1891,7 +1892,6 @@ export const WindowSwitcherPopup = {
 
         if (!this._winPreview) {
             this._winPreview = new Util.WindowPreview();
-            this._winPreview.opacity = this.opacity;
             global.window_group.add_child(this._winPreview);
             global.window_group.set_child_above_sibling(this._winPreview, null);
         }
