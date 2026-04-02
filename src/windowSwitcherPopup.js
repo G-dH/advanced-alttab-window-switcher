@@ -1351,7 +1351,7 @@ export const WindowSwitcherPopup = {
             CaptionLabel.showTitleCaption(this, opt);
 
         this._destroyWinPreview();
-        if (this._previewSelected === Enum.PreviewMode.PREVIEW)
+        if (this.opacity && this._previewSelected === Enum.PreviewMode.PREVIEW)
             this._showPreview();
 
         this._resetNoModsTimeout();
