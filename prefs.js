@@ -98,24 +98,31 @@ export default class AATWS extends ExtensionPreferences {
         return pageList;
     }
 
-    fillPreferencesWindow(window) {
-        const Me = {
-            metadata: this.metadata,
-            gSettings: this.getSettings(),
-            _: this.gettext.bind(this),
-        };
-        Me.opt = new Settings.Options(Me);
+    async fillPreferencesWindow(window) {
+        try {
+            const Me = {
+                metadata: this.metadata,
+                gSettings: this.getSettings(),
+                _: this.gettext.bind(this),
+            };
+            Me.opt = new Settings.Options(Me);
 
-        this.opt = Me.opt;
-        _ = Me._;
+            this.opt = Me.opt;
+            _ = Me._;
 
-        OptionsFactory.AdwPrefs.getFilledWindow(window, this._getPageList());
-        window.set_search_enabled(true);
-        window.set_default_size(840, 800);
-        window.connect('close-request', () => {
-            this.opt.destroy();
-            this.opt = null;
-        });
+            OptionsFactory.AdwPrefs.getFilledWindow(window, this._getPageList());
+            if (window.set_search_enabled)
+                window.set_search_enabled(true);
+            else
+                window.search_enabled = true;
+            window.set_default_size(840, 800);
+            window.connect('close-request', () => {
+                this.opt?.destroy();
+                this.opt = null;
+            });
+        } catch (err) {
+            console.error(`[${this.metadata.name}]`, err);
+        }
     }
 
     _getCommonOptionList(options) {
