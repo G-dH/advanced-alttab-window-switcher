@@ -48,6 +48,20 @@ function _getActionList() {
 
 
 export default class AATWS extends ExtensionPreferences {
+    _prefsWindow = null;
+    _prefsCloseRequestId = 0;
+
+    _clearPreferencesWindowPages(window) {
+        if (!window?.get_visible_page || !window.remove)
+            return;
+        for (let n = 0; n < 64; n++) {
+            const page = window.get_visible_page();
+            if (!page)
+                break;
+            window.remove(page);
+        }
+    }
+
     _getPageList() {
         const itemFactory = new OptionsFactory.ItemFactory(this.opt);
         const options = this._getOptions(itemFactory);
@@ -99,6 +113,18 @@ export default class AATWS extends ExtensionPreferences {
     }
 
     async fillPreferencesWindow(window) {
+        if (this._prefsCloseRequestId && this._prefsWindow) {
+            try {
+                this._prefsWindow.disconnect(this._prefsCloseRequestId);
+            } catch (e) {
+                /* window may already be destroyed */
+            }
+            this._prefsCloseRequestId = 0;
+            this._prefsWindow = null;
+        }
+
+        this._clearPreferencesWindowPages(window);
+
         try {
             const Me = {
                 metadata: this.metadata,
@@ -116,7 +142,9 @@ export default class AATWS extends ExtensionPreferences {
             else
                 window.search_enabled = true;
             window.set_default_size(840, 800);
-            window.connect('close-request', () => {
+
+            this._prefsWindow = window;
+            this._prefsCloseRequestId = window.connect('close-request', () => {
                 this.opt?.destroy();
                 this.opt = null;
             });

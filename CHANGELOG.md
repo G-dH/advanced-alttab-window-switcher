@@ -7,6 +7,7 @@
 - Errors when toggling sticky and above on app
 - Mode indicator in the status label
 - Access to undefined this._favoritesFull
+- Extension preferences not reopening reliably: clear reused preference pages and avoid stacking `close-request` handlers on `AdwPreferencesWindow`
 
 
 ### v49.0 (2025-09-25)
