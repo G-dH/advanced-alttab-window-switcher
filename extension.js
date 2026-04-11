@@ -235,7 +235,7 @@ export default class AATWS extends Extension {
             const x1 = geometry.x + offset;
             const x2 = geometry.x + geometry.width - offset;
             let y = position === 1 ? geometry.y : geometry.y + geometry.height;
-            y -= Meta.is_wayland_compositor() ? 1 : 0;
+            y -= !Meta.is_wayland_compositor || Meta.is_wayland_compositor() ? 1 : 0;
 
             let horizontalBarrier;
             // GS 46+ replaced the Meta.Barrier.display property with backend
