@@ -372,27 +372,15 @@ export const AdwPrefs = class {
                 continue;
             }
 
-            const row = new Adw.ActionRow({
-                title: option._title,
-            });
-
-            const grid = new Gtk.Grid({
-                column_homogeneous: false,
-                column_spacing: 20,
-                margin_start: 8,
-                margin_end: 8,
-                margin_top: 8,
-                margin_bottom: 8,
-                hexpand: true,
-            });
-            grid.attach(option, 0, 0, 1, 1);
+            // Use add_prefix/add_suffix (supported layout on GNOME 47+ / libadwaita 1.6+).
+            // Nesting a full GtkGrid in set_child() often yields an empty or non-interactive row.
+            const row = new Adw.ActionRow();
+            row.add_prefix(option);
             if (widget)
-                grid.attach(widget, 1, 0, 1, 1);
-
-            row.set_child(grid);
+                row.add_suffix(widget);
             if (widget._activatable === false)
                 row.activatable = false;
-            else
+            else if (widget)
                 row.activatable_widget = widget;
 
             group.add(row);

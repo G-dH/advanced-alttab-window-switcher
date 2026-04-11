@@ -14,7 +14,7 @@ An extension for GNOME Shell that enhances its following built-in switchers:
 ![Window Switcher Popup](screenshots/screenshot.png)
 
 ## Features:
-- Supports GNOME Shell 42 - 50 (legacy versions also available for 3.36 - 41)
+- Supports GNOME Shell 42 - **50** (legacy versions also available for 3.36 - 41). GNOME Shell **50** is **Wayland-only**; after install or update, use a full **Log Out / Log In** so Shell loads the extension ([see below](#gnome-shell-50)).
 - Filters (all/workspace/monitor), sorting, grouping options, most of them switchable *on the fly*
 - Type to search - windows, apps, settings. Search can automatically switch current filter mode if needed
 - Hotkeys allow to control switcher and windows, including relocations
@@ -29,7 +29,7 @@ An extension for GNOME Shell that enhances its following built-in switchers:
 - Mouse control, including optional top or bottom hot edge for switcher activation
 - Configurable mouse buttons and scroll wheel
 - Supported by the *Custom Hot Corners - Extended* extension
-- Workspace Thumbnails option allows better navigation between workspaces (GNONE 40+)
+- Workspace Thumbnails option allows better navigation between workspaces (GNOME 40+)
 
 [Video review on Linux Experience Youtube channel](https://youtu.be/KtjYPMCvQ7Y?t=447)
 
@@ -117,6 +117,13 @@ Run following commands in the terminal (`git` needs to installed, navigate to th
     cd advanced-alttab-window-switcher/
     make install
 
+#### GNOME Shell 50
+
+The same `main` branch and `make install` steps as for **GNOME 45+** apply. GNOME Shell 50 drops the X11 session, so there is no `Alt`+`F2` `r` full-shell restart.
+
+- After installing or updating from a zip, `make install`, or copying files into `~/.local/share/gnome-shell/extensions/`, **log out and log back in** (or reboot). Shell only rescans user extensions at session start; until then, the extension may not appear in **Extensions** or `gnome-extensions list`, and toggling the switch may not load new code reliably.
+- Preferences use **libadwaita** / **GTK 4** APIs current in GNOME 50; use the **Extensions** app or `gnome-extensions prefs advanced-alt-tab@G-dH.github.com` to open settings.
+
 #### GNOME 42 - 44
 
     git clone https://github.com/G-dH/advanced-alttab-window-switcher.git
@@ -134,7 +141,7 @@ Run following commands in the terminal (`git` needs to installed, navigate to th
 ### Enable installed extension
 After installation you need to enable the extension. Only direct installation from extension.gnome.org loads the code and enables the extension immediately.
 
-- First restart GNOME Shell (`ALt` + `F2`, `r`, `Enter`, or Log Out/Log In if you use Wayland)
+- Restart the session so GNOME Shell loads the extension: on **X11** (Shell 42–49, if you use the X11 session) you can press `Alt`+`F2`, type `r`, and press `Enter`. On **Wayland**, and on **GNOME Shell 50** (Wayland only), use **Log Out** / **Log In** (or reboot).
 - Now you should see the new extension in *Extensions* (or *GNOME Tweak Tool* on older systems) application (reopen the app if needed to load new data), where you can enable it and access its Preferences/Settings.
 - You can also enable the extension from the command line:
 
