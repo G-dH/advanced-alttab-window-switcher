@@ -1127,7 +1127,7 @@ export const WindowSwitcherPopup = {
         );
     },
 
-    _finish() {
+    _finish(keyActivated) {
         if (this._timeoutIds.showWinImmediately) {
             GLib.source_remove(this._timeoutIds.showWinImmediately);
             this._timeoutIds.showWinImmediately = 0;
@@ -1157,7 +1157,7 @@ export const WindowSwitcherPopup = {
             this._activateWindow(selected);
         }
 
-        if (this._shouldFadeAndDestroy(hasFocus))
+        if (keyActivated || this._shouldFadeAndDestroy(hasFocus))
             this.fadeAndDestroy();
         else
             this._doNotUpdateOnNewWindow = false;

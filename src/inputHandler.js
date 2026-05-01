@@ -3,7 +3,7 @@
  * EventHandler
  *
  * @author     GdH <G-dH@github.com>
- * @copyright  2021-2025
+ * @copyright  2021-2026
  * @license    GPL-3.0
  */
 
@@ -133,7 +133,7 @@ export class InputHandler {
             keysym === Clutter.KEY_Return ||
             keysym === Clutter.KEY_KP_Enter ||
             keysym === Clutter.KEY_ISO_Enter)
-            this._wsp._finish();
+            this._wsp._finish(true);
 
         return Clutter.EVENT_PROPAGATE;
     }
@@ -145,7 +145,7 @@ export class InputHandler {
             if (index < this._wsp._items.length) {
                 this._wsp._selectedIndex = index;
                 if (!this._shiftPressed())
-                    this._wsp._finish();
+                    this._wsp._finish(true);
                 else
                     this._wsp._select(index);
             }
@@ -223,7 +223,7 @@ export class InputHandler {
             this._wsp.fadeAndDestroy();
             this._actions.toggleAppGrid();
         } else if (overlayKeyInitActive && this._opt.SUPER_DOUBLE_PRESS_ACT === Enum.DoubleSuperAction.PREV_WIN) {
-            this._wsp._finish();
+            this._wsp._finish(true);
         } else if (overlayKeyInitActive && this._opt.SUPER_DOUBLE_PRESS_ACT === Enum.DoubleSuperAction.SWITCHER_MODE) {
             this._wsp._resetSwitcherMode();
             this._wsp._toggleSwitcherMode();
@@ -521,7 +521,7 @@ export class InputHandler {
         else if (this._ctrlPressed())
             this._wsp._openNewWindow();
         else
-            this._wsp._finish();
+            this._wsp._finish(true);
     }
 
     _handleDelKey() {
