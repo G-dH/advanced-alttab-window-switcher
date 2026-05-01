@@ -268,54 +268,57 @@ export const WindowSwitcherPopup = {
             return false;
         this._updateInProgress = true;
 
-        this._inputHandler._remapOverlayKeyIfNeeded();
+        try {
+            this._inputHandler._remapOverlayKeyIfNeeded();
 
-        if (this._firstRun) {
-            this._pushModalCustom();
+            if (this._firstRun) {
+                this._pushModalCustom();
 
-            // Update run-time variables
-            const externalTrigger = this.CHCE_TRIGGERED !== undefined ? this.CHCE_TRIGGERED : this._externalTrigger; // backward compatibility
-            this._keyboardTriggered = this.KEYBOARD_TRIGGERED !== undefined ? this.KEYBOARD_TRIGGERED : this._keyboardTriggered; // backward compatibility
-            this._dashMode = !this._keyboardTriggered || (this._keyboardTriggered && this._overlayKeyTriggered);
-            this._positionPointer = opt.POSITION_POINTER && externalTrigger && !this._keyboardTriggered;
-            this._includeFavorites = this._dashMode ? opt.DASH_APP_INCLUDE_FAVORITES : this._includeFavorites;
-        }
+                // Update run-time variables
+                const externalTrigger = this.CHCE_TRIGGERED !== undefined ? this.CHCE_TRIGGERED : this._externalTrigger; // backward compatibility
+                this._keyboardTriggered = this.KEYBOARD_TRIGGERED !== undefined ? this.KEYBOARD_TRIGGERED : this._keyboardTriggered; // backward compatibility
+                this._dashMode = !this._keyboardTriggered || (this._keyboardTriggered && this._overlayKeyTriggered);
+                this._positionPointer = opt.POSITION_POINTER && externalTrigger && !this._keyboardTriggered;
+                this._includeFavorites = this._dashMode ? opt.DASH_APP_INCLUDE_FAVORITES : this._includeFavorites;
+            }
 
-        this._updateFilterMode();
-        this._handleSingleAppMode(binding);
-        this._storePointerPosition();
+            this._updateFilterMode();
+            this._handleSingleAppMode(binding);
+            this._storePointerPosition();
 
-        let itemList = this._getAdjustedItemList();
-        if (!itemList.length)
-            return false;
+            let itemList = this._getAdjustedItemList();
+            if (!itemList.length)
+                return false;
 
-        this._updateSwitcherList(itemList);
+            this._updateSwitcherList(itemList);
 
-        // Need to force an allocation so we can figure out whether we
-        // need to scroll when selecting
-        this.visible = true;
-        this.opacity = 0;
-        this.get_allocation_box();
+            // Need to force an allocation so we can figure out whether we
+            // need to scroll when selecting
+            this.visible = true;
+            this.opacity = 0;
+            this.get_allocation_box();
 
-        this._setInitialSelection(backward, binding);
+            this._setInitialSelection(backward, binding);
 
-        if (this._resetNoModsTimeoutOrFinish(binding, mask))
+            if (this._resetNoModsTimeoutOrFinish(binding, mask))
+                return true;
+
+            this._updateStyle();
+            this._updateCaptionLabelOpacity();
+            this._wsTmb?.remove_all_transitions();
+            this._setSwitcherStatus();
+
+            this._showPopup();
+
+            this._showSearchCaptionIfNeeded();
+
+            this._firstRun = false;
+            this._switcherList._updateMouseControls(this._mouseHoveringItemIndex);
+
             return true;
-
-        this._updateStyle();
-        this._updateCaptionLabelOpacity();
-        this._wsTmb?.remove_all_transitions();
-        this._setSwitcherStatus();
-
-        this._showPopup();
-
-        this._showSearchCaptionIfNeeded();
-
-        this._firstRun = false;
-        this._updateInProgress = false;
-        this._switcherList._updateMouseControls(this._mouseHoveringItemIndex);
-
-        return true;
+        } finally {
+            this._updateInProgress = false;
+        }
     },
 
     _pushModalCustom() {
@@ -352,17 +355,19 @@ export const WindowSwitcherPopup = {
     },
 
     _pushModal() {
-        let result = true;
-        let grab = Main.pushModal(this);
-        // We expect at least a keyboard grab here (GNOME < 50 only)
-        if (grab.get_seat_state && (grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
+        const grab = Main.pushModal(this);
+        // When the grab exposes state (Clutter: get_windowing_state or legacy get_seat_state),
+        // ensure we have a keyboard grab; otherwise assume success like upstream SwitcherPopup.
+        const state = grab.get_windowing_state?.() ?? grab.get_seat_state?.();
+        if (state !== undefined && (state & Clutter.GrabState.KEYBOARD) === 0) {
             Main.popModal(grab);
-            result = false;
+            this._grab = null;
+            this._haveModal = false;
+            return false;
         }
         this._grab = grab;
         this._haveModal = true;
-        this._haveModal = result;
-        return result;
+        return true;
     },
 
     _resetNoModsTimeoutOrFinish(binding, mask) {

@@ -48,6 +48,20 @@ function _getActionList() {
 
 
 export default class AATWS extends ExtensionPreferences {
+    _prefsWindow = null;
+    _prefsCloseRequestId = 0;
+
+    _clearPreferencesWindowPages(window) {
+        if (!window?.get_visible_page || !window.remove)
+            return;
+        for (let n = 0; n < 64; n++) {
+            const page = window.get_visible_page();
+            if (!page)
+                break;
+            window.remove(page);
+        }
+    }
+
     _getPageList() {
         const itemFactory = new OptionsFactory.ItemFactory(this.opt);
         const options = this._getOptions(itemFactory);
@@ -98,24 +112,45 @@ export default class AATWS extends ExtensionPreferences {
         return pageList;
     }
 
-    fillPreferencesWindow(window) {
-        const Me = {
-            metadata: this.metadata,
-            gSettings: this.getSettings(),
-            _: this.gettext.bind(this),
-        };
-        Me.opt = new Settings.Options(Me);
+    async fillPreferencesWindow(window) {
+        if (this._prefsCloseRequestId && this._prefsWindow) {
+            try {
+                this._prefsWindow.disconnect(this._prefsCloseRequestId);
+            } catch (e) {
+                /* window may already be destroyed */
+            }
+            this._prefsCloseRequestId = 0;
+            this._prefsWindow = null;
+        }
 
-        this.opt = Me.opt;
-        _ = Me._;
+        this._clearPreferencesWindowPages(window);
 
-        OptionsFactory.AdwPrefs.getFilledWindow(window, this._getPageList());
-        window.set_search_enabled(true);
-        window.set_default_size(840, 800);
-        window.connect('close-request', () => {
-            this.opt.destroy();
-            this.opt = null;
-        });
+        try {
+            const Me = {
+                metadata: this.metadata,
+                gSettings: this.getSettings(),
+                _: this.gettext.bind(this),
+            };
+            Me.opt = new Settings.Options(Me);
+
+            this.opt = Me.opt;
+            _ = Me._;
+
+            OptionsFactory.AdwPrefs.getFilledWindow(window, this._getPageList());
+            if (window.set_search_enabled)
+                window.set_search_enabled(true);
+            else
+                window.search_enabled = true;
+            window.set_default_size(840, 800);
+
+            this._prefsWindow = window;
+            this._prefsCloseRequestId = window.connect('close-request', () => {
+                this.opt?.destroy();
+                this.opt = null;
+            });
+        } catch (err) {
+            console.error(`[${this.metadata.name}]`, err);
+        }
     }
 
     _getCommonOptionList(options) {

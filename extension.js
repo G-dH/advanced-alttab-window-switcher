@@ -85,8 +85,9 @@ export default class AATWS extends Extension {
         Main.layoutManager.aatws = null;
 
         if (this._overrides) {
-            this._overrides.removeOverride('WindowSwitcherPopup');
+            this._overrides.removeOverride('AppSwitcherPopupInit');
             this._overrides.removeOverride('AppSwitcherPopup');
+            this._overrides.removeOverride('WindowSwitcherPopup');
         }
         this._overrides = null;
 
@@ -103,7 +104,7 @@ export default class AATWS extends Extension {
         this._opt = null;
         this.Me = null;
 
-        console.debug(`${this.metadata.name}: enabled`);
+        console.debug(`${this.metadata.name}: disabled`);
     }
 
     _updateSettings(settings, key) {
