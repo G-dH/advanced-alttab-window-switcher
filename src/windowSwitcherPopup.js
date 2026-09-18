@@ -186,6 +186,7 @@ export const WindowSwitcherPopup = {
         this._connectNewWindows();
         this._connectKeyHandler();
         this._connectMouseHandler();
+        this._connectScrollHandler();
 
         this._timeoutIds = {};
     },
@@ -1702,26 +1703,6 @@ export const WindowSwitcherPopup = {
         return Clutter.EVENT_STOP;
     },
 
-    /* vfunc_key_release_event() {
-        // monitor release of shortcut modifier keys
-        if (this._modifierMask) {
-            let mods = global.get_pointer()[2];
-            let state = mods & this._modifierMask;
-
-            if (state === 0) {
-                if (this._selectedIndex !== -1) {
-                    this._finish();
-                } else {
-                    this.fadeAndDestroy();
-                }
-            }
-        } else {
-            this._resetNoModsTimeout();
-        }
-
-        return Clutter.EVENT_STOP;
-    },*/
-
     _connectKeyHandler() {
         this.connect('key-press-event', (actor, event) => {
             this._disableHover();
@@ -1757,12 +1738,6 @@ export const WindowSwitcherPopup = {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Mouse handlers
 
-    // Since GNOME 49, mouse event vfuncs has been removed from St.Widget
-    /* vfunc_button_press_event(event) {
-        const action = this._inputHandler.getButtonPressAction(event);
-        return this._triggerAction(action);
-    },*/
-
     _connectMouseHandler() {
         this.connect('button-press-event', (actor, event) => {
             const action = this._inputHandler.getButtonPressAction(event);
@@ -1776,19 +1751,21 @@ export const WindowSwitcherPopup = {
         return this._triggerAction(action);
     },
 
-    vfunc_scroll_event(event) {
-        let direction = Util.getScrollDirection(event);
+    _connectScrollHandler() {
+        this.connect('scroll-event', (actoe, event) => {
+            let direction = Util.getScrollDirection(event);
 
-        const action = this._inputHandler?.getScrollAction(event);
-        // If called from the Tiling assistant, _inputHandler is missing
-        if (!action)
-            return null;
+            const action = this._inputHandler?.getScrollAction(event);
+            // If called from the Tiling assistant, _inputHandler is missing
+            if (!action)
+                return null;
 
-        if (!this._scrollActionAllowed(action))
-            return Clutter.EVENT_STOP;
-        this._resetNoModsTimeout();
-        this._lastActionTimeStamp = Date.now();
-        return this._triggerAction(action, direction);
+            if (!this._scrollActionAllowed(action))
+                return Clutter.EVENT_STOP;
+            this._resetNoModsTimeout();
+            this._lastActionTimeStamp = Date.now();
+            return this._triggerAction(action, direction);
+        })
     },
 
     _onItemScrollEvent(actor, event) {

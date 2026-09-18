@@ -1,4 +1,9 @@
 ## Changelog
+### v51.0 (not yet released)
+**Added:**
+- Support for GNOME 51
+
+
 ### v50.1 (2026-07-08)
 **Fixed:**
 - Irresponsive buttons _Always on visible workspace_ and _Always on top_
