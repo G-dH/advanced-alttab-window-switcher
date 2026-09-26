@@ -772,22 +772,22 @@ export default class AATWS extends ExtensionPreferences {
             _('Appearance')
         );
 
-        const popupSizeAdjustment = new Gtk.Adjustment({
+        const popupPreviewSizeAdjustment = new Gtk.Adjustment({
             upper: 512,
-            lower: 32,
+            lower: 0,
             step_increment: 8,
             page_increment: 32,
         });
-        const popupSizeScale = itemFactory.newScale(popupSizeAdjustment);
-        popupSizeScale.add_mark(64, Gtk.PositionType.TOP, null);
-        popupSizeScale.add_mark(128, Gtk.PositionType.TOP, null);
-        popupSizeScale.add_mark(192, Gtk.PositionType.TOP, null);
-        popupSizeScale.add_mark(256, Gtk.PositionType.TOP, null);
-        popupSizeScale.add_mark(384, Gtk.PositionType.TOP, null);
+        const popupPreviewSizeScale = itemFactory.newScale(popupPreviewSizeAdjustment);
+        popupPreviewSizeScale.add_mark(64, Gtk.PositionType.TOP, null);
+        popupPreviewSizeScale.add_mark(128, Gtk.PositionType.TOP, null);
+        popupPreviewSizeScale.add_mark(192, Gtk.PositionType.TOP, null);
+        popupPreviewSizeScale.add_mark(256, Gtk.PositionType.TOP, null);
+        popupPreviewSizeScale.add_mark(384, Gtk.PositionType.TOP, null);
         optDict.WindowPreviewSize = itemFactory.getRowWidget(
             _('Window Preview Size (px)'),
             null,
-            popupSizeScale,
+            popupPreviewSizeScale,
             'winSwitcherPopupPreviewSize'
         );
 
