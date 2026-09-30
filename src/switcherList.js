@@ -21,6 +21,9 @@ import { AppIcon, WindowIcon, SysActionIcon, ShowAppsIcon } from './switcherItem
 // gettext
 let _;
 
+// same as in the stock SwitcherList
+const POPUP_SCROLL_TIME = 100; // milliseconds
+
 
 /* Item structure:
    Window: (WindowIcon)icon.window
@@ -56,6 +59,9 @@ export const SwitcherList = GObject.registerClass({
     _init(items, opt, wsp) {
         super._init(false); // squareItems = false
         this._opt = opt;
+        this._vertical = opt.VERTICAL_LIST;
+        if (this._vertical)
+            this._setVerticalOrientation();
         this._switcherParams = this._getSwitcherParams(opt, wsp);
         this._wsp = wsp;
 
@@ -123,6 +129,29 @@ export const SwitcherList = GObject.registerClass({
             showAppsItemBox.add_style_class_name('item-box-custom');
 
         this.connect('destroy', this._onDestroy.bind(this));
+    }
+
+    // Stock SwitcherList is horizontal only. The scroll view, the arrows
+    // and the items keep their names, but for the vertical list
+    // _leftArrow/_scrollableLeft mean "up" and _rightArrow/_scrollableRight mean "down".
+    _setVerticalOrientation() {
+        this._list.orientation = Clutter.Orientation.VERTICAL;
+        this._scrollView.style_class = 'vfade';
+
+        this._leftArrow.destroy();
+        this._rightArrow.destroy();
+        this._leftArrow = this._createArrow(St.Side.TOP);
+        this._rightArrow = this._createArrow(St.Side.BOTTOM);
+    }
+
+    _createArrow(side) {
+        const arrow = new St.DrawingArea({
+            style_class: 'switcher-arrow',
+            pseudo_class: 'highlighted',
+        });
+        arrow.connect('repaint', () => SwitcherPopup.drawArrow(arrow, side));
+        this.add_child(arrow);
+        return arrow;
     }
 
     _addStatusLabel() {
@@ -206,11 +235,15 @@ export const SwitcherList = GObject.registerClass({
             maxChildNat = maxChildMin;
         }
 
-        const orientation = this._list.orientation === undefined ? 'vertical' : 'orientation';
-        let multiplier = this._list[orientation] ? this._items.length : 1;
+        let multiplier = 1;
+        if (this._vertical) {
+            // the natural height is the sum of the items, the minimal one allows the list to scroll
+            multiplier = this._items.length;
+            maxChildNat = this._items.reduce((sum, item) => sum + item.get_preferred_height(-1)[1], 0);
+        }
         let spacing = this._list.get_theme_node().get_length('spacing') * (multiplier - 1);
-        maxChildMin = maxChildMin * multiplier + spacing;
-        maxChildNat = maxChildNat * multiplier + spacing;
+        maxChildMin += this._vertical ? 0 : spacing;
+        maxChildNat += spacing;
 
         let themeNode = this.get_theme_node();
         let [minHeight, natHeight] = themeNode.adjust_preferred_height(maxChildMin, maxChildNat);
@@ -248,6 +281,9 @@ export const SwitcherList = GObject.registerClass({
 
         this.set_allocation(box);
 
+        if (this._vertical)
+            this._allocateVerticalArrows(contentBox);
+
         if (this._statusLabel) {
             const childBox = new Clutter.ActorBox();
             childBox.x1 = contentBox.x1 + 5;
@@ -256,6 +292,35 @@ export const SwitcherList = GObject.registerClass({
             childBox.y1 = childBox.y2 - statusLabelHeight;
             this._statusLabel.allocate(childBox);
         }
+    }
+
+    _allocateVerticalArrows(contentBox) {
+        const themeNode = this.get_theme_node();
+        const [, listHeight] = this._list.get_preferred_height(-1);
+        const scrollable = listHeight > contentBox.y2 - contentBox.y1 - this._getStatusLabelHeight();
+        const childBox = new Clutter.ActorBox();
+
+        let arrowHeight = Math.floor(themeNode.get_padding(St.Side.TOP) / 3);
+        let arrowWidth = arrowHeight * 2;
+        childBox.x1 = this.width / 2 - arrowHeight;
+        childBox.y1 = themeNode.get_padding(St.Side.TOP) / 2;
+        childBox.x2 = childBox.x1 + arrowWidth;
+        childBox.y2 = childBox.y1 + arrowHeight;
+        this._leftArrow.allocate(childBox);
+        this._leftArrow.opacity = this._scrollableLeft && scrollable ? 255 : 0;
+
+        arrowHeight = Math.floor(themeNode.get_padding(St.Side.BOTTOM) / 3);
+        arrowWidth = arrowHeight * 2;
+        childBox.x1 = this.width / 2 - arrowHeight;
+        childBox.y2 = this.height - this._getStatusLabelHeight() - themeNode.get_padding(St.Side.BOTTOM) / 2;
+        childBox.y1 = childBox.y2 - arrowHeight;
+        childBox.x2 = childBox.x1 + arrowWidth;
+        this._rightArrow.allocate(childBox);
+        this._rightArrow.opacity = this._scrollableRight && scrollable ? 255 : 0;
+    }
+
+    _getStatusLabelHeight() {
+        return this._statusLabel ? this._statusLabel.height : 0;
     }
 
     _onItemMotion(item) {
@@ -292,6 +357,11 @@ export const SwitcherList = GObject.registerClass({
 
         this._highlighted = index;
 
+        if (this._vertical) {
+            this._scrollToItemVertical(index);
+            return;
+        }
+
         let adjustment = this._scrollView.get_hadjustment
             ? this._scrollView.get_hadjustment()
             : this._scrollView.get_hscroll_bar().adjustment;
@@ -303,6 +373,64 @@ export const SwitcherList = GObject.registerClass({
             this._scrollToRight(index);
         else if (this._items[index].allocation.x1 - value < 0)
             this._scrollToLeft(index);
+    }
+
+    _scrollToItemVertical(index) {
+        const adjustment = this._scrollView.vadjustment;
+        const [value, , , , , pageSize] = adjustment.get_values();
+        const item = this._items[index];
+
+        // the list is not allocated yet
+        if (!item || pageSize <= 0)
+            return;
+
+        if (item.allocation.y1 < value)
+            this._scrollToLeft(index);
+        else if (item.allocation.y2 > value + pageSize)
+            this._scrollToRight(index);
+    }
+
+    _scrollVertical(index, up) {
+        const adjustment = this._scrollView.vadjustment;
+        let [value, , upper, , , pageSize] = adjustment.get_values();
+        const item = this._items[index];
+
+        if (item.allocation.y1 < value)
+            value = Math.max(0, item.allocation.y1);
+        else if (item.allocation.y2 > value + pageSize)
+            value = Math.min(upper, item.allocation.y2 - pageSize);
+
+        if (up)
+            this._scrollableRight = true;
+        else
+            this._scrollableLeft = true;
+
+        adjustment.ease(value, {
+            progress_mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            duration: POPUP_SCROLL_TIME,
+            onComplete: () => {
+                if (up && index === 0)
+                    this._scrollableLeft = false;
+                else if (!up && index === this._items.length - 1)
+                    this._scrollableRight = false;
+                this.queue_relayout();
+            },
+        });
+    }
+
+    // "left" and "right" are the names of the stock (horizontal) methods, in the vertical list they scroll up and down
+    _scrollToLeft(index) {
+        if (this._vertical)
+            this._scrollVertical(index, true);
+        else
+            super._scrollToLeft(index);
+    }
+
+    _scrollToRight(index) {
+        if (this._vertical)
+            this._scrollVertical(index, false);
+        else
+            super._scrollToRight(index);
     }
 
     _removeWindow(window) {

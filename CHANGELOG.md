@@ -2,6 +2,7 @@
 ### v51.0 (not yet released)
 **Added:**
 - Support for GNOME 51
+- Option _Vertical List_ to arrange the switcher pop-up items in a single column ([#187](https://github.com/G-dH/advanced-alttab-window-switcher/issues/187))
 
 
 ### v50.1 (2026-07-08)
