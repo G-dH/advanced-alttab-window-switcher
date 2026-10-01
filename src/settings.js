@@ -130,6 +130,7 @@ export const Options = class Options {
             switcherPopupSecClickOut: ['int', 'switcher-popup-sec-click-out'],
             switcherPopupMidClickOut: ['int', 'switcher-popup-mid-click-out'],
             switcherPopupStatus: ['boolean', 'switcher-popup-status'],
+            switcherPopupVertical: ['boolean', 'switcher-popup-vertical'],
             switcherPopupSyncFilter: ['boolean', 'switcher-popup-sync-filter'],
             switcherPopupTheme: ['int', 'switcher-popup-theme'],
             switcherPopupInteractiveIndicators: ['boolean', 'switcher-popup-interactive-indicators'],
@@ -319,6 +320,7 @@ export const Options = class Options {
         this.SHIFT_AZ_HOTKEYS      = this.get('switcherPopupShiftHotkeys');
         this.DELETE_KEY_CLOSE      = this.get('switcherPopupDelKeyClose');
         this.STATUS                = this.get('switcherPopupStatus');
+        this.VERTICAL_LIST         = this.get('switcherPopupVertical');
         this.PREVIEW_SELECTED      = this.get('switcherPopupPreviewSelected');
         this.SEARCH_ALL            = this.get('winSwitcherPopupSearchAll');
         this.ITEM_CAPTIONS         = this.get('switcherPopupTooltipTitle');

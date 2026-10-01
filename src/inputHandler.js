@@ -384,7 +384,9 @@ export class InputHandler {
     }
 
     _navigateUp() {
-        if (this._ctrlPressed() && !this._shiftPressed())
+        if (this._opt.VERTICAL_LIST && !this._ctrlPressed() && !this._shiftPressed())
+            this._wsp._select(this._wsp._previous(true));
+        else if (this._ctrlPressed() && !this._shiftPressed())
             this._wsp.moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
         else if (this._ctrlPressed() && this._shiftPressed())
             this._wsp.moveWinToNewAdjacentWs(Clutter.ScrollDirection.UP);
@@ -399,7 +401,9 @@ export class InputHandler {
     }
 
     _navigateDown() {
-        if (this._ctrlPressed() && !this._shiftPressed())
+        if (this._opt.VERTICAL_LIST && !this._ctrlPressed() && !this._shiftPressed())
+            this._wsp._select(this._wsp._next(true));
+        else if (this._ctrlPressed() && !this._shiftPressed())
             this._actions.moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
         else if (this._ctrlPressed() && this._shiftPressed())
             this._actions.moveWinToNewAdjacentWs(Clutter.ScrollDirection.DOWN);

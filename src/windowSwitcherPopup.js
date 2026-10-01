@@ -869,6 +869,9 @@ export const WindowSwitcherPopup = {
         // Allocate the switcherList
         // We select a size based on an icon size that does not overflow the screen
         let [, childNaturalHeight] = this._switcherList.get_preferred_height(monitor.width);
+        // the vertical list scrolls if it doesn't fit, leave some room for the captions and workspace thumbnails
+        if (opt.VERTICAL_LIST)
+            childNaturalHeight = Math.min(childNaturalHeight, Math.floor(monitor.height * 0.8));
         let [, childNaturalWidth] = this._switcherList.get_preferred_width(childNaturalHeight);
         let x;
 

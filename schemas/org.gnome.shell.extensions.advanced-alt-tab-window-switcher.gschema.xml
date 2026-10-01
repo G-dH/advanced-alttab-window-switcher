@@ -128,6 +128,9 @@
     <key name='switcher-popup-status' type='b'>
       <default>false</default>
     </key>
+    <key name='switcher-popup-vertical' type='b'>
+      <default>false</default>
+    </key>
     <key name='switcher-popup-tooltip-title' type='i'>
       <default>2</default>
     </key>

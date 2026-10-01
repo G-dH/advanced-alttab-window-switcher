@@ -143,6 +143,7 @@ export default class AATWS extends ExtensionPreferences {
             o.TooltipLabelScale,
             o.ShowDirectActivation,
             o.ShowStatus,
+            o.VerticalList,
             o.SingleAppPreviewSize,
             // ---------------
             o.Input,
@@ -427,6 +428,13 @@ export default class AATWS extends ExtensionPreferences {
             _('Displays a label at the bottom left of the pop-up, indicating the current filter, grouping, and sorting modes'),
             itemFactory.newSwitch(),
             'switcherPopupStatus'
+        );
+
+        optDict.VerticalList = itemFactory.getRowWidget(
+            _('Vertical List'),
+            _('Arranges the items of the switcher pop-up in a single column instead of a row, so a long list does not extend beyond the screen width. In this mode the Up/Down keys move the selection'),
+            itemFactory.newSwitch(),
+            'switcherPopupVertical'
         );
 
         optDict.AppearanceCommon = itemFactory.getRowWidget(
