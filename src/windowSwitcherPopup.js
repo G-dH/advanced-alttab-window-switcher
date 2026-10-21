@@ -1765,7 +1765,7 @@ export const WindowSwitcherPopup = {
             this._resetNoModsTimeout();
             this._lastActionTimeStamp = Date.now();
             return this._triggerAction(action, direction);
-        })
+        });
     },
 
     _onItemScrollEvent(actor, event) {
