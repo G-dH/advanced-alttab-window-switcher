@@ -1,8 +1,11 @@
 ## Changelog
-### v51.1 (2026-10-??)
+### v51.1 (2026-10-27)
 **Fixed:**
 - Memory leak that caused delays when opening the overview with workspace thumbnails enabled
 - Hotkeys not working in GNOME 51
+
+**Changed:**
+- Set the minimum window preview size to 0 to allow previews to be disabled
 
 
 ### v51.0 (2026-09-18)
