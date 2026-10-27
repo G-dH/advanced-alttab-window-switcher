@@ -149,21 +149,23 @@ export const WindowSwitcherPopup = {
             coordinate: Clutter.BindCoordinate.ALL,
         }));
 
-        const longPressGesture = new Clutter.LongPressGesture({
-            long_press_duration_ms: 0,
-        });
-        longPressGesture.connect('may-recognize', () => {
-            const coords = longPressGesture.get_coords_abs();
-            const actorAtCoords =
-                global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, coords.x, coords.y);
+        if (Clutter.LongPressGesture) {
+            const longPressGesture = new Clutter.LongPressGesture({
+                long_press_duration_ms: 0,
+            });
+            longPressGesture.connect('may-recognize', () => {
+                const coords = longPressGesture.get_coords_abs();
+                const actorAtCoords =
+                    global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, coords.x, coords.y);
 
-            return this._isActorOutside(actorAtCoords);
-        });
-        longPressGesture.connect('recognize', () => {
-            // User clicked outside
-            this.fadeAndDestroy();
-        });
-        this.add_action(longPressGesture);
+                return this._isActorOutside(actorAtCoords);
+            });
+            longPressGesture.connect('recognize', () => {
+                // User clicked outside
+                this.fadeAndDestroy();
+            });
+            this.add_action(longPressGesture);
+        }
 
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
