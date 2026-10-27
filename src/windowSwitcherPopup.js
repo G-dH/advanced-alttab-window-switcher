@@ -769,6 +769,7 @@ export const WindowSwitcherPopup = {
 
         if (this._wsTmb) {
             this.remove_child(this._wsTmb);
+            this._wsTmb.destroy();
             this._wsTmb = null;
         }
 
