@@ -117,12 +117,66 @@ export const AppSwitcherPopup = {
 };
 
 export const WindowSwitcherPopup = {
+    _initPopup() {
+        St.Widget.prototype._init.bind(this)({
+            style_class: 'switcher-popup',
+            reactive: true,
+            visible: false,
+            offscreen_redirect: Clutter.OffscreenRedirect.ALWAYS,
+        });
+
+        this._switcherList = null;
+
+        this._items = [];
+        this._selectedIndex = 0;
+
+        this.connect('destroy', this._onDestroy.bind(this));
+
+        Main.uiGroup.add_child(this);
+
+        Main.layoutManager.connectObject(
+            'system-modal-opened', () => this.destroy(), this);
+
+        this._haveModal = false;
+        this._modifierMask = 0;
+
+        this._motionTimeoutId = 0;
+        this._initialDelayTimeoutId = 0;
+        this._noModsTimeoutId = 0;
+
+        this.add_constraint(new Clutter.BindConstraint({
+            source: global.stage,
+            coordinate: Clutter.BindCoordinate.ALL,
+        }));
+
+        const longPressGesture = new Clutter.LongPressGesture({
+            long_press_duration_ms: 0,
+        });
+        longPressGesture.connect('may-recognize', () => {
+            const coords = longPressGesture.get_coords_abs();
+            const actorAtCoords =
+                global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, coords.x, coords.y);
+
+            return this._isActorOutside(actorAtCoords);
+        });
+        longPressGesture.connect('recognize', () => {
+            // User clicked outside
+            this.fadeAndDestroy();
+        });
+        this.add_action(longPressGesture);
+
+        // Initially disable hover so we ignore the enter-event if
+        // the switcher appears underneath the current pointer location
+        this._disableHover();
+    },
+
     _init() {
         shortcutModifiers = global.get_pointer()[2];
         this._initTime = Date.now();
-        SwitcherPopup.SwitcherPopup.prototype._init.bind(this)({
-            offscreen_redirect: Clutter.OffscreenRedirect.ALWAYS,
-        });
+        // Since GNOME 51, the switcherPopup keyboard handler is connected through
+        // Clutter.KeyController and bound directly instead of using an anonymous function.
+        // Therefore, we need to override the entire init method to bypass this.
+        this._initPopup();
 
         [this.PANEL_TOP,
             this.PANEL_BOTTOM]     = this._getPanelPlacement();

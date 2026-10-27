@@ -1,5 +1,11 @@
 ## Changelog
-### v51.0 (not yet released)
+### v51.1 (2026-10-??)
+**Fixed:**
+- Memory leak that caused delays when opening the overview with workspace thumbnails enabled
+- Hotkeys not working in GNOME 51
+
+
+### v51.0 (2026-09-18)
 **Added:**
 - Support for GNOME 51
 
