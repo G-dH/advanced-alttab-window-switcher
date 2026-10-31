@@ -80,6 +80,11 @@
     <key name='switcher-popup-start-search' type='b'>
       <default>true</default>
     </key>
+    <key name='switcher-popup-require-enter' type='b'>
+      <default>false</default>
+      <summary>Keep keyboard-triggered switchers open until explicit activation</summary>
+      <description>Releasing Alt or Super does not activate the selected result. Press Enter to activate or Escape to dismiss.</description>
+    </key>
     <key name='switcher-popup-position' type='i'>
       <default>2</default>
     </key>

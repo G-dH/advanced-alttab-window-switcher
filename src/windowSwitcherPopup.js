@@ -423,6 +423,12 @@ export const WindowSwitcherPopup = {
     },
 
     _resetNoModsTimeoutOrFinish(binding, mask) {
+        if (opt.REQUIRE_ENTER && this._keyboardTriggered) {
+            // Also cover a quick Alt+Tab where Alt was released before the grab.
+            this._modifierMask = 0;
+            return false;
+        }
+
         // There's a race condition; if the user released Alt before
         // we got the grab, then we won't be notified. (See
         // https://bugzilla.gnome.org/show_bug.cgi?id=596695 for
@@ -1342,6 +1348,10 @@ export const WindowSwitcherPopup = {
     _resetNoModsTimeout() {
         if (this._noModsTimeoutId)
             GLib.source_remove(this._noModsTimeoutId);
+
+        this._noModsTimeoutId = 0;
+        if (opt.REQUIRE_ENTER && this._keyboardTriggered)
+            return;
 
         this._noModsTimeoutId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,

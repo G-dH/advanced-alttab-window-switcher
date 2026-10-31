@@ -128,6 +128,7 @@ export default class AATWS extends ExtensionPreferences {
             o.DefaultMonitor,
             o.ShowImmediately,
             o.SearchModeDefault,
+            o.RequireEnter,
             o.SyncFilter,
             o.WraparoundSelector,
             o.HoverSelectsItem,
@@ -346,6 +347,13 @@ export default class AATWS extends ExtensionPreferences {
             _('Immediately enables type-to-search functionality upon switcher pop-up. Use hotkeys while holding down the Shift key'),
             itemFactory.newSwitch(),
             'switcherPopupStartSearch'
+        );
+
+        optDict.RequireEnter = itemFactory.getRowWidget(
+            _('Keep Switcher Open After Modifier Release'),
+            _('Keeps keyboard-triggered switchers open when Alt or Super is released. Press Enter to activate the selected result or Esc to dismiss'),
+            itemFactory.newSwitch(),
+            'switcherPopupRequireEnter'
         );
 
         optDict.WraparoundSelector = itemFactory.getRowWidget(
