@@ -20,6 +20,7 @@ import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 
 import * as Enum from './enum.js';
 import * as Util from './util.js';
+import { getGridNeighbor, getPagedGridNeighbor } from './gridLayout.js';
 
 
 export class InputHandler {
@@ -384,6 +385,11 @@ export class InputHandler {
     }
 
     _navigateUp() {
+        if (this._navigatePagedGrid('up'))
+            return;
+        if (this._navigateGrid(-this._wsp._switcherList?._gridColumns))
+            return;
+
         if (this._ctrlPressed() && !this._shiftPressed())
             this._wsp.moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
         else if (this._ctrlPressed() && this._shiftPressed())
@@ -399,6 +405,11 @@ export class InputHandler {
     }
 
     _navigateDown() {
+        if (this._navigatePagedGrid('down'))
+            return;
+        if (this._navigateGrid(this._wsp._switcherList?._gridColumns))
+            return;
+
         if (this._ctrlPressed() && !this._shiftPressed())
             this._actions.moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
         else if (this._ctrlPressed() && this._shiftPressed())
@@ -412,6 +423,11 @@ export class InputHandler {
     }
 
     _navigateLeft() {
+        if (this._navigatePagedGrid('left'))
+            return;
+        if (this._navigateGrid(-1, true))
+            return;
+
         if (this._shiftPressed() && this._ctrlPressed())
             this._wsp._moveFavorites(-1);
         else if (this._ctrlPressed() && !this._shiftPressed())
@@ -423,6 +439,11 @@ export class InputHandler {
     }
 
     _navigateRight() {
+        if (this._navigatePagedGrid('right'))
+            return;
+        if (this._navigateGrid(1, true))
+            return;
+
         if (this._shiftPressed() && this._ctrlPressed())
             this._wsp._moveFavorites(+1);
         else if (this._ctrlPressed() && !this._shiftPressed())
@@ -431,6 +452,32 @@ export class InputHandler {
             this._wsp._select(this._wsp._next(true));
         else
             this._wsp._switchMonitor(Meta.DisplayDirection.RIGHT);
+    }
+
+    _navigateGrid(step, horizontal = false) {
+        const list = this._wsp._switcherList;
+        if (!list?._gridMode || !step || this._ctrlPressed() || this._shiftPressed())
+            return false;
+
+        const current = this._wsp._selectedIndex;
+        const last = this._wsp._items.length - 1;
+        const target = getGridNeighbor(current, step, list._gridColumns, last + 1, horizontal);
+
+        if (target !== current)
+            this._wsp._select(target);
+        return true;
+    }
+
+    _navigatePagedGrid(direction) {
+        const list = this._wsp._switcherList;
+        if (!list?._gridMode || !list._gridOverflow || this._ctrlPressed() || this._shiftPressed())
+            return false;
+
+        const current = this._wsp._selectedIndex;
+        const target = getPagedGridNeighbor(current, direction, list._gridRows, this._wsp._items.length);
+        if (target !== current)
+            this._wsp._select(target);
+        return true;
     }
 
     _navigateHome() {

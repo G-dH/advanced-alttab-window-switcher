@@ -141,6 +141,11 @@ export const Options = class Options {
             winSwitcherPopupSorting: ['int', 'win-switcher-popup-sorting'],
             winSwitcherPopupOrder: ['int', 'win-switcher-popup-order'],
             winSwitcherPopupTitles: ['int', 'win-switcher-popup-titles'],
+            winSwitcherPopupGrid: ['boolean', 'win-switcher-popup-grid'],
+            winSwitcherPopupGridCellWidth: ['int', 'win-switcher-popup-grid-cell-width'],
+            winSwitcherPopupGridCellHeight: ['int', 'win-switcher-popup-grid-cell-height'],
+            winSwitcherPopupGridSpacing: ['int', 'win-switcher-popup-grid-spacing'],
+            winSwitcherPopupGridMaxColumns: ['int', 'win-switcher-popup-grid-max-columns'],
             winSwitcherPopupScrollItem: ['int', 'win-switcher-popup-scroll-item'],
             winSwitcherPopupPrimClickItem: ['int', 'win-switcher-popup-prim-click-item'],
             winSwitcherPopupSecClickItem: ['int', 'win-switcher-popup-sec-click-item'],
@@ -346,6 +351,11 @@ export const Options = class Options {
         this.SEARCH_APPS           = this.get('winSwitcherPopupSearchApps');
         this.SINGLE_APP_PREVIEW_SIZE = this.get('singleAppPreviewSize');
         this.WINDOW_TITLES         = this.get('winSwitcherPopupTitles');
+        this.WINDOW_GRID           = this.get('winSwitcherPopupGrid');
+        this.GRID_CELL_WIDTH       = this.get('winSwitcherPopupGridCellWidth');
+        this.GRID_CELL_HEIGHT      = this.get('winSwitcherPopupGridCellHeight');
+        this.GRID_SPACING          = this.get('winSwitcherPopupGridSpacing');
+        this.GRID_MAX_COLUMNS      = this.get('winSwitcherPopupGridMaxColumns');
         this.WINDOW_PREVIEW_SIZE   = this.get('winSwitcherPopupPreviewSize');
         this.APP_ICON_SIZE         = this.get('winSwitcherPopupIconSize');
         this.WS_INDEXES            = this.get('winSwitcherPopupWsIndexes');

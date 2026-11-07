@@ -43,6 +43,25 @@
     <key name='win-switcher-popup-icon-size' type='i'>
       <default>48</default>
     </key>
+    <key name='win-switcher-popup-grid' type='b'>
+      <default>false</default>
+    </key>
+    <key name='win-switcher-popup-grid-cell-width' type='i'>
+      <range min='120' max='480'/>
+      <default>232</default>
+    </key>
+    <key name='win-switcher-popup-grid-cell-height' type='i'>
+      <range min='96' max='360'/>
+      <default>156</default>
+    </key>
+    <key name='win-switcher-popup-grid-spacing' type='i'>
+      <range min='0' max='32'/>
+      <default>8</default>
+    </key>
+    <key name='win-switcher-popup-grid-max-columns' type='i'>
+      <range min='1' max='12'/>
+      <default>4</default>
+    </key>
     <key name='win-switch-minimized-to-end' type='b'>
       <default>true</default>
     </key>

@@ -17,9 +17,12 @@ ZIP_CONTENT = $(JS_FILES) $(LOCALES_MO) \
               schemas/* schemas/gschemas.compiled metadata.json stylesheet.css LICENSE
 
 # These six recipes can be invoked by the user.
-.PHONY: all zip install uninstall pot clean
+.PHONY: all zip install uninstall pot clean test
 
 all: $(ZIP_CONTENT)
+
+test:
+	node --test tests/*.test.mjs
 
 # The zip recipes only bundles the extension without installing it.
 zip: $(ZIP_NAME)

@@ -169,6 +169,20 @@
   spacing: 1px;
 }
 
+.aatws-window-grid-list {
+  padding: 6px;
+  border-radius: 16px;
+}
+
+.aatws-window-grid {
+  spacing: 0;
+}
+
+.aatws-window-grid-list .item-box {
+  padding: 2px;
+  border-radius: 10px;
+}
+
 .switcher-list, .switcher-list-dark, .switcher-list-light, .switcher-list-all, .switcher-list-workspace, .switcher-list-monitor {
   border-width: 1px;
   margin-top: 6px; /* can be overridden in code - position top */

@@ -30,6 +30,26 @@ An extension for GNOME Shell that enhances its following built-in switchers:
 - Configurable mouse buttons and scroll wheel
 - Supported by the *Custom Hot Corners - Extended* extension
 - Workspace Thumbnails option allows better navigation between workspaces (GNONE 40+)
+- Optional multi-row window grid with configurable cell size and spacing. The
+  grid keeps filtered windows visible at a readable size, adds horizontal
+  overflow only when needed, and uses unmodified arrow keys for spatial
+  row/column navigation.
+
+### Multi-Row Window Grid
+
+Enable **Window Switcher > Multi-Row Window Grid** to arrange individual
+windows in a fixed grid. Set **Default Filter** to **All** to include windows
+from every workspace. `Tab` and `Shift+Tab` retain sequential navigation,
+while unmodified arrow keys navigate spatially. Modified arrow shortcuts keep
+their existing AATWS actions. Use **Maximum Grid Columns** to prevent wide
+layouts from extending beyond a narrow or portrait display. If the screen
+cannot fit every window at the configured readable cell size, the grid keeps a
+fixed number of visible columns and adds horizontally scrollable overflow
+columns. Selecting an overflow item scrolls only enough to reveal its column.
+
+Only one extension should replace GNOME's Alt-Tab switcher. Disable Alt-Tab
+overrides in Tiling Shell, Coverflow Alt-Tab, and similar extensions before
+enabling AATWS.
 
 [Video review on Linux Experience Youtube channel](https://youtu.be/KtjYPMCvQ7Y?t=447)
 

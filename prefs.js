@@ -172,6 +172,11 @@ export default class AATWS extends ExtensionPreferences {
             o.AppearanceWin,
             o.ShowWindowTitle,
             o.ShowWorkspaceIndex,
+            o.WindowGrid,
+            o.GridCellWidth,
+            o.GridCellHeight,
+            o.GridSpacing,
+            o.GridMaxColumns,
             o.WindowPreviewSize,
             o.WindowIconSize,
         ];
@@ -770,6 +775,65 @@ export default class AATWS extends ExtensionPreferences {
 
         optDict.AppearanceWin = itemFactory.getRowWidget(
             _('Appearance')
+        );
+
+        optDict.WindowGrid = itemFactory.getRowWidget(
+            _('Multi-Row Window Grid'),
+            _('Displays all window-switcher items in a fixed grid without horizontal scrolling. Unmodified arrow keys navigate rows and columns.'),
+            itemFactory.newSwitch(),
+            'winSwitcherPopupGrid'
+        );
+
+        const gridWidthAdjustment = new Gtk.Adjustment({
+            upper: 480,
+            lower: 120,
+            step_increment: 8,
+            page_increment: 16,
+        });
+        optDict.GridCellWidth = itemFactory.getRowWidget(
+            _('Grid Cell Width (px)'),
+            null,
+            itemFactory.newScale(gridWidthAdjustment),
+            'winSwitcherPopupGridCellWidth'
+        );
+
+        const gridHeightAdjustment = new Gtk.Adjustment({
+            upper: 360,
+            lower: 96,
+            step_increment: 8,
+            page_increment: 16,
+        });
+        optDict.GridCellHeight = itemFactory.getRowWidget(
+            _('Grid Cell Height (px)'),
+            null,
+            itemFactory.newScale(gridHeightAdjustment),
+            'winSwitcherPopupGridCellHeight'
+        );
+
+        const gridSpacingAdjustment = new Gtk.Adjustment({
+            upper: 32,
+            lower: 0,
+            step_increment: 1,
+            page_increment: 4,
+        });
+        optDict.GridSpacing = itemFactory.getRowWidget(
+            _('Grid Spacing (px)'),
+            null,
+            itemFactory.newScale(gridSpacingAdjustment),
+            'winSwitcherPopupGridSpacing'
+        );
+
+        const gridColumnsAdjustment = new Gtk.Adjustment({
+            upper: 12,
+            lower: 1,
+            step_increment: 1,
+            page_increment: 1,
+        });
+        optDict.GridMaxColumns = itemFactory.getRowWidget(
+            _('Maximum Grid Columns'),
+            _('Limits grid width and moves additional windows to a new row'),
+            itemFactory.newScale(gridColumnsAdjustment),
+            'winSwitcherPopupGridMaxColumns'
         );
 
         const popupPreviewSizeAdjustment = new Gtk.Adjustment({

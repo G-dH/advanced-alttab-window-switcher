@@ -17,6 +17,7 @@ import Meta from 'gi://Meta';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as SwitcherPopup from 'resource:///org/gnome/shell/ui/switcherPopup.js';
 import { AppIcon, WindowIcon, SysActionIcon, ShowAppsIcon } from './switcherItems.js';
+import { calculateGrid } from './gridLayout.js';
 
 // gettext
 let _;
@@ -122,7 +123,74 @@ export const SwitcherList = GObject.registerClass({
         if (!this._opt.COLOR_STYLE_DEFAULT && showAppsItemBox)
             showAppsItemBox.add_style_class_name('item-box-custom');
 
+        this._gridMode = this._opt.WINDOW_GRID && !!items[0].get_title && !dashMode;
+        if (this._gridMode)
+            this._configureGrid();
+
         this.connect('destroy', this._onDestroy.bind(this));
+    }
+
+    _configureGrid() {
+        const itemCount = this._items.length;
+        if (!itemCount)
+            return;
+
+        const monitor = this._wsp._monitorGeometry;
+        const maxWidth = Math.floor(monitor.width * 0.96);
+        const maxHeight = Math.floor(monitor.height * 0.96);
+        const spacing = this._opt.GRID_SPACING;
+        const maxCellWidth = this._opt.GRID_CELL_WIDTH;
+        const maxCellHeight = this._opt.GRID_CELL_HEIGHT;
+        const gridLayout = calculateGrid(
+            itemCount,
+            maxWidth,
+            maxHeight,
+            maxCellWidth,
+            maxCellHeight,
+            spacing,
+            this._opt.GRID_MAX_COLUMNS
+        );
+        const { columns, rows, cellWidth, cellHeight } = gridLayout;
+
+        this._gridColumns = columns;
+        this._gridRows = rows;
+        this._gridOverflow = gridLayout.overflow;
+        this._gridWidth = gridLayout.width;
+        this._gridContentWidth = gridLayout.contentWidth;
+        this._gridHeight = gridLayout.height;
+
+        const gridManager = new Clutter.GridLayout({
+            orientation: Clutter.Orientation.HORIZONTAL,
+            column_spacing: spacing,
+            row_spacing: spacing,
+            column_homogeneous: true,
+            row_homogeneous: true,
+        });
+        const oldList = this._list;
+        const grid = new St.Widget({
+            style_class: 'switcher-list-item-container aatws-window-grid',
+            layout_manager: gridManager,
+            width: this._gridContentWidth,
+            height: this._gridHeight,
+        });
+        const viewport = new St.Viewport({ clip_to_view: true });
+        viewport.add_child(grid);
+
+        this._items.forEach((item, index) => {
+            oldList.remove_child(item);
+            item.set_size(cellWidth, cellHeight);
+            gridManager.attach(item, Math.floor(index / rows), index % rows, 1, 1);
+        });
+
+        this._scrollView.set_child(viewport);
+        this._list = grid;
+        oldList.destroy();
+        this._scrollView.set_size(this._gridWidth, this._gridHeight);
+        this.add_style_class_name('aatws-window-grid-list');
+        if (!this._gridOverflow) {
+            this._leftArrow.hide();
+            this._rightArrow.hide();
+        }
     }
 
     _addStatusLabel() {
@@ -204,6 +272,16 @@ export const SwitcherList = GObject.registerClass({
             let [childMin] = this._maxChildWidth(-1);
             maxChildMin = Math.max(childMin, maxChildMin);
             maxChildNat = maxChildMin;
+        }
+
+        if (this._gridMode) {
+            const themeNode = this.get_theme_node();
+            let [minHeight, natHeight] = themeNode.adjust_preferred_height(this._gridHeight, this._gridHeight);
+            const spacing = themeNode.get_padding(St.Side.BOTTOM);
+            const [, labelNat] = this._statusLabel?.get_preferred_height(-1) ?? [0, 0];
+            minHeight += labelNat + spacing;
+            natHeight += labelNat + spacing;
+            return [minHeight, natHeight];
         }
 
         const orientation = this._list.orientation === undefined ? 'vertical' : 'orientation';
@@ -291,6 +369,24 @@ export const SwitcherList = GObject.registerClass({
         }
 
         this._highlighted = index;
+
+        if (this._gridMode) {
+            const adjustment = this._scrollView.hadjustment;
+            const column = Math.floor(index / this._gridRows);
+            const itemStep = this._gridContentWidth / this._gridColumns;
+            const itemLeft = column * itemStep;
+            const itemRight = itemLeft + itemStep;
+            const current = adjustment.value;
+            let target = current;
+
+            if (itemLeft < current)
+                target = itemLeft;
+            else if (itemRight > current + this._gridWidth)
+                target = itemRight - this._gridWidth;
+
+            adjustment.set_value(Math.max(0, Math.min(target, this._gridContentWidth - this._gridWidth)));
+            return;
+        }
 
         let adjustment = this._scrollView.get_hadjustment
             ? this._scrollView.get_hadjustment()
