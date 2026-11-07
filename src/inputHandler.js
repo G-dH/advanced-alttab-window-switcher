@@ -20,6 +20,7 @@ import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 
 import * as Enum from './enum.js';
 import * as Util from './util.js';
+import { getGridNeighbor, getPagedGridNeighbor, isGridNavigationHotkey } from './gridLayout.js';
 
 
 export class InputHandler {
@@ -108,6 +109,10 @@ export class InputHandler {
         const isNumPadNumber = keysym >= Clutter.KEY_KP_1 && keysym <= Clutter.KEY_KP_9;
         const isFKey = keysym >= Clutter.KEY_F1 && keysym <= Clutter.KEY_F19;
 
+        // In grid mode, configured Vim-style directional keys must navigate
+        // before type-to-search consumes them as text.
+        if (this._handleGridNavigationHotkey(keysym, keyString))
+            return Clutter.EVENT_STOP;
 
         const handlers = [
             { name: '_handleDirectSelection', args: [keysym, isNumPadNumber, isFKey] },
@@ -136,6 +141,23 @@ export class InputHandler {
             this._wsp._finish(true);
 
         return Clutter.EVENT_PROPAGATE;
+    }
+
+    _handleGridNavigationHotkey(keysym, keyString) {
+        const list = this._wsp._switcherList;
+        if (!list?._gridMode || this._ctrlPressed() || this._shiftPressed())
+            return false;
+
+        const directionalHotkeys = [
+            this._opt.get('hotkeyUp'),
+            this._opt.get('hotkeyDown'),
+            this._opt.get('hotkeyLeft'),
+            this._opt.get('hotkeyRight'),
+        ];
+        if (!isGridNavigationHotkey(keyString, directionalHotkeys))
+            return false;
+
+        return this._handleNavigationKeys(keysym, keyString);
     }
 
     _handleDirectSelection(keysym, isNumPadNumber, isFKey) {
@@ -384,6 +406,11 @@ export class InputHandler {
     }
 
     _navigateUp() {
+        if (this._navigatePagedGrid('up'))
+            return;
+        if (this._navigateGrid(-this._wsp._switcherList?._gridColumns))
+            return;
+
         if (this._ctrlPressed() && !this._shiftPressed())
             this._wsp.moveWinToAdjacentWs(Clutter.ScrollDirection.UP);
         else if (this._ctrlPressed() && this._shiftPressed())
@@ -399,6 +426,11 @@ export class InputHandler {
     }
 
     _navigateDown() {
+        if (this._navigatePagedGrid('down'))
+            return;
+        if (this._navigateGrid(this._wsp._switcherList?._gridColumns))
+            return;
+
         if (this._ctrlPressed() && !this._shiftPressed())
             this._actions.moveWinToAdjacentWs(Clutter.ScrollDirection.DOWN);
         else if (this._ctrlPressed() && this._shiftPressed())
@@ -412,6 +444,11 @@ export class InputHandler {
     }
 
     _navigateLeft() {
+        if (this._navigatePagedGrid('left'))
+            return;
+        if (this._navigateGrid(-1, true))
+            return;
+
         if (this._shiftPressed() && this._ctrlPressed())
             this._wsp._moveFavorites(-1);
         else if (this._ctrlPressed() && !this._shiftPressed())
@@ -423,6 +460,11 @@ export class InputHandler {
     }
 
     _navigateRight() {
+        if (this._navigatePagedGrid('right'))
+            return;
+        if (this._navigateGrid(1, true))
+            return;
+
         if (this._shiftPressed() && this._ctrlPressed())
             this._wsp._moveFavorites(+1);
         else if (this._ctrlPressed() && !this._shiftPressed())
@@ -431,6 +473,32 @@ export class InputHandler {
             this._wsp._select(this._wsp._next(true));
         else
             this._wsp._switchMonitor(Meta.DisplayDirection.RIGHT);
+    }
+
+    _navigateGrid(step, horizontal = false) {
+        const list = this._wsp._switcherList;
+        if (!list?._gridMode || !step || this._ctrlPressed() || this._shiftPressed())
+            return false;
+
+        const current = this._wsp._selectedIndex;
+        const last = this._wsp._items.length - 1;
+        const target = getGridNeighbor(current, step, list._gridColumns, last + 1, horizontal);
+
+        if (target !== current)
+            this._wsp._select(target);
+        return true;
+    }
+
+    _navigatePagedGrid(direction) {
+        const list = this._wsp._switcherList;
+        if (!list?._gridMode || !list._gridOverflow || this._ctrlPressed() || this._shiftPressed())
+            return false;
+
+        const current = this._wsp._selectedIndex;
+        const target = getPagedGridNeighbor(current, direction, list._gridRows, this._wsp._items.length);
+        if (target !== current)
+            this._wsp._select(target);
+        return true;
     }
 
     _navigateHome() {
