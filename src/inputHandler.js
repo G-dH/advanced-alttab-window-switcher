@@ -109,6 +109,10 @@ export class InputHandler {
         const isNumPadNumber = keysym >= Clutter.KEY_KP_1 && keysym <= Clutter.KEY_KP_9;
         const isFKey = keysym >= Clutter.KEY_F1 && keysym <= Clutter.KEY_F19;
 
+        // In grid mode, configured Vim-style directional keys must navigate
+        // before type-to-search consumes them as text.
+        if (this._handleGridNavigationHotkey(keysym, keyString))
+            return Clutter.EVENT_STOP;
 
         const handlers = [
             { name: '_handleDirectSelection', args: [keysym, isNumPadNumber, isFKey] },
@@ -137,6 +141,23 @@ export class InputHandler {
             this._wsp._finish(true);
 
         return Clutter.EVENT_PROPAGATE;
+    }
+
+    _handleGridNavigationHotkey(keysym, keyString) {
+        const list = this._wsp._switcherList;
+        if (!list?._gridMode || this._ctrlPressed() || this._shiftPressed())
+            return false;
+
+        const directionalHotkeys = [
+            this._opt.get('hotkeyUp'),
+            this._opt.get('hotkeyDown'),
+            this._opt.get('hotkeyLeft'),
+            this._opt.get('hotkeyRight'),
+        ];
+        if (!directionalHotkeys.some(hotkeys => hotkeys.includes(keyString)))
+            return false;
+
+        return this._handleNavigationKeys(keysym, keyString);
     }
 
     _handleDirectSelection(keysym, isNumPadNumber, isFKey) {

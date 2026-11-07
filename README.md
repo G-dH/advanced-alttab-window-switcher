@@ -46,6 +46,9 @@ layouts from extending beyond a narrow or portrait display. If the screen
 cannot fit every window at the configured readable cell size, the grid keeps a
 fixed number of visible columns and adds horizontally scrollable overflow
 columns. Selecting an overflow item scrolls only enough to reveal its column.
+The existing configurable directional hotkeys default to Vim-style `H/J/K/L`;
+in grid mode they take priority over type-to-search and navigate left, down, up,
+and right respectively.
 
 Only one extension should replace GNOME's Alt-Tab switcher. Disable Alt-Tab
 overrides in Tiling Shell, Coverflow Alt-Tab, and similar extensions before
