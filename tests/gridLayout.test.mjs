@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { calculateGrid, getGridNeighbor, getPagedGridNeighbor } from '../src/gridLayout.js';
+import {
+    calculateGrid,
+    getGridNeighbor,
+    getPagedGridNeighbor,
+    isGridNavigationHotkey,
+} from '../src/gridLayout.js';
 
 test('fits 12 windows into four columns and three rows on a portrait display', () => {
     const grid = calculateGrid(12, 1036, 1843, 232, 156, 8);
@@ -56,4 +61,11 @@ test('defensively clamps invalid dimensions', () => {
     assert.ok(grid.rows >= 1);
     assert.ok(grid.cellWidth >= 1);
     assert.ok(grid.cellHeight >= 1);
+});
+
+test('recognizes configured Vim navigation keys case-insensitively', () => {
+    const hotkeys = ['K', 'J', 'H', 'L'];
+    for (const key of ['h', 'j', 'k', 'l', 'H', 'J', 'K', 'L'])
+        assert.equal(isGridNavigationHotkey(key, hotkeys), true);
+    assert.equal(isGridNavigationHotkey('q', hotkeys), false);
 });

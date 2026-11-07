@@ -20,7 +20,7 @@ import * as Keyboard from 'resource:///org/gnome/shell/ui/status/keyboard.js';
 
 import * as Enum from './enum.js';
 import * as Util from './util.js';
-import { getGridNeighbor, getPagedGridNeighbor } from './gridLayout.js';
+import { getGridNeighbor, getPagedGridNeighbor, isGridNavigationHotkey } from './gridLayout.js';
 
 
 export class InputHandler {
@@ -154,7 +154,7 @@ export class InputHandler {
             this._opt.get('hotkeyLeft'),
             this._opt.get('hotkeyRight'),
         ];
-        if (!directionalHotkeys.some(hotkeys => hotkeys.includes(keyString)))
+        if (!isGridNavigationHotkey(keyString, directionalHotkeys))
             return false;
 
         return this._handleNavigationKeys(keysym, keyString);

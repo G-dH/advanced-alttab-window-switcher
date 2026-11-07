@@ -66,3 +66,8 @@ export function getPagedGridNeighbor(current, direction, rows, itemCount) {
 
     return target;
 }
+
+export function isGridNavigationHotkey(key, hotkeys) {
+    const normalizedKey = key.toUpperCase();
+    return hotkeys.some(configured => configured.toUpperCase().includes(normalizedKey));
+}
