@@ -54,6 +54,54 @@ Only one extension should replace GNOME's Alt-Tab switcher. Disable Alt-Tab
 overrides in Tiling Shell, Coverflow Alt-Tab, and similar extensions before
 enabling AATWS.
 
+#### Recommended Grid Setup
+
+Open AATWS Preferences and use:
+
+| Option | Recommended value |
+|---|---:|
+| Default Filter | All |
+| Multi-Row Window Grid | Enabled |
+| Grid Cell Width | 232 px |
+| Grid Cell Height | 156 px |
+| Grid Spacing | 8 px |
+| Maximum Grid Columns | 4 |
+
+This configuration shows individual windows from all workspaces and works well
+on both landscape and portrait displays. For example, 12 windows fit into a
+4-column by 3-row grid. If the screen cannot fit all windows without making
+previews unreadably small, AATWS keeps the configured visible columns and adds
+horizontal overflow columns dynamically. Selecting a window in an overflow
+column scrolls only enough to reveal that column.
+
+#### Grid Navigation
+
+| Key | Grid mode | Existing list mode |
+|---|---|---|
+| `H` / Left arrow | Previous column | Previous window |
+| `J` / Down arrow | Next row | Configured Down action |
+| `K` / Up arrow | Previous row | Configured Up action |
+| `L` / Right arrow | Next column | Next window |
+| `Tab` / `Shift+Tab` | Next / previous window sequentially | Next / previous window sequentially |
+| `Esc` | Cancel without activating the selected window | Cancel without activating the selected window |
+
+In grid mode, the configured directional hotkeys take priority over
+type-to-search. The defaults are Vim-style `H/J/K/L`; they can be changed in
+the **Hotkeys** preferences page. Ctrl/Shift-modified arrow actions retain their
+existing AATWS behavior.
+
+#### Install This Grid-Enabled Fork
+
+```bash
+git clone https://github.com/manhnh97/advanced-alttab-window-switcher.git
+cd advanced-alttab-window-switcher
+make install
+```
+
+GNOME Shell caches extension JavaScript. On Wayland, log out and back in once
+after installing or updating the extension. On X11, restart GNOME Shell with
+Alt+F2 followed by `r`.
+
 [Video review on Linux Experience Youtube channel](https://youtu.be/KtjYPMCvQ7Y?t=447)
 
 ### Hotkeys
@@ -63,8 +111,8 @@ enabling AATWS.
 
 | Hotkey | Description |
 |------|---------------------------------|
-|`H/L, Left/Right arrows`|  - Window selection|
-|`J/K, Up/Down, PgUp/Down`| - Workspace selection|
+|`H/L, Left/Right arrows`|  - Window selection in list mode; column navigation in grid mode|
+|`J/K, Up/Down, PgUp/Down`| - Workspace/configured Up/Down action in list mode; row navigation in grid mode|
 |`Ctrl+[PgUp/Down]`|        - Reorder the current workspace - changes the workspace index -1/+1.|
 |`Shift+Arrow keys`|      - Move the switcher popup to the adjacent monitor in corresponding direction.|
 |`Ctrl+Tab`|                - Move the switcher popup to the next monitor, order is given by the Shell, Shift key changes direction.|
